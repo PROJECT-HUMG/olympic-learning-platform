@@ -1,4 +1,4 @@
-package me.nghlong3004.olympic.api.exception;
+package me.nghlong3004.olympic.api.common.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -83,7 +83,17 @@ public enum ErrorCode {
   private final String code;
   private final String message;
 
-  public ErrorResponse toErrorResponse() {
-    return new ErrorResponse(message, status, code);
+  public String getTitle() {
+    return switch (HttpStatus.valueOf(status)) {
+      case BAD_REQUEST -> "Bad Request";
+      case UNAUTHORIZED -> "Unauthorized";
+      case FORBIDDEN -> "Forbidden";
+      case NOT_FOUND -> "Resource Not Found";
+      case CONFLICT -> "Resource Conflict";
+      case METHOD_NOT_ALLOWED -> "Method Not Allowed";
+      case UNSUPPORTED_MEDIA_TYPE -> "Unsupported Media Type";
+      case TOO_MANY_REQUESTS -> "Too Many Requests";
+      default -> status >= 500 ? "Internal Server Error" : "Application Error";
+    };
   }
 }

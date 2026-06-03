@@ -1,4 +1,4 @@
-package me.nghlong3004.olympic.api.oauth;
+package me.nghlong3004.olympic.api.identity.oauth;
 
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;

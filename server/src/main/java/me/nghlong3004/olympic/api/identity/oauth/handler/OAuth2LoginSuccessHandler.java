@@ -1,4 +1,4 @@
-package me.nghlong3004.olympic.api.oauth.handler;
+package me.nghlong3004.olympic.api.identity.oauth.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.nghlong3004.olympic.api.oauth.profile.OAuth2UserProfile;
-import me.nghlong3004.olympic.api.oauth.profile.OAuth2UserProfileService;
+import me.nghlong3004.olympic.api.identity.oauth.profile.OAuth2UserProfile;
+import me.nghlong3004.olympic.api.identity.oauth.profile.OAuth2UserProfileService;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;

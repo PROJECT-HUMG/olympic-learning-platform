@@ -1,4 +1,4 @@
-package me.nghlong3004.olympic.api.security;
+package me.nghlong3004.olympic.api.identity.security;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.nio.charset.StandardCharsets;

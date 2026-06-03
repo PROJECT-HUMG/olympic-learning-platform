@@ -1,0 +1,41 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.data.jpa.autoconfigure.DataJpaRepositoriesAutoConfiguration
+      - org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
+      - org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration
+  mvc:
+    problemdetails:
+      enabled: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-google-client
+            client-secret: test-google-secret
+            scope:
+              - email
+              - profile
+            redirect-uri: "{baseUrl}/api/v1/login/oauth2/code/{registrationId}"
+          github:
+            client-id: test-github-client
+            client-secret: test-github-secret
+            scope:
+              - user:email
+              - read:user
+            redirect-uri: "{baseUrl}/api/v1/login/oauth2/code/{registrationId}"
+
+olympic:
+  api:
+    problem-type-base-url: http://localhost:8080/api/v1/problems
+  client:
+    base-url: http://localhost:3000
+  security:
+    jwt:
+      secret-key: test-secret-key-test-secret-key-test-secret-key
+      refresh-expiration: 10080
+    cookie:
+      secure: false
+      same-site: Lax

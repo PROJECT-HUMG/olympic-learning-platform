@@ -1,4 +1,4 @@
-package me.nghlong3004.olympic.api.security;
+package me.nghlong3004.olympic.api.identity.security;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;

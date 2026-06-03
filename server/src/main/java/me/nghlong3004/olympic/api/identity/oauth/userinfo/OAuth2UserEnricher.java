@@ -1,6 +1,6 @@
-package me.nghlong3004.olympic.api.oauth.userinfo;
+package me.nghlong3004.olympic.api.identity.oauth.userinfo;
 
-import me.nghlong3004.olympic.api.oauth.AuthProvider;
+import me.nghlong3004.olympic.api.identity.oauth.AuthProvider;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 

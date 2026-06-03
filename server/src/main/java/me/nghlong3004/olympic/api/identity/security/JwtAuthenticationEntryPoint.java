@@ -1,4 +1,4 @@
-package me.nghlong3004.olympic.api.security;
+package me.nghlong3004.olympic.api.identity.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -6,7 +6,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.nghlong3004.olympic.api.exception.ErrorCode;
+import me.nghlong3004.olympic.api.common.exception.ErrorCode;
+import me.nghlong3004.olympic.api.common.exception.ProblemDetailsFactory;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Component;
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
   private final ObjectMapper objectMapper;
+  private final ProblemDetailsFactory problemDetailsFactory;
 
   @Override
   public void commence(
@@ -36,9 +38,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     log.debug("Authentication failed [{}]: {}", errorCode.getCode(), authException.getMessage());
 
-    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+    response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
     response.setStatus(errorCode.getStatus());
-    objectMapper.writeValue(response.getOutputStream(), errorCode.toErrorResponse());
+    objectMapper.writeValue(response.getOutputStream(), problemDetailsFactory.create(request, errorCode));
   }
 
   private ErrorCode resolveErrorCode(AuthenticationException authenticationException) {

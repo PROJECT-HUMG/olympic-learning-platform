@@ -43,6 +43,8 @@ management:
         enabled: true
 
 olympic:
+  api:
+    problem-type-base-url: ${OLYMPIC_API_PROBLEM_TYPE_BASE_URL}
   client:
     base-url: ${OLYMPIC_CLIENT_BASE_URL}
   security:

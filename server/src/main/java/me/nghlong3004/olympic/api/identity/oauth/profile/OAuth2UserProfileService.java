@@ -1,8 +1,8 @@
-package me.nghlong3004.olympic.api.oauth.profile;
+package me.nghlong3004.olympic.api.identity.oauth.profile;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import me.nghlong3004.olympic.api.oauth.AuthProvider;
+import me.nghlong3004.olympic.api.identity.oauth.AuthProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;

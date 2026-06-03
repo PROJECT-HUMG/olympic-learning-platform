@@ -1,10 +1,10 @@
-package me.nghlong3004.olympic.api.oauth.userinfo;
+package me.nghlong3004.olympic.api.identity.oauth.userinfo;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import me.nghlong3004.olympic.api.oauth.AuthProvider;
+import me.nghlong3004.olympic.api.identity.oauth.AuthProvider;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

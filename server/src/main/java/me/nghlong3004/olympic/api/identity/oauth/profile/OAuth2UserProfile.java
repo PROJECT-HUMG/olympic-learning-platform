@@ -1,6 +1,6 @@
-package me.nghlong3004.olympic.api.oauth.profile;
+package me.nghlong3004.olympic.api.identity.oauth.profile;
 
-import me.nghlong3004.olympic.api.oauth.AuthProvider;
+import me.nghlong3004.olympic.api.identity.oauth.AuthProvider;
 
 /**
  * @author nghlong3004 (Nguyen Hoang Long)

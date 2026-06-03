@@ -1,10 +1,13 @@
-package me.nghlong3004.olympic.api.security;
+package me.nghlong3004.olympic.api.identity.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -25,5 +28,13 @@ public class ApplicationConfig {
         .findAndAddModules()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .build();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(UserDetailsService.class)
+  public UserDetailsService userDetailsService() {
+    return username -> {
+      throw new UsernameNotFoundException("User not found: " + username);
+    };
   }
 }
