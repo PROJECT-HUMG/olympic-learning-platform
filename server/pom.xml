@@ -11,12 +11,12 @@
     <groupId>me.nghlong3004.olympic</groupId>
     <artifactId>api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Basic Sciences Olympiad of Hanoi University of Mining and Geology</name>
+    <name>Olympic Learning Platform </name>
     <description>
         A platform for practice, competition and resource sharing for students and lecturers at Hanoi University of
         Mining and Geology.
     </description>
-    <url>https://github.com/PROJECT-HUMG/olympic-humg</url>
+    <url>https://github.com/PROJECT-HUMG/olympic-learning-platform</url>
     <licenses>
         <license>
             <name>MIT License</name>
@@ -34,10 +34,10 @@
     </developers>
 
     <scm>
-        <connection>scm:git:https://github.com/PROJECT-HUMG/olympic-humg.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/PROJECT-HUMG/olympic-humg.git</developerConnection>
+        <connection>scm:git:https://github.com/PROJECT-HUMG/olympic-learning-platform.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/PROJECT-HUMG/olympic-learning-platform.git</developerConnection>
         <tag>HEAD</tag>
-        <url>https://github.com/PROJECT-HUMG/olympic-humg</url>
+        <url>https://github.com/PROJECT-HUMG/olympic-learning-platform</url>
     </scm>
 
     <properties>
