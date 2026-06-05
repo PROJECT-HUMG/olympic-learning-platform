@@ -70,10 +70,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponse create(CreateUserRequest request) {
         Objects.requireNonNull(request, "request must not be null");
-        log.debug("Creating user with email={}", request.email());
+        log.debug("Creating user with roleId={}", request.roleId());
 
         if (userRepository.existsByEmail(request.email())) {
-            log.warn("User creation failed: duplicate email={}", request.email());
+            log.warn("User creation failed: duplicate email detected");
             throw new DuplicateResourceException("User", "email", request.email());
         }
 
@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         user = userRepository.save(user);
-        log.info("User created: userId={}, email={}, role={}", user.getPublicId(), user.getEmail(), role.getName());
+        log.info("User created: userId={}, role={}", user.getPublicId(), role.getName());
         return userMapper.toResponse(user);
     }
 
@@ -105,7 +105,7 @@ public class UserServiceImpl implements UserService {
 
         if (request.email() != null && !request.email().equals(user.getEmail())) {
             if (userRepository.existsByEmail(request.email())) {
-                log.warn("User update failed: duplicate email={} for userId={}", request.email(), publicId);
+                log.warn("User update failed: duplicate email for userId={}", publicId);
                 throw new DuplicateResourceException("User", "email", request.email());
             }
             user.setEmail(request.email());

@@ -2,8 +2,11 @@ package me.nghlong3004.olympic.api.common.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 
@@ -20,6 +23,9 @@ import java.time.Instant;
 @MappedSuperclass
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
 public abstract class SoftDeletableEntity extends BaseEntity {
 
     @Column(name = "deleted", nullable = false)

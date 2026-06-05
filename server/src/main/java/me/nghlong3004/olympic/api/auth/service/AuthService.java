@@ -1,8 +1,7 @@
 package me.nghlong3004.olympic.api.auth.service;
 
-import me.nghlong3004.olympic.api.auth.dto.AuthResponse;
+import me.nghlong3004.olympic.api.auth.dto.AuthResult;
 import me.nghlong3004.olympic.api.auth.dto.LoginRequest;
-import me.nghlong3004.olympic.api.auth.dto.RefreshTokenRequest;
 import me.nghlong3004.olympic.api.auth.dto.RegisterRequest;
 
 import java.util.UUID;
@@ -15,11 +14,11 @@ import java.util.UUID;
  */
 public interface AuthService {
 
-    AuthResponse register(RegisterRequest request);
+    AuthResult register(RegisterRequest request);
 
-    AuthResponse login(LoginRequest request);
+    AuthResult login(LoginRequest request);
 
-    AuthResponse refresh(RefreshTokenRequest request);
+    AuthResult refresh(String refreshToken);
 
     void logout(UUID userPublicId);
 }

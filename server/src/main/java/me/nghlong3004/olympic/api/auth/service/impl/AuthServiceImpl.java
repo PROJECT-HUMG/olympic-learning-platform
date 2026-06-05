@@ -3,8 +3,8 @@ package me.nghlong3004.olympic.api.auth.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nghlong3004.olympic.api.auth.dto.AuthResponse;
+import me.nghlong3004.olympic.api.auth.dto.AuthResult;
 import me.nghlong3004.olympic.api.auth.dto.LoginRequest;
-import me.nghlong3004.olympic.api.auth.dto.RefreshTokenRequest;
 import me.nghlong3004.olympic.api.auth.dto.RegisterRequest;
 import me.nghlong3004.olympic.api.auth.entity.RefreshToken;
 import me.nghlong3004.olympic.api.auth.repository.RefreshTokenRepository;
@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -44,12 +45,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    public AuthResult register(RegisterRequest request) {
         Objects.requireNonNull(request, "request must not be null");
-        log.debug("Processing registration for email={}", request.email());
+        log.debug("Processing registration request");
 
         if (userRepository.existsByEmail(request.email())) {
-            log.warn("Registration failed: duplicate email={}", request.email());
+            log.warn("Registration failed: duplicate email detected");
             throw new DuplicateResourceException("User", "email", request.email());
         }
 
@@ -66,20 +67,20 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         user = userRepository.save(user);
-        log.info("User registered successfully: userId={}, email={}", user.getPublicId(), user.getEmail());
+        log.info("User registered successfully: userId={}", user.getPublicId());
 
-        return createAuthResponse(user);
+        return createAuthResult(user);
     }
 
     @Override
     @Transactional
-    public AuthResponse login(LoginRequest request) {
+    public AuthResult login(LoginRequest request) {
         Objects.requireNonNull(request, "request must not be null");
-        log.debug("Processing login attempt for email={}", request.email());
+        log.debug("Processing login attempt");
 
         var user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> {
-                    log.warn("Login failed: user not found for email={}", request.email());
+                    log.warn("Login failed: user not found");
                     return new BadCredentialsException("Invalid credentials");
                 });
 
@@ -94,16 +95,16 @@ public class AuthServiceImpl implements AuthService {
         }
 
         log.info("User logged in successfully: userId={}", user.getPublicId());
-        return createAuthResponse(user);
+        return createAuthResult(user);
     }
 
     @Override
     @Transactional
-    public AuthResponse refresh(RefreshTokenRequest request) {
-        Objects.requireNonNull(request, "request must not be null");
+    public AuthResult refresh(String refreshTokenValue) {
+        Objects.requireNonNull(refreshTokenValue, "refreshToken must not be null");
         log.debug("Processing token refresh");
 
-        var refreshToken = refreshTokenRepository.findByToken(request.refreshToken())
+        var refreshToken = refreshTokenRepository.findByToken(refreshTokenValue)
                 .orElseThrow(() -> {
                     log.warn("Token refresh failed: token not found");
                     return new BusinessRuleException("INVALID_REFRESH_TOKEN", "Invalid refresh token");
@@ -120,7 +121,7 @@ public class AuthServiceImpl implements AuthService {
         refreshTokenRepository.save(refreshToken);
 
         log.info("Token refreshed successfully for userId={}", refreshToken.getUser().getPublicId());
-        return createAuthResponse(refreshToken.getUser());
+        return createAuthResult(refreshToken.getUser());
     }
 
     @Override
@@ -135,20 +136,22 @@ public class AuthServiceImpl implements AuthService {
         log.info("User logged out: userId={}, revokedTokens={}", userPublicId, revokedCount);
     }
 
-    private AuthResponse createAuthResponse(User user) {
+    private AuthResult createAuthResult(User user) {
         String accessToken = jwtTokenService.createAccessToken(user);
+        Instant accessExpiresAt = jwtTokenService.getAccessTokenExpiration();
+        Instant refreshExpiresAt = jwtTokenService.getRefreshTokenExpiration();
 
         var refreshToken = RefreshToken.builder()
                 .token(UUID.randomUUID().toString())
                 .user(user)
-                .expiresAt(jwtTokenService.getRefreshTokenExpiration())
+                .expiresAt(refreshExpiresAt)
                 .build();
         refreshTokenRepository.save(refreshToken);
 
-        return AuthResponse.of(
-                accessToken,
+        return new AuthResult(
+                AuthResponse.bearer(accessToken, accessExpiresAt),
                 refreshToken.getToken(),
-                jwtTokenService.getAccessTokenExpiration()
+                refreshExpiresAt
         );
     }
 }

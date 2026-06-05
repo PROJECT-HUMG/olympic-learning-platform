@@ -1,8 +1,7 @@
 package me.nghlong3004.olympic.api.auth.service.impl;
 
-import me.nghlong3004.olympic.api.auth.dto.AuthResponse;
+import me.nghlong3004.olympic.api.auth.dto.AuthResult;
 import me.nghlong3004.olympic.api.auth.dto.LoginRequest;
-import me.nghlong3004.olympic.api.auth.dto.RefreshTokenRequest;
 import me.nghlong3004.olympic.api.auth.dto.RegisterRequest;
 import me.nghlong3004.olympic.api.auth.entity.RefreshToken;
 import me.nghlong3004.olympic.api.auth.repository.RefreshTokenRepository;
@@ -32,7 +31,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -83,11 +81,11 @@ class AuthServiceImplTest {
         void shouldRegisterSuccessfully() {
             // given
             var request = new RegisterRequest(
-                    "new@humg.edu.vn", "password123", "Tran Van B", "0901234567", "DH001"
+                    "new@humg.edu.vn", "Password1", "Tran Van B", "0901234567", "DH001"
             );
             given(userRepository.existsByEmail("new@humg.edu.vn")).willReturn(false);
             given(roleRepository.findByName("STUDENT")).willReturn(Optional.of(studentRole));
-            given(passwordEncoder.encode("password123")).willReturn("$2a$10$encoded");
+            given(passwordEncoder.encode("Password1")).willReturn("$2a$10$encoded");
             given(userRepository.save(any(User.class))).willAnswer(inv -> {
                 User saved = inv.getArgument(0);
                 saved.setId(2L);
@@ -99,13 +97,14 @@ class AuthServiceImplTest {
             given(refreshTokenRepository.save(any(RefreshToken.class))).willAnswer(inv -> inv.getArgument(0));
 
             // when
-            AuthResponse response = authService.register(request);
+            AuthResult result = authService.register(request);
 
             // then
-            assertThat(response).isNotNull();
-            assertThat(response.accessToken()).isEqualTo("access-token");
-            assertThat(response.refreshToken()).isNotBlank();
-            assertThat(response.tokenType()).isEqualTo("Bearer");
+            assertThat(result).isNotNull();
+            assertThat(result.response().accessToken()).isEqualTo("access-token");
+            assertThat(result.response().tokenType()).isEqualTo("Bearer");
+            assertThat(result.refreshToken()).isNotBlank();
+            assertThat(result.refreshExpiresAt()).isAfter(Instant.now());
             verify(userRepository).save(any(User.class));
         }
 
@@ -113,7 +112,7 @@ class AuthServiceImplTest {
         @DisplayName("should throw DuplicateResourceException when email exists")
         void shouldThrowWhenEmailExists() {
             var request = new RegisterRequest(
-                    "existing@humg.edu.vn", "password123", "Tran Van C", null, null
+                    "existing@humg.edu.vn", "Password1", "Tran Van C", null, null
             );
             given(userRepository.existsByEmail("existing@humg.edu.vn")).willReturn(true);
 
@@ -147,12 +146,13 @@ class AuthServiceImplTest {
             given(refreshTokenRepository.save(any(RefreshToken.class))).willAnswer(inv -> inv.getArgument(0));
 
             // when
-            AuthResponse response = authService.login(request);
+            AuthResult result = authService.login(request);
 
             // then
-            assertThat(response).isNotNull();
-            assertThat(response.accessToken()).isEqualTo("access-token");
-            assertThat(response.tokenType()).isEqualTo("Bearer");
+            assertThat(result).isNotNull();
+            assertThat(result.response().accessToken()).isEqualTo("access-token");
+            assertThat(result.response().tokenType()).isEqualTo("Bearer");
+            assertThat(result.refreshToken()).isNotBlank();
         }
 
         @Test
@@ -201,13 +201,12 @@ class AuthServiceImplTest {
         void shouldRefreshSuccessfully() {
             // given
             var refreshToken = RefreshToken.builder()
-                    .id(1L)
                     .token("valid-refresh-token")
                     .user(testUser)
                     .expiresAt(Instant.now().plus(7, ChronoUnit.DAYS))
                     .revoked(false)
                     .build();
-            var request = new RefreshTokenRequest("valid-refresh-token");
+            refreshToken.setId(1L);
 
             given(refreshTokenRepository.findByToken("valid-refresh-token")).willReturn(Optional.of(refreshToken));
             given(refreshTokenRepository.save(any(RefreshToken.class))).willAnswer(inv -> inv.getArgument(0));
@@ -216,20 +215,19 @@ class AuthServiceImplTest {
             given(jwtTokenService.getAccessTokenExpiration()).willReturn(Instant.now().plus(15, ChronoUnit.MINUTES));
 
             // when
-            AuthResponse response = authService.refresh(request);
+            AuthResult result = authService.refresh("valid-refresh-token");
 
             // then
-            assertThat(response.accessToken()).isEqualTo("new-access-token");
+            assertThat(result.response().accessToken()).isEqualTo("new-access-token");
             assertThat(refreshToken.isRevoked()).isTrue(); // old token revoked
         }
 
         @Test
         @DisplayName("should throw when refresh token not found")
         void shouldThrowWhenTokenNotFound() {
-            var request = new RefreshTokenRequest("invalid-token");
             given(refreshTokenRepository.findByToken("invalid-token")).willReturn(Optional.empty());
 
-            assertThatThrownBy(() -> authService.refresh(request))
+            assertThatThrownBy(() -> authService.refresh("invalid-token"))
                     .isInstanceOf(BusinessRuleException.class)
                     .hasMessageContaining("Invalid refresh token");
         }
@@ -238,16 +236,15 @@ class AuthServiceImplTest {
         @DisplayName("should throw when refresh token is expired")
         void shouldThrowWhenTokenExpired() {
             var expiredToken = RefreshToken.builder()
-                    .id(1L)
                     .token("expired-token")
                     .user(testUser)
                     .expiresAt(Instant.now().minus(1, ChronoUnit.HOURS))
                     .revoked(false)
                     .build();
-            var request = new RefreshTokenRequest("expired-token");
+            expiredToken.setId(1L);
             given(refreshTokenRepository.findByToken("expired-token")).willReturn(Optional.of(expiredToken));
 
-            assertThatThrownBy(() -> authService.refresh(request))
+            assertThatThrownBy(() -> authService.refresh("expired-token"))
                     .isInstanceOf(BusinessRuleException.class)
                     .hasMessageContaining("expired or revoked");
         }
