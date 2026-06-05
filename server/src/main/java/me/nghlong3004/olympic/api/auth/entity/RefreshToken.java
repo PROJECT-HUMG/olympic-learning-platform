@@ -65,12 +65,4 @@ public class RefreshToken {
     public boolean isUsable() {
         return !revoked && !isExpired();
     }
-
-    public static RefreshToken of(String token, User user, Instant expiresAt) {
-        return RefreshToken.builder()
-                .token(token)
-                .user(user)
-                .expiresAt(expiresAt)
-                .build();
-    }
 }

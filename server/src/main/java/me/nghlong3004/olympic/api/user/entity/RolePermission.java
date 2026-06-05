@@ -38,13 +38,6 @@ public class RolePermission {
     @Column(name = "permission_id")
     private Long permissionId;
 
-    public static RolePermission of(Long roleId, Long permissionId) {
-        var rp = new RolePermission();
-        rp.setRoleId(roleId);
-        rp.setPermissionId(permissionId);
-        return rp;
-    }
-
     /**
      * Composite primary key for role_permissions.
      */
