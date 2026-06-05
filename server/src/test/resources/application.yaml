@@ -1,0 +1,4 @@
+# Activate test profile for all tests
+spring:
+  profiles:
+    active: test

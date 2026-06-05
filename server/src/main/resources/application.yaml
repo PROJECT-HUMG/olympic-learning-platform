@@ -8,10 +8,14 @@ spring:
     name: olympic-api
 
   profiles:
-    default: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
 
   mvc:
     problem-details:
+      enabled: true
+
+  threads:
+    virtual:
       enabled: true
 
   jpa:
@@ -24,12 +28,19 @@ spring:
 
   flyway:
     enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+    validate-on-migrate: true
 
-  threads:
-    virtual:
-      enabled: true
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
+    default-property-inclusion: non_null
 
-# Actuator defaults (profiles may override exposure)
+server:
+  servlet:
+    context-path: /
+
+# Actuator defaults (profiles may override)
 management:
   endpoints:
     web:

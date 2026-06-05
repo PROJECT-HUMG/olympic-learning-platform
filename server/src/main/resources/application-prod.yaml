@@ -6,29 +6,76 @@
 server:
   port: ${SERVER_PORT:8080}
   forward-headers-strategy: framework
+  shutdown: graceful
 
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: OlympicProdHikariPool
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:20}
+      minimum-idle: ${DB_POOL_MIN_IDLE:5}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${DB_IDLE_TIMEOUT:600000}
+      max-lifetime: ${DB_MAX_LIFETIME:1800000}
 
-  # OAuth2 social login — uncomment when client IDs are configured
-  # security:
-  #   oauth2:
-  #     client:
-  #       registration:
-  #         google:
-  #           client-id: ${GOOGLE_CLIENT_ID}
-  #           client-secret: ${GOOGLE_CLIENT_SECRET}
-  #         github:
-  #           client-id: ${GITHUB_CLIENT_ID}
-  #           client-secret: ${GITHUB_CLIENT_SECRET}
+  jpa:
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: UTC
+    show-sql: false
+
+  flyway:
+    clean-disabled: true
+
+  ai:
+    deepseek:
+      api-key: ${DEEPSEEK_API_KEY}
+      base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+      chat:
+        options:
+          model: ${DEEPSEEK_MODEL:deepseek-v4-flash}
+          temperature: 0
+          max-tokens: ${DEEPSEEK_MAX_TOKENS:512}
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            scope: openid,profile,email
+            redirect-uri: "{baseUrl}/api/v1/login/oauth2/code/{registrationId}"
+          github:
+            client-id: ${GITHUB_CLIENT_ID:}
+            client-secret: ${GITHUB_CLIENT_SECRET:}
+            scope: read:user,user:email
+            redirect-uri: "{baseUrl}/api/v1/login/oauth2/code/{registrationId}"
+
+management:
+  endpoint:
+    health:
+      show-details: never
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 logging:
   level:
+    root: INFO
     me.nghlong3004.olympic: INFO
-    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
 
 olympic:
   client:
@@ -36,8 +83,8 @@ olympic:
   security:
     jwt:
       secret-key: ${JWT_SECRET_KEY}
-      access-expiration: ${JWT_ACCESS_EXPIRATION_MINUTES:15}
-      refresh-expiration: ${JWT_REFRESH_EXPIRATION_MINUTES:10080}
+      access-expiration: 15
+      refresh-expiration: 10080
     cookie:
       secure: true
-      same-site: ${COOKIE_SAME_SITE:None}
+      same-site: Strict
