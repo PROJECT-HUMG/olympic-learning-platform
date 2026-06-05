@@ -1,3 +1,17 @@
 spring:
   application:
-    name: api
+    name: olympic-api
+
+  mvc:
+    problem-details:
+      enabled: true
+
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        default_batch_fetch_size: 16
+
+  threads:
+    virtual:
+      enabled: true
