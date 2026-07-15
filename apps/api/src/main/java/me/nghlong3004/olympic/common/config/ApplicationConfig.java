@@ -3,6 +3,8 @@ package me.nghlong3004.olympic.common.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import java.security.SecureRandom;
+import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,5 +20,15 @@ public class ApplicationConfig {
         .findAndAddModules()
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         .build();
+  }
+
+  @Bean
+  public SecureRandom secureRandom() {
+    return new SecureRandom();
+  }
+
+  @Bean
+  public Clock clock() {
+    return Clock.systemUTC();
   }
 }

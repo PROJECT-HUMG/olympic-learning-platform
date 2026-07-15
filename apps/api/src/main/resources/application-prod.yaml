@@ -7,6 +7,12 @@ spring:
   threads:
     virtual:
       enabled: true
+  task:
+    scheduling:
+      thread-name-prefix: "olympic-scheduler-"
+      shutdown:
+        await-termination: true
+        await-termination-period: 10s
   servlet:
     multipart:
       max-file-size: 25MB
@@ -123,4 +129,16 @@ logging:
 
 olympic:
   mail:
-    from: ${MAIL_FROM:no-reply@nghlong3004.me}
+    from: ${MAIL_FROM}
+  client:
+    base-url: ${WEB_BASE_URL}
+  security:
+    access-expiration-minutes: 15
+    refresh-expiration-minutes: 10080
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+    encryption-key: ${ENCRYPTION_KEY}
+    encryption-salt: ${ENCRYPTION_SALT}
+    cookie:
+      secure: true
+      same-site: Strict
