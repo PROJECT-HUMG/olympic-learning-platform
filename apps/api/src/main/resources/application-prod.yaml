@@ -121,3 +121,6 @@ logging:
     org.hibernate.orm.jdbc.bind: WARN
     org.telegram: INFO
 
+olympic:
+  mail:
+    from: ${MAIL_FROM:no-reply@nghlong3004.me}
