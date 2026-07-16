@@ -9,18 +9,17 @@ import me.nghlong3004.olympic.user.entity.User;
 public interface TokenService {
 
   /**
-   * Creates a short-lived access JWT for API authentication by a {@link User}.
+   * Issues a short-lived JWT access token for an active user.
    *
-   * @param user authenticated {@link User}
-   * @return signed access token
+   * @param user active authenticated user
+   * @return signed JWT token value
    */
-  String createAccessToken(User user);
+  String issueAccessToken(User user);
 
   /**
-   * Creates a refresh UUID for session renewal by a {@link User}.
+   * Returns the configured access-token lifetime in seconds.
    *
-   * @param user authenticated {@link User}
-   * @return UUID refresh token
+   * @return access-token TTL in seconds
    */
-  String createRefreshToken(User user);
+  long accessExpiresInSeconds();
 }

@@ -15,7 +15,7 @@ import org.springframework.security.oauth2.jwt.*;
 @Configuration
 public class JwtConfig {
 
-  private static final String ISSUER = "olympic";
+  public static final String ISSUER = "olympic";
   public static final String EMAIL_CLAIM = "email";
   public static final String USERNAME_CLAIM = "username";
   public static final String FULL_NAME_CLAIM = "full-name";
