@@ -3,6 +3,7 @@ package me.nghlong3004.olympic.common.config;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.nio.charset.StandardCharsets;
 import javax.crypto.spec.SecretKeySpec;
+import me.nghlong3004.olympic.common.properties.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;

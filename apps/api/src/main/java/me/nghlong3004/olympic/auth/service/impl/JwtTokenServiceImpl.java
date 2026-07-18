@@ -8,7 +8,7 @@ import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nghlong3004.olympic.auth.service.TokenService;
-import me.nghlong3004.olympic.common.config.SecurityProperties;
+import me.nghlong3004.olympic.common.properties.SecurityProperties;
 import me.nghlong3004.olympic.user.entity.User;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;

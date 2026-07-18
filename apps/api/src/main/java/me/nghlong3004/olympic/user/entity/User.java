@@ -67,4 +67,8 @@ public class User {
   void preUpdate() {
     updatedAt = OffsetDateTime.now();
   }
+
+  public boolean active() {
+    return status == Status.ACTIVE && deletedAt == null;
+  }
 }

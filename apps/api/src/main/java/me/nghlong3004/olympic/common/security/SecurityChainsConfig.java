@@ -2,7 +2,7 @@ package me.nghlong3004.olympic.common.security;
 
 import jakarta.servlet.DispatcherType;
 import java.util.List;
-import me.nghlong3004.olympic.common.config.ClientProperties;
+import me.nghlong3004.olympic.common.properties.ClientProperties;
 import me.nghlong3004.olympic.user.enums.Role;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

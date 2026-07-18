@@ -11,10 +11,14 @@ import java.util.Base64;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import me.nghlong3004.olympic.auth.dto.AuthEmailTokenConsumption;
 import me.nghlong3004.olympic.auth.dto.AuthEmailTokenIssue;
+import me.nghlong3004.olympic.auth.entity.AuthEmailToken;
 import me.nghlong3004.olympic.auth.enums.AuthEmailTokenPurpose;
+import me.nghlong3004.olympic.auth.enums.AuthEmailTokenStatus;
 import me.nghlong3004.olympic.auth.repository.AuthEmailTokenRepository;
 import me.nghlong3004.olympic.auth.service.AuthEmailTokenService;
+import me.nghlong3004.olympic.common.error.ErrorCode;
 import me.nghlong3004.olympic.user.entity.User;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -62,7 +66,7 @@ public class AuthEmailTokenServiceImpl implements AuthEmailTokenService {
 
   @Transactional
   @Override
-  public AppUser consume(String rawToken, Set<AuthEmailTokenPurpose> allowedPurposes) {
+  public User consume(String rawToken, Set<AuthEmailTokenPurpose> allowedPurposes) {
     return consumeWithPurpose(rawToken, allowedPurposes).user();
   }
 

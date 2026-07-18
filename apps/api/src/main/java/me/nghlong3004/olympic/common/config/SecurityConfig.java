@@ -1,6 +1,5 @@
 package me.nghlong3004.olympic.common.config;
 
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -11,7 +10,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @since 7/15/2026
  */
 @Configuration
-@EnableConfigurationProperties({SecurityProperties.class, ClientProperties.class})
 public class SecurityConfig {
 
   @Bean

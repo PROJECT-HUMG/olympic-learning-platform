@@ -1,0 +1,173 @@
+package me.nghlong3004.olympic.auth.service.impl;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.Clock;
+import java.time.OffsetDateTime;
+import java.util.Base64;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import me.nghlong3004.olympic.auth.dto.RefreshTokenIssue;
+import me.nghlong3004.olympic.auth.entity.AuthRefreshToken;
+import me.nghlong3004.olympic.auth.enums.AuthRefreshTokenStatus;
+import me.nghlong3004.olympic.auth.repository.AuthRefreshTokenRepository;
+import me.nghlong3004.olympic.auth.service.RefreshTokenCompromiseService;
+import me.nghlong3004.olympic.auth.service.RefreshTokenService;
+import me.nghlong3004.olympic.common.error.ErrorCode;
+import me.nghlong3004.olympic.common.properties.SecurityProperties;
+import me.nghlong3004.olympic.user.entity.User;
+import me.nghlong3004.olympic.user.repository.UserRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * @author nghlong3004 (Long Nguyen Hoang)
+ * @since 7/18/2026
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class RefreshTokenServiceImpl implements RefreshTokenService {
+
+  private final RefreshTokenCompromiseService compromiseService;
+  private final AuthRefreshTokenRepository repository;
+  private final UserRepository userRepository;
+  private final SecurityProperties properties;
+  private final Clock clock;
+  private final SecureRandom random;
+
+  @Transactional
+  @Override
+  public RefreshTokenIssue issue(User user, String ip, String userAgent) {
+    return issue(user, UUID.randomUUID(), ip, userAgent);
+  }
+
+  @Transactional
+  @Override
+  public RefreshRotation rotate(String rawToken) {
+    if (rawToken == null || rawToken.isBlank()) {
+      throw ErrorCode.REFRESH_TOKEN_MISSING.throwIt();
+    }
+
+    var now = OffsetDateTime.now(clock);
+
+    var existing =
+        repository
+            .findForUpdateByTokenHash(hash(rawToken))
+            .orElseThrow(ErrorCode.REFRESH_TOKEN_INVALID::throwIt);
+
+    if (existing.getStatus() != AuthRefreshTokenStatus.ACTIVE) {
+      if (existing.getRotatedAt() != null) {
+        compromiseService.revokeFamily(existing.getFamilyId());
+
+        log.warn(
+            "Refresh token reuse detected: tokenId={} userId={} familyId={}",
+            existing.getId(),
+            existing.getUserId(),
+            existing.getFamilyId());
+      }
+      throw ErrorCode.REFRESH_TOKEN_INVALID.throwIt();
+    }
+
+    if (!existing.getExpiresAt().isAfter(now)) {
+      existing.setStatus(AuthRefreshTokenStatus.EXPIRED);
+      throw ErrorCode.REFRESH_TOKEN_EXPIRED.throwIt();
+    }
+
+    var user =
+        userRepository
+            .findById(existing.getUserId())
+            .orElseThrow(ErrorCode.REFRESH_TOKEN_INVALID::throwIt);
+    if (!user.active()) {
+      throw ErrorCode.USER_DISABLED.throwIt();
+    }
+
+    existing.setStatus(AuthRefreshTokenStatus.REVOKED);
+    existing.setRotatedAt(now);
+    existing.setRevokedAt(now);
+
+    return new RefreshRotation(user, existing.getFamilyId());
+  }
+
+  @Transactional
+  @Override
+  public void revoke(String rawToken) {
+    if (rawToken == null || rawToken.isBlank()) {
+      return;
+    }
+    repository
+        .findForUpdateByTokenHash(hash(rawToken))
+        .ifPresent(
+            token -> {
+              if (token.getStatus() != AuthRefreshTokenStatus.ACTIVE) {
+                return;
+              }
+
+              var now = OffsetDateTime.now(clock);
+              token.setStatus(AuthRefreshTokenStatus.REVOKED);
+              token.setRevokedAt(now);
+
+              log.info(
+                  "Refresh token revoked: tokenId={} userId={}", token.getId(), token.getUserId());
+            });
+  }
+
+  @Transactional
+  @Override
+  public void revokeActiveForUser(UUID userId) {
+    var count =
+        repository.revokeAllByUserIdAndStatus(
+            userId,
+            AuthRefreshTokenStatus.ACTIVE,
+            AuthRefreshTokenStatus.REVOKED,
+            OffsetDateTime.now(clock));
+    if (count > 0) {
+      log.info("Refresh tokens revoked after password change: userId={} count={}", userId, count);
+    }
+  }
+
+  @Transactional
+  @Override
+  public RefreshTokenIssue issue(User user, UUID familyId, String ip, String userAgent) {
+    var rawToken = randomToken();
+    var now = OffsetDateTime.now(clock);
+    var maxAge = properties.refreshExpirationMinutes() * 60;
+    var refreshToken =
+        repository.save(
+            AuthRefreshToken.builder()
+                .userId(user.getId())
+                .tokenHash(hash(rawToken))
+                .familyId(familyId)
+                .status(AuthRefreshTokenStatus.ACTIVE)
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(maxAge))
+                .createdIp(ip)
+                .userAgent(userAgent)
+                .build());
+    log.debug(
+        "Refresh token issued: tokenId={} userId={} familyId={}",
+        refreshToken.getId(),
+        user.getId(),
+        familyId);
+    return new RefreshTokenIssue(rawToken, maxAge);
+  }
+
+  private String randomToken() {
+    var bytes = new byte[48];
+    random.nextBytes(bytes);
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+  }
+
+  private String hash(String token) {
+    try {
+      var digest = MessageDigest.getInstance("SHA-256");
+      var bytes = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+      return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    } catch (NoSuchAlgorithmException exception) {
+      throw new IllegalStateException("SHA-256 is unavailable", exception);
+    }
+  }
+}

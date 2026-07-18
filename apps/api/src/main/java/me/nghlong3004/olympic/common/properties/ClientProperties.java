@@ -1,4 +1,4 @@
-package me.nghlong3004.olympic.common.config;
+package me.nghlong3004.olympic.common.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
