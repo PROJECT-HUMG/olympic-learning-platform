@@ -9,10 +9,10 @@ import me.nghlong3004.olympic.user.enums.Status;
  * @since 7/16/2026
  */
 public record CurrentUserResponse(
-				UUID id,
-				String email,
-				String username,
-				String fullName,
-				String avatarUrl,
-				Role systemRole,
-				Status status) {}
+    UUID id,
+    String email,
+    String username,
+    String fullName,
+    String avatarUrl,
+    Role role,
+    Status status) {}

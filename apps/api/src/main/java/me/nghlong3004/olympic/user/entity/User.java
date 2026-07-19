@@ -8,6 +8,8 @@ import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
 import me.nghlong3004.olympic.user.exception.UserDisabledException;
 import me.nghlong3004.olympic.user.exception.UserPendingException;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
@@ -33,11 +35,13 @@ public class User {
   private String username;
 
   @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(nullable = false)
   @Builder.Default
   private Role role = Role.STUDENT;
 
   @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(nullable = false)
   @Builder.Default
   private Status status = Status.PENDING;

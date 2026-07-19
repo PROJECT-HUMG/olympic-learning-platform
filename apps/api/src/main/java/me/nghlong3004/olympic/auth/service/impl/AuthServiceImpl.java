@@ -1,5 +1,7 @@
 package me.nghlong3004.olympic.auth.service.impl;
 
+import static me.nghlong3004.olympic.common.constant.MessageConstant.*;
+
 import java.time.Clock;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -23,15 +25,12 @@ import me.nghlong3004.olympic.common.properties.UserProperties;
 import me.nghlong3004.olympic.common.security.CurrentUser;
 import me.nghlong3004.olympic.common.util.AuthLinkBuilder;
 import me.nghlong3004.olympic.user.entity.User;
-import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static me.nghlong3004.olympic.common.constant.MessageConstant.*;
 
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
@@ -75,8 +74,6 @@ public class AuthServiceImpl implements AuthService {
                 .fullName(request.fullName().trim())
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .avatarUrl(userProperties.defaultAvatarUrl())
-                .role(Role.STUDENT)
-                .status(Status.PENDING)
                 .createdAt(now)
                 .updatedAt(now)
                 .build());
@@ -194,7 +191,7 @@ public class AuthServiceImpl implements AuthService {
       case ADMIN_INVITE -> user.setStatus(Status.ACTIVE);
     }
 
-    user.setPasswordHash(passwordEncoder.encode(request.password()));
+    user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
     user.setUpdatedAt(OffsetDateTime.now(clock));
     refreshTokenService.revokeActiveForUser(user.getId());
     authEmailTokenService.revokeActiveForUser(user.getId());

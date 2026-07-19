@@ -15,11 +15,11 @@ import me.nghlong3004.olympic.common.properties.UserProperties;
 import me.nghlong3004.olympic.common.util.AuthLinkBuilder;
 import me.nghlong3004.olympic.user.entity.User;
 import me.nghlong3004.olympic.user.enums.Status;
+import me.nghlong3004.olympic.user.mapper.UserMapper;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import me.nghlong3004.olympic.user.request.AdminCreateUserRequest;
 import me.nghlong3004.olympic.user.response.AdminCreateUserResponse;
 import me.nghlong3004.olympic.user.service.UserAdministrationService;
-import me.nghlong3004.olympic.user.service.UserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,9 +40,9 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
   private final ApplicationEventPublisher eventPublisher;
   private final AuthProperties authProperties;
   private final UserProperties userProperties;
-  private final UserService userService;
   private final AuthLinkBuilder linkBuilder;
   private final Clock clock;
+  private final UserMapper userMapper;
 
   @Transactional
   @Override
@@ -79,6 +79,6 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
                 user.getEmail(), user.getFullName(), linkBuilder.inviteLink(token.token()))));
     log.info("Admin created user invite: userId={}", user.getId());
     return new AdminCreateUserResponse(
-        userService.toSummary(user), "User created. Invite email sent.");
+        userMapper.toResponse(user), "User created. Invite email sent.");
   }
 }

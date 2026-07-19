@@ -16,6 +16,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.nghlong3004.olympic.auth.enums.AuthRefreshTokenStatus;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
@@ -44,6 +46,7 @@ public class AuthRefreshToken {
   private UUID familyId;
 
   @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(nullable = false)
   private AuthRefreshTokenStatus status;
 

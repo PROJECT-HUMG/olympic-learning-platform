@@ -17,6 +17,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.nghlong3004.olympic.auth.enums.AuthEmailTokenPurpose;
 import me.nghlong3004.olympic.auth.enums.AuthEmailTokenStatus;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
@@ -42,10 +44,12 @@ public class AuthEmailToken {
   private String tokenHash;
 
   @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(nullable = false)
   private AuthEmailTokenPurpose purpose;
 
   @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(nullable = false)
   private AuthEmailTokenStatus status;
 
