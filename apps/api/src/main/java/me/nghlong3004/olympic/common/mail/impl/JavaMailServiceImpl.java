@@ -2,15 +2,17 @@ package me.nghlong3004.olympic.common.mail.impl;
 
 import jakarta.mail.MessagingException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import me.nghlong3004.olympic.common.mail.MailDeliveryException;
 import me.nghlong3004.olympic.common.mail.MailService;
 import me.nghlong3004.olympic.common.mail.MailStrategy;
 import me.nghlong3004.olympic.common.mail.MailTemplateModel;
+import me.nghlong3004.olympic.common.properties.MailProperties;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.mail.autoconfigure.MailProperties;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -28,7 +30,7 @@ public class JavaMailServiceImpl implements MailService {
   public JavaMailServiceImpl(
       ObjectProvider<JavaMailSender> mailSenderProvider,
       MailProperties properties,
-      java.util.List<MailStrategy<? extends MailTemplateModel>> strategies) {
+      List<MailStrategy<? extends MailTemplateModel>> strategies) {
     this.mailSenderProvider = mailSenderProvider;
     this.properties = properties;
     this.strategies =
@@ -39,7 +41,7 @@ public class JavaMailServiceImpl implements MailService {
   public void send(MailTemplateModel model) {
     if (!properties.enabled()) {
       log.info(
-          "Mail sending skipped because vfqc.mail.enabled=false: model={}",
+          "Mail sending skipped because olympic.mail.enabled=false: model={}",
           model.getClass().getSimpleName());
       return;
     }

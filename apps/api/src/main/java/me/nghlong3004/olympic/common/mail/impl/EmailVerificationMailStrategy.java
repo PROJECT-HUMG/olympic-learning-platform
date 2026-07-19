@@ -1,5 +1,8 @@
 package me.nghlong3004.olympic.common.mail.impl;
 
+import me.nghlong3004.olympic.common.mail.MailMessage;
+import me.nghlong3004.olympic.common.mail.MailStrategy;
+import me.nghlong3004.olympic.common.mail.model.EmailVerificationMailModel;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,11 +17,11 @@ public class EmailVerificationMailStrategy implements MailStrategy<EmailVerifica
   public MailMessage build(EmailVerificationMailModel model) {
     return new MailMessage(
         model.recipientEmail(),
-        "Verify your VFQC account",
+        "Verify your Olympic account",
         """
         Hello %s,
 
-        Verify your VFQC account by opening this link:
+        Verify your Olympic account by opening this link:
         %s
 
         If you did not create this account, ignore this email.

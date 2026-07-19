@@ -17,11 +17,11 @@ public class PasswordResetMailStrategy implements MailStrategy<PasswordResetMail
   public MailMessage build(PasswordResetMailModel model) {
     return new MailMessage(
         model.recipientEmail(),
-        "Reset your VFQC password",
+        "Reset your Olympic password",
         """
         Hello %s,
 
-        Reset your VFQC password by opening this link:
+        Reset your Olympic password by opening this link:
         %s
 
         If you did not request a password reset, ignore this email.

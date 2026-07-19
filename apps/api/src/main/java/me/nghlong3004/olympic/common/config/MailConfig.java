@@ -1,6 +1,6 @@
 package me.nghlong3004.olympic.common.config;
 
-import me.nghlong3004.olympic.common.mail.MailProperties;
+import me.nghlong3004.olympic.common.properties.MailProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 

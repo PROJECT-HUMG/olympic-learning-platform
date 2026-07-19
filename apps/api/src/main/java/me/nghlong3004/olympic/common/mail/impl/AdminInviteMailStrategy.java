@@ -1,5 +1,8 @@
 package me.nghlong3004.olympic.common.mail.impl;
 
+import me.nghlong3004.olympic.common.mail.MailMessage;
+import me.nghlong3004.olympic.common.mail.MailStrategy;
+import me.nghlong3004.olympic.common.mail.model.AdminInviteMailModel;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,11 +17,11 @@ public class AdminInviteMailStrategy implements MailStrategy<AdminInviteMailMode
   public MailMessage build(AdminInviteMailModel model) {
     return new MailMessage(
         model.recipientEmail(),
-        "Set up your VFQC account",
+        "Set up your Olympic account",
         """
         Hello %s,
 
-        An administrator created a VFQC account for you.
+        An administrator created a Olympic account for you.
         Use this link to set your password and activate the account:
         %s
 
