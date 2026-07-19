@@ -6,6 +6,8 @@ import java.util.UUID;
 import lombok.*;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
+import me.nghlong3004.olympic.user.exception.UserDisabledException;
+import me.nghlong3004.olympic.user.exception.UserPendingException;
 
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
@@ -70,5 +72,20 @@ public class User {
 
   public boolean active() {
     return status == Status.ACTIVE && deletedAt == null;
+  }
+
+  public void requireActiveForAuth() {
+    if (this.status == Status.PENDING) {
+      throw new UserPendingException();
+    }
+    if (this.deletedAt != null || this.status == Status.DISABLED || !this.active()) {
+      throw new UserDisabledException();
+    }
+  }
+
+  public void requireNotDisabled() {
+    if (this.deletedAt != null || this.status == Status.DISABLED) {
+      throw new UserDisabledException();
+    }
   }
 }

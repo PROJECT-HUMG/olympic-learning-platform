@@ -7,5 +7,5 @@ package me.nghlong3004.olympic.user.enums;
 public enum Status {
   PENDING,
   ACTIVE,
-  LOCKED
+  DISABLED
 }

@@ -1,5 +1,9 @@
 package me.nghlong3004.olympic.user.service;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.UUID;
+import me.nghlong3004.olympic.user.entity.User;
 import me.nghlong3004.olympic.user.response.UserResponse;
 
 /**
@@ -15,4 +19,10 @@ public interface UserService {
    * @return current {@link UserResponse}
    */
   UserResponse getCurrentUser(String username);
+
+  UserResponse toSummary(User user);
+
+  UserResponse toSummaryById(UUID userId);
+
+  Map<UUID, UserResponse> summariesById(Collection<UUID> userIds);
 }

@@ -1,5 +1,8 @@
 package me.nghlong3004.olympic.user.service;
 
+import me.nghlong3004.olympic.user.request.AdminCreateUserRequest;
+import me.nghlong3004.olympic.user.response.AdminCreateUserResponse;
+
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
  * @since 7/18/2026

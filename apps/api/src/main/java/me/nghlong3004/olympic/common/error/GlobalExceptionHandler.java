@@ -5,6 +5,8 @@ import jakarta.validation.ConstraintViolationException;
 import java.net.URI;
 import java.util.List;
 import me.nghlong3004.olympic.common.filter.RequestTraceFilter;
+import me.nghlong3004.olympic.user.exception.UserDisabledException;
+import me.nghlong3004.olympic.user.exception.UserPendingException;
 import org.slf4j.MDC;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ProblemDetail;
@@ -23,6 +25,18 @@ public class GlobalExceptionHandler {
     return problem(exception.getErrorCode(), exception.getMessage(), request.getRequestURI());
   }
 
+  @ExceptionHandler(UserPendingException.class)
+  public ProblemDetail handleUserPending(
+      UserPendingException exception, HttpServletRequest request) {
+    return problem(ErrorCode.EMAIL_NOT_VERIFIED, exception.getMessage(), request.getRequestURI());
+  }
+
+  @ExceptionHandler(UserDisabledException.class)
+  public ProblemDetail handleUserDisabled(
+      UserDisabledException exception, HttpServletRequest request) {
+    return problem(ErrorCode.USER_DISABLED, exception.getMessage(), request.getRequestURI());
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ProblemDetail handleValidation(
       MethodArgumentNotValidException exception, HttpServletRequest request) {
@@ -33,7 +47,7 @@ public class GlobalExceptionHandler {
             request.getRequestURI());
     var fields =
         exception.getBindingResult().getFieldErrors().stream().map(this::fieldViolation).toList();
-    problem.setProperty("fieldErrors", fields);
+    problem.setProperty(FieldViolation.PROPERTY, fields);
     return problem;
   }
 
@@ -47,7 +61,7 @@ public class GlobalExceptionHandler {
             request.getRequestURI());
     List<FieldViolation> fields =
         exception.getConstraintViolations().stream().map(FieldViolation::toFieldVioLation).toList();
-    problem.setProperty("fieldErrors", fields);
+    problem.setProperty(FieldViolation.PROPERTY, fields);
     return problem;
   }
 
@@ -94,7 +108,8 @@ public class GlobalExceptionHandler {
     problem.setTitle(code.getDefaultDetail());
     problem.setType(
         URI.create(
-            "https://olympic.nghlong3004.me/problems/" + code.name().toLowerCase().replace('_', '-')));
+            "https://olympic.nghlong3004.me/problems/"
+                + code.name().toLowerCase().replace('_', '-')));
     problem.setProperty("code", code.name());
     problem.setProperty("messageKey", code.getMessageKey());
     problem.setProperty(RequestTraceFilter.TRACE_ID, MDC.get(RequestTraceFilter.TRACE_ID));
