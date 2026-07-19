@@ -31,6 +31,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static me.nghlong3004.olympic.common.constant.MessageConstant.*;
+
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
  * @since 7/18/2026
@@ -41,12 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthServiceImpl implements AuthService {
 
   private static final String TOKEN_TYPE = "Bearer";
-  private static final String FORGOT_PASSWORD_MESSAGE =
-      "If the email exists, reset instructions have been sent.";
-  private static final String REGISTRATION_SUCCESS_MESSAGE =
-      "Registration accepted. Verify your email to activate the account.";
-  private static final String EMAIL_VERIFIED_MESSAGE = "Email verified.";
-  private static final String PASSWORD_RESET_SUCCESS_MESSAGE = "Password reset successfully.";
 
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
@@ -96,7 +92,7 @@ public class AuthServiceImpl implements AuthService {
             new EmailVerificationMailModel(
                 user.getEmail(), user.getFullName(), linkBuilder.verificationLink(token.token()))));
     log.info("User registration accepted: userId={}", user.getId());
-    return new RegisterResponse(REGISTRATION_SUCCESS_MESSAGE);
+    return new RegisterResponse(REGISTRATION_SUCCESS_MESSAGE, REGISTRATION_SUCCESS_MESSAGE_KEY);
   }
 
   @Transactional
@@ -167,7 +163,7 @@ public class AuthServiceImpl implements AuthService {
       user.setUpdatedAt(OffsetDateTime.now(clock));
     }
     log.info("User email verified: userId={}", user.getId());
-    return new AuthMessageResponse(EMAIL_VERIFIED_MESSAGE);
+    return new AuthMessageResponse(EMAIL_VERIFIED_MESSAGE, EMAIL_VERIFIED_MESSAGE_KEY);
   }
 
   @Transactional
@@ -178,7 +174,7 @@ public class AuthServiceImpl implements AuthService {
         .findByEmailIgnoreCaseAndDeletedAtIsNull(normalizeEmail(request.email()))
         .filter(User::active)
         .ifPresent(user -> sendPasswordReset(user, ip, userAgent));
-    return new AuthMessageResponse(FORGOT_PASSWORD_MESSAGE);
+    return new AuthMessageResponse(FORGOT_PASSWORD_MESSAGE, FORGOT_PASSWORD_MESSAGE_KEY);
   }
 
   @Transactional
@@ -203,7 +199,8 @@ public class AuthServiceImpl implements AuthService {
     refreshTokenService.revokeActiveForUser(user.getId());
     authEmailTokenService.revokeActiveForUser(user.getId());
     log.info("User password updated: userId={}, purpose={}", user.getId(), purpose);
-    return new AuthMessageResponse(PASSWORD_RESET_SUCCESS_MESSAGE);
+    return new AuthMessageResponse(
+        PASSWORD_RESET_SUCCESS_MESSAGE, PASSWORD_RESET_SUCCESS_MESSAGE_KEY);
   }
 
   @Transactional(readOnly = true)
