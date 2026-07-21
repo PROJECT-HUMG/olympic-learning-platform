@@ -59,10 +59,9 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
                 .email(email)
                 .username(request.username())
                 .fullName(request.fullName().trim())
-                .passwordHash(passwordEncoder.encode(request.password()))
                 .avatarUrl(userProperties.defaultAvatarUrl())
                 .role(request.role())
-                .status(Status.ACTIVE)
+                .status(Status.PENDING)
                 .createdAt(now)
                 .updatedAt(now)
                 .build());

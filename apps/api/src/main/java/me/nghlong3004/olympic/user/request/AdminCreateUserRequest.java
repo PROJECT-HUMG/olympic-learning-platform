@@ -16,9 +16,4 @@ public record AdminCreateUserRequest(
         @NotBlank(message = "Full name is required")
         @Size(max = 120, message = "Full name must be at most 120 characters")
         String fullName,
-    @Schema(description = "Role user in website", example = "STUDENT, LECTURER") @NotBlank
-        Role role,
-    @Schema(description = "Initial password; never returned by the API", example = "ChangeMe@123")
-        @NotBlank(message = "Password is required")
-        @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
-        String password) {}
+    @Schema(description = "Role user in website", example = "STUDENT") @NotBlank Role role) {}
