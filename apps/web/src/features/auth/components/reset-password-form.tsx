@@ -100,8 +100,8 @@ export function ResetPasswordForm() {
           {...register("confirmPassword")}
         />
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Đang cập nhật..." : "Cập Nhật Mật Khẩu"}
+        <Button type="submit" className="w-full" loading={isSubmitting}>
+          Cập Nhật Mật Khẩu
         </Button>
       </form>
     </div>

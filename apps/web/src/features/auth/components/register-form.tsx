@@ -161,8 +161,8 @@ export function RegisterForm() {
           {...register("confirmPassword")}
         />
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Đang tạo tài khoản..." : "Đăng Ký"}
+        <Button type="submit" className="w-full" loading={isSubmitting}>
+          Đăng Ký
         </Button>
 
         <div className="text-center text-sm text-muted-foreground">

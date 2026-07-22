@@ -77,8 +77,8 @@ export function ForgotPasswordForm() {
           {...register("email")}
         />
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Đang gửi yêu cầu..." : "Gửi Link Khôi Phục"}
+        <Button type="submit" className="w-full" loading={isSubmitting}>
+          Gửi Link Khôi Phục
         </Button>
 
         <div className="text-center text-sm">

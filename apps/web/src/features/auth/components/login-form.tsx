@@ -78,8 +78,8 @@ export function LoginForm() {
           {...register("password")}
         />
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Đang đăng nhập..." : "Đăng Nhập"}
+        <Button type="submit" className="w-full" loading={isSubmitting}>
+          Đăng Nhập
         </Button>
 
         <div className="text-center text-sm text-muted-foreground">
