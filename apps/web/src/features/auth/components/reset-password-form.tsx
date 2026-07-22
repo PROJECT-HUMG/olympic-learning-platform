@@ -79,7 +79,7 @@ export function ResetPasswordForm() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           id="reset-newPassword"
           type="password"

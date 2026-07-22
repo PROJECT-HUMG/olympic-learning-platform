@@ -49,7 +49,7 @@ export function LoginForm() {
 
       <SocialLoginButtons />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           id="login-email"
           type="email"
