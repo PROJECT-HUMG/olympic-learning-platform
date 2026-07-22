@@ -9,17 +9,18 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      duration={4000}
       icons={{
-        success: <CircleCheckIcon className="size-4 shrink-0" />,
-        info: <InfoIcon className="size-4 shrink-0" />,
-        warning: <TriangleAlertIcon className="size-4 shrink-0" />,
-        error: <OctagonXIcon className="size-4 shrink-0" />,
-        loading: <Loader2Icon className="size-4 shrink-0 animate-spin" />,
+        success: <CircleCheckIcon className="size-4 shrink-0 text-emerald-500" />,
+        info: <InfoIcon className="size-4 shrink-0 text-blue-500" />,
+        warning: <TriangleAlertIcon className="size-4 shrink-0 text-amber-500" />,
+        error: <OctagonXIcon className="size-4 shrink-0 text-destructive" />,
+        loading: <Loader2Icon className="size-4 shrink-0 animate-spin text-primary" />,
       }}
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:font-sans group-[.toaster]:rounded-xl group-[.toaster]:shadow-lg text-sm",
+            "group toast group-[.toaster]:font-sans group-[.toaster]:bg-card group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:rounded-xl group-[.toaster]:shadow-lg text-sm",
           description: "group-[.toast]:text-muted-foreground",
           actionButton:
             "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground font-medium",
