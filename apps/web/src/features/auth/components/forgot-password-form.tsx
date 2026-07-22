@@ -78,7 +78,7 @@ export function ForgotPasswordForm() {
         />
 
         <Button type="submit" className="w-full" loading={isSubmitting}>
-          Gửi Link Khôi Phục
+          Gửi Liên kết Khôi Phục
         </Button>
 
         <div className="text-center text-sm">
