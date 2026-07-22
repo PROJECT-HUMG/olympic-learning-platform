@@ -46,10 +46,11 @@ export function VerifyEmailCard() {
   return (
     <div className="space-y-6 text-center" aria-busy={status === "loading"}>
       {status === "loading" && (
-        <div className="space-y-4" role="status" aria-label="Đang xác thực email">
-          <Skeleton className="mx-auto h-12 w-12 rounded-full" />
-          <Skeleton className="mx-auto h-6 w-48" />
-          <Skeleton className="mx-auto h-4 w-64" />
+        <div className="space-y-4 text-center" role="status" aria-label="Đang xác thực email">
+          <Skeleton className="mx-auto size-14 rounded-full" />
+          <Skeleton className="mx-auto h-7 w-60 rounded-md" />
+          <Skeleton className="mx-auto h-4 w-72 rounded-md" />
+          <Skeleton className="h-10 w-full rounded-lg" />
         </div>
       )}
 

@@ -18,6 +18,7 @@ export function GuestGuard() {
     const isRegister = location.pathname === ROUTES.REGISTER;
     const isForgotPassword = location.pathname === ROUTES.FORGOT_PASSWORD;
     const isResetPassword = location.pathname === ROUTES.RESET_PASSWORD;
+    const isVerifyEmail = location.pathname === ROUTES.VERIFY_EMAIL;
 
     return (
       <div
@@ -27,77 +28,92 @@ export function GuestGuard() {
         <div className="relative z-10 w-full max-w-md">
           {/* Card panel geometry matching specific route form 1:1 */}
           <div className="rounded-2xl border border-border/80 bg-card/90 p-6 shadow-xl backdrop-blur-md sm:p-8 space-y-6">
-            {/* Header Skeleton */}
-            <div className="space-y-2 text-center">
-              <Skeleton className="mx-auto h-8 w-36 rounded-md" />
-              <Skeleton className="mx-auto h-4 w-60 rounded-md" />
-            </div>
-
-            {/* Social OAuth Buttons Skeleton (Only on Login) */}
-            {!isRegister && !isForgotPassword && !isResetPassword && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-2.5">
-                  <Skeleton className="h-10 w-full rounded-lg" />
-                  <Skeleton className="h-10 w-full rounded-lg" />
-                  <Skeleton className="h-10 w-full rounded-lg" />
-                </div>
-                <div className="relative flex items-center justify-center">
-                  <Skeleton className="h-3 w-32 rounded-md" />
-                </div>
-              </div>
-            )}
-
-            {/* Form Fields Skeleton */}
-            <div className="space-y-4">
-              {/* Field 1: Email */}
-              <div className="space-y-1.5">
-                <Skeleton className="h-4 w-16 rounded-md" />
+            {isVerifyEmail ? (
+              /* Verify Email Skeleton Geometry */
+              <div className="space-y-4 text-center">
+                <Skeleton className="mx-auto size-14 rounded-full" />
+                <Skeleton className="mx-auto h-7 w-60 rounded-md" />
+                <Skeleton className="mx-auto h-4 w-72 rounded-md" />
                 <Skeleton className="h-10 w-full rounded-lg" />
               </div>
+            ) : (
+              /* Form Skeletons (Login, Register, Forgot Password, Reset Password) */
+              <>
+                {/* Header Skeleton */}
+                <div className="space-y-2 text-center">
+                  <Skeleton className="mx-auto h-8 w-36 rounded-md" />
+                  <Skeleton className="mx-auto h-4 w-60 rounded-md" />
+                </div>
 
-              {/* Register Extra Fields: Username & FullName */}
-              {isRegister && (
-                <>
-                  <div className="space-y-1.5">
-                    <Skeleton className="h-4 w-24 rounded-md" />
-                    <Skeleton className="h-10 w-full rounded-lg" />
+                {/* Social OAuth Buttons Skeleton (Only on Login) */}
+                {!isRegister && !isForgotPassword && !isResetPassword && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-3 gap-2.5">
+                      <Skeleton className="h-10 w-full rounded-lg" />
+                      <Skeleton className="h-10 w-full rounded-lg" />
+                      <Skeleton className="h-10 w-full rounded-lg" />
+                    </div>
+                    <div className="relative flex items-center justify-center">
+                      <Skeleton className="h-3 w-32 rounded-md" />
+                    </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Skeleton className="h-4 w-20 rounded-md" />
-                    <Skeleton className="h-10 w-full rounded-lg" />
-                  </div>
-                </>
-              )}
+                )}
 
-              {/* Field: Password / New Password */}
-              {!isForgotPassword && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
+                {/* Form Fields Skeleton */}
+                <div className="space-y-4">
+                  {/* Field 1: Email / New Password */}
+                  <div className="space-y-1.5">
                     <Skeleton className="h-4 w-16 rounded-md" />
-                    {!isRegister && !isResetPassword && (
-                      <Skeleton className="h-3 w-24 rounded-md" />
-                    )}
+                    <Skeleton className="h-10 w-full rounded-lg" />
                   </div>
+
+                  {/* Register Extra Fields: Username & FullName */}
+                  {isRegister && (
+                    <>
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-24 rounded-md" />
+                        <Skeleton className="h-10 w-full rounded-lg" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-20 rounded-md" />
+                        <Skeleton className="h-10 w-full rounded-lg" />
+                      </div>
+                    </>
+                  )}
+
+                  {/* Field: Password / New Password */}
+                  {!isForgotPassword && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-16 rounded-md" />
+                        {!isRegister && !isResetPassword && (
+                          <Skeleton className="h-3 w-24 rounded-md" />
+                        )}
+                      </div>
+                      <Skeleton className="h-10 w-full rounded-lg" />
+                    </div>
+                  )}
+
+                  {/* Register / Reset Password Extra Field: Confirm Password */}
+                  {(isRegister || isResetPassword) && (
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-32 rounded-md" />
+                      <Skeleton className="h-10 w-full rounded-lg" />
+                    </div>
+                  )}
+
+                  {/* Submit Button Skeleton */}
                   <Skeleton className="h-10 w-full rounded-lg" />
+
+                  {/* Footer Link Skeleton */}
+                  {!isResetPassword && (
+                    <div className="pt-2 text-center">
+                      <Skeleton className="mx-auto h-4 w-44 rounded-md" />
+                    </div>
+                  )}
                 </div>
-              )}
-
-              {/* Register / Reset Password Extra Field: Confirm Password */}
-              {(isRegister || isResetPassword) && (
-                <div className="space-y-1.5">
-                  <Skeleton className="h-4 w-32 rounded-md" />
-                  <Skeleton className="h-10 w-full rounded-lg" />
-                </div>
-              )}
-
-              {/* Submit Button Skeleton */}
-              <Skeleton className="h-10 w-full rounded-lg" />
-
-              {/* Footer Link Skeleton */}
-              <div className="pt-2 text-center">
-                <Skeleton className="mx-auto h-4 w-44 rounded-md" />
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>
