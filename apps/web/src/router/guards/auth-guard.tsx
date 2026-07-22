@@ -8,7 +8,7 @@ export function AuthGuard() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen" aria-busy="true" aria-label="Đang tải dữ liệu trang">
         {/* Sidebar Skeleton */}
         <aside className="hidden w-64 border-r border-sidebar-border bg-sidebar p-4 lg:block">
           <Skeleton className="h-8 w-32" />

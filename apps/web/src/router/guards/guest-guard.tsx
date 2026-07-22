@@ -8,7 +8,7 @@ export function GuestGuard() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-background" aria-busy="true" aria-label="Đang tải dữ liệu">
         <div className="w-full max-w-md px-4 space-y-6">
           <div className="space-y-2 text-center">
             <Skeleton className="mx-auto h-8 w-24" />

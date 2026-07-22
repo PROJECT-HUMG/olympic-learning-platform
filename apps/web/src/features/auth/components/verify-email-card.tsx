@@ -44,9 +44,9 @@ export function VerifyEmailCard() {
   }, [token]);
 
   return (
-    <div className="space-y-6 text-center">
+    <div className="space-y-6 text-center" aria-busy={status === "loading"}>
       {status === "loading" && (
-        <div className="space-y-4">
+        <div className="space-y-4" role="status" aria-label="Đang xác thực email">
           <Skeleton className="mx-auto h-12 w-12 rounded-full" />
           <Skeleton className="mx-auto h-6 w-48" />
           <Skeleton className="mx-auto h-4 w-64" />
