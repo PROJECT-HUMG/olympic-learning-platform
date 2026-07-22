@@ -2,20 +2,26 @@ import { Navigate, Outlet } from "react-router-dom";
 import { ROUTES } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSpinDelay } from "@/hooks/use-spin-delay";
 
 export function AuthGuard() {
   const { data: user, isLoading } = useCurrentUser();
+  const showSkeleton = useSpinDelay(isLoading, { delay: 200, minDuration: 300 });
 
   if (isLoading) {
+    if (!showSkeleton) {
+      return null;
+    }
+
     return (
-      <div className="flex min-h-screen" aria-busy="true" aria-label="Đang tải dữ liệu trang">
+      <div className="flex min-h-screen bg-background" aria-busy="true">
         {/* Sidebar Skeleton */}
-        <aside className="hidden w-64 border-r border-sidebar-border bg-sidebar p-4 lg:block">
-          <Skeleton className="h-8 w-32" />
-          <div className="mt-8 space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
+        <aside className="hidden w-64 border-r border-border bg-card p-4 lg:block">
+          <Skeleton className="h-8 w-32 rounded-md" />
+          <div className="mt-8 space-y-3">
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
           </div>
         </aside>
 
@@ -23,12 +29,12 @@ export function AuthGuard() {
         <main className="flex-1">
           {/* Header Skeleton */}
           <header className="flex h-16 items-center border-b border-border px-6">
-            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-6 w-28 rounded-md" />
           </header>
 
           {/* Page Content Skeleton */}
           <div className="p-6 space-y-6">
-            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-8 w-48 rounded-md" />
             <div className="grid gap-6 md:grid-cols-3">
               <Skeleton className="h-32 rounded-xl" />
               <Skeleton className="h-32 rounded-xl" />
