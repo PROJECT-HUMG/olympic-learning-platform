@@ -49,8 +49,8 @@ function MicrosoftIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export function SocialLoginButtons() {
   const handleOAuthLogin = (provider: "google" | "github" | "microsoft") => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-    window.location.href = `${apiBase}/api/v1/auth/oauth2/${provider}`;
+    const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+    window.location.href = `${apiBase}/auth/oauth2/${provider}`;
   };
 
   return (
