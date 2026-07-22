@@ -61,8 +61,8 @@ export function ForgotPasswordForm() {
     <div className="space-y-6">
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-bold text-foreground">Quên Mật Khẩu?</h1>
-        <p className="text-sm text-muted-foreground">
-          Nhập địa chỉ email của bạn để nhận liên kết khôi phục mật khẩu.
+        <p className="text-sm text-muted-foreground text-balance">
+          Nhập email của bạn để nhận liên kết khôi phục mật khẩu
         </p>
       </div>
 

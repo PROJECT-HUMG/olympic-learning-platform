@@ -103,8 +103,8 @@ export function RegisterForm() {
     <div className="space-y-6">
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-bold text-foreground">Tạo Tài Khoản</h1>
-        <p className="text-sm text-muted-foreground">
-          Tham gia Olympic Learning Platform để bắt đầu học tập và thử sức
+        <p className="text-sm text-muted-foreground text-balance">
+          Tạo tài khoản để bắt đầu học tập và ôn luyện
         </p>
       </div>
 
