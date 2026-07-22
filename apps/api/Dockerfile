@@ -42,6 +42,8 @@ LABEL description="Olympic Platform API"
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
 RUN groupadd --gid 10001 olympic_platform && \
     useradd \
         --uid 10001 \

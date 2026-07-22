@@ -101,7 +101,7 @@ services:
     volumes:
       - api-storage:/app/storage
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/actuator/health/readiness"]
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/actuator/health/readiness"]
       interval: 10s
       timeout: 5s
       retries: 30
