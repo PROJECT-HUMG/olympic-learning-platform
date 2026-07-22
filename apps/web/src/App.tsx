@@ -11,7 +11,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <RouterProvider router={router} />
-        <Toaster richColors position="top-right" closeButton />
+        <Toaster richColors position="top-right" />
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
