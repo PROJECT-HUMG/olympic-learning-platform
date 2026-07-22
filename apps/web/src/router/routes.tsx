@@ -6,21 +6,16 @@ import { GuestGuard } from "@/router/guards/guest-guard";
 import { PublicLayout } from "@/layouts/public-layout";
 import { ProtectedLayout } from "@/layouts/protected-layout";
 
-const LoginPage = lazy(() => import("@/pages/auth/login-page"));
-const RegisterPage = lazy(() => import("@/pages/auth/register-page"));
-const VerifyEmailPage = lazy(() => import("@/pages/auth/verify-email-page"));
-const ForgotPasswordPage = lazy(() => import("@/pages/auth/forgot-password-page"));
-const ResetPasswordPage = lazy(() => import("@/pages/auth/reset-password-page"));
+// Eagerly load lightweight Auth page wrappers for instant rendering without Suspense delays
+import LoginPage from "@/pages/auth/login-page";
+import RegisterPage from "@/pages/auth/register-page";
+import VerifyEmailPage from "@/pages/auth/verify-email-page";
+import ForgotPasswordPage from "@/pages/auth/forgot-password-page";
+import ResetPasswordPage from "@/pages/auth/reset-password-page";
+
+// Lazy load heavy feature routes
 const DashboardPage = lazy(() => import("@/pages/dashboard-page"));
 const NotFoundPage = lazy(() => import("@/pages/not-found-page"));
-
-function PageLoader() {
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="text-muted-foreground">Loading...</div>
-    </div>
-  );
-}
 
 export const router = createBrowserRouter([
   {
@@ -31,43 +26,23 @@ export const router = createBrowserRouter([
         children: [
           {
             path: ROUTES.LOGIN,
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <LoginPage />
-              </Suspense>
-            ),
+            element: <LoginPage />,
           },
           {
             path: ROUTES.REGISTER,
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <RegisterPage />
-              </Suspense>
-            ),
+            element: <RegisterPage />,
           },
           {
             path: ROUTES.VERIFY_EMAIL,
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <VerifyEmailPage />
-              </Suspense>
-            ),
+            element: <VerifyEmailPage />,
           },
           {
             path: ROUTES.FORGOT_PASSWORD,
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <ForgotPasswordPage />
-              </Suspense>
-            ),
+            element: <ForgotPasswordPage />,
           },
           {
             path: ROUTES.RESET_PASSWORD,
-            element: (
-              <Suspense fallback={<PageLoader />}>
-                <ResetPasswordPage />
-              </Suspense>
-            ),
+            element: <ResetPasswordPage />,
           },
         ],
       },
@@ -82,7 +57,7 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.DASHBOARD,
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={null}>
                 <DashboardPage />
               </Suspense>
             ),
@@ -98,7 +73,7 @@ export const router = createBrowserRouter([
   {
     path: "*",
     element: (
-      <Suspense fallback={<PageLoader />}>
+      <Suspense fallback={null}>
         <NotFoundPage />
       </Suspense>
     ),
