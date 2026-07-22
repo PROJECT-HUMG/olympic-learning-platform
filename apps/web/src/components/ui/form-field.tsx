@@ -11,6 +11,7 @@ export interface FormFieldProps extends React.ComponentProps<"input"> {
   helperText?: React.ReactNode;
   error?: string;
   required?: boolean;
+  showAsterisk?: boolean;
 }
 
 export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
@@ -22,6 +23,7 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
       helperText,
       error,
       required,
+      showAsterisk = false,
       placeholder,
       className,
       type,
@@ -47,7 +49,7 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
                 className="text-sm font-medium text-foreground cursor-pointer select-none"
               >
                 {label}
-                {required && (
+                {showAsterisk && required && (
                   <span className="text-destructive ms-1" aria-hidden="true">
                     *
                   </span>
