@@ -3,7 +3,7 @@
 # ============================================================
 # Stage 1: Build executable Spring Boot JAR
 # ============================================================
-FROM maven:3.9.16-eclipse-temurin-21-noble AS build
+FROM maven:3.9.16-eclipse-temurin-26-noble AS build
 
 WORKDIR /workspace
 
@@ -35,7 +35,7 @@ RUN --mount=type=cache,target=/root/.m2,sharing=locked \
 # ============================================================
 # Stage 2: Production runtime
 # ============================================================
-FROM eclipse-temurin:21-jre-noble AS runtime
+FROM eclipse-temurin:26-jre-noble AS runtime
 
 LABEL maintainer="nghlong3004"
 LABEL description="Olympic Platform API"
