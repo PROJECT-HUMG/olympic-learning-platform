@@ -104,7 +104,7 @@ export function RegisterForm() {
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-bold text-foreground">Tạo Tài Khoản</h1>
         <p className="text-sm text-muted-foreground">
-          Tham gia Olympic Learning Platform để bắt đầu giải các bài tập thuật toán
+          Tham gia Olympic Learning Platform để bắt đầu học tập và thử sức
         </p>
       </div>
 
@@ -125,7 +125,7 @@ export function RegisterForm() {
           type="text"
           label="Tên đăng nhập"
           required
-          placeholder="johndoe"
+          placeholder="user123"
           error={errors.username?.message}
           {...usernameRegister}
           onChange={handleUsernameChange}
