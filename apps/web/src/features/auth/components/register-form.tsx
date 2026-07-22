@@ -8,6 +8,7 @@ import { parseApiError } from "@/lib/api-error";
 import { ROUTES } from "@/router/route-constants";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
+import { SocialLoginButtons } from "@/features/auth/components/social-login-buttons";
 import { toast } from "sonner";
 import { MailCheckIcon } from "lucide-react";
 
@@ -107,6 +108,8 @@ export function RegisterForm() {
           Tham gia Olympic Learning Platform để bắt đầu học tập và thử sức
         </p>
       </div>
+
+      <SocialLoginButtons />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <FormField

@@ -7,6 +7,7 @@ import { parseApiError } from "@/lib/api-error";
 import { ROUTES } from "@/router/route-constants";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
+import { SocialLoginButtons } from "@/features/auth/components/social-login-buttons";
 import { toast } from "sonner";
 
 const loginSchema = z.object({
@@ -45,6 +46,8 @@ export function LoginForm() {
           Nhập thông tin tài khoản của bạn để tiếp tục
         </p>
       </div>
+
+      <SocialLoginButtons />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <FormField
