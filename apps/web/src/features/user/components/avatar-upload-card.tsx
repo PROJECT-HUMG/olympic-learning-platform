@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
-import { Upload, Trash2, Camera, Loader2 } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { Upload, Trash2, Loader2, Check, X, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUpdateAvatar, useRemoveAvatar } from "../hooks/use-avatar";
 import type { UserProfile } from "../types/user.types";
+import { toast } from "sonner";
 
 interface AvatarUploadCardProps {
   user: UserProfile;
@@ -10,6 +11,7 @@ interface AvatarUploadCardProps {
 
 export function AvatarUploadCard({ user }: AvatarUploadCardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const updateAvatarMutation = useUpdateAvatar();
@@ -19,7 +21,16 @@ export function AvatarUploadCard({ user }: AvatarUploadCardProps) {
   const isRemoving = removeAvatarMutation.isPending;
   const isPending = isUploading || isRemoving;
 
-  const currentAvatar = previewUrl || user.avatarUrl || "";
+  // Cleanup object URL when previewUrl changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  const displayAvatar = previewUrl || user.avatarUrl || "";
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -27,28 +38,49 @@ export function AvatarUploadCard({ user }: AvatarUploadCardProps) {
 
     // Validate size (< 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert("Kích thước file không được vượt quá 5MB.");
+      toast.error("Dung lượng file vượt quá giới hạn cho phép (Tối đa 5MB).");
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
-    // Create local preview
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
+    // Validate image type
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Định dạng file không hỗ trợ (chỉ nhận JPG, PNG, WebP).");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
 
-    // Upload
-    updateAvatarMutation.mutate(file, {
-      onSettled: () => {
-        setPreviewUrl(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
+    // Create local preview without uploading yet
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    const objectUrl = URL.createObjectURL(file);
+    setSelectedFile(file);
+    setPreviewUrl(objectUrl);
+  }
+
+  function handleCancelPreview() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function handleSaveAvatar() {
+    if (!selectedFile) return;
+
+    updateAvatarMutation.mutate(selectedFile, {
+      onSuccess: () => {
+        handleCancelPreview();
       },
     });
   }
 
   function handleRemoveAvatar() {
     if (confirm("Bạn có chắc chắn muốn xóa ảnh đại diện hiện tại?")) {
-      removeAvatarMutation.mutate();
+      removeAvatarMutation.mutate(undefined, {
+        onSuccess: () => {
+          handleCancelPreview();
+        },
+      });
     }
   }
 
@@ -56,16 +88,16 @@ export function AvatarUploadCard({ user }: AvatarUploadCardProps) {
     <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
       <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:gap-8">
         {/* Avatar Display */}
-        <div className="relative group">
+        <div className="relative shrink-0">
           <div className="relative size-28 overflow-hidden rounded-full border-2 border-border/80 bg-muted shadow-inner sm:size-32">
-            {currentAvatar ? (
+            {displayAvatar ? (
               <img
-                src={currentAvatar}
+                src={displayAvatar}
                 alt={user.fullName || user.username}
-                className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="size-full object-cover"
               />
             ) : (
-              <div className="flex size-full items-center justify-center bg-primary/10 text-2xl font-bold text-primary">
+              <div className="flex size-full items-center justify-center bg-primary/10 text-3xl font-bold text-primary">
                 {(user.fullName || user.username).charAt(0).toUpperCase()}
               </div>
             )}
@@ -81,18 +113,14 @@ export function AvatarUploadCard({ user }: AvatarUploadCardProps) {
             )}
           </div>
 
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={() => fileInputRef.current?.click()}
-            className="absolute bottom-0 right-0 flex size-9 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-md hover:bg-accent transition-colors disabled:opacity-50"
-            title="Đổi ảnh đại diện"
-          >
-            <Camera className="size-4" />
-          </button>
+          {selectedFile && (
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground shadow-xs">
+              Xem trước
+            </span>
+          )}
         </div>
 
-        {/* Actions & Hints */}
+        {/* Actions & Description */}
         <div className="flex-1 space-y-3 text-center sm:text-left">
           <div>
             <h3 className="text-lg font-semibold text-foreground">
@@ -112,30 +140,57 @@ export function AvatarUploadCard({ user }: AvatarUploadCardProps) {
           />
 
           <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              loading={isUploading}
-              disabled={isPending}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="mr-2 size-4" />
-              Tải ảnh lên
-            </Button>
+            {selectedFile ? (
+              <>
+                <Button
+                  type="button"
+                  size="sm"
+                  loading={isUploading}
+                  disabled={isPending}
+                  onClick={handleSaveAvatar}
+                >
+                  <Check className="mr-2 size-4" />
+                  Lưu ảnh mới
+                </Button>
 
-            {user.avatarUrl && (
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                loading={isRemoving}
-                disabled={isPending}
-                onClick={handleRemoveAvatar}
-              >
-                <Trash2 className="mr-2 size-4" />
-                Xóa ảnh
-              </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={isPending}
+                  onClick={handleCancelPreview}
+                >
+                  <X className="mr-2 size-4" />
+                  Hủy
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isPending}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <ImagePlus className="mr-2 size-4" />
+                  Chọn ảnh mới
+                </Button>
+
+                {user.avatarUrl && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    loading={isRemoving}
+                    disabled={isPending}
+                    onClick={handleRemoveAvatar}
+                  >
+                    <Trash2 className="mr-2 size-4" />
+                    Xóa ảnh
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>
