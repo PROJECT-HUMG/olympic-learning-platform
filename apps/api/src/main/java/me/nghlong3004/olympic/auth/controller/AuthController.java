@@ -108,6 +108,15 @@ public class AuthController {
     return authService.resetPassword(request);
   }
 
+  @PostMapping("/password/change")
+  @Operation(summary = "Change password for currently authenticated user")
+  @ApiResponse(responseCode = "200", description = "Password changed successfully")
+  @ApiResponse(responseCode = "400", description = "Current password incorrect or validation error")
+  @ApiResponse(responseCode = "401", description = "Authentication required")
+  public AuthMessageResponse changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+    return authService.changePassword(request);
+  }
+
   @PostMapping("/logout")
   @Operation(summary = "Logout and revoke refresh token")
   @ApiResponse(responseCode = "204", description = "Refresh token revoked and cookie cleared")

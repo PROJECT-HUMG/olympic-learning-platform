@@ -35,6 +35,8 @@ public enum ErrorCode {
   DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "Resource already exists", "error.resource.duplicate"),
   INVALID_RESOURCE_NAME(
       HttpStatus.BAD_REQUEST, "Resource name is invalid", "error.resource.invalidName"),
+  INVALID_CURRENT_PASSWORD(
+      HttpStatus.BAD_REQUEST, "Current password is incorrect", "error.auth.invalidCurrentPassword"),
   FILE_UPLOAD_FAILED(
       HttpStatus.INTERNAL_SERVER_ERROR, "File upload failed", "error.storage.uploadFailed"),
   FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "File not found", "error.storage.fileNotFound"),

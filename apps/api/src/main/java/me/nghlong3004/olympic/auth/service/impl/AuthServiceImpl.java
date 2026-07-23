@@ -22,6 +22,7 @@ import me.nghlong3004.olympic.common.mail.model.EmailVerificationMailModel;
 import me.nghlong3004.olympic.common.mail.model.PasswordResetMailModel;
 import me.nghlong3004.olympic.common.properties.AuthProperties;
 import me.nghlong3004.olympic.common.properties.UserProperties;
+import me.nghlong3004.olympic.common.security.CurrentUserProvider;
 import me.nghlong3004.olympic.common.util.AuthLinkBuilder;
 import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.User;
@@ -54,6 +55,7 @@ public class AuthServiceImpl implements AuthService {
   private final AuthLinkBuilder linkBuilder;
   private final AuthMapper authMapper;
   private final StorageService storageService;
+  private final CurrentUserProvider currentUserProvider;
   private final Clock clock;
 
   @Transactional
@@ -198,6 +200,32 @@ public class AuthServiceImpl implements AuthService {
     refreshTokenService.revokeActiveForUser(user.getId());
     authEmailTokenService.revokeActiveForUser(user.getId());
     log.info("User password updated: userId={}, purpose={}", user.getId(), purpose);
+    return new AuthMessageResponse(
+        PASSWORD_RESET_SUCCESS_MESSAGE, PASSWORD_RESET_SUCCESS_MESSAGE_KEY);
+  }
+
+  @Transactional
+  @Override
+  public AuthMessageResponse changePassword(ChangePasswordRequest request) {
+    var currentUser = currentUserProvider.getCurrentUser();
+    var user =
+        userRepository
+            .findForUpdateById(currentUser.id())
+            .orElseThrow(ErrorCode.USER_NOT_FOUND::throwIt);
+
+    user.requireActiveForAuth();
+
+    if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+      throw ErrorCode.INVALID_CURRENT_PASSWORD.throwIt();
+    }
+
+    user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+    user.setUpdatedAt(OffsetDateTime.now(clock));
+
+    refreshTokenService.revokeActiveForUser(user.getId());
+    authEmailTokenService.revokeActiveForUser(user.getId());
+
+    log.info("User password changed successfully: userId={}", user.getId());
     return new AuthMessageResponse(
         PASSWORD_RESET_SUCCESS_MESSAGE, PASSWORD_RESET_SUCCESS_MESSAGE_KEY);
   }

@@ -75,6 +75,14 @@ public interface AuthService {
    */
   AuthMessageResponse resetPassword(ResetPasswordRequest request);
 
+  /**
+   * Changes the password of the currently authenticated user after verifying their current password.
+   *
+   * @param request current password and new password payload
+   * @return generic success response
+   */
+  AuthMessageResponse changePassword(ChangePasswordRequest request);
+
   record LoginResult(LoginResponse response, RefreshTokenIssue refreshToken) {}
 
   record RefreshResult(RefreshAccessTokenResponse response, RefreshTokenIssue refreshToken) {}
