@@ -35,6 +35,12 @@ public enum ErrorCode {
   DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "Resource already exists", "error.resource.duplicate"),
   INVALID_RESOURCE_NAME(
       HttpStatus.BAD_REQUEST, "Resource name is invalid", "error.resource.invalidName"),
+  FILE_UPLOAD_FAILED(
+      HttpStatus.INTERNAL_SERVER_ERROR, "File upload failed", "error.storage.uploadFailed"),
+  FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "File not found", "error.storage.fileNotFound"),
+  FILE_TYPE_NOT_ALLOWED(
+      HttpStatus.BAD_REQUEST, "File type is not allowed", "error.storage.typeNotAllowed"),
+  FILE_TOO_LARGE(HttpStatus.BAD_REQUEST, "File is too large", "error.storage.tooLarge"),
   INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal error", "error.internal");
 
   private final HttpStatus status;

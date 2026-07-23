@@ -59,7 +59,6 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
                 .email(email)
                 .username(request.username())
                 .fullName(request.fullName().trim())
-                .avatarUrl(userProperties.defaultAvatarUrl())
                 .role(request.role())
                 .status(Status.PENDING)
                 .createdAt(now)
@@ -78,6 +77,11 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
                 user.getEmail(), user.getFullName(), linkBuilder.inviteLink(token.token()))));
     log.info("Admin created user invite: userId={}", user.getId());
     return new AdminCreateUserResponse(
-        userMapper.toResponse(user), "User created. Invite email sent.");
+        userMapper.toResponse(user).withAvatarUrl(resolveAvatarUrl(user)),
+        "User created. Invite email sent.");
+  }
+
+  private String resolveAvatarUrl(User user) {
+    return userProperties.defaultAvatarUrl();
   }
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.*;
+import me.nghlong3004.olympic.storage.entity.FileEntity;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
 import me.nghlong3004.olympic.user.exception.UserDisabledException;
@@ -52,8 +53,9 @@ public class User {
   @Column(name = "password_hash")
   private String passwordHash;
 
-  @Column(name = "avatar_url", length = 512)
-  private String avatarUrl;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "avatar_id")
+  private FileEntity avatar;
 
   @Column(name = "last_login_at")
   private OffsetDateTime lastLoginAt;

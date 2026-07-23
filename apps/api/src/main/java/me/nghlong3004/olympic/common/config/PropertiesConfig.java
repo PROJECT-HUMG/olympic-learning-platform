@@ -4,6 +4,7 @@ import me.nghlong3004.olympic.common.properties.AuthProperties;
 import me.nghlong3004.olympic.common.properties.ClientProperties;
 import me.nghlong3004.olympic.common.properties.SecurityProperties;
 import me.nghlong3004.olympic.common.properties.UserProperties;
+import me.nghlong3004.olympic.storage.properties.StorageProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
   AuthProperties.class,
   SecurityProperties.class,
   ClientProperties.class,
-  UserProperties.class
+  UserProperties.class,
+  StorageProperties.class
 })
 public class PropertiesConfig {}

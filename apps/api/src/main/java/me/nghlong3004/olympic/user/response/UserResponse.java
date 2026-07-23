@@ -30,4 +30,11 @@ public record UserResponse(
             description = "Last successful login time.",
             example = "2026-06-09T10:00:00Z",
             nullable = true)
-        OffsetDateTime lastLoginAt) {}
+        OffsetDateTime lastLoginAt) {
+
+  /** Returns a copy of this response with the given avatar URL. */
+  public UserResponse withAvatarUrl(String avatarUrl) {
+    return new UserResponse(id, email, username, fullName, avatarUrl, role, status, lastLoginAt);
+  }
+}
+

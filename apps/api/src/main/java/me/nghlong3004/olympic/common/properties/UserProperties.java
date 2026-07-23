@@ -12,7 +12,7 @@ public record UserProperties(String defaultAvatarUrl) {
   public UserProperties {
     if (defaultAvatarUrl == null || defaultAvatarUrl.isBlank()) {
       defaultAvatarUrl =
-          "https://ui-avatars.com/api/?name={name}&background=random&color=fff&size=128";
+          "https://static.vecteezy.com/system/resources/previews/009/734/564/original/default-avatar-profile-icon-of-social-media-user-vector.jpg";
     }
   }
 }

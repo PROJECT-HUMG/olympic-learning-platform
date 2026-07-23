@@ -23,6 +23,7 @@ import me.nghlong3004.olympic.common.mail.model.PasswordResetMailModel;
 import me.nghlong3004.olympic.common.properties.AuthProperties;
 import me.nghlong3004.olympic.common.properties.UserProperties;
 import me.nghlong3004.olympic.common.util.AuthLinkBuilder;
+import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.User;
 import me.nghlong3004.olympic.user.enums.Status;
 import me.nghlong3004.olympic.user.repository.UserRepository;
@@ -52,6 +53,7 @@ public class AuthServiceImpl implements AuthService {
   private final UserProperties userProperties;
   private final AuthLinkBuilder linkBuilder;
   private final AuthMapper authMapper;
+  private final StorageService storageService;
   private final Clock clock;
 
   @Transactional
@@ -72,7 +74,6 @@ public class AuthServiceImpl implements AuthService {
                 .username(request.username().trim())
                 .fullName(request.fullName().trim())
                 .passwordHash(passwordEncoder.encode(request.password()))
-                .avatarUrl(userProperties.defaultAvatarUrl())
                 .createdAt(now)
                 .updatedAt(now)
                 .build());
@@ -120,7 +121,7 @@ public class AuthServiceImpl implements AuthService {
             jwtTokenService.issueAccessToken(user),
             TOKEN_TYPE,
             jwtTokenService.accessExpiresInSeconds(),
-            authMapper.toResponse(user));
+            authMapper.toResponse(user).withAvatarUrl(resolveAvatarUrl(user)));
 
     log.info("User login succeeded: userId={}", user.getId());
 
@@ -218,5 +219,12 @@ public class AuthServiceImpl implements AuthService {
 
   private String normalizeEmail(String email) {
     return AuthLinkBuilder.normalizeEmail(email);
+  }
+
+  private String resolveAvatarUrl(User user) {
+    if (user.getAvatar() != null) {
+      return storageService.getPublicUrl(user.getAvatar().getStorageKey());
+    }
+    return userProperties.defaultAvatarUrl();
   }
 }

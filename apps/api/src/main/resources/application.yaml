@@ -24,6 +24,8 @@ logging:
     level: "%5p [traceId=%X{traceId:-}]"
 
 olympic:
+  storage:
+    provider: ${STORAGE_PROVIDER:cloudinary}
   auth:
     registration:
       mode: ${VFQC_AUTH_REGISTRATION_MODE:SELF_VERIFY}

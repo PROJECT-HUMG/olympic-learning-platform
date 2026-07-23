@@ -17,4 +17,12 @@ public record CurrentUserResponse(
     String avatarUrl,
     Role role,
     Status status,
-    OffsetDateTime lastLoginAt) {}
+    OffsetDateTime lastLoginAt) {
+
+  /** Returns a copy of this response with the given avatar URL. */
+  public CurrentUserResponse withAvatarUrl(String avatarUrl) {
+    return new CurrentUserResponse(
+        id, email, username, fullName, avatarUrl, role, status, lastLoginAt);
+  }
+}
+
