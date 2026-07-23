@@ -41,6 +41,9 @@ services:
       context: ./apps/api
       dockerfile: Dockerfile
     mem_limit: ${API_MEMORY_LIMIT:-2g}
+    env_file:
+      - path: .env
+        required: false
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       SERVER_PORT: 8080
