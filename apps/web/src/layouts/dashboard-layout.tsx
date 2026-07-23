@@ -25,8 +25,8 @@ export function DashboardLayout() {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      {/* Sidebar */}
-      <aside className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
+      {/* Fixed Sticky Sidebar */}
+      <aside className="sticky top-0 hidden h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
         <div className="flex h-16 items-center border-b border-sidebar-border px-6">
           <Link
             to={ROUTES.HOME}
