@@ -81,7 +81,7 @@ function Button({
       {...props}
     >
       {loading ? (
-        <span className="inline-flex items-center gap-2" role="status" aria-label="Đang xử lý">
+        <span className="inline-flex items-center gap-2" role="progressbar" aria-label="Đang xử lý">
           <Loader2 className="size-4 animate-spin" aria-hidden="true" />
           <span>{children}</span>
         </span>

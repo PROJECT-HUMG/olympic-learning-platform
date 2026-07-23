@@ -15,6 +15,7 @@ import ResetPasswordPage from "@/pages/auth/reset-password-page";
 
 // Lazy load heavy feature routes
 const DashboardPage = lazy(() => import("@/pages/dashboard-page"));
+const ProfilePage = lazy(() => import("@/pages/profile-page"));
 const NotFoundPage = lazy(() => import("@/pages/not-found-page"));
 
 export const router = createBrowserRouter([
@@ -59,6 +60,14 @@ export const router = createBrowserRouter([
             element: (
               <Suspense fallback={null}>
                 <DashboardPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: ROUTES.PROFILE,
+            element: (
+              <Suspense fallback={null}>
+                <ProfilePage />
               </Suspense>
             ),
           },

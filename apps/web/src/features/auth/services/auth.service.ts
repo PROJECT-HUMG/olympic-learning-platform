@@ -42,6 +42,6 @@ export const authService = {
   },
 
   me() {
-    return apiClient.get<CurrentUser>("/auth/me");
+    return apiClient.get<CurrentUser>("/users/me");
   },
 };
