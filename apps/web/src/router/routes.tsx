@@ -1,10 +1,11 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { ROUTES } from "@/router/route-constants";
-import { AuthGuard } from "@/router/guards/auth-guard";
-import { GuestGuard } from "@/router/guards/guest-guard";
+import { ProtectedRoute } from "@/router/guards/protected-route";
+import { GuestRoute } from "@/router/guards/guest-route";
 import { PublicLayout } from "@/layouts/public-layout";
-import { ProtectedLayout } from "@/layouts/protected-layout";
+import { DashboardLayout } from "@/layouts/dashboard-layout";
+import { AuthCardLayout } from "@/layouts/auth-card-layout";
 
 // Eagerly load lightweight Auth page wrappers for instant rendering without Suspense delays
 import LoginPage from "@/pages/auth/login-page";
@@ -13,17 +14,85 @@ import VerifyEmailPage from "@/pages/auth/verify-email-page";
 import ForgotPasswordPage from "@/pages/auth/forgot-password-page";
 import ResetPasswordPage from "@/pages/auth/reset-password-page";
 
-// Lazy load heavy feature routes
+// Lazy load portal public pages
+const HomePage = lazy(() => import("@/pages/home-page"));
+const SubjectsPage = lazy(() => import("@/pages/subjects-page"));
+const DocumentsPage = lazy(() => import("@/pages/documents-page"));
+const NewsPage = lazy(() => import("@/pages/news-page"));
+const CompetitionsPage = lazy(() => import("@/pages/competitions-page"));
+const AboutPage = lazy(() => import("@/pages/about-page"));
+
+// Lazy load authenticated private workspace pages
 const DashboardPage = lazy(() => import("@/pages/dashboard-page"));
 const ProfilePage = lazy(() => import("@/pages/profile-page"));
+const PracticePage = lazy(() => import("@/pages/practice-page"));
+const HistoryPage = lazy(() => import("@/pages/history-page"));
+
+// Lazy load fallback pages
 const NotFoundPage = lazy(() => import("@/pages/not-found-page"));
 
 export const router = createBrowserRouter([
+  // 1. Public Portal Area (PublicLayout with Top Navbar)
   {
-    element: <GuestGuard />,
+    element: <PublicLayout />,
     children: [
       {
-        element: <PublicLayout />,
+        path: ROUTES.HOME,
+        element: (
+          <Suspense fallback={null}>
+            <HomePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: ROUTES.SUBJECTS,
+        element: (
+          <Suspense fallback={null}>
+            <SubjectsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: ROUTES.DOCUMENTS,
+        element: (
+          <Suspense fallback={null}>
+            <DocumentsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: ROUTES.NEWS,
+        element: (
+          <Suspense fallback={null}>
+            <NewsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: ROUTES.COMPETITIONS,
+        element: (
+          <Suspense fallback={null}>
+            <CompetitionsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: ROUTES.ABOUT,
+        element: (
+          <Suspense fallback={null}>
+            <AboutPage />
+          </Suspense>
+        ),
+      },
+    ],
+  },
+
+  // 2. Auth Area (GuestRoute - Only accessible when logged out)
+  {
+    element: <GuestRoute />,
+    children: [
+      {
+        element: <AuthCardLayout />,
         children: [
           {
             path: ROUTES.LOGIN,
@@ -49,11 +118,13 @@ export const router = createBrowserRouter([
       },
     ],
   },
+
+  // 3. Private Workspace Area (ProtectedRoute - Only accessible when logged in)
   {
-    element: <AuthGuard />,
+    element: <ProtectedRoute />,
     children: [
       {
-        element: <ProtectedLayout />,
+        element: <DashboardLayout />,
         children: [
           {
             path: ROUTES.DASHBOARD,
@@ -71,14 +142,28 @@ export const router = createBrowserRouter([
               </Suspense>
             ),
           },
+          {
+            path: ROUTES.PRACTICE,
+            element: (
+              <Suspense fallback={null}>
+                <PracticePage />
+              </Suspense>
+            ),
+          },
+          {
+            path: ROUTES.HISTORY,
+            element: (
+              <Suspense fallback={null}>
+                <HistoryPage />
+              </Suspense>
+            ),
+          },
         ],
       },
     ],
   },
-  {
-    path: ROUTES.HOME,
-    element: <Navigate to={ROUTES.DASHBOARD} replace />,
-  },
+
+  // 4. Catch-all Not Found
   {
     path: "*",
     element: (
