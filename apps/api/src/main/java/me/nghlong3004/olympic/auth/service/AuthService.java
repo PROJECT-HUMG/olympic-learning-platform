@@ -1,6 +1,7 @@
 package me.nghlong3004.olympic.auth.service;
 
 import me.nghlong3004.olympic.auth.dto.RefreshTokenIssue;
+import me.nghlong3004.olympic.auth.request.ChangePasswordRequest;
 import me.nghlong3004.olympic.auth.request.ForgotPasswordRequest;
 import me.nghlong3004.olympic.auth.request.LoginRequest;
 import me.nghlong3004.olympic.auth.request.RegisterRequest;
