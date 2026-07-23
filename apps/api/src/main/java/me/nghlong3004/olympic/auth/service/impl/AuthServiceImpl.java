@@ -112,6 +112,8 @@ public class AuthServiceImpl implements AuthService {
       user.setPasswordHash(passwordEncoder.encode(request.password()));
     }
 
+    user.setLastLoginAt(OffsetDateTime.now(clock));
+
     var refreshToken = refreshTokenService.issue(user, ip, userAgent);
 
     var response =

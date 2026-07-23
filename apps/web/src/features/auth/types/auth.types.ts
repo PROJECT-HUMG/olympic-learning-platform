@@ -9,6 +9,7 @@ export interface CurrentUser {
   avatarUrl: string;
   role: Role;
   status: UserStatus;
+  lastLoginAt?: string | null;
 }
 
 export interface LoginRequest {

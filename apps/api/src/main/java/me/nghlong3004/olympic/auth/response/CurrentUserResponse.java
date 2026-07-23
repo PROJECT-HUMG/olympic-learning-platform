@@ -1,5 +1,6 @@
 package me.nghlong3004.olympic.auth.response;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
@@ -15,4 +16,5 @@ public record CurrentUserResponse(
     String fullName,
     String avatarUrl,
     Role role,
-    Status status) {}
+    Status status,
+    OffsetDateTime lastLoginAt) {}
