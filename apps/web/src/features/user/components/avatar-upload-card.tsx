@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { Upload, Trash2, Loader2, Check, X, ImagePlus } from "lucide-react";
+import { Trash2, Loader2, Check, X, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUpdateAvatar, useRemoveAvatar } from "../hooks/use-avatar";
 import type { UserProfile } from "../types/user.types";
