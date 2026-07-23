@@ -22,7 +22,6 @@ import me.nghlong3004.olympic.common.mail.model.EmailVerificationMailModel;
 import me.nghlong3004.olympic.common.mail.model.PasswordResetMailModel;
 import me.nghlong3004.olympic.common.properties.AuthProperties;
 import me.nghlong3004.olympic.common.properties.UserProperties;
-import me.nghlong3004.olympic.common.security.CurrentUser;
 import me.nghlong3004.olympic.common.util.AuthLinkBuilder;
 import me.nghlong3004.olympic.user.entity.User;
 import me.nghlong3004.olympic.user.enums.Status;
@@ -200,19 +199,6 @@ public class AuthServiceImpl implements AuthService {
     log.info("User password updated: userId={}, purpose={}", user.getId(), purpose);
     return new AuthMessageResponse(
         PASSWORD_RESET_SUCCESS_MESSAGE, PASSWORD_RESET_SUCCESS_MESSAGE_KEY);
-  }
-
-  @Transactional(readOnly = true)
-  @Override
-  public CurrentUserResponse currentUser(CurrentUser currentUser) {
-    var persistedUser =
-        userRepository
-            .findByIdAndDeletedAtIsNull(currentUser.id())
-            .orElseThrow(ErrorCode.INVALID_CREDENTIALS::throwIt);
-
-    persistedUser.requireActiveForAuth();
-
-    return authMapper.toResponse(persistedUser);
   }
 
   private void sendPasswordReset(User user, String ip, String userAgent) {

@@ -29,6 +29,7 @@ public enum ErrorCode {
   EMAIL_TOKEN_EXPIRED(
       HttpStatus.BAD_REQUEST, "Email token is expired", "error.auth.emailTokenExpired"),
   USER_DISABLED(HttpStatus.FORBIDDEN, "User is disabled", "error.user.disabled"),
+  USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User not found", "error.user.notFound"),
   ACCESS_DENIED(HttpStatus.FORBIDDEN, "Access denied", "error.accessDenied"),
   RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "Resource not found", "error.resource.notFound"),
   DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "Resource already exists", "error.resource.duplicate"),

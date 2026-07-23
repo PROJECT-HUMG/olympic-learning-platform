@@ -7,7 +7,6 @@ import me.nghlong3004.olympic.auth.request.RegisterRequest;
 import me.nghlong3004.olympic.auth.request.ResetPasswordRequest;
 import me.nghlong3004.olympic.auth.request.VerifyEmailRequest;
 import me.nghlong3004.olympic.auth.response.*;
-import me.nghlong3004.olympic.common.security.CurrentUser;
 
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
@@ -75,14 +74,6 @@ public interface AuthService {
    * @return generic success response
    */
   AuthMessageResponse resetPassword(ResetPasswordRequest request);
-
-  /**
-   * Builds the current-user response from the authenticated principal.
-   *
-   * @param user authenticated current user principal
-   * @return API-safe current-user DTO without password hash
-   */
-  CurrentUserResponse currentUser(CurrentUser user);
 
   record LoginResult(LoginResponse response, RefreshTokenIssue refreshToken) {}
 

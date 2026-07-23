@@ -13,12 +13,9 @@ import me.nghlong3004.olympic.auth.response.*;
 import me.nghlong3004.olympic.auth.service.AuthService;
 import me.nghlong3004.olympic.auth.service.RefreshTokenService;
 import me.nghlong3004.olympic.common.properties.SecurityProperties;
-import me.nghlong3004.olympic.common.security.CurrentUser;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -119,14 +116,6 @@ public class AuthController {
     return ResponseEntity.noContent()
         .header(HttpHeaders.SET_COOKIE, clearCookie().toString())
         .build();
-  }
-
-  @GetMapping("/me")
-  @Operation(summary = "Get current authenticated user")
-  @ApiResponse(responseCode = "200", description = "Current user returned")
-  @ApiResponse(responseCode = "401", description = "Authentication required")
-  public CurrentUserResponse me(@AuthenticationPrincipal CurrentUser currentUser) {
-    return authService.currentUser(currentUser);
   }
 
   private String cookieValue(HttpServletRequest request) {

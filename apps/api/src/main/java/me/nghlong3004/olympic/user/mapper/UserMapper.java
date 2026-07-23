@@ -1,5 +1,6 @@
 package me.nghlong3004.olympic.user.mapper;
 
+import me.nghlong3004.olympic.auth.response.CurrentUserResponse;
 import me.nghlong3004.olympic.user.entity.User;
 import me.nghlong3004.olympic.user.response.UserResponse;
 import org.mapstruct.Mapper;
@@ -12,4 +13,6 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
   UserResponse toResponse(User user);
+
+  CurrentUserResponse toCurrentUserResponse(User user);
 }
