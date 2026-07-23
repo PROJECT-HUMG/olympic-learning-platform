@@ -59,3 +59,8 @@ export interface ResetPasswordRequest {
 export interface VerifyEmailRequest {
   token: string;
 }
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}

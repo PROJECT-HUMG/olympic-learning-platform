@@ -2,6 +2,7 @@ import { useUserProfile } from "@/features/user/hooks/use-user-profile";
 import { AvatarUploadCard } from "@/features/user/components/avatar-upload-card";
 import { ProfileForm } from "@/features/user/components/profile-form";
 import { AccountSecurityCard } from "@/features/user/components/account-security-card";
+import { ChangePasswordCard } from "@/features/user/components/change-password-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { User, AlertCircle } from "lucide-react";
 
@@ -53,6 +54,7 @@ export default function ProfilePage() {
       {/* Profile Components */}
       <AvatarUploadCard user={user} />
       <ProfileForm user={user} />
+      <ChangePasswordCard />
       <AccountSecurityCard user={user} />
     </div>
   );

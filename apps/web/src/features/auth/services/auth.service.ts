@@ -9,6 +9,7 @@ import type {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   VerifyEmailRequest,
+  ChangePasswordRequest,
   CurrentUser,
 } from "@/features/auth/types/auth.types";
 
@@ -39,6 +40,10 @@ export const authService = {
 
   resetPassword(data: ResetPasswordRequest) {
     return apiClient.post<AuthMessageResponse>("/auth/password/reset", data);
+  },
+
+  changePassword(data: ChangePasswordRequest) {
+    return apiClient.post<AuthMessageResponse>("/auth/password/change", data);
   },
 
   me() {
