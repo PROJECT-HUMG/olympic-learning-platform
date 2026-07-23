@@ -9,6 +9,11 @@ spring:
     problemdetails:
       enabled: true
 
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
   ai:
     model:
       chat: ${SPRING_AI_MODEL_CHAT:none}
