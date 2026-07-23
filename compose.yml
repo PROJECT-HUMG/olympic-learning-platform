@@ -42,7 +42,7 @@ services:
       dockerfile: Dockerfile
     mem_limit: ${API_MEMORY_LIMIT:-2g}
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       SERVER_PORT: 8080
 
       DB_URL: jdbc:postgresql://postgres:5432/olympic_platform
