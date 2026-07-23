@@ -77,17 +77,16 @@ function Button({
       data-size={size}
       disabled={disabled || loading}
       aria-busy={loading ? "true" : undefined}
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(
+        buttonVariants({ variant, size, className }),
+        loading && "[&>svg:not(.animate-spin)]:hidden [&_svg:not(.animate-spin)]:hidden"
+      )}
       {...props}
     >
-      {loading ? (
-        <span className="inline-flex items-center gap-2" role="progressbar" aria-label="Đang xử lý">
-          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-          <span>{children}</span>
-        </span>
-      ) : (
-        children
+      {loading && (
+        <Loader2 className="size-4 animate-spin shrink-0" aria-hidden="true" role="progressbar" aria-label="Đang xử lý" />
       )}
+      {children}
     </button>
   );
 }

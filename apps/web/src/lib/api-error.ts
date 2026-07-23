@@ -27,6 +27,11 @@ export const ERROR_MESSAGE_MAP: Record<string, string> = {
   "error.resource.notFound": "Không tìm thấy tài nguyên yêu cầu.",
   "error.resource.duplicate": "Email hoặc Tên đăng nhập đã được sử dụng.",
   "error.resource.invalidName": "Tên không hợp lệ.",
+  "error.auth.invalidCurrentPassword": "Mật khẩu hiện tại không chính xác.",
+  "error.storage.uploadFailed": "Tải file lên thất bại. Vui lòng thử lại sau.",
+  "error.storage.fileNotFound": "Không tìm thấy file yêu cầu.",
+  "error.storage.typeNotAllowed": "Định dạng file không được hỗ trợ.",
+  "error.storage.tooLarge": "Dung lượng file vượt quá giới hạn cho phép (Tối đa 5MB).",
   "error.internal": "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
 };
 
