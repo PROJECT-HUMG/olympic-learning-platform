@@ -12,12 +12,14 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -103,6 +105,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ProblemDetail handleUnexpected(Exception exception, HttpServletRequest request) {
+    log.error("Unexpected error occurred while processing request: URI={}", request.getRequestURI(), exception);
     return problem(
         ErrorCode.INTERNAL_ERROR,
         ErrorCode.INTERNAL_ERROR.getDefaultDetail(),

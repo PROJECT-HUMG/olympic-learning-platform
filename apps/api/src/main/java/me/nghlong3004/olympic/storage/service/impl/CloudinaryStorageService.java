@@ -60,7 +60,7 @@ public class CloudinaryStorageService implements StorageService {
           file.getSize(),
           StorageProvider.CLOUDINARY);
 
-    } catch (IOException e) {
+    } catch (Exception e) {
       log.error("Cloudinary upload failed: folder={}", folder, e);
       throw ErrorCode.FILE_UPLOAD_FAILED.throwIt();
     }
