@@ -6,7 +6,6 @@ import {
   History as HistoryIcon,
   LogOut,
   GraduationCap,
-  Globe,
 } from "lucide-react";
 import { ROUTES } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
@@ -28,12 +27,16 @@ export function DashboardLayout() {
     <div className="flex min-h-screen bg-background text-foreground">
       {/* Sidebar */}
       <aside className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
-        <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-6">
-          <Link to={ROUTES.HOME} className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
+        <div className="flex h-16 items-center border-b border-sidebar-border px-6">
+          <Link
+            to={ROUTES.HOME}
+            title="Về trang chủ Olympic Platform"
+            className="group flex items-center gap-3 transition-colors cursor-pointer"
+          >
+            <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs group-hover:scale-105 transition-transform duration-200">
               <GraduationCap className="size-5" />
             </div>
-            <span className="font-bold tracking-tight text-sidebar-foreground">
+            <span className="font-bold tracking-tight text-sidebar-foreground group-hover:text-primary transition-colors">
               Olympic Platform
             </span>
           </Link>
@@ -60,15 +63,8 @@ export function DashboardLayout() {
           })}
         </nav>
 
-        {/* Portal Home & Logout Footer */}
-        <div className="border-t border-sidebar-border p-4 space-y-1">
-          <Link
-            to={ROUTES.HOME}
-            className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-          >
-            <Globe className="size-4" />
-            <span>Về Cổng thông tin</span>
-          </Link>
+        {/* Logout Footer */}
+        <div className="border-t border-sidebar-border p-4">
           <button
             type="button"
             onClick={logout}
@@ -85,9 +81,13 @@ export function DashboardLayout() {
         {/* Topbar Header */}
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur-md">
           <div className="flex items-center gap-4">
-            <Link to={ROUTES.HOME} className="flex items-center gap-2 lg:hidden">
-              <GraduationCap className="size-6 text-primary" />
-              <span className="text-sm font-bold tracking-tight text-foreground">
+            <Link
+              to={ROUTES.HOME}
+              title="Về trang chủ Olympic Platform"
+              className="group flex items-center gap-2 lg:hidden"
+            >
+              <GraduationCap className="size-6 text-primary group-hover:scale-105 transition-transform duration-200" />
+              <span className="text-sm font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
                 Olympic Platform
               </span>
             </Link>
