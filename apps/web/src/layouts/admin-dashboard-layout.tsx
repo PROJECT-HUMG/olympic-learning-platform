@@ -1,10 +1,12 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { useScrolled } from "@/hooks/use-scrolled";
+import { Logo } from "@/components/ui/logo";
 import {
   LayoutDashboard,
   User as UserIcon,
   BookOpen,
   History as HistoryIcon,
-  GraduationCap,
 } from "lucide-react";
 import { ROUTES } from "@/router/route-constants";
 import { UserDropdown } from "@/features/auth/components/user-dropdown";
@@ -12,6 +14,7 @@ import { AiChatbotWidget } from "@/features/ai/components/ai-chatbot-widget";
 
 export function AdminDashboardLayout() {
   const location = useLocation();
+  const isScrolled = useScrolled(20);
 
   const navItems = [
     { label: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard },
@@ -25,18 +28,7 @@ export function AdminDashboardLayout() {
       {/* Fixed Sticky Sidebar */}
       <aside className="sticky top-0 hidden h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
         <div className="flex h-16 items-center border-b border-sidebar-border px-6">
-          <Link
-            to={ROUTES.HOME}
-            title="Về trang chủ Olympic Platform"
-            className="group flex items-center gap-3 transition-colors cursor-pointer"
-          >
-            <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs group-hover:scale-105 transition-transform duration-200">
-              <GraduationCap className="size-5" />
-            </div>
-            <span className="font-bold tracking-tight text-sidebar-foreground group-hover:text-primary transition-colors">
-              Olympic Platform
-            </span>
-          </Link>
+          <Logo />
         </div>
 
         <nav className="flex-1 space-y-1 p-4">
@@ -69,18 +61,16 @@ export function AdminDashboardLayout() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Topbar Header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur-md">
+        <header
+          className={cn(
+            "sticky top-0 z-30 flex h-16 items-center justify-between px-6 transition-all duration-300",
+            isScrolled
+              ? "border-b border-border bg-background/80 backdrop-blur-md shadow-sm"
+              : "border-transparent bg-transparent"
+          )}
+        >
           <div className="flex items-center gap-4">
-            <Link
-              to={ROUTES.HOME}
-              title="Về trang chủ Olympic Platform"
-              className="group flex items-center gap-2 lg:hidden"
-            >
-              <GraduationCap className="size-6 text-primary group-hover:scale-105 transition-transform duration-200" />
-              <span className="text-sm font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
-                Olympic Platform
-              </span>
-            </Link>
+            <Logo className="lg:hidden" imageClassName="h-8" />
           </div>
 
           {/* User Profile Dropdown (Mobile Only) */}

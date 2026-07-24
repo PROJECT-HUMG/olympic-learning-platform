@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { useScrolled } from "@/hooks/use-scrolled";
+import { Logo } from "@/components/ui/logo";
 import {
-  GraduationCap,
   Menu,
   X,
   User as UserIcon,
@@ -23,6 +25,7 @@ export function PublicLayout() {
   const navigate = useNavigate();
   const { data: user } = useCurrentUser();
   const { logout } = useAuth();
+  const isScrolled = useScrolled(20);
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
@@ -63,17 +66,17 @@ export function PublicLayout() {
       />
 
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
+      <header
+        className={cn(
+          "sticky top-0 z-40 transition-all duration-300",
+          isScrolled
+            ? "border-b border-border bg-background/80 backdrop-blur-md shadow-sm"
+            : "border-transparent bg-transparent"
+        )}
+      >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Brand Logo */}
-          <Link to={ROUTES.HOME} className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
-              <GraduationCap className="size-5" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-foreground">
-              Olympic Platform
-            </span>
-          </Link>
+          <Logo />
 
           {/* Desktop Navigation Links */}
           <nav className="hidden items-center gap-1 md:flex">
@@ -298,7 +301,7 @@ export function PublicLayout() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <GraduationCap className="size-4 text-primary" />
+              <img src="/icons.svg" alt="Logo" className="size-5 object-contain grayscale opacity-60" />
               <span>&copy; {new Date().getFullYear()} Olympic Learning Platform. All rights reserved.</span>
             </div>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
