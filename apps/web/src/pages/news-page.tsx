@@ -1,8 +1,16 @@
+import { PublicPageHeader } from "@/components/ui/public-page-header";
+
 export default function NewsPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-4">
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">Tin Tức & Thông Báo</h1>
-      <p className="text-muted-foreground">Cập nhật những tin tức mới nhất về các kỳ thi Olympic.</p>
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="rounded-2xl border border-border/50 bg-card/40 p-6 sm:p-10 backdrop-blur-md shadow-sm min-h-[60vh] flex flex-col gap-6">
+        <PublicPageHeader title="Tin Tức & Thông Báo" description="Cập nhật những tin tức mới nhất về các kỳ thi Olympic." />
+        
+        {/* Content goes here */}
+        <div className="flex-1 rounded-xl border border-dashed border-border/60 flex items-center justify-center text-muted-foreground">
+          Đang cập nhật tin tức...
+        </div>
+      </div>
     </div>
   );
 }

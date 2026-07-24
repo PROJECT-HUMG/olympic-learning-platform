@@ -4,7 +4,7 @@ import { SeasonalBackground } from "@/components/ui/seasonal-background";
 
 export function AuthCardLayout() {
   return (
-    <div className="relative flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-background p-4 sm:p-6 lg:p-8">
+    <div className="relative flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-background/50 p-4 sm:p-6 lg:p-8">
       <SeasonalBackground />
 
       {/* Ambient Soft Center Glow */}

@@ -1,8 +1,8 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { SeasonalBackground } from "@/components/ui/seasonal-background";
-import { ROUTES } from "@/router/route-constants";
 import { AiChatbotWidget } from "@/features/ai/components/ai-chatbot-widget";
 import { PublicHeader } from "./components/public-header";
+import { PublicFooter } from "./components/public-footer";
 
 export function PublicLayout() {
   return (
@@ -25,27 +25,7 @@ export function PublicLayout() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-border/50 bg-card/60 py-8 backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <img src="/icons.svg" alt="Logo" className="size-5 object-contain grayscale opacity-60" />
-              <span>&copy; {new Date().getFullYear()} Olympic Learning Platform. All rights reserved.</span>
-            </div>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <Link to={ROUTES.ABOUT} className="hover:text-foreground">
-                Giới thiệu
-              </Link>
-              <Link to={ROUTES.COMPETITIONS} className="hover:text-foreground">
-                Kỳ thi
-              </Link>
-              <Link to={ROUTES.NEWS} className="hover:text-foreground">
-                Tin tức
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
 
       <AiChatbotWidget />
     </div>
