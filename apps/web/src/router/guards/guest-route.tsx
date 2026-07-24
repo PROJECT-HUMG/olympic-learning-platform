@@ -2,17 +2,12 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { ROUTES } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSpinDelay } from "@/hooks/use-spin-delay";
 
 export function GuestRoute() {
   const { data: user, isLoading } = useCurrentUser();
-  const showSkeleton = useSpinDelay(isLoading, { delay: 200, minDuration: 300 });
   const location = useLocation();
 
   if (isLoading) {
-    if (!showSkeleton) {
-      return null;
-    }
 
     const isRegister = location.pathname === ROUTES.REGISTER;
     const isForgotPassword = location.pathname === ROUTES.FORGOT_PASSWORD;

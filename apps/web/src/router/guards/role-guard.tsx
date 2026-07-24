@@ -3,7 +3,6 @@ import { ROUTES } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import type { Role } from "@/features/auth/types/auth.types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSpinDelay } from "@/hooks/use-spin-delay";
 
 interface RoleGuardProps {
   allowedRoles: Role[];
@@ -12,10 +11,8 @@ interface RoleGuardProps {
 
 export function RoleGuard({ allowedRoles, fallbackPath = ROUTES.HOME }: RoleGuardProps) {
   const { data: user, isLoading } = useCurrentUser();
-  const showSkeleton = useSpinDelay(isLoading, { delay: 200, minDuration: 300 });
 
   if (isLoading) {
-    if (!showSkeleton) return null;
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Skeleton className="h-12 w-12 rounded-full" />
