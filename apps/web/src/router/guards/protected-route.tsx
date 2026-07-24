@@ -2,11 +2,16 @@ import { Navigate, Outlet } from "react-router-dom";
 import { ROUTES } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSpinDelay } from "@/hooks/use-spin-delay";
 
 export function ProtectedRoute() {
   const { data: user, isLoading } = useCurrentUser();
+  const showSkeleton = useSpinDelay(isLoading, { delay: 50, minDuration: 0 });
 
   if (isLoading) {
+    if (!showSkeleton) {
+      return null;
+    }
 
     return (
       <div className="flex min-h-screen bg-background" aria-busy="true">
