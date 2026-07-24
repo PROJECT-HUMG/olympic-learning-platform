@@ -4,17 +4,14 @@ import {
   User as UserIcon,
   BookOpen,
   History as HistoryIcon,
-  LogOut,
   GraduationCap,
 } from "lucide-react";
 import { ROUTES } from "@/router/route-constants";
-import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
-import { useAuth } from "@/features/auth/hooks/use-auth";
+import { UserDropdown } from "@/features/auth/components/user-dropdown";
+import { AiChatbotWidget } from "@/features/ai/components/ai-chatbot-widget";
 
-export function DashboardLayout() {
+export function LecturerDashboardLayout() {
   const location = useLocation();
-  const { data: user } = useCurrentUser();
-  const { logout } = useAuth();
 
   const navItems = [
     { label: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard },
@@ -63,16 +60,9 @@ export function DashboardLayout() {
           })}
         </nav>
 
-        {/* Logout Footer */}
-        <div className="border-t border-sidebar-border p-4">
-          <button
-            type="button"
-            onClick={logout}
-            className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-          >
-            <LogOut className="size-4" />
-            <span>Đăng xuất</span>
-          </button>
+        {/* User Profile Footer (Desktop) */}
+        <div className="border-t border-sidebar-border p-3">
+          <UserDropdown direction="up" />
         </div>
       </aside>
 
@@ -93,35 +83,10 @@ export function DashboardLayout() {
             </Link>
           </div>
 
-          {/* User Header Profile Quick Link */}
-          {user && (
-            <Link
-              to={ROUTES.PROFILE}
-              className="flex items-center gap-3 rounded-full border border-border/60 bg-muted/30 py-1.5 pl-2 pr-4 transition-colors hover:bg-muted/80"
-            >
-              <div className="relative size-8 overflow-hidden rounded-full border border-border bg-muted">
-                {user.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.fullName || user.username}
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <div className="flex size-full items-center justify-center bg-primary/10 text-xs font-bold text-primary">
-                    {(user.fullName || user.username).charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div className="text-left text-xs">
-                <p className="font-semibold leading-none text-foreground">
-                  {user.fullName || user.username}
-                </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  @{user.username}
-                </p>
-              </div>
-            </Link>
-          )}
+          {/* User Profile Dropdown (Mobile Only) */}
+          <div className="lg:hidden">
+            <UserDropdown direction="down" showChevron={false} />
+          </div>
         </header>
 
         {/* Page Body */}
@@ -129,9 +94,10 @@ export function DashboardLayout() {
           <Outlet />
         </div>
       </main>
+
+      <AiChatbotWidget />
     </div>
   );
 }
 
-// Alias for backward compatibility
-export { DashboardLayout as ProtectedLayout };
+

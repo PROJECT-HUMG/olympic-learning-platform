@@ -14,6 +14,8 @@ import { ROUTES } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { AiChatbotWidget } from "@/features/ai/components/ai-chatbot-widget";
+import { MagneticPhysicsGrid } from "@/components/ui/magnetic-physics-grid";
 
 export function PublicLayout() {
   const location = useLocation();
@@ -42,11 +44,23 @@ export function PublicLayout() {
     { label: "Tài liệu", href: ROUTES.DOCUMENTS },
     { label: "Tin tức", href: ROUTES.NEWS },
     { label: "Kỳ thi", href: ROUTES.COMPETITIONS },
+    { label: "Tiện ích", href: ROUTES.TOOLKIT },
     { label: "Giới thiệu", href: ROUTES.ABOUT },
   ];
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="flex min-h-screen flex-col bg-background text-foreground relative selection:bg-primary/30">
+      {/* Interactive Magnetic Physics Grid Background */}
+      <div className="fixed inset-0 z-0 opacity-50 dark:opacity-40">
+        <MagneticPhysicsGrid />
+      </div>
+
+      {/* Ambient Soft Center Glow */}
+      <div
+        className="fixed left-1/2 top-1/2 -z-10 size-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/5 blur-[120px] pointer-events-none dark:bg-primary/10"
+        aria-hidden="true"
+      />
+
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -271,12 +285,12 @@ export function PublicLayout() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         <Outlet />
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-card py-8">
+      <footer className="relative z-10 border-t border-border/50 bg-card/60 py-8 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -297,6 +311,8 @@ export function PublicLayout() {
           </div>
         </div>
       </footer>
+
+      <AiChatbotWidget />
     </div>
   );
 }

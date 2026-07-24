@@ -1,11 +1,13 @@
 import { createBrowserRouter } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { ROUTES } from "@/router/route-constants";
-import { ProtectedRoute } from "@/router/guards/protected-route";
 import { GuestRoute } from "@/router/guards/guest-route";
+import { RoleGuard } from "@/router/guards/role-guard";
 import { PublicLayout } from "@/layouts/public-layout";
-import { DashboardLayout } from "@/layouts/dashboard-layout";
 import { AuthCardLayout } from "@/layouts/auth-card-layout";
+import { StudentDashboardLayout } from "@/layouts/student-dashboard-layout";
+import { LecturerDashboardLayout } from "@/layouts/lecturer-dashboard-layout";
+import { AdminDashboardLayout } from "@/layouts/admin-dashboard-layout";
 
 // Eagerly load lightweight Auth page wrappers for instant rendering without Suspense delays
 import LoginPage from "@/pages/auth/login-page";
@@ -21,6 +23,7 @@ const DocumentsPage = lazy(() => import("@/pages/documents-page"));
 const NewsPage = lazy(() => import("@/pages/news-page"));
 const CompetitionsPage = lazy(() => import("@/pages/competitions-page"));
 const AboutPage = lazy(() => import("@/pages/about-page"));
+const ToolkitPage = lazy(() => import("@/pages/toolkit-page"));
 
 // Lazy load authenticated private workspace pages
 const DashboardPage = lazy(() => import("@/pages/dashboard-page"));
@@ -84,6 +87,14 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
+      {
+        path: ROUTES.TOOLKIT,
+        element: (
+          <Suspense fallback={null}>
+            <ToolkitPage />
+          </Suspense>
+        ),
+      },
     ],
   },
 
@@ -119,12 +130,12 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // 3. Private Workspace Area (ProtectedRoute - Only accessible when logged in)
+  // 3. Private Workspace Area - STUDENT
   {
-    element: <ProtectedRoute />,
+    element: <RoleGuard allowedRoles={["STUDENT"]} />,
     children: [
       {
-        element: <DashboardLayout />,
+        element: <StudentDashboardLayout />,
         children: [
           {
             path: ROUTES.DASHBOARD,
@@ -163,7 +174,39 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // 4. Catch-all Not Found
+  // 4. Private Workspace Area - LECTURER
+  {
+    element: <RoleGuard allowedRoles={["LECTURER"]} />,
+    children: [
+      {
+        element: <LecturerDashboardLayout />,
+        children: [
+          {
+            path: "/lecturer", // Placeholder
+            element: <div className="p-8">Lecturer Dashboard Coming Soon</div>,
+          },
+        ],
+      },
+    ],
+  },
+
+  // 5. Private Workspace Area - ADMIN
+  {
+    element: <RoleGuard allowedRoles={["ADMIN"]} />,
+    children: [
+      {
+        element: <AdminDashboardLayout />,
+        children: [
+          {
+            path: "/admin", // Placeholder
+            element: <div className="p-8">Admin Dashboard Coming Soon</div>,
+          },
+        ],
+      },
+    ],
+  },
+
+  // 6. Catch-all Not Found
   {
     path: "*",
     element: (

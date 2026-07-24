@@ -74,3 +74,4 @@ export const DASHBOARD_UPCOMING_CONTESTS_MOCK: DashboardUpcomingContest[] = [
     registered: false,
   },
 ];
+

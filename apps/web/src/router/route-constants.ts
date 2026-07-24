@@ -6,6 +6,7 @@ export const ROUTES = {
   NEWS: "/news",
   COMPETITIONS: "/competitions",
   ABOUT: "/about",
+  TOOLKIT: "/toolkit",
 
   // Auth pages (Guest only)
   LOGIN: "/login",
