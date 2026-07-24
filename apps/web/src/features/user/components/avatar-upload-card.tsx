@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Trash2, Loader2, Check, X, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useUpdateAvatar, useRemoveAvatar } from "../hooks/use-avatar";
 import type { UserProfile } from "../types/user.types";
 import { toast } from "sonner";
@@ -85,7 +86,7 @@ export function AvatarUploadCard({ user }: AvatarUploadCardProps) {
   }
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+    <Card className="p-6">
       <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:gap-8">
         {/* Avatar Display */}
         <div className="relative shrink-0">
@@ -195,6 +196,6 @@ export function AvatarUploadCard({ user }: AvatarUploadCardProps) {
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
