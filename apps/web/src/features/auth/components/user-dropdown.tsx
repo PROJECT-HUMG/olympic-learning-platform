@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserIcon, LogOut, Globe, MoreVertical } from "lucide-react";
+import { UserIcon, LogOut, Globe, MoreVertical, Sun, Moon } from "lucide-react";
 import { ROUTES } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { useThemeStore } from "@/stores/use-theme-store";
 
 interface UserDropdownProps {
   direction?: "up" | "down";
@@ -15,6 +16,7 @@ export function UserDropdown({ direction = "up", className = "", showChevron = t
   const { data: user } = useCurrentUser();
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const { theme, setTheme } = useThemeStore();
   
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -89,6 +91,21 @@ export function UserDropdown({ direction = "up", className = "", showChevron = t
             >
               <UserIcon className="size-4 text-primary" />
               <span>Hồ sơ cá nhân</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setTheme(theme === "dark" ? "light" : "dark");
+              }}
+              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors cursor-pointer"
+            >
+              {theme === "dark" ? (
+                <Sun className="size-4 text-amber-500" />
+              ) : (
+                <Moon className="size-4 text-slate-500" />
+              )}
+              <span>Giao diện {theme === "dark" ? "Sáng" : "Tối"}</span>
             </button>
 
             <button

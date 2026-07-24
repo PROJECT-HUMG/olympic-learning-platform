@@ -16,6 +16,7 @@ import { useAuth } from "@/features/auth/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { AiChatbotWidget } from "@/features/ai/components/ai-chatbot-widget";
 import { MagneticPhysicsGrid } from "@/components/ui/magnetic-physics-grid";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function PublicLayout() {
   const location = useLocation();
@@ -96,6 +97,9 @@ export function PublicLayout() {
 
           {/* Desktop Auth / User Action Area */}
           <div className="hidden items-center gap-3 md:flex">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {user ? (
               <div className="flex items-center gap-3">
                 {/* Placeholder Notification Button */}
