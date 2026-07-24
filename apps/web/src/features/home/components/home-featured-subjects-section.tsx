@@ -6,8 +6,8 @@ import { ROUTES } from "@/router/route-constants";
 export function HomeFeaturedSubjectsSection() {
   return (
     <section className="space-y-6">
-      <div className="flex items-end justify-between border-b border-border pb-4">
-        <div>
+      <div className="flex items-end justify-between gap-4 border-b border-border pb-4">
+        <div className="flex-1">
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Môn Học Nổi Bật</h2>
           <p className="text-sm text-muted-foreground mt-1">
             Các chuyên đề kiến thức cốt lõi dành cho các đội tuyển Olympic
@@ -15,7 +15,7 @@ export function HomeFeaturedSubjectsSection() {
         </div>
         <Link
           to={ROUTES.SUBJECTS}
-          className="flex items-center text-sm font-medium text-primary hover:underline"
+          className="flex items-center text-sm font-medium text-primary hover:underline shrink-0 whitespace-nowrap"
         >
           Xem tất cả <ChevronRight className="ml-1 size-4" />
         </Link>

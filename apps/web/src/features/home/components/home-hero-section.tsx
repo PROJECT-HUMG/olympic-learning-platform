@@ -2,16 +2,17 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/router/route-constants";
+import { HOME_HERO_DATA } from "../data/home-mock-data";
 
 export function HomeHeroSection() {
   return (
     <section className="text-center space-y-10 max-w-5xl mx-auto py-8">
       <div className="space-y-6 max-w-3xl mx-auto">
         <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-6xl">
-          Nền Tảng Ôn Luyện <span className="text-primary">Olympic</span> Trực Tuyến
+          {HOME_HERO_DATA.titleStart} <span className="text-primary">{HOME_HERO_DATA.titleHighlight}</span> {HOME_HERO_DATA.titleEnd}
         </h1>
         <p className="text-lg text-muted-foreground leading-relaxed">
-          Trau dồi kiến thức, rèn luyện tư duy thuật toán và thử sức với hàng trăm bài thi Olympic Tin học, Toán học chất lượng cao.
+          {HOME_HERO_DATA.description}
         </p>
       </div>
 
@@ -20,8 +21,8 @@ export function HomeHeroSection() {
         {/* Responsive aspect ratio: 16:9 on mobile, 21:9 on tablet, 2.5:1 on desktop */}
         <div className="w-full bg-muted aspect-video md:aspect-[21/9] lg:aspect-[2.5/1]">
           <img
-            src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070&auto=format&fit=crop"
-            alt="Đội ngũ giảng viên Khoa Khoa học Cơ bản"
+            src={HOME_HERO_DATA.heroImage}
+            alt={HOME_HERO_DATA.heroImageAlt}
             className="size-full object-cover transition-transform duration-700 hover:scale-105"
           />
         </div>

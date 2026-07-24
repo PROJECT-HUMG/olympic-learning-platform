@@ -145,3 +145,12 @@ export const UPCOMING_COMPETITIONS: UpcomingCompetition[] = [
     status: "Đang mở đăng ký",
   },
 ];
+
+export const HOME_HERO_DATA = {
+  titleStart: "Nền Tảng Ôn Luyện",
+  titleHighlight: "Olympic",
+  titleEnd: "Trực Tuyến",
+  description: "Trau dồi kiến thức, rèn luyện tư duy thuật toán và thử sức với hàng trăm bài thi Olympic chất lượng cao.",
+  heroImage: "https://scontent.fhan14-2.fna.fbcdn.net/v/t39.99422-6/725605820_1353536756692791_6266532587040884235_n.png?stp=dst-jpg_tt6&cstp=mx2000x1414&ctp=s2000x1414&_nc_cat=108&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeH8-RDCzAr9axB04riir_YP59xDNM8kwZPn3EM0zyTBk98htqtURGauG4zFfDBJ-PJ_LAWzmu1ECKehXrx2NiHi&_nc_ohc=mJ_AYmzllpwQ7kNvwEbAqS_&_nc_oc=AdpaxEyBYrK5M35fC0cJbOZQFIvGM4FzLs1bCR028gKk89p8GHUg5O39R4eBeSJiR0g&_nc_zt=14&_nc_ht=scontent.fhan14-2.fna&_nc_gid=ihYJmn6-h6cv9wZtpEgkcg&_nc_ss=7b2a8&oh=00_AQCgUF9YKtYRth2sCGgpheDOPq4KdxdCRRChdv2CpqNE5A&oe=6A6987A2",
+  heroImageAlt: "Đội ngũ giảng viên Khoa Khoa học Cơ bản",
+};
