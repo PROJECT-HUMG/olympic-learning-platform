@@ -1,12 +1,11 @@
 import { Outlet, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { MagneticPhysicsGrid } from "@/components/ui/magnetic-physics-grid";
+import { SeasonalBackground } from "@/components/ui/seasonal-background";
 
 export function AuthCardLayout() {
   return (
     <div className="relative flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-background p-4 sm:p-6 lg:p-8">
-      {/* Interactive Magnetic Physics Grid Background */}
-      <MagneticPhysicsGrid />
+      <SeasonalBackground />
 
       {/* Ambient Soft Center Glow */}
       <div

@@ -1,4 +1,4 @@
-import { Calculator, Target, BookOpen, Clock, Brain } from "lucide-react";
+import { Calculator, Target, BookOpen, Clock } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface StudentTool {

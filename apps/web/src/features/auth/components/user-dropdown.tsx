@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserIcon, LogOut, Globe, MoreVertical, Sun, Moon } from "lucide-react";
 import { ROUTES } from "@/router/route-constants";
@@ -17,28 +16,15 @@ export function UserDropdown({ direction = "up", className = "", showChevron = t
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { theme, setTheme } = useThemeStore();
-  
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   if (!user) return null;
 
   return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
+    <div className={`relative ${className}`}>
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        popoverTarget="user-dropdown-menu"
+        style={{ anchorName: "--user-dropdown" } as any}
         className="flex w-full items-center justify-between gap-3 rounded-xl p-2 hover:bg-muted/50 transition-colors cursor-pointer group"
       >
         <div className="flex items-center gap-3 overflow-hidden">
@@ -69,73 +55,86 @@ export function UserDropdown({ direction = "up", className = "", showChevron = t
         )}
       </button>
 
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div 
-          className={`absolute ${direction === "up" ? "bottom-full mb-2" : "top-full mt-2"} right-0 w-64 rounded-2xl border border-border bg-card p-2 shadow-xl backdrop-blur-md animate-in fade-in-0 zoom-in-95 z-50`}
-        >
-          {/* User Header Info (redundant if bottom, but good for context) */}
-          <div className="px-3 py-2 border-b border-border/60 mb-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tài khoản</span>
-          </div>
-
-          {/* Actions */}
-          <div className="space-y-0.5">
-            <button
-              type="button"
-              onClick={() => {
-                setIsOpen(false);
-                navigate(ROUTES.PROFILE);
-              }}
-              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors cursor-pointer"
-            >
-              <UserIcon className="size-4 text-primary" />
-              <span>Hồ sơ cá nhân</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setTheme(theme === "dark" ? "light" : "dark");
-              }}
-              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors cursor-pointer"
-            >
-              {theme === "dark" ? (
-                <Sun className="size-4 text-amber-500" />
-              ) : (
-                <Moon className="size-4 text-slate-500" />
-              )}
-              <span>Giao diện {theme === "dark" ? "Sáng" : "Tối"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsOpen(false);
-                navigate(ROUTES.HOME);
-              }}
-              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors cursor-pointer"
-            >
-              <Globe className="size-4 text-emerald-500" />
-              <span>Về trang chủ</span>
-            </button>
-          </div>
-
-          <div className="border-t border-border/60 mt-1 pt-1">
-            <button
-              type="button"
-              onClick={() => {
-                setIsOpen(false);
-                logout();
-              }}
-              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-            >
-              <LogOut className="size-4" />
-              <span>Đăng xuất</span>
-            </button>
-          </div>
+      {/* Dropdown Menu (Native Popover) */}
+      <div 
+        id="user-dropdown-menu"
+        popover="auto"
+        role="menu"
+        style={{ 
+          positionAnchor: "--user-dropdown", 
+          inset: "unset", 
+          top: direction === "down" ? "anchor(bottom 8px)" : "unset",
+          bottom: direction === "up" ? "anchor(top 8px)" : "unset",
+          right: "anchor(right)",
+          margin: 0
+        } as any}
+        className="w-64 rounded-2xl border border-border bg-card p-2 shadow-xl backdrop-blur-md open:animate-in open:fade-in-0 open:zoom-in-95 z-50"
+      >
+        {/* User Header Info (redundant if bottom, but good for context) */}
+        <div className="px-3 py-2 border-b border-border/60 mb-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tài khoản</span>
         </div>
-      )}
+
+        {/* Actions */}
+        <div className="space-y-0.5">
+          <button
+            type="button"
+            role="menuitem"
+            onClick={(e) => {
+              ((e.target as HTMLElement).closest("[popover]") as any)?.hidePopover();
+              navigate(ROUTES.PROFILE);
+            }}
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors cursor-pointer"
+          >
+            <UserIcon className="size-4 text-primary" />
+            <span>Hồ sơ cá nhân</span>
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setTheme(theme === "dark" ? "light" : "dark");
+            }}
+            className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              {theme === "dark" ? <Moon className="size-4 text-primary" /> : <Sun className="size-4 text-primary" />}
+              <span>Giao diện</span>
+            </div>
+            <span className="text-xs text-muted-foreground">{theme === "dark" ? "Tối" : "Sáng"}</span>
+          </button>
+          
+          <button
+            type="button"
+            role="menuitem"
+            onClick={(e) => {
+              ((e.target as HTMLElement).closest("[popover]") as any)?.hidePopover();
+              navigate(ROUTES.HOME);
+            }}
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors cursor-pointer"
+          >
+            <Globe className="size-4 text-primary" />
+            <span>Trang chủ</span>
+          </button>
+        </div>
+
+        <div role="separator" className="h-px bg-border/60 my-1" />
+        <div className="pt-1">
+          <button
+            type="button"
+            role="menuitem"
+            onClick={(e) => {
+              ((e.target as HTMLElement).closest("[popover]") as any)?.hidePopover();
+              logout();
+            }}
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+          >
+            <LogOut className="size-4" />
+            <span>Đăng xuất</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

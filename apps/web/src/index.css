@@ -1,7 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -22,7 +22,7 @@
   --primary: #3b82f6;
   --sidebar: #f9fafb;
   --font-mono: JetBrains Mono, monospace;
-  --font-sans: 'Geist Variable', sans-serif;
+  --font-sans: 'Inter', sans-serif;
   --secondary: #f3f4f6;
   --background: #ffffff;
   --font-serif: Source Serif 4, serif;

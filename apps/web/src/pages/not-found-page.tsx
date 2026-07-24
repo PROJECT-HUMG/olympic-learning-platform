@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/router/route-constants";
 import { Button } from "@/components/ui/button";
-import { MagneticPhysicsGrid } from "@/components/ui/magnetic-physics-grid";
+import { SeasonalBackground } from "@/components/ui/seasonal-background";
 import { HomeIcon, ArrowLeftIcon } from "lucide-react";
 
 export default function NotFoundPage() {
@@ -10,7 +10,7 @@ export default function NotFoundPage() {
   return (
     <div className="relative flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-background p-4 sm:p-6 lg:p-8">
       {/* Interactive Magnetic Physics Grid Canvas Background */}
-      <MagneticPhysicsGrid />
+      <SeasonalBackground />
 
       {/* Ambient Soft Center Glow */}
       <div

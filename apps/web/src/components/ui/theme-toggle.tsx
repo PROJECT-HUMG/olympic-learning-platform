@@ -1,6 +1,7 @@
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useThemeStore } from "@/stores/use-theme-store";
+import { cn } from "@/lib/utils";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useThemeStore();
@@ -9,6 +10,8 @@ export function ThemeToggle() {
     setTheme(theme === "dark" ? "light" : "dark");
   }
 
+  const Icon = theme === "dark" ? Moon : Sun;
+
   return (
     <Button
       variant="outline"
@@ -16,10 +19,14 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       aria-label="Đổi giao diện"
       title="Đổi giao diện"
-      className="rounded-full relative text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer border-border/80 shadow-xs"
+      className="rounded-full relative overflow-hidden group border-border/80 shadow-xs"
     >
-      <Sun className="h-5 w-5 rotate-0 scale-100 transition-all duration-300 dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all duration-300 dark:rotate-0 dark:scale-100" />
+      <Icon 
+        key={theme} 
+        className={cn(
+          "size-5 transition-all duration-500 group-hover:scale-110 animate-in zoom-in-50 spin-in-90 fade-in-0 text-muted-foreground group-hover:text-foreground"
+        )} 
+      />
       <span className="sr-only">Đổi giao diện</span>
     </Button>
   );

@@ -1,6 +1,9 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useScrolled } from "@/hooks/use-scrolled";
+import { SeasonalBackground } from "@/components/ui/seasonal-background";
+import { SeasonToggle } from "@/components/ui/season-toggle";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Logo } from "@/components/ui/logo";
 import {
   LayoutDashboard,
@@ -24,7 +27,8 @@ export function AdminDashboardLayout() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen bg-background/50 text-foreground relative selection:bg-primary/30">
+      <SeasonalBackground />
       {/* Fixed Sticky Sidebar */}
       <aside className="sticky top-0 hidden h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
         <div className="flex h-16 items-center border-b border-sidebar-border px-6">
@@ -73,9 +77,13 @@ export function AdminDashboardLayout() {
             <Logo className="lg:hidden" imageClassName="h-8" />
           </div>
 
-          {/* User Profile Dropdown (Mobile Only) */}
-          <div className="lg:hidden">
-            <UserDropdown direction="down" showChevron={false} />
+          <div className="flex items-center gap-2">
+            <SeasonToggle />
+            <ThemeToggle />
+            {/* User Profile Dropdown (Mobile Only) */}
+            <div className="lg:hidden">
+              <UserDropdown direction="down" showChevron={false} />
+            </div>
           </div>
         </header>
 
