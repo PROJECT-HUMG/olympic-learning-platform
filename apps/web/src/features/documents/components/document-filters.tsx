@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Combobox } from "@/components/ui/combobox";
+import { useDocumentMetadata } from "../hooks/use-documents";
 
 export function DocumentFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,21 +26,42 @@ export function DocumentFilters() {
     }
   }, [debouncedKeyword, searchParams, setSearchParams]);
 
-  // Demo options for Combobox
-  const subjectOptions = [
-    { value: "toan", label: "Toán học" },
-    { value: "ly", label: "Vật lý" },
-    { value: "hoa", label: "Hóa học" },
-    { value: "sinh", label: "Sinh học" },
-    { value: "tin", label: "Tin học" },
-  ];
+  const { data: metadata, isLoading } = useDocumentMetadata();
 
-  const typeOptions = [
-    { value: "de-thi", label: "Đề thi" },
-    { value: "giao-trinh", label: "Giáo trình" },
-    { value: "bai-tap", label: "Bài tập" },
-    { value: "chuyen-de", label: "Chuyên đề" },
-  ];
+  const subjectOptions =
+    metadata?.subjects.map((sub) => ({
+      value: sub.id,
+      label: sub.name,
+    })) || [];
+
+  const categoryOptions =
+    metadata?.categories.map((cat) => ({
+      value: cat.id,
+      label: cat.name,
+    })) || [];
+
+  const currentSubjectId = searchParams.get("subjectId") || "";
+  const currentCategoryId = searchParams.get("categoryId") || "";
+
+  const handleSubjectChange = (val: string) => {
+    if (val) {
+      searchParams.set("subjectId", val);
+    } else {
+      searchParams.delete("subjectId");
+    }
+    searchParams.delete("page");
+    setSearchParams(searchParams);
+  };
+
+  const handleCategoryChange = (val: string) => {
+    if (val) {
+      searchParams.set("categoryId", val);
+    } else {
+      searchParams.delete("categoryId");
+    }
+    searchParams.delete("page");
+    setSearchParams(searchParams);
+  };
 
   return (
     <div className="flex flex-col md:flex-row gap-4 items-center bg-card/40 border border-border/50 p-4 rounded-xl backdrop-blur-sm">
@@ -63,12 +85,20 @@ export function DocumentFilters() {
       <div className="flex gap-2 w-full md:w-auto overflow-x-visible">
         <Combobox
           options={subjectOptions}
-          placeholder="Tất cả môn học"
+          value={currentSubjectId}
+          onChange={handleSubjectChange}
+          placeholder={isLoading ? "Đang tải..." : "Tất cả môn học"}
+          emptyText="Không tìm thấy môn học"
+          disabled={isLoading}
           className="w-full md:w-48 bg-background/50 border-border/60"
         />
         <Combobox
-          options={typeOptions}
-          placeholder="Loại tài liệu"
+          options={categoryOptions}
+          value={currentCategoryId}
+          onChange={handleCategoryChange}
+          placeholder={isLoading ? "Đang tải..." : "Loại tài liệu"}
+          emptyText="Không tìm thấy loại tài liệu"
+          disabled={isLoading}
           className="w-full md:w-48 bg-background/50 border-border/60"
         />
       </div>
