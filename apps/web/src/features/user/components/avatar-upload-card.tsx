@@ -90,7 +90,6 @@ export function AvatarUploadCard({ user }: AvatarUploadCardProps) {
     removeAvatarMutation.mutate(undefined, {
       onSuccess: () => {
         handleCancelPreview();
-        toast.success("Đã xóa ảnh đại diện");
       },
     });
   }
