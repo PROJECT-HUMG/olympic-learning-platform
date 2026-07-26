@@ -1,5 +1,6 @@
 package me.nghlong3004.olympic.storage.service;
 
+import java.net.URI;
 import me.nghlong3004.olympic.storage.dto.UploadedFile;
 import me.nghlong3004.olympic.storage.enums.StorageFolder;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,26 +19,41 @@ import org.springframework.web.multipart.MultipartFile;
 public interface StorageService {
 
   /**
-   * Uploads a file to the configured provider under the given logical folder.
+   * Uploads a file into the specified logical storage folder.
    *
-   * @param file multipart file payload
-   * @param folder target logical folder
-   * @return metadata of the newly stored file
+   * @param file the uploaded multipart file
+   * @param folder the logical destination folder
+   * @return metadata describing the stored file
    */
   UploadedFile upload(MultipartFile file, StorageFolder folder);
 
   /**
-   * Permanently deletes a file from the provider.
+   * Deletes a previously stored file.
    *
-   * @param storageKey provider-side key returned at upload time
+   * <p>If the file does not exist, implementations should silently ignore the request.
+   *
+   * @param storageKey unique storage key
    */
   void delete(String storageKey);
 
   /**
-   * Resolves the public URL for a previously stored file.
+   * Resolves a browser-accessible download URL for the stored file.
    *
-   * @param storageKey provider-side key
-   * @return fully qualified public URL
+   * <p>The returned URL may be public or time-limited depending on the storage provider.
+   *
+   * @param storageKey unique storage key
+   * @return download URI
    */
-  String getPublicUrl(String storageKey);
+  URI getDownloadUri(String storageKey);
+
+  /**
+   * Resolves a thumbnail URL for the stored file.
+   *
+   * <p>Implementations may generate the thumbnail dynamically or return a pre-generated thumbnail
+   * depending on provider capabilities.
+   *
+   * @param storageKey unique storage key
+   * @return thumbnail URI
+   */
+  URI getThumbnailUri(String storageKey);
 }

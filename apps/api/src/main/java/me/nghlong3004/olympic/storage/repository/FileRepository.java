@@ -1,7 +1,7 @@
 package me.nghlong3004.olympic.storage.repository;
 
 import java.util.UUID;
-import me.nghlong3004.olympic.storage.entity.FileEntity;
+import me.nghlong3004.olympic.storage.entity.File;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,4 +10,4 @@ import org.springframework.stereotype.Repository;
  * @since 7/23/2026
  */
 @Repository
-public interface FileRepository extends JpaRepository<FileEntity, UUID> {}
+public interface FileRepository extends JpaRepository<File, UUID> {}

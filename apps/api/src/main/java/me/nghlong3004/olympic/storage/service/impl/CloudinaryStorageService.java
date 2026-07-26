@@ -1,8 +1,10 @@
 package me.nghlong3004.olympic.storage.service.impl;
 
 import com.cloudinary.Cloudinary;
+import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -38,16 +40,13 @@ public class CloudinaryStorageService implements StorageService {
   public UploadedFile upload(MultipartFile file, StorageFolder folder) {
     var publicId = folder.getPath() + "/" + UUID.randomUUID();
     try {
-      @SuppressWarnings("unchecked")
-      Map<String, Object> result =
+      Map<?, ?> result =
           cloudinary
               .uploader()
               .upload(
                   file.getBytes(),
                   ObjectUtils.asMap(
-                      "public_id", publicId,
-                      "resource_type", "auto",
-                      "overwrite", false));
+                      "public_id", publicId, "resource_type", "auto", "overwrite", false));
 
       var storageKey = (String) result.get("public_id");
 
@@ -58,7 +57,8 @@ public class CloudinaryStorageService implements StorageService {
           file.getOriginalFilename(),
           file.getContentType(),
           file.getSize(),
-          StorageProvider.CLOUDINARY);
+          StorageProvider.CLOUDINARY,
+          folder);
 
     } catch (Exception e) {
       log.error("Cloudinary upload failed: folder={}", folder, e);
@@ -77,7 +77,20 @@ public class CloudinaryStorageService implements StorageService {
   }
 
   @Override
-  public String getPublicUrl(String storageKey) {
-    return cloudinary.url().generate(storageKey);
+  public URI getDownloadUri(String storageKey) {
+    return URI.create(cloudinary.url().secure(true).generate(storageKey));
+  }
+
+  @Override
+  public URI getThumbnailUri(String storageKey) {
+
+    String url =
+        cloudinary
+            .url()
+            .transformation(new Transformation<>().page(1).width(320).crop("scale"))
+            .secure(true)
+            .generate(storageKey);
+
+    return URI.create(url);
   }
 }

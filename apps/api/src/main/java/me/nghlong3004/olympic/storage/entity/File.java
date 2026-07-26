@@ -22,7 +22,7 @@ import me.nghlong3004.olympic.storage.enums.StorageProvider;
 @Table(name = "files")
 @NoArgsConstructor
 @AllArgsConstructor
-public class FileEntity {
+public class File {
 
   @Id
   @Column(nullable = false, updatable = false)
