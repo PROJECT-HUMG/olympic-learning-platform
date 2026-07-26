@@ -82,26 +82,6 @@ export function PublicHeader() {
 
           {user ? (
             <div className="flex items-center gap-3">
-              {/* Notification Button with semantic Tooltip */}
-              <div className="relative flex items-center group">
-                <button
-                  type="button"
-                  aria-describedby="notification-tooltip"
-                  className="relative flex size-9 items-center justify-center rounded-full border border-border/80 bg-card text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
-                >
-                  <Bell className="size-4" />
-                  <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary" />
-                  <span className="sr-only">Thông báo mới</span>
-                </button>
-                <div
-                  id="notification-tooltip"
-                  role="tooltip"
-                  className="absolute top-full right-0 mt-2 hidden group-hover:block group-focus-within:block w-max rounded-md bg-foreground px-2 py-1 text-xs text-background animate-in fade-in zoom-in-95 z-50 pointer-events-none"
-                >
-                  Thông báo mới
-                </div>
-              </div>
-
               {/* User Avatar Dropdown */}
               <div className="relative">
                 <button
