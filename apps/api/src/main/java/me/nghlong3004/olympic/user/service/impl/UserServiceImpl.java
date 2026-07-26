@@ -10,7 +10,7 @@ import me.nghlong3004.olympic.common.properties.UserProperties;
 import me.nghlong3004.olympic.common.security.CurrentUser;
 import me.nghlong3004.olympic.common.security.CurrentUserProvider;
 import me.nghlong3004.olympic.storage.dto.UploadedFile;
-import me.nghlong3004.olympic.storage.entity.FileEntity;
+import me.nghlong3004.olympic.storage.entity.File;
 import me.nghlong3004.olympic.storage.enums.StorageFolder;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
 import me.nghlong3004.olympic.storage.service.StorageService;
@@ -103,13 +103,13 @@ public class UserServiceImpl implements UserService {
 
     var fileEntity =
         fileRepository.save(
-            FileEntity.builder()
+            File.builder()
                 .storageKey(uploaded.storageKey())
                 .originalName(uploaded.originalName())
                 .contentType(uploaded.contentType())
                 .size(uploaded.size())
-                .provider(uploaded.provider().name())
-                .folder(StorageFolder.AVATAR.name())
+                .provider(uploaded.provider())
+                .folder(StorageFolder.AVATAR)
                 .build());
 
     user.setAvatar(fileEntity);
@@ -144,7 +144,7 @@ public class UserServiceImpl implements UserService {
 
   private String resolveAvatarUrl(User user) {
     if (user.getAvatar() != null) {
-      return storageService.getPublicUrl(user.getAvatar().getStorageKey());
+      return storageService.getDownloadUri(user.getAvatar().getStorageKey()).getPath();
     }
     return userProperties.defaultAvatarUrl();
   }

@@ -2,9 +2,11 @@ package me.nghlong3004.olympic.user.entity;
 
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import lombok.*;
-import me.nghlong3004.olympic.storage.entity.FileEntity;
+import me.nghlong3004.olympic.storage.entity.File;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
 import me.nghlong3004.olympic.user.exception.UserDisabledException;
@@ -55,7 +57,13 @@ public class User {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "avatar_id")
-  private FileEntity avatar;
+  private File avatar;
+
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_id"))
+  @Column(name = "permission", nullable = false)
+  @Builder.Default
+  private Set<String> permissions = new HashSet<>();
 
   @Column(name = "last_login_at")
   private OffsetDateTime lastLoginAt;
