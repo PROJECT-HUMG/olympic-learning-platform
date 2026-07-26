@@ -223,11 +223,11 @@ class DocumentServiceImplTest {
   void deleteByUserId_shouldSucceed_whenUserIsAdmin() {
     UUID targetUserId = UUID.randomUUID();
     when(currentUserProvider.getCurrentUser()).thenReturn(currentAdmin);
-    when(documentRepository.softDeleteByCreatedBy(targetUserId)).thenReturn(5);
+    when(documentRepository.softDeleteByOwnerId(targetUserId)).thenReturn(5);
 
     documentService.deleteByUserId(targetUserId);
 
-    verify(documentRepository).softDeleteByCreatedBy(targetUserId);
+    verify(documentRepository).softDeleteByOwnerId(targetUserId);
   }
 
   @Test

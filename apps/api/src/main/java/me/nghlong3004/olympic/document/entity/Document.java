@@ -35,8 +35,7 @@ public class Document {
 
   private String description;
 
-  @Lob
-  @Column(name = "search_text")
+  @Column(name = "search_text", columnDefinition = "TEXT")
   private String searchText;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)

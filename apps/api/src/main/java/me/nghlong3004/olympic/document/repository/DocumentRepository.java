@@ -54,8 +54,8 @@ public interface DocumentRepository
   int softDeleteByIds(@Param("ids") List<UUID> ids);
 
   @Modifying
-  @Query("UPDATE Document d SET d.deletedAt = CURRENT_TIMESTAMP WHERE d.createdBy = :userId AND d.deletedAt IS NULL")
-  int softDeleteByCreatedBy(@Param("userId") UUID userId);
+  @Query("UPDATE Document d SET d.deletedAt = CURRENT_TIMESTAMP WHERE d.owner.id = :userId AND d.deletedAt IS NULL")
+  int softDeleteByOwnerId(@Param("userId") UUID userId);
 
   @Modifying
   @Query("UPDATE Document d SET d.viewCount = d.viewCount + 1 WHERE d.id = :id AND d.deletedAt IS NULL")

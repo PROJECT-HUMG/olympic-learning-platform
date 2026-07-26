@@ -222,7 +222,7 @@ public class DocumentServiceImpl implements DocumentService {
   @Transactional
   public void deleteByUserId(UUID userId) {
     checkAdminPermission();
-    int count = documentRepository.softDeleteByCreatedBy(userId);
+    int count = documentRepository.softDeleteByOwnerId(userId);
     log.info("Admin {} deleted {} documents created by user {}", currentUserProvider.getCurrentUser().id(), count, userId);
   }
 
