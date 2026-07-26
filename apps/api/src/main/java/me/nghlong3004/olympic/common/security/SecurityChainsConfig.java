@@ -45,6 +45,14 @@ public class SecurityChainsConfig {
           "/api/v1/auth/password/forgot",
           "/api/v1/auth/password/reset");
 
+  private static final List<String> PUBLIC_GET_ENDPOINTS =
+      List.of(
+          CSRF_ENDPOINT,
+          "/api/v1/documents",
+          "/api/v1/documents/**",
+          "/api/v1/document-metadata",
+          "/api/v1/document-metadata/**");
+
   @Bean
   public BearerTokenResolver bearerTokenResolver() {
     var defaultResolver = new DefaultBearerTokenResolver();
@@ -115,6 +123,7 @@ public class SecurityChainsConfig {
       BearerTokenAuthenticationEntryPoint authenticationEntryPoint,
       BearerTokenAccessDeniedHandler accessDeniedHandler) {
 
+    var publicGetEndpoints = PUBLIC_GET_ENDPOINTS.toArray(String[]::new);
     var publicPostEndpoints = PUBLIC_AUTH_POST_ENDPOINTS.toArray(String[]::new);
 
     return http.securityMatcher(API_PATH)
@@ -134,7 +143,7 @@ public class SecurityChainsConfig {
         .authorizeHttpRequests(
             authorization ->
                 authorization
-                    .requestMatchers(HttpMethod.GET, CSRF_ENDPOINT)
+                    .requestMatchers(HttpMethod.GET, publicGetEndpoints)
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, publicPostEndpoints)
                     .permitAll()
