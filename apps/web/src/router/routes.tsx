@@ -20,6 +20,7 @@ import ResetPasswordPage from "@/pages/auth/reset-password-page";
 const HomePage = lazy(() => import("@/pages/home-page"));
 const SubjectsPage = lazy(() => import("@/pages/subjects-page"));
 const DocumentsPage = lazy(() => import("@/pages/documents-page"));
+const DocumentDetailPage = lazy(() => import("@/pages/document-detail-page"));
 const NewsPage = lazy(() => import("@/pages/news-page"));
 const CompetitionsPage = lazy(() => import("@/pages/competitions-page"));
 const AboutPage = lazy(() => import("@/pages/about-page"));
@@ -33,6 +34,10 @@ const HistoryPage = lazy(() => import("@/pages/history-page"));
 
 // Lazy load fallback pages
 const NotFoundPage = lazy(() => import("@/pages/not-found-page"));
+
+// Lazy load admin pages
+const AdminDocumentsPage = lazy(() => import("@/pages/admin/documents/admin-documents-page"));
+const AdminDocumentFormPage = lazy(() => import("@/pages/admin/documents/admin-document-form-page"));
 
 export const router = createBrowserRouter([
   // 1. Public Portal Area (PublicLayout with Top Navbar)
@@ -60,6 +65,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={null}>
             <DocumentsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: `${ROUTES.DOCUMENTS}/:slug`,
+        element: (
+          <Suspense fallback={null}>
+            <DocumentDetailPage />
           </Suspense>
         ),
       },
@@ -198,8 +211,32 @@ export const router = createBrowserRouter([
         element: <AdminDashboardLayout />,
         children: [
           {
-            path: "/admin", // Placeholder
+            path: "/admin", // Placeholder Dashboard
             element: <div className="p-8">Admin Dashboard Coming Soon</div>,
+          },
+          {
+            path: "/admin/documents",
+            element: (
+              <Suspense fallback={null}>
+                <AdminDocumentsPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "/admin/documents/new",
+            element: (
+              <Suspense fallback={null}>
+                <AdminDocumentFormPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "/admin/documents/:slug/edit",
+            element: (
+              <Suspense fallback={null}>
+                <AdminDocumentFormPage />
+              </Suspense>
+            ),
           },
         ],
       },
