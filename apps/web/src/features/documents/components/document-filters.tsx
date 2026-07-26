@@ -1,9 +1,9 @@
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useDebounce } from "@/hooks/use-debounce";
+import { Combobox } from "@/components/ui/combobox";
 
 export function DocumentFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,6 +25,22 @@ export function DocumentFilters() {
     }
   }, [debouncedKeyword, searchParams, setSearchParams]);
 
+  // Demo options for Combobox
+  const subjectOptions = [
+    { value: "toan", label: "Toán học" },
+    { value: "ly", label: "Vật lý" },
+    { value: "hoa", label: "Hóa học" },
+    { value: "sinh", label: "Sinh học" },
+    { value: "tin", label: "Tin học" },
+  ];
+
+  const typeOptions = [
+    { value: "de-thi", label: "Đề thi" },
+    { value: "giao-trinh", label: "Giáo trình" },
+    { value: "bai-tap", label: "Bài tập" },
+    { value: "chuyen-de", label: "Chuyên đề" },
+  ];
+
   return (
     <div className="flex flex-col md:flex-row gap-4 items-center bg-card/40 border border-border/50 p-4 rounded-xl backdrop-blur-sm">
       <div className="relative flex-1 w-full">
@@ -44,15 +60,17 @@ export function DocumentFilters() {
           </button>
         )}
       </div>
-      <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
-        {/* Placeholder for Category/Subject selects. 
-            Will be implemented fully when Category/Subject API is ready */}
-        <Button variant="outline" className="shrink-0 bg-background/50 border-border/60">
-          Tất cả môn học
-        </Button>
-        <Button variant="outline" className="shrink-0 bg-background/50 border-border/60">
-          Loại tài liệu
-        </Button>
+      <div className="flex gap-2 w-full md:w-auto overflow-x-visible">
+        <Combobox
+          options={subjectOptions}
+          placeholder="Tất cả môn học"
+          className="w-full md:w-48 bg-background/50 border-border/60"
+        />
+        <Combobox
+          options={typeOptions}
+          placeholder="Loại tài liệu"
+          className="w-full md:w-48 bg-background/50 border-border/60"
+        />
       </div>
     </div>
   );
