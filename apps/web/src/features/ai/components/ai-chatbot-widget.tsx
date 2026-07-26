@@ -2,12 +2,16 @@ import { useState } from "react";
 import { MessageSquare, X, Bot, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useUiStore } from "@/stores/use-ui-store";
 
 export function AiChatbotWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const { showAiWidget } = useUiStore();
+
+  if (!showAiWidget) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end max-lg:bottom-24">
       {/* Chat Window */}
       {isOpen && (
         <div className="mb-4 w-[350px] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in slide-in-from-bottom-5">

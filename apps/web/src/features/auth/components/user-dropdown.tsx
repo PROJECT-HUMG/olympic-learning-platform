@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { UserIcon, LogOut, Globe, MoreVertical, Sun, Moon } from "lucide-react";
+import { LogOut, Globe, MoreVertical, Sun, Moon, Bot } from "lucide-react";
 import { ROUTES } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useThemeStore } from "@/stores/use-theme-store";
+import { useUiStore } from "@/stores/use-ui-store";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +25,7 @@ export function UserDropdown({ direction = "up", className = "", showChevron = t
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { theme, setTheme } = useThemeStore();
+  const { showAiWidget, toggleAiWidget } = useUiStore();
 
   if (!user) return null;
 
@@ -47,11 +49,11 @@ export function UserDropdown({ direction = "up", className = "", showChevron = t
                 </div>
               )}
             </div>
-            <div className="text-left overflow-hidden">
-              <p className="truncate text-sm font-semibold leading-none text-foreground">
+            <div className="text-left overflow-hidden py-0.5">
+              <p className="truncate text-sm font-semibold leading-tight text-foreground">
                 {user.fullName || user.username}
               </p>
-              <p className="truncate text-xs text-muted-foreground mt-1">
+              <p className="truncate text-xs text-muted-foreground mt-0.5">
                 @{user.username}
               </p>
             </div>
@@ -72,11 +74,6 @@ export function UserDropdown({ direction = "up", className = "", showChevron = t
           Tài khoản
         </DropdownMenuLabel>
         
-        <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE)} className="rounded-xl px-3 py-2 cursor-pointer gap-2.5">
-          <UserIcon className="size-4 text-primary" />
-          <span>Hồ sơ cá nhân</span>
-        </DropdownMenuItem>
-        
         <DropdownMenuItem 
           onClick={(e) => {
             e.preventDefault();
@@ -89,6 +86,20 @@ export function UserDropdown({ direction = "up", className = "", showChevron = t
             <span>Giao diện</span>
           </div>
           <span className="text-xs text-muted-foreground">{theme === "dark" ? "Tối" : "Sáng"}</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem 
+          onClick={(e) => {
+            e.preventDefault();
+            toggleAiWidget();
+          }} 
+          className="rounded-xl px-3 py-2 cursor-pointer justify-between"
+        >
+          <div className="flex items-center gap-2.5">
+            <Bot className="size-4 text-primary" />
+            <span>Trợ lý AI</span>
+          </div>
+          <span className="text-xs text-muted-foreground">{showAiWidget ? "Bật" : "Tắt"}</span>
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={() => navigate(ROUTES.HOME)} className="rounded-xl px-3 py-2 cursor-pointer gap-2.5">
