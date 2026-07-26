@@ -131,28 +131,56 @@ class DocumentServiceImplTest {
   }
 
   @Test
-  void getById_shouldReturnDocument_whenExists() {
+  void getBySlug_shouldReturnDocument_whenExists() {
+    String slug = "test-doc-slug";
     UUID id = UUID.randomUUID();
-    Document document = Document.builder().id(id).build();
-    when(documentRepository.findByIdAndDeletedAtIsNull(id)).thenReturn(Optional.of(document));
+    Document document = new Document();
+    document.setId(id);
+    document.setSlug(slug);
     
-    DocumentResponse response = new DocumentResponse(
-        id, "Title", "title", "Desc", 0, 0, null, null, null, null, null, null, OffsetDateTime.now());
+    when(documentRepository.findBySlugAndDeletedAtIsNull(slug)).thenReturn(Optional.of(document));
+    
+    DocumentResponse response = DocumentResponse.builder()
+        .id(id)
+        .slug(slug)
+        .build();
     when(documentMapper.toResponse(document)).thenReturn(response);
 
-    DocumentResponse result = documentService.getById(id);
+    DocumentResponse result = documentService.getBySlug(slug);
 
     assertThat(result.id()).isEqualTo(id);
+    assertThat(result.slug()).isEqualTo(slug);
   }
 
   @Test
-  void getById_shouldThrowException_whenNotFound() {
+  void getDownloadUriBySlug_shouldReturnUri_whenDocumentExists() {
+    String slug = "doc-to-download";
     UUID id = UUID.randomUUID();
-    when(documentRepository.findByIdAndDeletedAtIsNull(id)).thenReturn(Optional.empty());
+    Document document = new Document();
+    document.setId(id);
+    document.setSlug(slug);
+    me.nghlong3004.olympic.storage.entity.File file = new me.nghlong3004.olympic.storage.entity.File();
+    file.setStorageKey("some/key");
+    document.setFile(file);
 
-    assertThatThrownBy(() -> documentService.getById(id))
+    when(documentRepository.findBySlugAndDeletedAtIsNull(slug)).thenReturn(Optional.of(document));
+    URI expectedUri = URI.create("https://example.com/download");
+    when(storageService.getDownloadUri("some/key")).thenReturn(expectedUri);
+
+    URI result = documentService.getDownloadUriBySlug(slug);
+
+    assertThat(result).isEqualTo(expectedUri);
+    assertThat(document.getDownloadCount()).isEqualTo(1);
+  }
+
+  @Test
+  void getBySlug_shouldThrowException_whenNotFound() {
+    String slug = "non-existent-slug";
+    when(documentRepository.findBySlugAndDeletedAtIsNull(slug)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> documentService.getBySlug(slug))
         .isInstanceOf(me.nghlong3004.olympic.document.exception.DocumentNotFoundException.class)
-        .hasMessageContaining("Document not found with id");
+        .hasMessageContaining("Document not found with slug");
   }
 
   @Test
@@ -203,9 +231,9 @@ class DocumentServiceImplTest {
   }
 
   @Test
-  void incrementViewCount_shouldCallRepository() {
-    UUID id = UUID.randomUUID();
-    documentService.incrementViewCount(id);
-    verify(documentRepository).incrementViewCount(id);
+  void incrementViewCountBySlug_shouldCallRepository() {
+    String slug = "viewed-doc";
+    documentService.incrementViewCountBySlug(slug);
+    verify(documentRepository).incrementViewCountBySlug(slug);
   }
 }
