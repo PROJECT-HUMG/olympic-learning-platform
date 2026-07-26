@@ -12,6 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useChangePassword } from "@/features/auth/hooks/use-change-password";
+import { toast } from "sonner";
 
 const changePasswordSchema = z
   .object({
@@ -64,6 +65,12 @@ export function ChangePasswordModal({ open, onOpenChange }: ChangePasswordModalP
       {
         onSuccess: () => {
           handleClose();
+          toast.success("Đã thay đổi mật khẩu", {
+            action: {
+              label: "Hoàn tác",
+              onClick: () => console.log("Hoàn tác thay đổi mật khẩu"),
+            },
+          });
         },
       }
     );
