@@ -11,7 +11,15 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { useChangePassword } from "@/features/auth/hooks/use-change-password";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 const changePasswordSchema = z
   .object({
@@ -39,6 +47,7 @@ interface ChangePasswordModalProps {
 }
 
 export function ChangePasswordModal({ open, onOpenChange }: ChangePasswordModalProps) {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const changePasswordMutation = useChangePassword();
 
   const {
@@ -69,70 +78,92 @@ export function ChangePasswordModal({ open, onOpenChange }: ChangePasswordModalP
     );
   }
 
+  const FormContent = (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
+      <FormField
+        id="modal-current-password"
+        type="password"
+        label="Mật khẩu hiện tại"
+        required
+        placeholder="••••••••"
+        error={errors.currentPassword?.message}
+        {...register("currentPassword")}
+      />
+
+      <FormField
+        id="modal-new-password"
+        type="password"
+        label="Mật khẩu mới"
+        required
+        placeholder="••••••••"
+        error={errors.newPassword?.message}
+        {...register("newPassword")}
+      />
+
+      <FormField
+        id="modal-confirm-password"
+        type="password"
+        label="Xác nhận mật khẩu mới"
+        required
+        placeholder="••••••••"
+        error={errors.confirmPassword?.message}
+        {...register("confirmPassword")}
+      />
+
+      <div className="flex justify-end gap-3 pt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleClose}
+          disabled={changePasswordMutation.isPending}
+        >
+          Hủy
+        </Button>
+        <Button
+          type="submit"
+          loading={changePasswordMutation.isPending}
+          disabled={changePasswordMutation.isPending}
+        >
+          <Lock className="mr-2 size-4" />
+          Đổi mật khẩu
+        </Button>
+      </div>
+    </form>
+  );
+
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-2 text-primary">
+              <KeyRound className="size-5" />
+              <DialogTitle>Đổi Mật Khẩu</DialogTitle>
+            </div>
+            <DialogDescription>
+              Nhập mật khẩu hiện tại và mật khẩu mới của bạn để hoàn tất thay đổi.
+            </DialogDescription>
+          </DialogHeader>
+          {FormContent}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="p-6 rounded-t-[20px] max-h-[90vh] overflow-y-auto">
+        <SheetHeader className="text-left mb-4">
           <div className="flex items-center gap-2 text-primary">
             <KeyRound className="size-5" />
-            <DialogTitle>Đổi Mật Khẩu</DialogTitle>
+            <SheetTitle>Đổi Mật Khẩu</SheetTitle>
           </div>
-          <DialogDescription>
+          <SheetDescription>
             Nhập mật khẩu hiện tại và mật khẩu mới của bạn để hoàn tất thay đổi.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
-          <FormField
-            id="modal-current-password"
-            type="password"
-            label="Mật khẩu hiện tại"
-            required
-            placeholder="••••••••"
-            error={errors.currentPassword?.message}
-            {...register("currentPassword")}
-          />
-
-          <FormField
-            id="modal-new-password"
-            type="password"
-            label="Mật khẩu mới"
-            required
-            placeholder="••••••••"
-            error={errors.newPassword?.message}
-            {...register("newPassword")}
-          />
-
-          <FormField
-            id="modal-confirm-password"
-            type="password"
-            label="Xác nhận mật khẩu mới"
-            required
-            placeholder="••••••••"
-            error={errors.confirmPassword?.message}
-            {...register("confirmPassword")}
-          />
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={changePasswordMutation.isPending}
-            >
-              Hủy
-            </Button>
-            <Button
-              type="submit"
-              loading={changePasswordMutation.isPending}
-              disabled={changePasswordMutation.isPending}
-            >
-              <Lock className="mr-2 size-4" />
-              Đổi mật khẩu
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+          </SheetDescription>
+        </SheetHeader>
+        {FormContent}
+      </SheetContent>
+    </Sheet>
   );
 }

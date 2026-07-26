@@ -38,7 +38,7 @@ export function AccountSecurityCard({ user }: AccountSecurityCardProps) {
               </h4>
               <p className="text-xs text-muted-foreground">
                 {isEmailVerified
-                  ? "Tài khoản của bạn đã được xác minh an toàn."
+                  ? "Tài khoản của bạn đã được xác minh."
                   : "Vui lòng kiểm tra hộp thư để hoàn tất kích hoạt tài khoản."}
               </p>
             </div>

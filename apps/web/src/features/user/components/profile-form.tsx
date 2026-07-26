@@ -91,7 +91,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
             <div className="space-y-1 rounded-xl border border-border/60 bg-muted/40 p-4">
               <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                 <UserIcon className="size-3.5" />
-                <span>Tên đăng nhập (Username)</span>
+                <span>Tên đăng nhập</span>
               </div>
               <p className="text-sm font-medium text-foreground">@{user.username}</p>
             </div>
