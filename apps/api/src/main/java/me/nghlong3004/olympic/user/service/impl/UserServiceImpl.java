@@ -144,7 +144,7 @@ public class UserServiceImpl implements UserService {
 
   private String resolveAvatarUrl(User user) {
     if (user.getAvatar() != null) {
-      return storageService.getDownloadUri(user.getAvatar().getStorageKey()).getPath();
+      return storageService.getDownloadUri(user.getAvatar().getStorageKey()).toString();
     }
     return userProperties.defaultAvatarUrl();
   }

@@ -251,7 +251,7 @@ public class AuthServiceImpl implements AuthService {
 
   private String resolveAvatarUrl(User user) {
     if (user.getAvatar() != null) {
-      return storageService.getDownloadUri(user.getAvatar().getStorageKey()).getPath();
+      return storageService.getDownloadUri(user.getAvatar().getStorageKey()).toString();
     }
     return userProperties.defaultAvatarUrl();
   }
