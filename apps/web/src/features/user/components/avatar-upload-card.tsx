@@ -2,6 +2,17 @@ import { useRef, useState, useEffect } from "react";
 import { Trash2, Loader2, Check, X, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useUpdateAvatar, useRemoveAvatar } from "../hooks/use-avatar";
 import type { UserProfile } from "../types/user.types";
 import { toast } from "sonner";
@@ -76,13 +87,11 @@ export function AvatarUploadCard({ user }: AvatarUploadCardProps) {
   }
 
   function handleRemoveAvatar() {
-    if (confirm("Bạn có chắc chắn muốn xóa ảnh đại diện hiện tại?")) {
-      removeAvatarMutation.mutate(undefined, {
-        onSuccess: () => {
-          handleCancelPreview();
-        },
-      });
-    }
+    removeAvatarMutation.mutate(undefined, {
+      onSuccess: () => {
+        handleCancelPreview();
+      },
+    });
   }
 
   return (
@@ -179,17 +188,37 @@ export function AvatarUploadCard({ user }: AvatarUploadCardProps) {
                 </Button>
 
                 {user.avatarUrl && (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    loading={isRemoving}
-                    disabled={isPending}
-                    onClick={handleRemoveAvatar}
-                  >
-                    <Trash2 className="mr-2 size-4" />
-                    Xóa ảnh
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        loading={isRemoving}
+                        disabled={isPending}
+                      >
+                        <Trash2 className="mr-2 size-4" />
+                        Xóa ảnh
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Xóa ảnh đại diện?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Hành động này không thể hoàn tác. Ảnh đại diện của bạn sẽ bị xóa và hệ thống sẽ hiển thị ảnh mặc định.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Hủy</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleRemoveAvatar}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Có, hãy xóa
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
               </>
             )}
