@@ -74,7 +74,7 @@ export function LecturerDashboardLayout() {
           )}
         >
           <div className="flex items-center gap-4">
-            <Logo className="lg:hidden" imageClassName="h-8" />
+            <Logo className="lg:hidden" />
           </div>
 
           <div className="flex items-center gap-2">

@@ -23,6 +23,16 @@ import {
   SheetTrigger,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useUiStore } from "@/stores/use-ui-store";
+import { Bot } from "lucide-react";
 
 export function PublicHeader() {
   const location = useLocation();
@@ -30,6 +40,7 @@ export function PublicHeader() {
   const { data: user } = useCurrentUser();
   const { logout } = useAuth();
   const isScrolled = useScrolled(20);
+  const { showAiWidget, toggleAiWidget } = useUiStore();
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -83,99 +94,56 @@ export function PublicHeader() {
           {user ? (
             <div className="flex items-center gap-3">
               {/* User Avatar Dropdown */}
-              <div className="relative">
-                <button
-                  type="button"
-                  popoverTarget="public-avatar-menu"
-                  style={{ anchorName: "--public-avatar" } as any}
-                  className="flex items-center gap-2 rounded-full border border-border/80 bg-card p-1 pr-2 shadow-xs hover:bg-accent transition-colors cursor-pointer"
-                >
-                  <div className="size-8 overflow-hidden rounded-full border border-border bg-muted">
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.fullName || user.username}
-                        className="size-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex size-full items-center justify-center bg-primary/10 text-xs font-bold text-primary">
-                        {(user.fullName || user.username).charAt(0).toUpperCase()}
-                      </div>
-                    )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 rounded-full border border-border/80 bg-card p-1 pr-2 shadow-xs hover:bg-accent transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    <div className="size-8 overflow-hidden rounded-full border border-border bg-muted">
+                      {user.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.fullName || user.username}
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex size-full items-center justify-center bg-primary/10 text-xs font-bold text-primary">
+                          {(user.fullName || user.username).charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <ChevronDown className="size-3.5 text-muted-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2" sideOffset={8}>
+                  <div className="px-2 py-1.5 mb-1 border-b border-border/60">
+                    <p className="text-sm font-semibold text-foreground truncate">
+                      {user.fullName || user.username}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      @{user.username}
+                    </p>
                   </div>
-                  <ChevronDown className="size-3.5 text-muted-foreground" />
-                </button>
-
-                {/* Dropdown Menu (Native Popover) */}
-                <div
-                  id="public-avatar-menu"
-                  popover="auto"
-                  role="menu"
-                  style={{ 
-                    positionAnchor: "--public-avatar", 
-                    inset: "unset", 
-                    top: "anchor(bottom 8px)",
-                    right: "anchor(right)",
-                    margin: 0
-                  } as any}
-                  className="w-56 rounded-2xl border border-border bg-card p-2 shadow-xl backdrop-blur-md open:animate-in open:fade-in-0 open:zoom-in-95 z-50"
-                >
-                    {/* User Header */}
-                    <div className="px-3 py-2 border-b border-border/60 mb-1">
-                      <p className="text-sm font-semibold text-foreground truncate">
-                        {user.fullName || user.username}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        @{user.username}
-                      </p>
+                  <DropdownMenuItem onClick={() => navigate(ROUTES.DASHBOARD)} className="rounded-xl px-2 py-2 cursor-pointer gap-2.5">
+                    <LayoutDashboard className="size-4 text-primary" />
+                    <span>Dashboard</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate(ROUTES.PROFILE)} className="rounded-xl px-2 py-2 cursor-pointer gap-2.5">
+                    <UserIcon className="size-4 text-primary" />
+                    <span>Hồ sơ cá nhân</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.preventDefault(); toggleAiWidget(); }} className="rounded-xl px-2 py-2 cursor-pointer justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <Bot className="size-4 text-primary" />
+                      <span>Trợ lý AI</span>
                     </div>
-
-                    {/* Dropdown Actions */}
-                    <div className="space-y-0.5">
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={(e) => {
-                          ((e.target as HTMLElement).closest("[popover]") as any)?.hidePopover();
-                          navigate(ROUTES.DASHBOARD);
-                        }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors cursor-pointer"
-                      >
-                        <LayoutDashboard className="size-4 text-primary" />
-                        <span>Dashboard</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={(e) => {
-                          ((e.target as HTMLElement).closest("[popover]") as any)?.hidePopover();
-                          navigate(ROUTES.PROFILE);
-                        }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors cursor-pointer"
-                      >
-                        <UserIcon className="size-4 text-primary" />
-                        <span>Hồ sơ cá nhân</span>
-                      </button>
-                    </div>
-
-                    <div role="separator" className="h-px bg-border/60 my-1" />
-                    <div className="pt-1">
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={(e) => {
-                          ((e.target as HTMLElement).closest("[popover]") as any)?.hidePopover();
-                          logout();
-                        }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                      >
-                        <LogOut className="size-4" />
-                        <span>Đăng xuất</span>
-                      </button>
-                    </div>
-                  </div>
-              </div>
+                    <span className="text-xs text-muted-foreground">{showAiWidget ? "Bật" : "Tắt"}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="my-1 bg-border/60" />
+                  <DropdownMenuItem onClick={() => logout()} className="rounded-xl px-2 py-2 cursor-pointer gap-2.5 text-destructive focus:text-destructive focus:bg-destructive/10">
+                    <LogOut className="size-4" />
+                    <span>Đăng xuất</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : (
             <div className="flex items-center gap-2">
@@ -251,6 +219,17 @@ export function PublicHeader() {
                           <UserIcon className="size-4 text-primary" />
                           Hồ sơ cá nhân
                         </Link>
+                        <button
+                          type="button"
+                          onClick={() => toggleAiWidget()}
+                          className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <Bot className="size-4 text-primary" />
+                            Trợ lý AI
+                          </div>
+                          <span className="text-xs text-muted-foreground">{showAiWidget ? "Bật" : "Tắt"}</span>
+                        </button>
                         <button
                           type="button"
                           onClick={() => {

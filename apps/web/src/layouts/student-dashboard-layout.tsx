@@ -75,8 +75,8 @@ export function StudentDashboardLayout() {
           )}
         >
           <div className="flex items-center gap-4">
-            {/* Logo on mobile removed the restricted h-8 to match public layout */}
-            <Logo className="lg:hidden" imageClassName="h-10 sm:h-12" />
+            {/* Logo on mobile removed the restricted size to match public layout */}
+            <Logo className="lg:hidden" />
           </div>
 
           <div className="flex items-center gap-2">
