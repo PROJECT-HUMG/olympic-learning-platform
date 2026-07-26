@@ -65,12 +65,7 @@ export function ChangePasswordModal({ open, onOpenChange }: ChangePasswordModalP
       {
         onSuccess: () => {
           handleClose();
-          toast.success("Đã thay đổi mật khẩu", {
-            action: {
-              label: "Hoàn tác",
-              onClick: () => console.log("Hoàn tác thay đổi mật khẩu"),
-            },
-          });
+          toast.success("Đã thay đổi mật khẩu");
         },
       }
     );
