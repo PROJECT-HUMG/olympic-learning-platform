@@ -44,10 +44,10 @@ public class DocumentController {
     return documentService.update(id, request);
   }
 
-  @GetMapping("/{id}")
-  @Operation(summary = "Get document details by ID")
-  public DocumentResponse getById(@PathVariable UUID id) {
-    return documentService.getById(id);
+  @GetMapping("/{slug}")
+  @Operation(summary = "Get document details by slug")
+  public DocumentResponse getBySlug(@PathVariable String slug) {
+    return documentService.getBySlug(slug);
   }
 
   @GetMapping
@@ -64,10 +64,10 @@ public class DocumentController {
     documentService.delete(id);
   }
 
-  @GetMapping("/{id}/download")
+  @GetMapping("/{slug}/download")
   @Operation(summary = "Get a pre-signed download URI for the document")
-  public ResponseEntity<Void> getDownloadUri(@PathVariable UUID id) {
-    URI uri = documentService.getDownloadUri(id);
+  public ResponseEntity<Void> getDownloadUri(@PathVariable String slug) {
+    URI uri = documentService.getDownloadUriBySlug(slug);
     return ResponseEntity.status(HttpStatus.FOUND).location(uri).build();
   }
 
@@ -85,10 +85,10 @@ public class DocumentController {
     documentService.deleteByUserId(userId);
   }
 
-  @PostMapping("/{id}/view")
+  @PostMapping("/{slug}/view")
   @Operation(summary = "Increment document view count")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void incrementViewCount(@PathVariable UUID id) {
-    documentService.incrementViewCount(id);
+  public void incrementViewCount(@PathVariable String slug) {
+    documentService.incrementViewCountBySlug(slug);
   }
 }

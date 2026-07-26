@@ -167,11 +167,11 @@ public class DocumentServiceImpl implements DocumentService {
 
   @Override
   @Transactional
-  public DocumentResponse getById(UUID id) {
+  public DocumentResponse getBySlug(String slug) {
     Document document =
         documentRepository
-            .findByIdAndDeletedAtIsNull(id)
-            .orElseThrow(() -> new DocumentNotFoundException(id));
+            .findBySlugAndDeletedAtIsNull(slug)
+            .orElseThrow(() -> new DocumentNotFoundException(slug));
             
     document.setViewCount(document.getViewCount() + 1);
 
@@ -199,8 +199,11 @@ public class DocumentServiceImpl implements DocumentService {
 
   @Override
   @Transactional
-  public URI getDownloadUri(UUID id) {
-    Document document = getDocumentForUpdate(id);
+  public URI getDownloadUriBySlug(String slug) {
+    Document document =
+        documentRepository
+            .findBySlugAndDeletedAtIsNull(slug)
+            .orElseThrow(() -> new DocumentNotFoundException(slug));
     
     document.setDownloadCount(document.getDownloadCount() + 1);
     
@@ -225,8 +228,8 @@ public class DocumentServiceImpl implements DocumentService {
 
   @Override
   @Transactional
-  public void incrementViewCount(UUID id) {
-    documentRepository.incrementViewCount(id);
+  public void incrementViewCountBySlug(String slug) {
+    documentRepository.incrementViewCountBySlug(slug);
   }
 
   // ---------------------------------------------------------------------------

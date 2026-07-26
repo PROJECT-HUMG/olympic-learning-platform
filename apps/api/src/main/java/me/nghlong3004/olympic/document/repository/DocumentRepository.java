@@ -23,18 +23,18 @@ public interface DocumentRepository
     extends JpaRepository<Document, UUID>, JpaSpecificationExecutor<Document> {
 
   /**
-   * Finds an active document by its identifier.
+   * Retrieves an active document by its identifier.
    *
    * @param id the document identifier
-   * @return matching document if found
+   * @return an optional containing the document if found
    */
   Optional<Document> findByIdAndDeletedAtIsNull(UUID id);
 
   /**
-   * Finds an active document by its slug.
+   * Retrieves an active document by its slug.
    *
    * @param slug the document slug
-   * @return matching document if found
+   * @return an optional containing the document if found
    */
   Optional<Document> findBySlugAndDeletedAtIsNull(String slug);
 
@@ -60,6 +60,10 @@ public interface DocumentRepository
   @Modifying
   @Query("UPDATE Document d SET d.viewCount = d.viewCount + 1 WHERE d.id = :id AND d.deletedAt IS NULL")
   void incrementViewCount(@Param("id") UUID id);
+
+  @Modifying
+  @Query("UPDATE Document d SET d.viewCount = d.viewCount + 1 WHERE d.slug = :slug AND d.deletedAt IS NULL")
+  void incrementViewCountBySlug(@Param("slug") String slug);
 
   @Modifying
   @Query("UPDATE Document d SET d.downloadCount = d.downloadCount + 1 WHERE d.id = :id AND d.deletedAt IS NULL")

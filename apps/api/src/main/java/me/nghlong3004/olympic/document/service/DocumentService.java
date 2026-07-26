@@ -36,12 +36,12 @@ public interface DocumentService {
   DocumentResponse update(UUID id, UpdateDocumentRequest request);
 
   /**
-   * Retrieves a document by its identifier.
+   * Retrieves a document by its slug.
    *
-   * @param id the document identifier
+   * @param slug the document slug
    * @return the document
    */
-  DocumentResponse getById(UUID id);
+  DocumentResponse getBySlug(String slug);
 
   /**
    * Searches documents using the given criteria.
@@ -60,14 +60,14 @@ public interface DocumentService {
   void delete(UUID id);
 
   /**
-   * Resolves the download URI of a document.
+   * Resolves the download URI of a document by its slug.
    *
    * <p>The implementation should also increase the download counter.
    *
-   * @param id the document identifier
+   * @param slug the document slug
    * @return the download URI
    */
-  URI getDownloadUri(UUID id);
+  URI getDownloadUriBySlug(String slug);
 
   /**
    * Bulk deletes documents by their identifiers.
@@ -84,9 +84,9 @@ public interface DocumentService {
   void deleteByUserId(UUID userId);
 
   /**
-   * Increments the view count of a document.
+   * Increments the view count of a document by its slug.
    *
-   * @param id the document identifier
+   * @param slug the document slug
    */
-  void incrementViewCount(UUID id);
+  void incrementViewCountBySlug(String slug);
 }
