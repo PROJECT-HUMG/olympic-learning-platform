@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.*;
+import me.nghlong3004.olympic.storage.enums.StorageFolder;
+import me.nghlong3004.olympic.storage.enums.StorageProvider;
 
 /**
  * Persisted metadata for a single file managed by the storage subsystem. The actual binary payload
@@ -39,11 +41,13 @@ public class FileEntity {
   @Column(nullable = false)
   private Long size;
 
-  @Column(nullable = false, length = 50)
-  private String provider;
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private StorageProvider provider;
 
-  @Column(nullable = false, length = 50)
-  private String folder;
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private StorageFolder folder;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   @Builder.Default
