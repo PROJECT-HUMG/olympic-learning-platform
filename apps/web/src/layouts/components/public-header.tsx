@@ -8,7 +8,6 @@ import {
   User as UserIcon,
   LogOut,
   LayoutDashboard,
-  Bell,
   ChevronDown,
 } from "lucide-react";
 import { ROUTES } from "@/router/route-constants";
@@ -27,7 +26,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
