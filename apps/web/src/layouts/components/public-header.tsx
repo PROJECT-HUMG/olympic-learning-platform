@@ -10,7 +10,7 @@ import {
   LayoutDashboard,
   ChevronDown,
 } from "lucide-react";
-import { ROUTES } from "@/router/route-constants";
+import { ROUTES, getDashboardRoute } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -120,7 +120,7 @@ export function PublicHeader() {
                       @{user.username}
                     </p>
                   </div>
-                  <DropdownMenuItem onClick={() => navigate(ROUTES.DASHBOARD)} className="rounded-xl px-2 py-2 cursor-pointer gap-2.5">
+                  <DropdownMenuItem onClick={() => navigate(getDashboardRoute(user.role))} className="rounded-xl px-2 py-2 cursor-pointer gap-2.5">
                     <LayoutDashboard className="size-4 text-primary" />
                     <span>Dashboard</span>
                   </DropdownMenuItem>
@@ -202,7 +202,7 @@ export function PublicHeader() {
                           Tài khoản: {user.fullName || user.username}
                         </div>
                         <Link
-                          to={ROUTES.DASHBOARD}
+                          to={getDashboardRoute(user.role)}
                           onClick={() => setMobileMenuOpen(false)}
                           className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
                         >

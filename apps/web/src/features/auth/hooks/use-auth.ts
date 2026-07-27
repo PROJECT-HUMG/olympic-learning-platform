@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { authService } from "@/features/auth/services/auth.service";
-import { ROUTES } from "@/router/route-constants";
+import { ROUTES, getDashboardRoute } from "@/router/route-constants";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEY_CURRENT_USER } from "./use-current-user";
 
@@ -19,7 +19,7 @@ export function useAuth() {
     // Pre-populate user cache from login response
     queryClient.setQueryData(QUERY_KEY_CURRENT_USER, response.data.user);
     
-    navigate(ROUTES.DASHBOARD, { replace: true });
+    navigate(getDashboardRoute(response.data.user.role), { replace: true });
   }
 
   async function logout() {

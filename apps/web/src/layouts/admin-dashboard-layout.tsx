@@ -20,7 +20,7 @@ export function AdminDashboardLayout() {
   const isScrolled = useScrolled(20);
 
   const navItems = [
-    { label: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard },
+    { label: "Dashboard", href: ROUTES.ADMIN, icon: LayoutDashboard },
     { label: "Luyện tập", href: ROUTES.PRACTICE, icon: BookOpen },
     { label: "Lịch sử thi", href: ROUTES.HISTORY, icon: HistoryIcon },
     { label: "Hồ sơ cá nhân", href: ROUTES.PROFILE, icon: UserIcon },

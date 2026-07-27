@@ -23,4 +23,13 @@ export const ROUTES = {
 
   // Admin area
   ADMIN: "/admin",
+
+  // Lecturer area
+  LECTURER: "/lecturer",
 } as const;
+
+export function getDashboardRoute(role?: string): string {
+  if (role === "ADMIN") return ROUTES.ADMIN;
+  if (role === "LECTURER") return ROUTES.LECTURER;
+  return ROUTES.DASHBOARD;
+}

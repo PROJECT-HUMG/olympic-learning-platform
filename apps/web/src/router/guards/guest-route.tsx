@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { ROUTES } from "@/router/route-constants";
+import { ROUTES, getDashboardRoute } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSpinDelay } from "@/hooks/use-spin-delay";
@@ -108,7 +108,7 @@ export function GuestRoute() {
   }
 
   if (user) {
-    return <Navigate to={ROUTES.DASHBOARD} replace />;
+    return <Navigate to={getDashboardRoute(user.role)} replace />;
   }
 
   return <Outlet />;
