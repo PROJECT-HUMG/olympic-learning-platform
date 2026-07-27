@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1.7
 
 # ============================================================
-# Stage 1: Build executable Spring Boot JAR
+# Stage 1: Build Spring Boot executable JAR
 # ============================================================
-FROM maven:3.9.16-eclipse-temurin-21-noble AS build
+FROM maven:3.9.16-eclipse-temurin-25-noble AS build
 
 WORKDIR /workspace
 
@@ -25,24 +25,40 @@ RUN --mount=type=cache,target=/root/.m2,sharing=locked \
         ! -name '*.original'); \
     if [ "$#" -ne 1 ]; then \
         echo "Expected exactly one executable JAR, found: $#" >&2; \
-        find target -maxdepth 1 -type f -name '*.jar' -print >&2; \
+        find target -maxdepth 1 -type f -name '*.jar' >&2; \
         exit 1; \
     fi && \
     cp "$1" /workspace/application.jar && \
     test -s /workspace/application.jar
 
+# ============================================================
+# Stage 2: Extract Spring Boot Layers
+# ============================================================
+FROM bellsoft/liberica-openjre-debian:25-cds AS extract
+
+WORKDIR /workspace
+
+COPY --from=build /workspace/application.jar .
+
+RUN java -Djarmode=tools \
+    -jar application.jar \
+    extract \
+    --layers \
+    --destination extracted
 
 # ============================================================
-# Stage 2: Production runtime
+# Stage 3: Production Runtime
 # ============================================================
-FROM eclipse-temurin:21-jre-noble AS runtime
+FROM bellsoft/liberica-openjre-debian:25-cds AS runtime
 
 LABEL maintainer="nghlong3004"
 LABEL description="Olympic Platform API"
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --gid 10001 olympic_platform && \
     useradd \
@@ -52,14 +68,13 @@ RUN groupadd --gid 10001 olympic_platform && \
         --home-dir /app \
         --shell /usr/sbin/nologin \
         olympic_platform && \
-    mkdir -p /app/storage /tmp/olympic_platform && \
-    chown -R olympic_platform:olympic_platform /app/storage /tmp/olympic_platform
+    mkdir -p /app/storage && \
+    chown -R olympic_platform:olympic_platform /app
 
-COPY --from=build --chown=olympic_platform:olympic_platform \
-    /workspace/application.jar \
-    /app/application.jar
-
-RUN test -s /app/application.jar
+COPY --from=extract --chown=10001:10001 /workspace/extracted/dependencies/ ./
+COPY --from=extract --chown=10001:10001 /workspace/extracted/spring-boot-loader/ ./
+COPY --from=extract --chown=10001:10001 /workspace/extracted/snapshot-dependencies/ ./
+COPY --from=extract --chown=10001:10001 /workspace/extracted/application/ ./
 
 USER 10001:10001
 
@@ -68,8 +83,10 @@ EXPOSE 8080
 ENV HOME=/app
 
 ENV JAVA_TOOL_OPTIONS="\
--XX:MaxRAMPercentage=70.0 \
+-XX:InitialRAMPercentage=25 \
+-XX:MaxRAMPercentage=70 \
 -XX:+ExitOnOutOfMemoryError \
--Djava.io.tmpdir=/tmp/olympic_platform"
+-Djava.io.tmpdir=/tmp \
+-Djava.security.egd=file:/dev/./urandom"
 
-ENTRYPOINT ["java", "-jar", "/app/application.jar"]
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
