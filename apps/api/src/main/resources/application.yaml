@@ -33,7 +33,12 @@ olympic:
     provider: ${STORAGE_PROVIDER:cloudinary}
   auth:
     registration:
-      mode: ${VFQC_AUTH_REGISTRATION_MODE:SELF_VERIFY}
+      mode: ${OLYMPIC_AUTH_REGISTRATION_MODE:SELF_VERIFY}
     email-token:
-      verification-expiration-minutes: ${VFQC_EMAIL_VERIFICATION_EXPIRATION_MINUTES:1440}
-      password-reset-expiration-minutes: ${VFQC_PASSWORD_RESET_EXPIRATION_MINUTES:15}
+      verification-expiration-minutes: ${OLYMPIC_EMAIL_VERIFICATION_EXPIRATION_MINUTES:1440}
+      password-reset-expiration-minutes: ${OLYMPIC_PASSWORD_RESET_EXPIRATION_MINUTES:15}
+  admin:
+    email: ${OLYMPIC_ADMIN_EMAIL:}
+    username: ${OLYMPIC_ADMIN_USERNAME:admin}
+    password: ${OLYMPIC_ADMIN_PASSWORD:}
+    full-name: ${OLYMPIC_ADMIN_FULL_NAME:Olympic Administrator}
