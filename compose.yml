@@ -24,9 +24,6 @@ services:
     security_opt:
       - no-new-privileges:true
 
-    cap_drop:
-      - ALL
-
     logging:
       driver: json-file
       options:
@@ -59,9 +56,6 @@ services:
 
     security_opt:
       - no-new-privileges:true
-
-    cap_drop:
-      - ALL
 
     logging:
       driver: json-file
@@ -225,9 +219,6 @@ services:
 
     security_opt:
       - no-new-privileges:true
-
-    cap_drop:
-      - ALL
 
     tmpfs:
       - /tmp

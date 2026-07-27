@@ -179,12 +179,7 @@ public class SecurityChainsConfig {
                     .dispatcherTypeMatchers(DispatcherType.ERROR)
                     .permitAll()
                     .requestMatchers(
-                        HttpMethod.GET,
-                        "/actuator/health",
-                        "/actuator/health/liveness",
-                        "/actuator/health/readiness",
-                        "/v3/api-docs",
-                        "/v3/api-docs/**")
+                        "/actuator/health/readiness")
                     .permitAll()
                     .anyRequest()
                     .denyAll())

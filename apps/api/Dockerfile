@@ -89,4 +89,4 @@ ENV JAVA_TOOL_OPTIONS="\
 -Djava.io.tmpdir=/tmp \
 -Djava.security.egd=file:/dev/./urandom"
 
-ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-jar", "application.jar"]
