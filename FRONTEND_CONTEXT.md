@@ -38,8 +38,10 @@ Hệ thống Route được cấu hình tập trung tại `apps/web/src/router/r
 Website được chia làm 3 cụm chính tương ứng với 3 Layout:
 
 1. **Public Portal (`PublicLayout`):** Các trang ngoài (Home, Kỳ thi, Môn học...). Dùng chung `PublicHeader` và `PublicFooter`.
-2. **Auth Area (`AuthCardLayout`):** Các trang Login, Register, Forgot Password... Được bọc bởi `GuestRoute` (đã đăng nhập thì tự đá về Dashboard).
-3. **Private Workspace (`DashboardLayout`):** Các trang yêu cầu đăng nhập. Bọc bởi `RoleGuard` (Kiểm tra quyền).
+2. **Auth Area (`AuthCardLayout`):** Các trang Login, Register, Forgot Password... Được bọc bởi `GuestRoute` (đã đăng nhập thì tự đá về Workspace tương ứng theo Role).
+3. **Private Workspace:** Các trang yêu cầu đăng nhập, chia thành 2 loại:
+   - **Shared Workspace (`DynamicDashboardLayout` & `ProtectedRoute`):** Các trang chung như Profile, Practice, History. Tự động hiển thị đúng Sidebar (Khung điều hướng) tùy theo Role của người dùng.
+   - **Role-specific Workspace (`RoleGuard`):** Các cụm route riêng biệt cho từng role với Layout tương ứng (VD: `StudentDashboardLayout` cho `/dashboard`, `AdminDashboardLayout` cho `/admin`, `LecturerDashboardLayout` cho `/lecturer`).
 
 **Tình trạng hiện tại:** 
 Toàn bộ các trang Public (`subjects-page.tsx`, `competitions-page.tsx`, `toolkit-page.tsx`...) vừa được chuẩn hóa giao diện: 

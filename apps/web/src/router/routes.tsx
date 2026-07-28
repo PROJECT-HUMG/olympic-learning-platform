@@ -8,6 +8,8 @@ import { AuthCardLayout } from "@/layouts/auth-card-layout";
 import { StudentDashboardLayout } from "@/layouts/student-dashboard-layout";
 import { LecturerDashboardLayout } from "@/layouts/lecturer-dashboard-layout";
 import { AdminDashboardLayout } from "@/layouts/admin-dashboard-layout";
+import { DynamicDashboardLayout } from "@/layouts/dynamic-dashboard-layout";
+import { ProtectedRoute } from "@/router/guards/protected-route";
 
 // Eagerly load lightweight Auth page wrappers for instant rendering without Suspense delays
 import LoginPage from "@/pages/auth/login-page";
@@ -143,21 +145,13 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // 3. Private Workspace Area - STUDENT
+  // 3. Shared Private Workspace Area (Accessible by all logged-in users)
   {
-    element: <RoleGuard allowedRoles={["STUDENT"]} />,
+    element: <ProtectedRoute />,
     children: [
       {
-        element: <StudentDashboardLayout />,
+        element: <DynamicDashboardLayout />,
         children: [
-          {
-            path: ROUTES.DASHBOARD,
-            element: (
-              <Suspense fallback={null}>
-                <DashboardPage />
-              </Suspense>
-            ),
-          },
           {
             path: ROUTES.PROFILE,
             element: (
@@ -179,6 +173,26 @@ export const router = createBrowserRouter([
             element: (
               <Suspense fallback={null}>
                 <HistoryPage />
+              </Suspense>
+            ),
+          },
+        ],
+      },
+    ],
+  },
+
+  // 4. Private Workspace Area - STUDENT
+  {
+    element: <RoleGuard allowedRoles={["STUDENT"]} />,
+    children: [
+      {
+        element: <StudentDashboardLayout />,
+        children: [
+          {
+            path: ROUTES.DASHBOARD,
+            element: (
+              <Suspense fallback={null}>
+                <DashboardPage />
               </Suspense>
             ),
           },
