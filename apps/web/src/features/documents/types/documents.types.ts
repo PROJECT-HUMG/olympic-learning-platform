@@ -41,6 +41,7 @@ export interface DocumentSearchRequest {
   tagIds?: string[];
   page?: number;
   size?: number;
+  ownerId?: string;
 }
 
 export interface CreateDocumentRequest {

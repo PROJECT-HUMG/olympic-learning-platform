@@ -60,6 +60,11 @@ public final class DocumentSpecification {
         query.distinct(true);
       }
 
+      // Owner
+      if (request.ownerId() != null) {
+        predicates.add(criteriaBuilder.equal(root.get("owner").get("id"), request.ownerId()));
+      }
+
       return criteriaBuilder.and(predicates.toArray(jakarta.persistence.criteria.Predicate[]::new));
     };
   }

@@ -1,4 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useScrolled } from "@/hooks/use-scrolled";
 import { SeasonalBackground } from "@/components/ui/seasonal-background";
@@ -10,26 +11,44 @@ import {
   User as UserIcon,
   BookOpen,
   History as HistoryIcon,
+  FileText,
 } from "lucide-react";
 import { ROUTES } from "@/router/route-constants";
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { UserDropdown } from "@/features/auth/components/user-dropdown";
 import { AiChatbotWidget } from "@/features/ai/components/ai-chatbot-widget";
 
-export function LecturerDashboardLayout() {
+export function DashboardLayout() {
   const location = useLocation();
   const isScrolled = useScrolled(20);
+  const { data: user } = useCurrentUser();
 
-  const navItems = [
-    { label: "Dashboard", href: ROUTES.LECTURER, icon: LayoutDashboard },
-    { label: "Luyện tập", href: ROUTES.PRACTICE, icon: BookOpen },
-    { label: "Lịch sử thi", href: ROUTES.HISTORY, icon: HistoryIcon },
-    { label: "Hồ sơ cá nhân", href: ROUTES.PROFILE, icon: UserIcon },
-  ];
+  const navItems = useMemo(() => {
+    const items = [];
+
+    if (user?.role === "ADMIN") {
+      items.push({ label: "Dashboard", href: ROUTES.ADMIN, icon: LayoutDashboard });
+      items.push({ label: "Quản lý tài liệu", href: "/admin/documents", icon: FileText });
+    } else if (user?.role === "LECTURER") {
+      items.push({ label: "Dashboard", href: ROUTES.LECTURER, icon: LayoutDashboard });
+      items.push({ label: "Quản lý tài liệu", href: "/lecturer/documents", icon: FileText });
+    } else {
+      items.push({ label: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard });
+    }
+
+    // Shared items for all roles
+    items.push({ label: "Luyện tập", href: ROUTES.PRACTICE, icon: BookOpen });
+    items.push({ label: "Lịch sử thi", href: ROUTES.HISTORY, icon: HistoryIcon });
+    items.push({ label: "Hồ sơ cá nhân", href: ROUTES.PROFILE, icon: UserIcon });
+
+    return items;
+  }, [user?.role]);
 
   return (
     <div className="flex min-h-screen bg-background/50 text-foreground relative selection:bg-primary/30">
       <SeasonalBackground />
-      {/* Fixed Sticky Sidebar */}
+      
+      {/* Fixed Sticky Sidebar (Desktop) */}
       <aside className="sticky top-0 hidden h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
         <div className="flex h-16 items-center border-b border-sidebar-border px-6">
           <Logo />
@@ -63,17 +82,18 @@ export function LecturerDashboardLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0">
         {/* Topbar Header */}
         <header
           className={cn(
-            "sticky top-0 z-30 flex h-16 items-center justify-between px-6 transition-all duration-300",
+            "sticky top-0 z-30 flex h-16 items-center justify-between px-4 sm:px-6 transition-all duration-300",
             isScrolled
               ? "border-b border-border bg-background/80 backdrop-blur-md shadow-sm"
               : "border-transparent bg-transparent"
           )}
         >
           <div className="flex items-center gap-4">
+            {/* Logo on mobile removed the restricted size to match public layout */}
             <Logo className="lg:hidden" />
           </div>
 
@@ -81,21 +101,50 @@ export function LecturerDashboardLayout() {
             <SeasonToggle />
             <ThemeToggle />
             {/* User Profile Dropdown (Mobile Only) */}
-            <div className="lg:hidden">
+            <div className="lg:hidden ml-1">
               <UserDropdown direction="down" showChevron={false} />
             </div>
           </div>
         </header>
 
         {/* Page Body */}
-        <div className="flex-1 p-6 sm:p-8">
+        <div className="flex-1 p-4 sm:p-6 md:p-8">
           <Outlet />
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation (Visible only on < lg screens) */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 pb-safe">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              to={item.href}
+              className={cn(
+                "flex flex-col items-center justify-center w-full py-3 px-1 text-[10px] sm:text-xs font-medium transition-colors relative",
+                isActive
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {isActive && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-b-full" />
+              )}
+              <Icon 
+                className={cn(
+                  "mb-1.5 size-5 sm:size-6 transition-transform", 
+                  isActive ? "scale-110 drop-shadow-sm" : ""
+                )} 
+              />
+              <span className="truncate w-full text-center">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
 
       <AiChatbotWidget />
     </div>
   );
 }
-
-

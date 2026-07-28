@@ -1,14 +1,11 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { ROUTES } from "@/router/route-constants";
 import { GuestRoute } from "@/router/guards/guest-route";
 import { RoleGuard } from "@/router/guards/role-guard";
 import { PublicLayout } from "@/layouts/public-layout";
 import { AuthCardLayout } from "@/layouts/auth-card-layout";
-import { StudentDashboardLayout } from "@/layouts/student-dashboard-layout";
-import { LecturerDashboardLayout } from "@/layouts/lecturer-dashboard-layout";
-import { AdminDashboardLayout } from "@/layouts/admin-dashboard-layout";
-import { DynamicDashboardLayout } from "@/layouts/dynamic-dashboard-layout";
+import { DashboardLayout } from "@/layouts/dashboard-layout";
 import { ProtectedRoute } from "@/router/guards/protected-route";
 
 // Eagerly load lightweight Auth page wrappers for instant rendering without Suspense delays
@@ -38,8 +35,7 @@ const HistoryPage = lazy(() => import("@/pages/history-page"));
 const NotFoundPage = lazy(() => import("@/pages/not-found-page"));
 
 // Lazy load admin pages
-const AdminDocumentsPage = lazy(() => import("@/pages/admin/documents/admin-documents-page"));
-const AdminDocumentFormPage = lazy(() => import("@/pages/admin/documents/admin-document-form-page"));
+const DocumentsManagementPage = lazy(() => import("@/pages/dashboard/documents/documents-management-page"));
 
 export const router = createBrowserRouter([
   // 1. Public Portal Area (PublicLayout with Top Navbar)
@@ -150,7 +146,7 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       {
-        element: <DynamicDashboardLayout />,
+        element: <DashboardLayout />,
         children: [
           {
             path: ROUTES.PROFILE,
@@ -186,7 +182,7 @@ export const router = createBrowserRouter([
     element: <RoleGuard allowedRoles={["STUDENT"]} />,
     children: [
       {
-        element: <StudentDashboardLayout />,
+        element: <DashboardLayout />,
         children: [
           {
             path: ROUTES.DASHBOARD,
@@ -206,11 +202,23 @@ export const router = createBrowserRouter([
     element: <RoleGuard allowedRoles={["LECTURER"]} />,
     children: [
       {
-        element: <LecturerDashboardLayout />,
+        element: <DashboardLayout />,
         children: [
           {
-            path: "/lecturer", // Placeholder
+            path: "/lecturer",
+            element: <Navigate to="/lecturer/dashboard" replace />,
+          },
+          {
+            path: "/lecturer/dashboard", // Placeholder
             element: <div className="p-8">Lecturer Dashboard Coming Soon</div>,
+          },
+          {
+            path: "/lecturer/documents",
+            element: (
+              <Suspense fallback={null}>
+                <DocumentsManagementPage />
+              </Suspense>
+            ),
           },
         ],
       },
@@ -222,33 +230,21 @@ export const router = createBrowserRouter([
     element: <RoleGuard allowedRoles={["ADMIN"]} />,
     children: [
       {
-        element: <AdminDashboardLayout />,
+        element: <DashboardLayout />,
         children: [
           {
-            path: "/admin", // Placeholder Dashboard
+            path: "/admin",
+            element: <Navigate to="/admin/dashboard" replace />,
+          },
+          {
+            path: "/admin/dashboard", // Placeholder Dashboard
             element: <div className="p-8">Admin Dashboard Coming Soon</div>,
           },
           {
             path: "/admin/documents",
             element: (
               <Suspense fallback={null}>
-                <AdminDocumentsPage />
-              </Suspense>
-            ),
-          },
-          {
-            path: "/admin/documents/new",
-            element: (
-              <Suspense fallback={null}>
-                <AdminDocumentFormPage />
-              </Suspense>
-            ),
-          },
-          {
-            path: "/admin/documents/:slug/edit",
-            element: (
-              <Suspense fallback={null}>
-                <AdminDocumentFormPage />
+                <DocumentsManagementPage />
               </Suspense>
             ),
           },

@@ -40,10 +40,11 @@ type FormValues = z.infer<typeof formSchema>;
 interface DocumentFormProps {
   initialData?: DocumentResponse;
   onSubmit: (data: CreateDocumentRequest | UpdateDocumentRequest) => void;
+  onCancel: () => void;
   isLoading?: boolean;
 }
 
-export function DocumentForm({ initialData, onSubmit, isLoading }: DocumentFormProps) {
+export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: DocumentFormProps) {
   const isEditMode = !!initialData;
   const { data: metadata } = useDocumentMetadata();
   const uploadFile = useUploadFile();
@@ -137,107 +138,111 @@ export function DocumentForm({ initialData, onSubmit, isLoading }: DocumentFormP
   };
 
   return (
-    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8 max-w-3xl">
-      <div className="grid gap-6 sm:grid-cols-2">
-        {/* Title */}
-        <div className="sm:col-span-2 space-y-2">
-          <Label htmlFor="title">Tiêu đề tài liệu <span className="text-destructive">*</span></Label>
-          <Input
-            id="title"
-            placeholder="Nhập tiêu đề..."
-            {...form.register("title")}
-          />
-          {form.formState.errors.title && (
-            <p className="text-sm text-destructive">{form.formState.errors.title.message}</p>
-          )}
+    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8 w-full">
+      <div className={cn("grid gap-8", !isEditMode ? "lg:grid-cols-2" : "lg:grid-cols-1")}>
+        {/* Left Column: Form Fields */}
+        <div className="space-y-6 max-w-3xl">
+          {/* Title */}
+          <div className="space-y-2">
+            <Label htmlFor="title">Tiêu đề tài liệu <span className="text-destructive">*</span></Label>
+            <Input
+              id="title"
+              placeholder="Nhập tiêu đề..."
+              {...form.register("title")}
+            />
+            {form.formState.errors.title && (
+              <p className="text-sm text-destructive">{form.formState.errors.title.message}</p>
+            )}
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-3">
+            {/* Category */}
+            <div className="space-y-2">
+              <Label>Phân loại <span className="text-destructive">*</span></Label>
+              <Select
+                value={form.watch("categoryId")}
+                onValueChange={(val) => form.setValue("categoryId", val, { shouldValidate: true })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn danh mục" />
+                </SelectTrigger>
+                <SelectContent>
+                  {metadata?.categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.categoryId && (
+                <p className="text-sm text-destructive">{form.formState.errors.categoryId.message}</p>
+              )}
+            </div>
+
+            {/* Subject */}
+            <div className="space-y-2">
+              <Label>Môn học <span className="text-destructive">*</span></Label>
+              <Select
+                value={form.watch("subjectId")}
+                onValueChange={(val) => form.setValue("subjectId", val, { shouldValidate: true })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn môn học" />
+                </SelectTrigger>
+                <SelectContent>
+                  {metadata?.subjects.map((sub) => (
+                    <SelectItem key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.subjectId && (
+                <p className="text-sm text-destructive">{form.formState.errors.subjectId.message}</p>
+              )}
+            </div>
+
+            {/* Tag */}
+            <div className="space-y-2">
+              <Label>Thẻ phân loại</Label>
+              <Select
+                value={form.watch("tagIds")?.[0] || ""}
+                onValueChange={(val) => form.setValue("tagIds", [val], { shouldValidate: true })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn thẻ..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {metadata?.tags.map((tag) => (
+                    <SelectItem key={tag.id} value={tag.id}>
+                      {tag.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2">
+            <Label htmlFor="description">Mô tả chi tiết</Label>
+            <Textarea
+              id="description"
+              placeholder="Nhập mô tả về tài liệu này..."
+              className="min-h-[120px] resize-y"
+              {...form.register("description")}
+            />
+          </div>
         </div>
 
-        {/* Category */}
-        <div className="space-y-2">
-          <Label>Phân loại <span className="text-destructive">*</span></Label>
-          <Select
-            value={form.watch("categoryId")}
-            onValueChange={(val) => form.setValue("categoryId", val, { shouldValidate: true })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Chọn danh mục" />
-            </SelectTrigger>
-            <SelectContent>
-              {metadata?.categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {form.formState.errors.categoryId && (
-            <p className="text-sm text-destructive">{form.formState.errors.categoryId.message}</p>
-          )}
-        </div>
-
-        {/* Subject */}
-        <div className="space-y-2">
-          <Label>Môn học <span className="text-destructive">*</span></Label>
-          <Select
-            value={form.watch("subjectId")}
-            onValueChange={(val) => form.setValue("subjectId", val, { shouldValidate: true })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Chọn môn học" />
-            </SelectTrigger>
-            <SelectContent>
-              {metadata?.subjects.map((sub) => (
-                <SelectItem key={sub.id} value={sub.id}>
-                  {sub.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {form.formState.errors.subjectId && (
-            <p className="text-sm text-destructive">{form.formState.errors.subjectId.message}</p>
-          )}
-        </div>
-
-        {/* Tag (Simplified as Single Select for now, ideally Multi-Select) */}
-        <div className="sm:col-span-2 space-y-2">
-          <Label>Thẻ phân loại (Tag)</Label>
-          <Select
-            value={form.watch("tagIds")?.[0] || ""}
-            onValueChange={(val) => form.setValue("tagIds", [val], { shouldValidate: true })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Chọn thẻ..." />
-            </SelectTrigger>
-            <SelectContent>
-              {metadata?.tags.map((tag) => (
-                <SelectItem key={tag.id} value={tag.id}>
-                  {tag.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">Tạm thời chỉ hỗ trợ chọn 1 thẻ.</p>
-        </div>
-
-        {/* Description */}
-        <div className="sm:col-span-2 space-y-2">
-          <Label htmlFor="description">Mô tả chi tiết</Label>
-          <Textarea
-            id="description"
-            placeholder="Nhập mô tả về tài liệu này..."
-            className="min-h-[120px] resize-y"
-            {...form.register("description")}
-          />
-        </div>
-
-        {/* File Upload (Only Create Mode) */}
+        {/* Right Column: File Upload (Only Create Mode) */}
         {!isEditMode && (
-          <div className="sm:col-span-2 space-y-2">
+          <div className="space-y-2">
             <Label>Tệp đính kèm <span className="text-destructive">*</span></Label>
             
             <div
               className={cn(
-                "border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center transition-colors",
+                "border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center transition-colors h-[calc(100%-28px)] min-h-[250px]",
                 uploadError ? "border-destructive/50 bg-destructive/5" : "border-border hover:bg-muted/50 hover:border-primary/50",
                 selectedFile && !uploadError ? "bg-muted/30 border-solid" : ""
               )}
@@ -277,7 +282,7 @@ export function DocumentForm({ initialData, onSubmit, isLoading }: DocumentFormP
                     <UploadCloud className="size-6" />
                   </div>
                   <p className="text-sm font-medium mb-1">Kéo thả tệp vào đây hoặc nhấp để tải lên</p>
-                  <p className="text-xs text-muted-foreground mb-4">Hỗ trợ PDF, DOCX, ZIP (Tối đa 50MB)</p>
+                  <p className="text-xs text-muted-foreground mb-4">Hỗ trợ PDF (Tối đa 50MB)</p>
                   <Button
                     type="button"
                     variant="outline"
@@ -292,15 +297,15 @@ export function DocumentForm({ initialData, onSubmit, isLoading }: DocumentFormP
                 ref={fileInputRef}
                 className="hidden"
                 onChange={handleFileSelect}
-                accept=".pdf,.doc,.docx,.zip,.rar"
+                accept=".pdf"
               />
             </div>
             
             {uploadError && (
-              <p className="text-sm text-destructive font-medium">{uploadError}</p>
+              <p className="text-sm text-destructive font-medium mt-2">{uploadError}</p>
             )}
             {uploadedFileId && !uploadFile.isPending && (
-              <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Tải lên thành công!</p>
+              <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium mt-2">Tải lên thành công!</p>
             )}
           </div>
         )}
@@ -310,7 +315,7 @@ export function DocumentForm({ initialData, onSubmit, isLoading }: DocumentFormP
         <Button
           type="button"
           variant="outline"
-          onClick={() => window.history.back()}
+          onClick={onCancel}
           disabled={isLoading || uploadFile.isPending}
         >
           Hủy bỏ

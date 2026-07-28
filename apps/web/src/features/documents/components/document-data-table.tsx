@@ -24,9 +24,10 @@ import { ROUTES } from "@/router/route-constants";
 interface DocumentDataTableProps {
   data: DocumentResponse[];
   onDeleteClick: (document: DocumentResponse) => void;
+  onEditClick: (document: DocumentResponse) => void;
 }
 
-export function DocumentDataTable({ data, onDeleteClick }: DocumentDataTableProps) {
+export function DocumentDataTable({ data, onDeleteClick, onEditClick }: DocumentDataTableProps) {
   const columns: ColumnDef<DocumentResponse>[] = [
     {
       accessorKey: "title",
@@ -90,10 +91,14 @@ export function DocumentDataTable({ data, onDeleteClick }: DocumentDataTableProp
         const doc = row.original;
         return (
           <div className="flex items-center justify-end gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" asChild title="Chỉnh sửa">
-              <Link to={`/admin/documents/${doc.slug}/edit`}>
-                <Pencil className="size-4" />
-              </Link>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-muted-foreground hover:text-primary" 
+              title="Chỉnh sửa"
+              onClick={() => onEditClick(doc)}
+            >
+              <Pencil className="size-4" />
             </Button>
             <Button
               variant="ghost"

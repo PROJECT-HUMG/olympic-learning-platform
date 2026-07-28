@@ -22,10 +22,10 @@ export const ROUTES = {
   HISTORY: "/history",
 
   // Admin area
-  ADMIN: "/admin",
+  ADMIN: "/admin/dashboard",
 
   // Lecturer area
-  LECTURER: "/lecturer",
+  LECTURER: "/lecturer/dashboard",
 } as const;
 
 export function getDashboardRoute(role?: string): string {
