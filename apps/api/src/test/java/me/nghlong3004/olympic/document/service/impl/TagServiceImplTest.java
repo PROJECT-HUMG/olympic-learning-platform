@@ -30,7 +30,7 @@ class TagServiceImplTest {
     tag.setName("Exam");
     tag.setEnabled(true);
     
-    TagSummaryResponse response = new TagSummaryResponse(tag.getId(), "Exam", "exam");
+    TagSummaryResponse response = new TagSummaryResponse(tag.getId(), "EXAM", "Exam", "exam");
 
     when(tagRepository.findAllByEnabledTrueOrderByNameAsc()).thenReturn(List.of(tag));
     when(tagMapper.toSummaryResponse(tag)).thenReturn(response);

@@ -8,6 +8,7 @@ import type {
   DocumentMetadataResponse,
 } from "@/features/documents/types/documents.types";
 import type { AxiosProgressEvent } from "axios";
+import axios from "axios";
 
 export const documentsService = {
   search(params: DocumentSearchRequest) {
@@ -19,28 +20,36 @@ export const documentsService = {
   },
 
   getDownloadUri(slug: string, onDownloadProgress?: (progressEvent: AxiosProgressEvent) => void) {
-    return apiClient.get(`/documents/${slug}/download`, { 
-      responseType: "blob",
-      onDownloadProgress,
-    }).then((res) => {
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement("a");
-      link.href = url;
+    return apiClient.get<{ url: string }>(`/documents/${slug}/download`).then((res) => {
+      const downloadUrl = res.data.url;
       
-      let filename = `${slug}.pdf`;
-      const disposition = res.headers["content-disposition"];
-      if (disposition && disposition.indexOf("attachment") !== -1) {
-        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
-        if (matches != null && matches[1]) {
-          filename = matches[1].replace(/['"]/g, "");
+      // Fetch the actual file without credentials to avoid CORS issues with Cloudinary
+      return axios.get(downloadUrl, {
+        responseType: "blob",
+        onDownloadProgress,
+        withCredentials: false
+      }).then((fileRes) => {
+        const url = window.URL.createObjectURL(new Blob([fileRes.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        
+        let filename = `${slug}.pdf`;
+        const disposition = fileRes.headers["content-disposition"];
+        if (disposition && disposition.indexOf("attachment") !== -1) {
+          const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+          if (matches != null && matches[1]) {
+            filename = matches[1].replace(/['"]/g, "");
+          }
         }
-      }
-      
-      link.setAttribute("download", filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+        
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        
+        // Small delay before revoking to ensure download starts
+        setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      });
     });
   },
 

@@ -12,6 +12,7 @@ import {
   BookOpen,
   History as HistoryIcon,
   FileText,
+  FolderTree,
 } from "lucide-react";
 import { ROUTES } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
@@ -29,6 +30,7 @@ export function DashboardLayout() {
     if (user?.role === "ADMIN") {
       items.push({ label: "Dashboard", href: ROUTES.ADMIN, icon: LayoutDashboard });
       items.push({ label: "Quản lý tài liệu", href: "/admin/documents", icon: FileText });
+      items.push({ label: "Danh mục hệ thống", href: "/admin/categories", icon: FolderTree });
     } else if (user?.role === "LECTURER") {
       items.push({ label: "Dashboard", href: ROUTES.LECTURER, icon: LayoutDashboard });
       items.push({ label: "Quản lý tài liệu", href: "/lecturer/documents", icon: FileText });

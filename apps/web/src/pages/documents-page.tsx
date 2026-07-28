@@ -5,10 +5,13 @@ import { useSearchDocuments } from "@/features/documents/hooks/use-documents";
 import { useSearchParams } from "react-router-dom";
 import type { DocumentSearchRequest } from "@/features/documents/types/documents.types";
 import { AppPagination } from "@/components/ui/app-pagination";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { LayoutGrid, List } from "lucide-react";
 
 export default function DocumentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const keyword = searchParams.get("keyword") || undefined;
@@ -49,12 +52,37 @@ export default function DocumentsPage() {
         
         <DocumentFilters />
         
-        <div className="mt-4 flex-1 flex flex-col">
+        <div className="flex justify-between items-center mt-4 mb-2">
+          <p className="text-sm text-muted-foreground">
+            {data ? `Tìm thấy ${data.totalElements} tài liệu` : "Đang tìm kiếm..."}
+          </p>
+          <div className="flex items-center bg-muted/50 rounded-lg p-1 border border-border/50">
+            <Button 
+              variant={viewMode === "grid" ? "secondary" : "ghost"} 
+              size="sm" 
+              className={`h-8 px-3 ${viewMode === "grid" ? "shadow-sm" : ""}`}
+              onClick={() => setViewMode("grid")}
+            >
+              <LayoutGrid className="w-4 h-4 mr-2" /> Dạng Thẻ
+            </Button>
+            <Button 
+              variant={viewMode === "list" ? "secondary" : "ghost"} 
+              size="sm" 
+              className={`h-8 px-3 ${viewMode === "list" ? "shadow-sm" : ""}`}
+              onClick={() => setViewMode("list")}
+            >
+              <List className="w-4 h-4 mr-2" /> Danh sách
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex-1 flex flex-col">
           <DocumentList 
             documents={data?.content} 
             isLoading={isLoading} 
             isError={isError} 
             isEmpty={!data?.content || data.content.length === 0} 
+            viewMode={viewMode}
           />
           
           {data && data.totalPages > 1 && (

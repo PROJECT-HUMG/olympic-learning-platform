@@ -38,7 +38,7 @@ public class CloudinaryStorageService implements StorageService {
 
   @Override
   public UploadedFile upload(MultipartFile file, StorageFolder folder) {
-    var publicId = folder.getPath() + "/" + UUID.randomUUID();
+    var publicIdRaw = folder.getPath() + "/" + UUID.randomUUID();
     try {
       Map<?, ?> result =
           cloudinary
@@ -46,9 +46,11 @@ public class CloudinaryStorageService implements StorageService {
               .upload(
                   file.getBytes(),
                   ObjectUtils.asMap(
-                      "public_id", publicId, "resource_type", "auto", "overwrite", false));
+                      "public_id", publicIdRaw, "resource_type", "auto", "overwrite", false));
 
-      var storageKey = (String) result.get("public_id");
+      var publicId = (String) result.get("public_id");
+      var format = (String) result.get("format");
+      var storageKey = format != null ? publicId + "." + format : publicId;
 
       log.info("File uploaded to Cloudinary: storageKey={}, size={}", storageKey, file.getSize());
 
@@ -66,11 +68,20 @@ public class CloudinaryStorageService implements StorageService {
     }
   }
 
+  private String extractPublicId(String storageKey) {
+    int lastDot = storageKey.lastIndexOf(".");
+    if (lastDot > 0 && lastDot > storageKey.lastIndexOf("/")) {
+      return storageKey.substring(0, lastDot);
+    }
+    return storageKey;
+  }
+
   @Override
   public void delete(String storageKey) {
     try {
-      cloudinary.uploader().destroy(storageKey, ObjectUtils.emptyMap());
-      log.info("File deleted from Cloudinary: storageKey={}", storageKey);
+      String publicId = extractPublicId(storageKey);
+      cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+      log.info("File deleted from Cloudinary: storageKey={}, publicId={}", storageKey, publicId);
     } catch (IOException e) {
       log.error("Cloudinary delete failed: storageKey={}", storageKey, e);
     }
@@ -83,13 +94,14 @@ public class CloudinaryStorageService implements StorageService {
 
   @Override
   public URI getThumbnailUri(String storageKey) {
-
+    String publicId = extractPublicId(storageKey);
     String url =
         cloudinary
             .url()
             .transformation(new Transformation<>().page(1).width(320).crop("scale"))
+            .format("jpg")
             .secure(true)
-            .generate(storageKey);
+            .generate(publicId);
 
     return URI.create(url);
   }

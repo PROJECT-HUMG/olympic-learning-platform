@@ -1,22 +1,9 @@
 import type { UserProfile } from "@/features/user/types/user.types";
-
-export interface CategorySummaryResponse {
-  id: string;
-  name: string;
-  slug: string;
-}
-
-export interface SubjectSummaryResponse {
-  id: string;
-  name: string;
-  slug: string;
-}
-
-export interface TagSummaryResponse {
-  id: string;
-  name: string;
-  slug: string;
-}
+import type { 
+  CategorySummaryResponse, 
+  SubjectSummaryResponse, 
+  TagSummaryResponse 
+} from "@/features/system-categories/types/system-categories.types";
 
 export interface DocumentResponse {
   id: string;

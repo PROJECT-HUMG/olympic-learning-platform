@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import me.nghlong3004.olympic.document.request.CreateDocumentRequest;
@@ -65,10 +66,10 @@ public class DocumentController {
   }
 
   @GetMapping("/{slug}/download")
-  @Operation(summary = "Get a pre-signed download URI for the document")
-  public ResponseEntity<Void> getDownloadUri(@PathVariable String slug) {
+  @Operation(summary = "Get a download URI for the document")
+  public ResponseEntity<Map<String, String>> getDownloadUri(@PathVariable String slug) {
     URI uri = documentService.getDownloadUriBySlug(slug);
-    return ResponseEntity.status(HttpStatus.FOUND).location(uri).build();
+    return ResponseEntity.ok(Map.of("url", uri.toString()));
   }
 
   @DeleteMapping("/bulk")

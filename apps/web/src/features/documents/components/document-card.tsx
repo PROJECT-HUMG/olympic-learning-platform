@@ -4,6 +4,11 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import type { DocumentResponse } from "@/features/documents/types/documents.types";
 
 interface DocumentCardProps {
@@ -49,24 +54,61 @@ export function DocumentCard({ document }: DocumentCardProps) {
         </CardHeader>
 
         <CardContent className="p-4 pt-0 mt-auto">
-          <div className="flex items-center gap-2 mt-4">
-            <div className="w-6 h-6 rounded-full overflow-hidden bg-muted">
-              {document.owner.avatarUrl ? (
-                <img
-                  src={document.owner.avatarUrl}
-                  alt={document.owner.fullName || "User"}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-primary/10 flex items-center justify-center text-[10px] font-medium text-primary">
-                  {(document.owner.fullName || "U")[0]}
+          <HoverCard>
+            <HoverCardTrigger asChild>
+              <div className="flex items-center gap-2 mt-4 cursor-pointer hover:bg-muted/50 p-1 -ml-1 rounded-md transition-colors w-fit">
+                <div className="w-6 h-6 rounded-full overflow-hidden bg-muted shrink-0">
+                  {document.owner.avatarUrl ? (
+                    <img
+                      src={document.owner.avatarUrl}
+                      alt={document.owner.fullName || "User"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-primary/10 flex items-center justify-center text-[10px] font-medium text-primary">
+                      {(document.owner.fullName || "U")[0]}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <span className="text-xs font-medium text-muted-foreground truncate flex-1">
-              {document.owner.fullName || document.owner.username}
-            </span>
-          </div>
+                <span className="text-xs font-medium text-muted-foreground truncate flex-1 hover:text-foreground transition-colors">
+                  {document.owner.fullName || document.owner.username}
+                </span>
+              </div>
+            </HoverCardTrigger>
+            <HoverCardContent align="start" className="w-72" onClick={(e) => e.preventDefault()}>
+              <div className="flex space-x-4">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-muted shrink-0 shadow-sm border border-border/50">
+                  {document.owner.avatarUrl ? (
+                    <img
+                      src={document.owner.avatarUrl}
+                      alt={document.owner.fullName || "User"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-primary/10 flex items-center justify-center text-lg font-medium text-primary">
+                      {(document.owner.fullName || "U")[0]}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1 flex-1">
+                  <h4 className="text-sm font-semibold leading-none">{document.owner.fullName || document.owner.username}</h4>
+                  <p className="text-xs text-muted-foreground">
+                    @{document.owner.username}
+                  </p>
+                  <div className="flex flex-col gap-1 pt-2">
+                    <p className="text-xs font-medium text-foreground">
+                      Vai trò: <span className="font-normal text-muted-foreground">{document.owner.role === "ADMIN" ? "Quản trị viên" : "Học viên"}</span>
+                    </p>
+                    {document.owner.lastLoginAt && (
+                      <p className="text-xs text-muted-foreground">
+                        Hoạt động: {formatDistanceToNow(new Date(document.owner.lastLoginAt), { addSuffix: true, locale: vi })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </HoverCardContent>
+          </HoverCard>
         </CardContent>
 
         <CardFooter className="p-4 pt-0 flex items-center justify-between text-xs text-muted-foreground">

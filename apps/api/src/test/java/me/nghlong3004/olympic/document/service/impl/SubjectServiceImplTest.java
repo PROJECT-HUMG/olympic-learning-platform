@@ -30,7 +30,7 @@ class SubjectServiceImplTest {
     subject.setName("Math");
     subject.setEnabled(true);
     
-    SubjectSummaryResponse response = new SubjectSummaryResponse(subject.getId(), "Math", "math");
+    SubjectSummaryResponse response = new SubjectSummaryResponse(subject.getId(), "MATH", "Math", "math", "Description");
 
     when(subjectRepository.findAllByEnabledTrueOrderByNameAsc()).thenReturn(List.of(subject));
     when(subjectMapper.toSummaryResponse(subject)).thenReturn(response);

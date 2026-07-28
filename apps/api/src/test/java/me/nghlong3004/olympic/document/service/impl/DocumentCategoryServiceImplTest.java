@@ -30,7 +30,7 @@ class DocumentCategoryServiceImplTest {
     category.setName("Science");
     category.setEnabled(true);
     
-    CategorySummaryResponse response = new CategorySummaryResponse(category.getId(), "Science", "science");
+    CategorySummaryResponse response = new CategorySummaryResponse(category.getId(), "SCI", "Science", "science", "Description");
 
     when(categoryRepository.findAllByEnabledTrueOrderByNameAsc()).thenReturn(List.of(category));
     when(categoryMapper.toSummaryResponse(category)).thenReturn(response);
