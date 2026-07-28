@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+cd "$PROJECT_ROOT"
+
+exec ./scripts/load-env.sh bash -c '
+cd apps/api
+exec ./mvnw spring-boot:run
+'
