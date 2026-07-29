@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, LayoutGrid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useSearchDocuments, useDeleteDocument, useCreateDocument, useUpdateDocument } from "@/features/documents/hooks/use-documents";
 import { DocumentDataTable } from "@/features/documents/components/document-data-table";
+import { DocumentGrid } from "@/features/documents/components/document-grid";
 import { DocumentForm } from "@/features/documents/components/document-form";
 import { toast } from "sonner";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +34,7 @@ export default function DocumentsManagementPage() {
   const [keyword, setKeyword] = useState("");
   const debouncedKeyword = useDebounce(keyword, 500);
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const { data: user } = useCurrentUser();
 
   // Convert 1-based visible page to 0-based offset for the API in exactly one place
@@ -112,7 +115,7 @@ export default function DocumentsManagementPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="relative max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
@@ -125,14 +128,35 @@ export default function DocumentsManagementPage() {
             }}
           />
         </div>
+        
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "grid" | "table")} className="w-full sm:w-auto">
+          <TabsList className="grid w-full sm:w-auto grid-cols-2">
+            <TabsTrigger value="grid" className="gap-2">
+              <LayoutGrid className="size-4" />
+              <span className="hidden sm:inline">Dạng lưới</span>
+            </TabsTrigger>
+            <TabsTrigger value="table" className="gap-2">
+              <List className="size-4" />
+              <span className="hidden sm:inline">Dạng bảng</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
-      {/* Table */}
-      <DocumentDataTable
-        data={pageData?.content || []}
-        onDeleteClick={setDocumentToDelete}
-        onEditClick={setDocumentToEdit}
-      />
+      {/* Content */}
+      {viewMode === "grid" ? (
+        <DocumentGrid
+          data={pageData?.content || []}
+          onDeleteClick={setDocumentToDelete}
+          onEditClick={setDocumentToEdit}
+        />
+      ) : (
+        <DocumentDataTable
+          data={pageData?.content || []}
+          onDeleteClick={setDocumentToDelete}
+          onEditClick={setDocumentToEdit}
+        />
+      )}
 
       {/* Pagination */}
       {pageData && pageData.totalPages > 1 && (
