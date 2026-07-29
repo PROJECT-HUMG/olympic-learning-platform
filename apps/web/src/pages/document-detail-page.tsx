@@ -115,7 +115,7 @@ export default function DocumentDetailPage() {
                         {document.owner.fullName || document.owner.username}
                       </span>
                       <span className="text-[11px] text-muted-foreground leading-none">
-                        {document.owner.role === "ADMIN" ? "Giảng viên" : "Thành viên"}
+                        {document.owner.role === "ADMIN" ? "Quản trị viên" : document.owner.role === "LECTURER" ? "Giảng viên" : "Học viên"}
                       </span>
                     </div>
                   </div>
