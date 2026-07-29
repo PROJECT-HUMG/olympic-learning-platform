@@ -200,24 +200,24 @@ export default function AdminCategoriesPage() {
       >
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="scrollbar-hide overflow-x-auto overflow-y-hidden pb-2 sm:pb-0 w-full sm:w-auto">
-            <TabsList className="inline-flex h-12 items-center justify-start rounded-xl bg-muted p-1 text-muted-foreground border">
+            <TabsList className="inline-flex h-12 items-stretch justify-start rounded-xl bg-muted p-1 text-muted-foreground border">
               <TabsTrigger 
                 value="categories" 
-                className="gap-2 h-10 px-4 rounded-lg [&[data-state=active]]:bg-primary [&[data-state=active]]:text-primary-foreground [&[data-state=active]]:shadow-md transition-all font-medium"
+                className="gap-2 border-none px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all font-medium"
               >
                 <FolderTree className="h-4 w-4" />
                 Phân loại tài liệu
               </TabsTrigger>
               <TabsTrigger 
                 value="subjects" 
-                className="gap-2 h-10 px-4 rounded-lg [&[data-state=active]]:bg-primary [&[data-state=active]]:text-primary-foreground [&[data-state=active]]:shadow-md transition-all font-medium"
+                className="gap-2 border-none px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all font-medium"
               >
                 <Book className="h-4 w-4" />
                 Môn học
               </TabsTrigger>
               <TabsTrigger 
                 value="tags" 
-                className="gap-2 h-10 px-4 rounded-lg [&[data-state=active]]:bg-primary [&[data-state=active]]:text-primary-foreground [&[data-state=active]]:shadow-md transition-all font-medium"
+                className="gap-2 border-none px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all font-medium"
               >
                 <Tags className="h-4 w-4" />
                 Thẻ phân loại
