@@ -57,6 +57,10 @@ export const documentsService = {
     return apiClient.post<void>(`/documents/${slug}/view`);
   },
 
+  getDownloadUrlString(slug: string) {
+    return apiClient.get<{ url: string }>(`/documents/${slug}/download`).then((res) => res.data.url);
+  },
+
   create(data: CreateDocumentRequest) {
     return apiClient.post<DocumentResponse>("/documents", data).then((res) => res.data);
   },

@@ -43,6 +43,14 @@ export const useDownloadDocument = () => {
   });
 };
 
+export const useDocumentUrl = (slug: string) => {
+  return useQuery({
+    queryKey: [...documentKeys.details(), slug, "url"],
+    queryFn: () => documentsService.getDownloadUrlString(slug),
+    enabled: !!slug,
+  });
+};
+
 // --- ADMIN HOOKS ---
 
 export const useCreateDocument = () => {
