@@ -199,7 +199,7 @@ export default function AdminCategoriesPage() {
         className="space-y-4"
       >
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="scrollbar-hide overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
+          <div className="scrollbar-hide overflow-x-auto overflow-y-hidden pb-2 sm:pb-0 w-full sm:w-auto">
             <TabsList className="inline-flex h-12 items-center justify-start rounded-xl bg-muted p-1 text-muted-foreground border">
               <TabsTrigger 
                 value="categories" 
