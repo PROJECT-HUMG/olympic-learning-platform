@@ -107,7 +107,7 @@ export function DocumentCard({ document }: DocumentCardProps) {
                   {document.owner.fullName || document.owner.username}
                 </span>
                 <span className="text-[11px] text-muted-foreground leading-none">
-                  {document.owner.role === "ADMIN" ? "Quản trị viên" : document.owner.role === "LECTURER" ? "Giảng viên" : "Học viên"}
+                  {document.owner.role === "ADMIN" ? "Quản trị viên" : document.owner.role === "LECTURER" ? "Giảng viên" : "Sinh viên"}
                 </span>
               </div>
             </div>

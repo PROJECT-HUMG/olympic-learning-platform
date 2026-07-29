@@ -40,7 +40,7 @@ export function UserHoverCard({ user, children, align = "start" }: UserHoverCard
             </p>
             <div className="flex flex-col gap-1.5 pt-2 border-t border-border/40 mt-2">
               <Badge variant="secondary" className="w-fit text-[10px] uppercase tracking-wider">
-                {user.role === "ADMIN" ? "Quản trị viên" : user.role === "LECTURER" ? "Giảng viên" : "Học viên"}
+                {user.role === "ADMIN" ? "Quản trị viên" : user.role === "LECTURER" ? "Giảng viên" : "Sinh viên"}
               </Badge>
               {user.lastLoginAt && (
                 <p className="text-[11px] text-muted-foreground flex items-center gap-1">
