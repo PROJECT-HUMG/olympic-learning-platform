@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { UserHoverCard } from "@/features/user/components/user-hover-card";
 
 export default function DocumentDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -98,18 +99,27 @@ export default function DocumentDetailPage() {
               <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-6 text-foreground/90">{document.title}</h1>
               
               <div className="flex items-center flex-wrap gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 border border-border/50">
-                    {document.owner.avatarUrl ? (
-                      <img src={document.owner.avatarUrl} alt={document.owner.fullName || "User"} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center font-bold text-primary text-xs">
-                        {(document.owner.fullName || "U")[0]}
-                      </div>
-                    )}
+                <UserHoverCard user={document.owner}>
+                  <div className="flex items-center gap-2 cursor-pointer hover:bg-muted/60 p-1.5 -ml-1.5 rounded-lg transition-colors">
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 border border-border/50">
+                      {document.owner.avatarUrl ? (
+                        <img src={document.owner.avatarUrl} alt={document.owner.fullName || "User"} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center font-bold text-primary text-xs">
+                          {(document.owner.fullName || "U")[0]}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-foreground/90 truncate max-w-[150px] leading-none mb-1">
+                        {document.owner.fullName || document.owner.username}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground leading-none">
+                        {document.owner.role === "ADMIN" ? "Giảng viên" : "Thành viên"}
+                      </span>
+                    </div>
                   </div>
-                  <span className="font-medium text-foreground/80">{document.owner.fullName || document.owner.username}</span>
-                </div>
+                </UserHoverCard>
                 <div className="w-1 h-1 rounded-full bg-border" />
                 <div className="flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-primary/60" />

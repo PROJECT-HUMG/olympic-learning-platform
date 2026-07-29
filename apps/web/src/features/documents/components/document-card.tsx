@@ -1,14 +1,10 @@
 import { Link } from "react-router-dom";
-import { Eye, Download, FileText, Calendar, ArrowRight, User } from "lucide-react";
+import { Eye, Download, FileText, Calendar, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+import { UserHoverCard } from "@/features/user/components/user-hover-card";
 import type { DocumentResponse } from "@/features/documents/types/documents.types";
 
 interface DocumentCardProps {
@@ -91,64 +87,31 @@ export function DocumentCard({ document }: DocumentCardProps) {
         </CardContent>
 
         <CardFooter className="p-5 pt-4 flex items-center justify-between border-t border-border/40 bg-muted/10 mt-auto">
-          <HoverCard>
-            <HoverCardTrigger asChild>
-              <div className="flex items-center gap-2.5 cursor-pointer hover:bg-muted/60 p-1.5 -ml-1.5 rounded-lg transition-colors w-fit relative z-20" onClick={(e) => e.preventDefault()}>
-                <div className="w-7 h-7 rounded-full overflow-hidden bg-primary/10 shrink-0 border border-border/50">
-                  {document.owner.avatarUrl ? (
-                    <img
-                      src={document.owner.avatarUrl}
-                      alt={document.owner.fullName || "User"}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[11px] font-bold text-primary">
-                      {(document.owner.fullName || "U")[0]}
-                    </div>
-                  )}
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[13px] font-semibold text-foreground/90 truncate max-w-[120px] group-hover:text-primary transition-colors leading-none mb-1">
-                    {document.owner.fullName || document.owner.username}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground leading-none">
-                    {document.owner.role === "ADMIN" ? "Giảng viên" : "Thành viên"}
-                  </span>
-                </div>
-              </div>
-            </HoverCardTrigger>
-            <HoverCardContent align="start" className="w-72 shadow-xl border-border/50 z-50">
-              <div className="flex space-x-4">
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-primary/10 shrink-0 shadow-sm border border-border/50">
-                  {document.owner.avatarUrl ? (
-                    <img
-                      src={document.owner.avatarUrl}
-                      alt={document.owner.fullName || "User"}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-lg font-bold text-primary">
-                      {(document.owner.fullName || "U")[0]}
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-1.5 flex-1">
-                  <h4 className="text-sm font-bold leading-none">{document.owner.fullName || document.owner.username}</h4>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <User className="size-3" /> @{document.owner.username}
-                  </p>
-                  <div className="flex flex-col gap-1.5 pt-2 border-t border-border/40 mt-2">
-                    <Badge variant="secondary" className="w-fit text-[10px] uppercase tracking-wider">
-                      {document.owner.role === "ADMIN" ? "Giảng viên" : "Học viên"}
-                    </Badge>
-                    <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                      <Calendar className="size-3" /> Tham gia: {formatDistanceToNow(new Date(document.owner.createdAt || Date.now()), { addSuffix: true, locale: vi })}
-                    </p>
+          <UserHoverCard user={document.owner}>
+            <div className="flex items-center gap-2.5 cursor-pointer hover:bg-muted/60 p-1.5 -ml-1.5 rounded-lg transition-colors w-fit relative z-20" onClick={(e) => e.preventDefault()}>
+              <div className="w-7 h-7 rounded-full overflow-hidden bg-primary/10 shrink-0 border border-border/50">
+                {document.owner.avatarUrl ? (
+                  <img
+                    src={document.owner.avatarUrl}
+                    alt={document.owner.fullName || "User"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[11px] font-bold text-primary">
+                    {(document.owner.fullName || "U")[0]}
                   </div>
-                </div>
+                )}
               </div>
-            </HoverCardContent>
-          </HoverCard>
+              <div className="flex flex-col">
+                <span className="text-[13px] font-semibold text-foreground/90 truncate max-w-[120px] group-hover:text-primary transition-colors leading-none mb-1">
+                  {document.owner.fullName || document.owner.username}
+                </span>
+                <span className="text-[11px] text-muted-foreground leading-none">
+                  {document.owner.role === "ADMIN" ? "Giảng viên" : "Thành viên"}
+                </span>
+              </div>
+            </div>
+          </UserHoverCard>
 
           <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground bg-background px-2 py-1 rounded-md border border-border/50 shadow-sm">
             <Calendar className="w-3.5 h-3.5 text-primary/60" />

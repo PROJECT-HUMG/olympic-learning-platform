@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { Eye, Download, FileText, Calendar, ArrowRight, User } from "lucide-react";
+import { Eye, Download, FileText, Calendar, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { UserHoverCard } from "@/features/user/components/user-hover-card";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import type { DocumentResponse } from "@/features/documents/types/documents.types";
@@ -61,18 +62,20 @@ export function DocumentListItem({ document }: DocumentListItemProps) {
         </p>
         
         <div className="flex items-center gap-4 sm:gap-6 text-xs text-muted-foreground flex-wrap mt-auto">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full overflow-hidden bg-primary/10 shrink-0 border border-border/50">
-              {document.owner.avatarUrl ? (
-                <img src={document.owner.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-primary">
-                  {(document.owner.fullName || "U")[0]}
-                </div>
-              )}
+          <UserHoverCard user={document.owner}>
+            <div className="flex items-center gap-2 cursor-pointer hover:bg-muted/60 p-1 -ml-1 rounded-md transition-colors" onClick={(e) => e.preventDefault()}>
+              <div className="w-5 h-5 rounded-full overflow-hidden bg-primary/10 shrink-0 border border-border/50">
+                {document.owner.avatarUrl ? (
+                  <img src={document.owner.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-primary">
+                    {(document.owner.fullName || "U")[0]}
+                  </div>
+                )}
+              </div>
+              <span className="font-medium text-foreground/80 truncate max-w-[120px] group-hover:text-primary transition-colors">{document.owner.fullName || document.owner.username}</span>
             </div>
-            <span className="font-medium text-foreground/80 truncate max-w-[120px]">{document.owner.fullName || document.owner.username}</span>
-          </div>
+          </UserHoverCard>
           
           <div className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-md">
             <Calendar className="w-3.5 h-3.5 text-primary/60" />
