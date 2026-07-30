@@ -3,7 +3,10 @@ package me.nghlong3004.olympic.admin.service;
 import java.util.UUID;
 import me.nghlong3004.olympic.admin.request.AdminCreateUserRequest;
 import me.nghlong3004.olympic.admin.response.AdminCreateUserResponse;
+import me.nghlong3004.olympic.admin.response.AdminUserResponse;
 import me.nghlong3004.olympic.user.enums.Permission;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
@@ -37,4 +40,13 @@ public interface UserAdministrationService {
    * @param permission the permission to revoke
    */
   void revokePermission(UUID userId, Permission permission);
+
+  /**
+   * Search users with pagination.
+   *
+   * @param search the search keyword (email, username, or fullName)
+   * @param pageable pagination parameters
+   * @return paginated list of users with permissions
+   */
+  Page<AdminUserResponse> searchUsers(String search, Pageable pageable);
 }

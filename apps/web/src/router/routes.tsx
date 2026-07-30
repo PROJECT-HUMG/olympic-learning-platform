@@ -37,6 +37,7 @@ const NotFoundPage = lazy(() => import("@/pages/not-found-page"));
 // Lazy load admin pages
 const DocumentsManagementPage = lazy(() => import("@/pages/dashboard/documents/documents-management-page"));
 const AdminCategoriesPage = lazy(() => import("@/pages/dashboard/categories/admin-categories-page"));
+const AdminUsersPage = lazy(() => import("@/pages/admin/users/admin-users-page"));
 
 export const router = createBrowserRouter([
   // 1. Public Portal Area (PublicLayout with Top Navbar)
@@ -246,6 +247,14 @@ export const router = createBrowserRouter([
             element: (
               <Suspense fallback={null}>
                 <DocumentsManagementPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "/admin/users",
+            element: (
+              <Suspense fallback={null}>
+                <AdminUsersPage />
               </Suspense>
             ),
           },

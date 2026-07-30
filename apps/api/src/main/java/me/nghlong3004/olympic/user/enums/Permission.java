@@ -8,7 +8,17 @@ import org.springframework.security.core.GrantedAuthority;
  * @since 7/30/2026
  */
 public enum Permission implements GrantedAuthority {
-  DOCUMENT_UPLOAD;
+  DOCUMENT_UPLOAD("Tải lên tài liệu");
+
+  private final String description;
+
+  Permission(String description) {
+    this.description = description;
+  }
+
+  public String getDescription() {
+    return description;
+  }
 
   @Override
   public @NonNull String getAuthority() {

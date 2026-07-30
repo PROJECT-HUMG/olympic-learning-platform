@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import me.nghlong3004.olympic.user.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -25,6 +27,19 @@ public interface UserRepository extends JpaRepository<User, UUID> {
   List<User> findByIdInAndDeletedAtIsNull(Collection<UUID> ids);
 
   boolean existsByEmailIgnoreCaseAndDeletedAtIsNull(String email);
+
+  @Query(
+      """
+        SELECT user
+        FROM User user
+        WHERE user.deletedAt IS NULL
+        AND (
+            LOWER(user.email) LIKE LOWER(CONCAT('%', :search, '%'))
+            OR LOWER(user.username) LIKE LOWER(CONCAT('%', :search, '%'))
+            OR LOWER(user.fullName) LIKE LOWER(CONCAT('%', :search, '%'))
+        )
+      """)
+  Page<User> searchUsers(@Param("search") String search, Pageable pageable);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(

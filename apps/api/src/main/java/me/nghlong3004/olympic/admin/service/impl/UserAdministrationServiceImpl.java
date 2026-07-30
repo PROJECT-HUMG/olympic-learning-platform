@@ -22,8 +22,11 @@ import me.nghlong3004.olympic.user.mapper.UserMapper;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import me.nghlong3004.olympic.admin.request.AdminCreateUserRequest;
 import me.nghlong3004.olympic.admin.response.AdminCreateUserResponse;
+import me.nghlong3004.olympic.admin.response.AdminUserResponse;
 import me.nghlong3004.olympic.admin.service.UserAdministrationService;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,5 +107,13 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
         .orElseThrow(() -> ErrorCode.RESOURCE_NOT_FOUND.throwIt("User not found"));
     user.getPermissions().remove(permission);
     log.info("Admin revoked permission {} from user {}", permission, userId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<AdminUserResponse> searchUsers(String search, Pageable pageable) {
+    String keyword = search != null ? search : "";
+    return userRepository.searchUsers(keyword, pageable)
+        .map(user -> AdminUserResponse.fromEntity(user, resolveAvatarUrl(user)));
   }
 }

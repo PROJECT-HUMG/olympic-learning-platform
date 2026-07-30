@@ -9,11 +9,14 @@ import { vi } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { UserHoverCard } from "@/features/user/components/user-hover-card";
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { Edit } from "lucide-react";
 
 export default function DocumentDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: document, isLoading, isError } = useDocumentBySlug(slug || "");
   const { data: documentUrl, isLoading: isUrlLoading } = useDocumentUrl(slug || "");
+  const { data: currentUser } = useCurrentUser();
   
   const incrementViewCount = useIncrementViewCount();
   const downloadDocument = useDownloadDocument();
@@ -139,15 +142,30 @@ export default function DocumentDetailPage() {
             </div>
             
             <div className="flex flex-col items-start lg:items-end gap-3 shrink-0">
-              <Button 
-                size="lg" 
-                className="w-full lg:w-auto min-w-[200px] shadow-md hover:shadow-lg transition-all"
-                onClick={handleDownload}
-                disabled={downloadDocument.isPending}
-              >
-                <Download className="w-5 h-5 mr-2" />
-                {downloadDocument.isPending ? "Đang xử lý..." : "Tải xuống ngay"}
-              </Button>
+              <div className="flex gap-2 w-full lg:w-auto">
+                {(currentUser?.id === document.owner.id || currentUser?.role === "ADMIN") && (
+                  <Button 
+                    variant="outline"
+                    size="lg" 
+                    className="flex-1 lg:flex-none shadow-sm transition-all"
+                    asChild
+                  >
+                    <Link to={`/dashboard/documents/${document.id}/edit`}>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Chỉnh sửa
+                    </Link>
+                  </Button>
+                )}
+                <Button 
+                  size="lg" 
+                  className="flex-1 lg:flex-none min-w-[200px] shadow-md hover:shadow-lg transition-all"
+                  onClick={handleDownload}
+                  disabled={downloadDocument.isPending}
+                >
+                  <Download className="w-5 h-5 mr-2" />
+                  {downloadDocument.isPending ? "Đang xử lý..." : "Tải xuống ngay"}
+                </Button>
+              </div>
 
               {downloadDocument.isPending && (
                 <div className="w-full flex items-center gap-3">
