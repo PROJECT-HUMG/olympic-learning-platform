@@ -1,4 +1,4 @@
-package me.nghlong3004.olympic.user.request;
+package me.nghlong3004.olympic.admin.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -6,6 +6,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import me.nghlong3004.olympic.user.enums.Role;
 
+/**
+ * @author nghlong3004 (Long Nguyen Hoang)
+ * @since 7/30/2026
+ */
 public record AdminCreateUserRequest(
     @Schema(description = "Work email address", example = "user@nghlong3004.me")
         @Email(message = "Email must be valid")

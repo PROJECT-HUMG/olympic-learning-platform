@@ -14,6 +14,7 @@ import me.nghlong3004.olympic.storage.mapper.FileMapper;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
 import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.User;
+import me.nghlong3004.olympic.user.enums.Permission;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -69,7 +70,7 @@ public class StorageController {
     if (user.getRole() == Role.ADMIN || user.getRole() == Role.LECTURER) {
       return;
     }
-    if (user.getRole() == Role.STUDENT && user.getPermissions().contains("DOCUMENT_UPLOAD")) {
+    if (user.getRole() == Role.STUDENT && user.getPermissions().contains(Permission.DOCUMENT_UPLOAD)) {
       return;
     }
 

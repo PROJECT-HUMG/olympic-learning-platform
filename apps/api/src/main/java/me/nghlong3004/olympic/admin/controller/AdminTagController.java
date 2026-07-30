@@ -1,4 +1,4 @@
-package me.nghlong3004.olympic.document.controller;
+package me.nghlong3004.olympic.admin.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

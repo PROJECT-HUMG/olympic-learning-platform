@@ -32,6 +32,7 @@ import me.nghlong3004.olympic.storage.entity.File;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
 import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.User;
+import me.nghlong3004.olympic.user.enums.Permission;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import me.nghlong3004.olympic.user.response.UserResponse;
@@ -279,7 +280,7 @@ public class DocumentServiceImpl implements DocumentService {
       if (user.getRole() == Role.ADMIN || user.getRole() == Role.LECTURER) {
           return;
       }
-      if (user.getRole() == Role.STUDENT && user.getPermissions().contains("DOCUMENT_UPLOAD")) {
+      if (user.getRole() == Role.STUDENT && user.getPermissions().contains(Permission.DOCUMENT_UPLOAD)) {
           return;
       }
       throw ErrorCode.ACCESS_DENIED.throwIt("You do not have permission to upload documents");

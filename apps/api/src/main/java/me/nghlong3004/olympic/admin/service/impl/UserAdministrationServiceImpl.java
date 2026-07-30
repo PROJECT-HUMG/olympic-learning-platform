@@ -1,8 +1,9 @@
-package me.nghlong3004.olympic.user.service.impl;
+package me.nghlong3004.olympic.admin.service.impl;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nghlong3004.olympic.auth.enums.AuthEmailTokenPurpose;
@@ -11,15 +12,17 @@ import me.nghlong3004.olympic.common.error.ErrorCode;
 import me.nghlong3004.olympic.common.mail.event.MailSendEvent;
 import me.nghlong3004.olympic.common.mail.model.AdminInviteMailModel;
 import me.nghlong3004.olympic.common.properties.AuthProperties;
+import me.nghlong3004.olympic.common.properties.AuthProperties;
 import me.nghlong3004.olympic.common.properties.UserProperties;
 import me.nghlong3004.olympic.common.util.AuthLinkBuilder;
 import me.nghlong3004.olympic.user.entity.User;
+import me.nghlong3004.olympic.user.enums.Permission;
 import me.nghlong3004.olympic.user.enums.Status;
 import me.nghlong3004.olympic.user.mapper.UserMapper;
 import me.nghlong3004.olympic.user.repository.UserRepository;
-import me.nghlong3004.olympic.user.request.AdminCreateUserRequest;
-import me.nghlong3004.olympic.user.response.AdminCreateUserResponse;
-import me.nghlong3004.olympic.user.service.UserAdministrationService;
+import me.nghlong3004.olympic.admin.request.AdminCreateUserRequest;
+import me.nghlong3004.olympic.admin.response.AdminCreateUserResponse;
+import me.nghlong3004.olympic.admin.service.UserAdministrationService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -83,5 +86,23 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
 
   private String resolveAvatarUrl(User user) {
     return userProperties.defaultAvatarUrl();
+  }
+
+  @Override
+  @Transactional
+  public void grantPermission(UUID userId, Permission permission) {
+    User user = userRepository.findByIdAndDeletedAtIsNull(userId)
+        .orElseThrow(() -> ErrorCode.RESOURCE_NOT_FOUND.throwIt("User not found"));
+    user.getPermissions().add(permission);
+    log.info("Admin granted permission {} to user {}", permission, userId);
+  }
+
+  @Override
+  @Transactional
+  public void revokePermission(UUID userId, Permission permission) {
+    User user = userRepository.findByIdAndDeletedAtIsNull(userId)
+        .orElseThrow(() -> ErrorCode.RESOURCE_NOT_FOUND.throwIt("User not found"));
+    user.getPermissions().remove(permission);
+    log.info("Admin revoked permission {} from user {}", permission, userId);
   }
 }

@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.*;
 import me.nghlong3004.olympic.storage.entity.File;
+import me.nghlong3004.olympic.user.enums.Permission;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
 import me.nghlong3004.olympic.user.exception.UserDisabledException;
@@ -61,9 +62,10 @@ public class User {
 
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_id"))
+  @Enumerated(EnumType.STRING)
   @Column(name = "permission", nullable = false)
   @Builder.Default
-  private Set<String> permissions = new HashSet<>();
+  private Set<Permission> permissions = new HashSet<>();
 
   @Column(name = "last_login_at")
   private OffsetDateTime lastLoginAt;
