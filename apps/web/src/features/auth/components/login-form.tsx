@@ -11,7 +11,7 @@ import { SocialLoginButtons } from "@/features/auth/components/social-login-butt
 import { toast } from "sonner";
 
 const loginSchema = z.object({
-  email: z.email("Vui lòng nhập địa chỉ email hợp lệ"),
+  identifier: z.string().min(1, "Vui lòng nhập Email hoặc Tên đăng nhập"),
   password: z.string().min(1, "Vui lòng nhập mật khẩu"),
 });
 
@@ -30,11 +30,11 @@ export function LoginForm() {
 
   async function onSubmit(data: LoginFormValues) {
     try {
-      await login(data.email, data.password);
+      await login(data.identifier, data.password);
       toast.success("Đăng nhập thành công! Chào mừng bạn quay trở lại.");
     } catch (err) {
       const apiError = parseApiError(err);
-      toast.error(apiError.detail || "Email hoặc mật khẩu không chính xác.");
+      toast.error(apiError.detail || "Email, Tên đăng nhập hoặc mật khẩu không chính xác.");
     }
   }
 
@@ -51,13 +51,13 @@ export function LoginForm() {
 
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <FormField
-          id="login-email"
-          type="email"
-          label="Email"
+          id="login-identifier"
+          type="text"
+          label="Email hoặc Tên đăng nhập"
           required
-          placeholder="user@example.com"
-          error={errors.email?.message}
-          {...register("email")}
+          placeholder="user@example.com hoặc username"
+          error={errors.identifier?.message}
+          {...register("identifier")}
         />
 
         <FormField

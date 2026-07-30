@@ -22,6 +22,8 @@ import org.springframework.stereotype.Repository;
 public interface UserRepository extends JpaRepository<User, UUID> {
   Optional<User> findByEmailIgnoreCaseAndDeletedAtIsNull(String email);
 
+  Optional<User> findByUsernameIgnoreCaseAndDeletedAtIsNull(String username);
+
   Optional<User> findByIdAndDeletedAtIsNull(UUID id);
 
   List<User> findByIdInAndDeletedAtIsNull(Collection<UUID> ids);

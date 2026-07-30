@@ -5,6 +5,7 @@ import static me.nghlong3004.olympic.common.constant.MessageConstant.*;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,12 +98,16 @@ public class AuthServiceImpl implements AuthService {
   @Transactional
   @Override
   public LoginResult login(LoginRequest request, String ip, String userAgent) {
-    var normalizedEmail = normalizeEmail(request.email());
-
-    var user =
-        userRepository
-            .findByEmailIgnoreCaseAndDeletedAtIsNull(normalizedEmail)
-            .orElseThrow(ErrorCode.INVALID_CREDENTIALS::throwIt);
+    var identifier = request.identifier().trim();
+    Optional<User> userOpt;
+    
+    if (identifier.contains("@")) {
+      userOpt = userRepository.findByEmailIgnoreCaseAndDeletedAtIsNull(normalizeEmail(identifier));
+    } else {
+      userOpt = userRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull(identifier);
+    }
+    
+    var user = userOpt.orElseThrow(ErrorCode.INVALID_CREDENTIALS::throwIt);
 
     if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
       throw ErrorCode.INVALID_CREDENTIALS.throwIt();

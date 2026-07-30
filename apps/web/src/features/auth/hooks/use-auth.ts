@@ -10,8 +10,8 @@ export function useAuth() {
   const queryClient = useQueryClient();
   const { setAccessToken, clearAuth } = useAuthStore();
 
-  async function login(email: string, password: string) {
-    const response = await authService.login({ email, password });
+  async function login(identifier: string, password: string) {
+    const response = await authService.login({ identifier, password });
     
     // Set token for interceptors
     setAccessToken(response.data.accessToken);
