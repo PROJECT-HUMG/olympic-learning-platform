@@ -19,6 +19,7 @@ import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,11 +42,10 @@ public class StorageController {
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(summary = "Upload a file to a specific folder")
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("#folder.name() != 'DOCUMENT' or hasAnyRole('ADMIN', 'LECTURER') or hasAuthority('DOCUMENT_UPLOAD')")
   public StorageUploadResponse upload(
       @RequestParam("file") MultipartFile file,
       @RequestParam("folder") StorageFolder folder) {
-      
-    checkUploadPermission(folder);
 
     UploadedFile uploaded = storageService.upload(file, folder);
     File fileEntity = fileRepository.save(fileMapper.toEntity(uploaded, folder));
@@ -56,26 +56,6 @@ public class StorageController {
     );
   }
 
-  private void checkUploadPermission(StorageFolder folder) {
-    if (folder != StorageFolder.DOCUMENT) {
-      return;
-    }
-
-    CurrentUser currentUser = currentUserProvider.getCurrentUser();
-    User user =
-        userRepository
-            .findByIdAndDeletedAtIsNull(currentUser.id())
-            .orElseThrow(ErrorCode.USER_NOT_FOUND::throwIt);
-
-    if (user.getRole() == Role.ADMIN || user.getRole() == Role.LECTURER) {
-      return;
-    }
-    if (user.getRole() == Role.STUDENT && user.getPermissions().contains(Permission.DOCUMENT_UPLOAD)) {
-      return;
-    }
-
-    throw ErrorCode.ACCESS_DENIED.throwIt("You do not have permission to upload documents");
-  }
 
   public record StorageUploadResponse(UUID id, String url) {}
 }

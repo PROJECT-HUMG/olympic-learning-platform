@@ -1,9 +1,11 @@
 package me.nghlong3004.olympic.common.security;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 /**
@@ -16,7 +18,7 @@ public final class CurrentUserAuthenticationToken extends AbstractAuthentication
   private final CurrentUser currentUser;
 
   CurrentUserAuthenticationToken(Jwt jwt, CurrentUser currentUser) {
-    super(List.of(currentUser.role()));
+    super(buildAuthorities(currentUser));
     this.jwt = jwt;
     this.currentUser = currentUser;
     setAuthenticated(true);
@@ -35,5 +37,12 @@ public final class CurrentUserAuthenticationToken extends AbstractAuthentication
   @Override
   public @NonNull String getName() {
     return currentUser.id().toString();
+  }
+
+  private static List<GrantedAuthority> buildAuthorities(CurrentUser user) {
+    List<GrantedAuthority> authorities = new ArrayList<>();
+    authorities.add(user.role());
+    authorities.addAll(user.permissions());
+    return authorities;
   }
 }

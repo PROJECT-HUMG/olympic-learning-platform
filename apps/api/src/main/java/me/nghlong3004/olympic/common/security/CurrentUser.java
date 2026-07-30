@@ -1,8 +1,10 @@
 package me.nghlong3004.olympic.common.security;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
+import me.nghlong3004.olympic.user.enums.Permission;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
 
@@ -12,5 +14,5 @@ import me.nghlong3004.olympic.user.enums.Status;
  */
 @Builder
 public record CurrentUser(
-    UUID id, String email, String username, String fullName, Role role, Status status)
+    UUID id, String email, String username, String fullName, Role role, Status status, List<Permission> permissions)
     implements Serializable {}

@@ -38,6 +38,7 @@ import me.nghlong3004.olympic.user.repository.UserRepository;
 import me.nghlong3004.olympic.user.response.UserResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,14 +66,13 @@ public class DocumentServiceImpl implements DocumentService {
 
   @Override
   @Transactional
+  @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER') or hasAuthority('DOCUMENT_UPLOAD')")
   public DocumentResponse create(CreateDocumentRequest request) {
     CurrentUser currentUser = currentUserProvider.getCurrentUser();
     User owner =
         userRepository
             .findByIdAndDeletedAtIsNull(currentUser.id())
             .orElseThrow(ErrorCode.USER_NOT_FOUND::throwIt);
-
-    checkCreatePermission(owner);
 
     File file =
         fileRepository
@@ -276,16 +276,7 @@ public class DocumentServiceImpl implements DocumentService {
             .build();
   }
   
-  private void checkCreatePermission(User user) {
-      if (user.getRole() == Role.ADMIN || user.getRole() == Role.LECTURER) {
-          return;
-      }
-      if (user.getRole() == Role.STUDENT && user.getPermissions().contains(Permission.DOCUMENT_UPLOAD)) {
-          return;
-      }
-      throw ErrorCode.ACCESS_DENIED.throwIt("You do not have permission to upload documents");
-  }
-  
+
   private void checkUpdateDeletePermission(Document document) {
       CurrentUser currentUser = currentUserProvider.getCurrentUser();
       User user = userRepository.findByIdAndDeletedAtIsNull(currentUser.id())

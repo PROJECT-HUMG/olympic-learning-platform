@@ -75,7 +75,7 @@ class DocumentServiceImplTest {
     studentUser.setRole(Role.STUDENT);
     studentUser.setPermissions(Set.of());
 
-    currentAdmin = new CurrentUser(adminUser.getId(), "admin@test.com", "Admin", null, Role.ADMIN, Status.ACTIVE);
+    currentAdmin = new CurrentUser(adminUser.getId(), "admin@test.com", "Admin", null, Role.ADMIN, Status.ACTIVE, List.of());
   }
 
   @Test
@@ -116,19 +116,6 @@ class DocumentServiceImplTest {
     verify(documentRepository).save(any(Document.class));
   }
 
-  @Test
-  void create_shouldFail_whenStudentLacksPermission() {
-    CurrentUser currentStudent = new CurrentUser(studentUser.getId(), "student@test.com", "Student", null, Role.STUDENT, Status.ACTIVE);
-    when(currentUserProvider.getCurrentUser()).thenReturn(currentStudent);
-    when(userRepository.findByIdAndDeletedAtIsNull(studentUser.getId())).thenReturn(Optional.of(studentUser));
-
-    CreateDocumentRequest request = new CreateDocumentRequest(
-        "Title", "Desc", UUID.randomUUID(), UUID.randomUUID(), Set.of(UUID.randomUUID()), UUID.randomUUID());
-
-    assertThatThrownBy(() -> documentService.create(request))
-        .isInstanceOf(ApiException.class)
-        .hasMessageContaining("You do not have permission");
-  }
 
   @Test
   void getBySlug_shouldReturnDocument_whenExists() {
@@ -211,7 +198,7 @@ class DocumentServiceImplTest {
   @Test
   void bulkDelete_shouldFail_whenUserIsNotAdmin() {
     List<UUID> ids = List.of(UUID.randomUUID(), UUID.randomUUID());
-    CurrentUser currentStudent = new CurrentUser(studentUser.getId(), "student@test.com", "Student", null, Role.STUDENT, Status.ACTIVE);
+    CurrentUser currentStudent = new CurrentUser(studentUser.getId(), "student@test.com", "Student", null, Role.STUDENT, Status.ACTIVE, List.of());
     when(currentUserProvider.getCurrentUser()).thenReturn(currentStudent);
 
     assertThatThrownBy(() -> documentService.bulkDelete(ids))

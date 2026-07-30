@@ -22,6 +22,7 @@ public class JwtConfig {
   public static final String FULL_NAME_CLAIM = "full-name";
   public static final String ROLE_CLAIM = "role";
   public static final String STATUS_CLAIM = "status";
+  public static final String PERMISSIONS_CLAIM = "permissions";
 
   @Bean
   public JwtEncoder jwtEncoder(SecurityProperties properties) {

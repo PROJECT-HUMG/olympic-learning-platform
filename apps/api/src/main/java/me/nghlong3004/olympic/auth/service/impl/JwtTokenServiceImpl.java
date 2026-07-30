@@ -5,11 +5,16 @@ import static me.nghlong3004.olympic.common.config.JwtConfig.*;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nghlong3004.olympic.auth.service.TokenService;
 import me.nghlong3004.olympic.common.properties.SecurityProperties;
 import me.nghlong3004.olympic.user.entity.User;
+import me.nghlong3004.olympic.user.enums.Permission;
+import me.nghlong3004.olympic.user.enums.Role;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -34,6 +39,10 @@ public class JwtTokenServiceImpl implements TokenService {
     var now = Instant.now(clock);
     var expiresAt = now.plus(accessTokenDuration());
 
+    List<String> permissions = (user.getRole() == Role.ADMIN) 
+        ? Arrays.stream(Permission.values()).map(Enum::name).collect(Collectors.toList())
+        : user.getPermissions().stream().map(Enum::name).collect(Collectors.toList());
+
     var claims =
         JwtClaimsSet.builder()
             .issuer(ISSUER)
@@ -45,6 +54,7 @@ public class JwtTokenServiceImpl implements TokenService {
             .claim(FULL_NAME_CLAIM, user.getFullName())
             .claim(ROLE_CLAIM, user.getRole().name())
             .claim(STATUS_CLAIM, user.getStatus().name())
+            .claim(PERMISSIONS_CLAIM, permissions)
             .build();
 
     var header = JwsHeader.with(MacAlgorithm.HS256).build();

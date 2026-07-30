@@ -1,7 +1,10 @@
 package me.nghlong3004.olympic.common.security;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import me.nghlong3004.olympic.common.config.JwtConfig;
+import me.nghlong3004.olympic.user.enums.Permission;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
 import org.jspecify.annotations.NonNull;
@@ -30,6 +33,7 @@ public class JwtCurrentUserAuthenticationConverter
               .fullName(requiredClaim(jwt, JwtConfig.FULL_NAME_CLAIM))
               .role(Role.valueOf(requiredClaim(jwt, JwtConfig.ROLE_CLAIM)))
               .status(Status.valueOf(requiredClaim(jwt, JwtConfig.STATUS_CLAIM)))
+              .permissions(parsePermissions(jwt))
               .build();
 
       return new CurrentUserAuthenticationToken(jwt, currentUser);
@@ -56,5 +60,13 @@ public class JwtCurrentUserAuthenticationConverter
     }
 
     return value;
+  }
+
+  private List<Permission> parsePermissions(Jwt jwt) {
+    List<String> perms = jwt.getClaimAsStringList(JwtConfig.PERMISSIONS_CLAIM);
+    if (perms == null) {
+      return List.of();
+    }
+    return perms.stream().map(Permission::valueOf).collect(Collectors.toList());
   }
 }
