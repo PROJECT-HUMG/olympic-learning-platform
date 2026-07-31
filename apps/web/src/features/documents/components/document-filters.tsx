@@ -41,8 +41,15 @@ export function DocumentFilters() {
       label: cat.name,
     })) || [];
 
+  const tagOptions =
+    metadata?.tags.map((t) => ({
+      value: t.id,
+      label: t.name,
+    })) || [];
+
   const currentSubjectId = searchParams.get("subjectId") || "";
   const currentCategoryId = searchParams.get("categoryId") || "";
+  const currentTagId = searchParams.get("tagId") || "";
 
   const handleSubjectChange = (val: string) => {
     if (val) {
@@ -64,8 +71,19 @@ export function DocumentFilters() {
     setSearchParams(searchParams);
   };
 
+  const handleTagChange = (val: string) => {
+    if (val) {
+      searchParams.set("tagId", val);
+    } else {
+      searchParams.delete("tagId");
+    }
+    searchParams.delete("page");
+    setSearchParams(searchParams);
+  };
+
   const currentSubject = metadata?.subjects.find((s) => s.id === currentSubjectId);
   const currentCategory = metadata?.categories.find((c) => c.id === currentCategoryId);
+  const currentTag = metadata?.tags.find((t) => t.id === currentTagId);
 
   return (
     <div className="flex flex-col gap-4 max-w-4xl mx-auto w-full mb-6">
@@ -121,10 +139,22 @@ export function DocumentFilters() {
             className="w-full bg-background border-border/60 hover:bg-accent rounded-full h-9 text-sm"
           />
         </div>
+
+        <div className="min-w-[140px]">
+          <Combobox
+            options={tagOptions}
+            value={currentTagId}
+            onChange={handleTagChange}
+            placeholder={isLoading ? "Đang tải..." : "Thẻ (Tags)"}
+            emptyText="Không tìm thấy thẻ"
+            disabled={isLoading}
+            className="w-full bg-background border-border/60 hover:bg-accent rounded-full h-9 text-sm"
+          />
+        </div>
       </div>
 
       {/* Active Filters Summary (Optional, but good for UX) */}
-      {(currentSubject || currentCategory || debouncedKeyword) && (
+      {(currentSubject || currentCategory || currentTag || debouncedKeyword) && (
         <div className="flex flex-wrap items-center gap-2 max-w-3xl mx-auto w-full justify-center sm:justify-start">
           {debouncedKeyword && (
             <Badge variant="secondary" className="pl-3 pr-1 py-1 h-7 rounded-full flex items-center gap-1 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium">
@@ -164,6 +194,19 @@ export function DocumentFilters() {
               </button>
             </Badge>
           )}
+
+          {currentTag && (
+            <Badge variant="secondary" className="pl-3 pr-1 py-1 h-7 rounded-full flex items-center gap-1 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium">
+              <span className="max-w-[150px] truncate text-xs">{currentTag.name}</span>
+              <button
+                type="button"
+                className="ml-1 rounded-full p-0.5 hover:bg-background/20"
+                onClick={() => handleTagChange("")}
+              >
+                <X className="size-3" />
+              </button>
+            </Badge>
+          )}
           
           <button
             type="button"
@@ -172,6 +215,7 @@ export function DocumentFilters() {
               setKeyword("");
               handleSubjectChange("");
               handleCategoryChange("");
+              handleTagChange("");
             }}
           >
             Xóa tất cả

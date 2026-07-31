@@ -17,11 +17,17 @@ export default function DocumentsPage() {
   
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const keyword = searchParams.get("keyword") || undefined;
+  const categoryId = searchParams.get("categoryId") || undefined;
+  const subjectId = searchParams.get("subjectId") || undefined;
+  const tagId = searchParams.get("tagId") || undefined;
 
   const apiPageOffset = Math.max(0, currentPage - 1);
 
   const filters: DocumentSearchRequest = {
     keyword,
+    categoryId,
+    subjectId,
+    tagIds: tagId ? [tagId] : undefined,
     page: apiPageOffset,
     size: 12, // More items for public grid
   };
