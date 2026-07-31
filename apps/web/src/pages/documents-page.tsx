@@ -49,10 +49,7 @@ export default function DocumentsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 min-h-[80vh]">
-      <div className="flex flex-col gap-2 mb-8">
-        <h1 className="text-2xl font-medium text-foreground tracking-tight">Kho Tài Liệu</h1>
-        <p className="text-muted-foreground text-sm">Khám phá tài liệu, giáo trình và đề thi các năm trước.</p>
-      </div>
+      {/* Kho Tài Liệu title removed as requested */}
       
       <DocumentFilters />
       

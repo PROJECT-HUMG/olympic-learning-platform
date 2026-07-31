@@ -1,15 +1,13 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, LayoutGrid, List } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useSearchDocuments, useDeleteDocument, useCreateDocument, useUpdateDocument } from "@/features/documents/hooks/use-documents";
-import { DocumentDataTable } from "@/features/documents/components/document-data-table";
-import { DocumentGrid } from "@/features/documents/components/document-grid";
+import { DashboardDocumentList } from "@/features/documents/components/dashboard-document-list";
 import { DocumentForm } from "@/features/documents/components/document-form";
 import { toast } from "sonner";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +32,6 @@ export default function DocumentsManagementPage() {
   const [keyword, setKeyword] = useState("");
   const debouncedKeyword = useDebounce(keyword, 500);
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const { data: user } = useCurrentUser();
 
   // Convert 1-based visible page to 0-based offset for the API in exactly one place
@@ -128,35 +125,14 @@ export default function DocumentsManagementPage() {
             }}
           />
         </div>
-        
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "grid" | "table")} className="w-full sm:w-auto">
-          <TabsList className="grid w-full sm:w-auto grid-cols-2">
-            <TabsTrigger value="grid" className="gap-2">
-              <LayoutGrid className="size-4" />
-              <span className="hidden sm:inline">Dạng lưới</span>
-            </TabsTrigger>
-            <TabsTrigger value="table" className="gap-2">
-              <List className="size-4" />
-              <span className="hidden sm:inline">Dạng bảng</span>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
 
       {/* Content */}
-      {viewMode === "grid" ? (
-        <DocumentGrid
-          data={pageData?.content || []}
-          onDeleteClick={setDocumentToDelete}
-          onEditClick={setDocumentToEdit}
-        />
-      ) : (
-        <DocumentDataTable
-          data={pageData?.content || []}
-          onDeleteClick={setDocumentToDelete}
-          onEditClick={setDocumentToEdit}
-        />
-      )}
+      <DashboardDocumentList
+        data={pageData?.content || []}
+        onDeleteClick={setDocumentToDelete}
+        onEditClick={setDocumentToEdit}
+      />
 
       {/* Pagination */}
       {pageData && pageData.totalPages > 1 && (
