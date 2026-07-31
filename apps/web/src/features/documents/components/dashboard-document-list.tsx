@@ -42,8 +42,12 @@ export function DashboardDocumentList({ data, onDeleteClick, onEditClick }: Dash
             className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border border-border/50 rounded-xl bg-card hover:bg-accent/20 transition-colors"
           >
             <div className="flex items-start gap-4 flex-1 min-w-0">
-              <div className="shrink-0 pt-1">
-                <FileText className="w-8 h-8 text-red-500" />
+              <div className="shrink-0 pt-1 w-12 h-16 flex items-center justify-center bg-muted/30 rounded border border-border/50 overflow-hidden">
+                {doc.thumbnailUrl ? (
+                  <img src={doc.thumbnailUrl} alt={doc.title} className="w-full h-full object-cover" />
+                ) : (
+                  <FileText className="w-8 h-8 text-red-500" />
+                )}
               </div>
               <div className="flex flex-col gap-1 min-w-0 flex-1">
                 <Link 

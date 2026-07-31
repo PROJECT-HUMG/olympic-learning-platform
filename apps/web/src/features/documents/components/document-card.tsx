@@ -20,10 +20,10 @@ export function DocumentCard({ document, onDownload }: DocumentCardProps) {
   const isPdf = true; // In the future, this can be derived from document.extension or category
 
   return (
-    <div className="group flex flex-col h-[280px] overflow-hidden transition-colors duration-200 hover:bg-accent/40 bg-card border border-border/50 rounded-xl">
+    <div className="group flex flex-col h-[320px] overflow-hidden transition-colors duration-200 hover:bg-accent/40 bg-card border border-border/50 rounded-xl">
       <Link to={`/documents/${document.slug}`} className="flex-1 flex flex-col h-full">
         {/* Preview Section - Gray Background */}
-        <div className="relative h-[180px] w-full overflow-hidden bg-muted/60 border-b border-border/50 flex items-center justify-center p-4">
+        <div className="relative h-[160px] w-full overflow-hidden bg-muted/60 border-b border-border/50 flex items-center justify-center p-4">
           {document.thumbnailUrl ? (
             <img
               src={document.thumbnailUrl}
@@ -41,7 +41,7 @@ export function DocumentCard({ document, onDownload }: DocumentCardProps) {
         </div>
 
         {/* Info Section - White Background */}
-        <div className="p-3 flex gap-3 h-[100px] bg-card">
+        <div className="p-3 flex gap-3 flex-1 bg-card">
           <div className="shrink-0 mt-0.5">
              <FileText className={`w-5 h-5 ${isPdf ? 'text-red-500' : 'text-primary/60'}`} />
           </div>
@@ -50,8 +50,13 @@ export function DocumentCard({ document, onDownload }: DocumentCardProps) {
             <h3 className="text-[14px] font-medium text-foreground leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
               {document.title}
             </h3>
+            {document.description && (
+              <p className="text-[12px] text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
+                {document.description}
+              </p>
+            )}
             
-            <div className="mt-auto">
+            <div className="mt-auto pt-1">
               <div className="flex items-center text-[12px] text-muted-foreground gap-1.5 truncate">
                 <UserHoverCard user={document.owner}>
                   <div className="flex items-center gap-1.5 hover:bg-muted/50 p-1 -ml-1 rounded-md transition-colors cursor-pointer" onClick={(e) => e.preventDefault()}>
