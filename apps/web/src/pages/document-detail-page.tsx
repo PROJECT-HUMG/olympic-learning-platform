@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useDocumentBySlug, useIncrementViewCount, useDocumentUrl } from "@/features/documents/hooks/use-documents";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FileText, Download, Eye, Calendar, ArrowLeft, Loader2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,10 @@ import { UserHoverCard } from "@/features/user/components/user-hover-card";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useDocumentDownloadModal } from "@/features/documents/hooks/use-document-download-modal";
 import { DocumentDownloadModal } from "@/features/documents/components/document-download-modal";
-
+import { DocumentForm } from "@/features/documents/components/document-form";
+import { useUpdateDocument } from "@/features/documents/hooks/use-documents";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { toast } from "sonner";
 export default function DocumentDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: document, isLoading, isError } = useDocumentBySlug(slug || "");
@@ -20,6 +23,22 @@ export default function DocumentDetailPage() {
   
   const incrementViewCount = useIncrementViewCount();
   const { selectedDocument, openDownloadModal, closeDownloadModal } = useDocumentDownloadModal();
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const updateDocument = useUpdateDocument();
+
+  const handleUpdate = (data: any) => {
+    updateDocument.mutate(
+      { id: document?.id as string, data },
+      {
+        onSuccess: () => {
+          toast.success("Cập nhật tài liệu thành công");
+          setIsEditModalOpen(false);
+        },
+        onError: () => toast.error("Có lỗi xảy ra khi cập nhật tài liệu"),
+      }
+    );
+  };
 
   // Increment view count on mount
   useEffect(() => {
@@ -130,12 +149,10 @@ export default function DocumentDetailPage() {
                     variant="outline"
                     size="lg" 
                     className="flex-1 lg:flex-none shadow-sm transition-all"
-                    asChild
+                    onClick={() => setIsEditModalOpen(true)}
                   >
-                    <Link to={`/dashboard/documents/${document.id}/edit`}>
-                      <Edit className="w-4 h-4 mr-2" />
-                      Chỉnh sửa
-                    </Link>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Chỉnh sửa
                   </Button>
                 )}
                 <Button 
@@ -197,6 +214,27 @@ export default function DocumentDetailPage() {
         document={selectedDocument}
         onClose={closeDownloadModal}
       />
+
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="w-[95vw] max-w-5xl sm:max-w-5xl max-h-[90vh] overflow-y-auto sm:rounded-xl">
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa tài liệu</DialogTitle>
+            <DialogDescription>
+              Đang chỉnh sửa tài liệu: {document?.title}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {document && (
+              <DocumentForm
+                initialData={document}
+                onSubmit={handleUpdate}
+                onCancel={() => setIsEditModalOpen(false)}
+                isLoading={updateDocument.isPending}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
