@@ -3,6 +3,7 @@ package me.nghlong3004.olympic.document.mapper;
 import me.nghlong3004.olympic.document.entity.Document;
 import me.nghlong3004.olympic.document.response.DocumentResponse;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
 /**
@@ -24,5 +25,6 @@ public interface DocumentMapper {
    * @param document the document entity
    * @return the mapped response DTO
    */
+  @Mapping(source = "file.size", target = "fileSize")
   DocumentResponse toResponse(Document document);
 }

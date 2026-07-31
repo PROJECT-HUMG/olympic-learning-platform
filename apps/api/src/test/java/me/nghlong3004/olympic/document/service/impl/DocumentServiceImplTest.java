@@ -105,7 +105,7 @@ class DocumentServiceImplTest {
     when(documentRepository.save(any(Document.class))).thenReturn(savedDocument);
 
     DocumentResponse mappedResponse = new DocumentResponse(
-        savedDocument.getId(), "Title", "title", "Desc", 0, 0, null, null, null, null, null, null, OffsetDateTime.now());
+        savedDocument.getId(), "Title", "title", "Desc", 0, 0, null, null, null, null, null, null, null, OffsetDateTime.now());
     when(documentMapper.toResponse(savedDocument)).thenReturn(mappedResponse);
     when(storageService.getDownloadUri(anyString())).thenReturn(URI.create("http://dl"));
 

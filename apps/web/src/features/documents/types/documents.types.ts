@@ -14,6 +14,7 @@ export interface DocumentResponse {
   downloadCount: number;
   downloadUrl?: string | null;
   thumbnailUrl?: string | null;
+  fileSize?: number;
   category: CategorySummaryResponse;
   subject: SubjectSummaryResponse;
   tags: TagSummaryResponse[];

@@ -21,6 +21,7 @@ public record DocumentResponse(
     long downloadCount,
     String downloadUrl,
     String thumbnailUrl,
+    Long fileSize,
     CategorySummaryResponse category,
     SubjectSummaryResponse subject,
     Set<TagSummaryResponse> tags,
