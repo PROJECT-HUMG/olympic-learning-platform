@@ -1,16 +1,16 @@
 import { useParams, Link } from "react-router-dom";
-import { useDocumentBySlug, useIncrementViewCount, useDownloadDocument, useDocumentUrl } from "@/features/documents/hooks/use-documents";
-import { useEffect, useState } from "react";
-import { FileText, Download, Eye, Calendar, ArrowLeft, Loader2 } from "lucide-react";
+import { useDocumentBySlug, useIncrementViewCount, useDocumentUrl } from "@/features/documents/hooks/use-documents";
+import { useEffect } from "react";
+import { FileText, Download, Eye, Calendar, ArrowLeft, Loader2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
 import { UserHoverCard } from "@/features/user/components/user-hover-card";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
-import { Edit } from "lucide-react";
+import { useDocumentDownloadModal } from "@/features/documents/hooks/use-document-download-modal";
+import { DocumentDownloadModal } from "@/features/documents/components/document-download-modal";
 
 export default function DocumentDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -19,9 +19,7 @@ export default function DocumentDetailPage() {
   const { data: currentUser } = useCurrentUser();
   
   const incrementViewCount = useIncrementViewCount();
-  const downloadDocument = useDownloadDocument();
-
-  const [downloadProgress, setDownloadProgress] = useState(0);
+  const { selectedDocument, openDownloadModal, closeDownloadModal } = useDocumentDownloadModal();
 
   // Increment view count on mount
   useEffect(() => {
@@ -30,22 +28,6 @@ export default function DocumentDetailPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
-
-  const handleDownload = () => {
-    if (slug) {
-      setDownloadProgress(0);
-      downloadDocument.mutate({
-        slug,
-        onDownloadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setDownloadProgress(percentCompleted);
-          }
-        }
-      });
-    }
-  };
-
   if (isError) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-16 text-center text-destructive">
@@ -159,20 +141,12 @@ export default function DocumentDetailPage() {
                 <Button 
                   size="lg" 
                   className="flex-1 lg:flex-none min-w-[200px] shadow-md hover:shadow-lg transition-all"
-                  onClick={handleDownload}
-                  disabled={downloadDocument.isPending}
+                  onClick={() => openDownloadModal(document)}
                 >
                   <Download className="w-5 h-5 mr-2" />
-                  {downloadDocument.isPending ? "Đang xử lý..." : "Tải xuống ngay"}
+                  Tải xuống ngay
                 </Button>
               </div>
-
-              {downloadDocument.isPending && (
-                <div className="w-full flex items-center gap-3">
-                  <Progress value={downloadProgress} className="h-2 flex-1" />
-                  <span className="text-xs font-medium text-muted-foreground w-8 text-right">{downloadProgress}%</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -218,6 +192,11 @@ export default function DocumentDetailPage() {
           </div>
         )}
       </div>
+
+      <DocumentDownloadModal 
+        document={selectedDocument}
+        onClose={closeDownloadModal}
+      />
     </div>
   );
 }

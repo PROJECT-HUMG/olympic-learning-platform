@@ -1,4 +1,3 @@
-import { PublicPageHeader } from "@/components/ui/public-page-header";
 import { DocumentFilters } from "@/features/documents/components/document-filters";
 import { DocumentList } from "@/features/documents/components/document-list";
 import { useSearchDocuments } from "@/features/documents/hooks/use-documents";
@@ -7,11 +6,14 @@ import type { DocumentSearchRequest } from "@/features/documents/types/documents
 import { AppPagination } from "@/components/ui/app-pagination";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, List as ListIcon } from "lucide-react";
+import { useDocumentDownloadModal } from "@/features/documents/hooks/use-document-download-modal";
+import { DocumentDownloadModal } from "@/features/documents/components/document-download-modal";
 
 export default function DocumentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const { selectedDocument, openDownloadModal, closeDownloadModal } = useDocumentDownloadModal();
   
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
   const keyword = searchParams.get("keyword") || undefined;
@@ -46,56 +48,66 @@ export default function DocumentsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="rounded-2xl border border-border/50 bg-card/40 p-6 sm:p-10 backdrop-blur-md shadow-sm min-h-[60vh] flex flex-col gap-6">
-        <PublicPageHeader title="Kho Tài Liệu" description="Tài liệu, giáo trình và đề thi các năm trước." />
-        
-        <DocumentFilters />
-        
-        <div className="flex justify-between items-center mt-4 mb-2">
-          <p className="text-sm text-muted-foreground">
-            {data ? `Tìm thấy ${data.totalElements} tài liệu` : "Đang tìm kiếm..."}
-          </p>
-          <div className="flex items-center bg-muted/50 rounded-lg p-1 border border-border/50">
-            <Button 
-              variant={viewMode === "grid" ? "secondary" : "ghost"} 
-              size="sm" 
-              className={`h-8 px-3 ${viewMode === "grid" ? "shadow-sm" : ""}`}
-              onClick={() => setViewMode("grid")}
-            >
-              <LayoutGrid className="w-4 h-4 mr-2" /> Dạng Thẻ
-            </Button>
-            <Button 
-              variant={viewMode === "list" ? "secondary" : "ghost"} 
-              size="sm" 
-              className={`h-8 px-3 ${viewMode === "list" ? "shadow-sm" : ""}`}
-              onClick={() => setViewMode("list")}
-            >
-              <List className="w-4 h-4 mr-2" /> Danh sách
-            </Button>
-          </div>
-        </div>
-        
-        <div className="flex-1 flex flex-col">
-          <DocumentList 
-            documents={data?.content} 
-            isLoading={isLoading} 
-            isError={isError} 
-            isEmpty={!data?.content || data.content.length === 0} 
-            viewMode={viewMode}
-          />
-          
-          {data && data.totalPages > 1 && (
-          <div className="mt-8 flex justify-center pb-8">
-            <AppPagination
-              currentPage={currentPage}
-              totalPages={data.totalPages}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 min-h-[80vh]">
+      <div className="flex flex-col gap-2 mb-8">
+        <h1 className="text-2xl font-medium text-foreground tracking-tight">Kho Tài Liệu</h1>
+        <p className="text-muted-foreground text-sm">Khám phá tài liệu, giáo trình và đề thi các năm trước.</p>
+      </div>
+      
+      <DocumentFilters />
+      
+      <hr className="mb-4 border-t border-border/40" />
+
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-sm font-medium text-muted-foreground">
+          {data ? `Được đề xuất • ${data.totalElements} tệp` : "Đang tìm kiếm..."}
+        </h2>
+        <div className="flex items-center gap-1">
+          <Button 
+            variant={viewMode === "list" ? "secondary" : "ghost"} 
+            size="icon" 
+            className={`h-9 w-9 rounded-full ${viewMode === "list" ? "bg-accent/80 text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
+            onClick={() => setViewMode("list")}
+            aria-label="Xem dạng danh sách"
+          >
+            <ListIcon className="w-5 h-5" />
+          </Button>
+          <Button 
+            variant={viewMode === "grid" ? "secondary" : "ghost"} 
+            size="icon" 
+            className={`h-9 w-9 rounded-full ${viewMode === "grid" ? "bg-accent/80 text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
+            onClick={() => setViewMode("grid")}
+            aria-label="Xem dạng lưới"
+          >
+            <LayoutGrid className="w-5 h-5" />
+          </Button>
         </div>
       </div>
+      
+      <div className="flex-1 flex flex-col">
+        <DocumentList 
+          documents={data?.content} 
+          isLoading={isLoading} 
+          isError={isError} 
+          isEmpty={!data?.content || data.content.length === 0} 
+          viewMode={viewMode}
+          onDownload={openDownloadModal}
+        />
+        
+        {data && data.totalPages > 1 && (
+        <div className="mt-10 flex justify-center pb-8">
+          <AppPagination
+            currentPage={currentPage}
+            totalPages={data.totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
+      </div>
+      <DocumentDownloadModal 
+        document={selectedDocument} 
+        onClose={closeDownloadModal} 
+      />
     </div>
   );
 }
