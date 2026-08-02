@@ -13,7 +13,7 @@ import me.nghlong3004.olympic.document.request.CreateDocumentCategoryRequest;
 import me.nghlong3004.olympic.document.request.UpdateDocumentCategoryRequest;
 import me.nghlong3004.olympic.document.response.CategorySummaryResponse;
 import me.nghlong3004.olympic.document.service.DocumentCategoryService;
-import me.nghlong3004.olympic.document.service.SlugGenerator;
+import me.nghlong3004.olympic.common.util.SlugGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -12,7 +12,7 @@ import me.nghlong3004.olympic.document.repository.SubjectRepository;
 import me.nghlong3004.olympic.document.request.CreateSubjectRequest;
 import me.nghlong3004.olympic.document.request.UpdateSubjectRequest;
 import me.nghlong3004.olympic.document.response.SubjectSummaryResponse;
-import me.nghlong3004.olympic.document.service.SlugGenerator;
+import me.nghlong3004.olympic.common.util.SlugGenerator;
 import me.nghlong3004.olympic.document.service.SubjectService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

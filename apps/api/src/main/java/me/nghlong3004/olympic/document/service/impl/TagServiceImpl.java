@@ -12,7 +12,7 @@ import me.nghlong3004.olympic.document.repository.TagRepository;
 import me.nghlong3004.olympic.document.request.CreateTagRequest;
 import me.nghlong3004.olympic.document.request.UpdateTagRequest;
 import me.nghlong3004.olympic.document.response.TagSummaryResponse;
-import me.nghlong3004.olympic.document.service.SlugGenerator;
+import me.nghlong3004.olympic.common.util.SlugGenerator;
 import me.nghlong3004.olympic.document.service.TagService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -28,7 +28,7 @@ import me.nghlong3004.olympic.document.request.CreateDocumentRequest;
 import me.nghlong3004.olympic.document.response.CategorySummaryResponse;
 import me.nghlong3004.olympic.document.response.DocumentResponse;
 import me.nghlong3004.olympic.document.service.SearchTextNormalizer;
-import me.nghlong3004.olympic.document.service.SlugGenerator;
+import me.nghlong3004.olympic.common.util.SlugGenerator;
 import me.nghlong3004.olympic.storage.entity.File;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
 import me.nghlong3004.olympic.storage.service.StorageService;
