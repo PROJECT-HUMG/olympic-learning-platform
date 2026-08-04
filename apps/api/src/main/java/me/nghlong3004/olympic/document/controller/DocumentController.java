@@ -40,6 +40,7 @@ public class DocumentController {
 
   @PutMapping("/{id}")
   @Operation(summary = "Update an existing document")
+  @ResponseStatus(HttpStatus.OK)
   public DocumentResponse update(
       @PathVariable UUID id, @Valid @RequestBody UpdateDocumentRequest request) {
     return documentService.update(id, request);
@@ -47,12 +48,14 @@ public class DocumentController {
 
   @GetMapping("/{slug}")
   @Operation(summary = "Get document details by slug")
+  @ResponseStatus(HttpStatus.OK)
   public DocumentResponse getBySlug(@PathVariable String slug) {
     return documentService.getBySlug(slug);
   }
 
   @GetMapping
   @Operation(summary = "Search and filter documents")
+  @ResponseStatus(HttpStatus.OK)
   public Page<DocumentResponse> search(
       @Valid @ModelAttribute DocumentSearchRequest request, Pageable pageable) {
     return documentService.search(request, pageable);
@@ -67,6 +70,7 @@ public class DocumentController {
 
   @GetMapping("/{slug}/download")
   @Operation(summary = "Get a download URI for the document")
+  @ResponseStatus(HttpStatus.OK)
   public ResponseEntity<Map<String, String>> getDownloadUri(@PathVariable String slug) {
     URI uri = documentService.getDownloadUriBySlug(slug);
     return ResponseEntity.ok(Map.of("url", uri.toString()));
