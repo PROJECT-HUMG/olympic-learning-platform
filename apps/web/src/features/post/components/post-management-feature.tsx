@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Eye, Loader2 } from "lucide-react";
+import { Plus, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppPagination } from "@/components/ui/app-pagination";
@@ -10,11 +10,7 @@ import { useUpdatePost } from "@/features/post/hooks/use-update-post";
 import { useDeletePost } from "@/features/post/hooks/use-delete-post";
 import { usePost } from "@/features/post/hooks/use-post";
 import { PostForm } from "@/features/post/components/post-form";
-import { PostBadge } from "@/features/post/components/post-badge";
-import { PostStatusBadge } from "@/features/post/components/post-status-badge";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
-import { ROUTES } from "@/router/route-constants";
 import {
   Dialog,
   DialogContent,
@@ -33,10 +29,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 import type { PostSummaryResponse } from "@/features/post/types/post.types";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DashboardPostList } from "./dashboard-post-list";
 
 export function PostManagementFeature() {
   const [keyword, setKeyword] = useState("");
@@ -138,91 +132,39 @@ export function PostManagementFeature() {
         </div>
       </div>
 
-      <div className="bg-card rounded-xl border shadow-sm overflow-hidden flex flex-col min-h-[400px]">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
-              <TableHead>Tiêu đề</TableHead>
-              <TableHead>Loại</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>Lượt xem</TableHead>
-              <TableHead>Tác giả</TableHead>
-              <TableHead className="text-right">Thao tác</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-64 text-center">
-                  <div className="flex flex-col items-center justify-center text-muted-foreground gap-2">
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                    <span>Đang tải dữ liệu...</span>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : !pageData || pageData.content.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-64 text-center text-muted-foreground">
-                  Không tìm thấy bài viết nào.
-                </TableCell>
-              </TableRow>
-            ) : (
-              pageData.content.map((post) => (
-                <TableRow key={post.id} className="hover:bg-muted/30 transition-colors">
-                  <TableCell className="font-medium max-w-[200px] truncate" title={post.title}>
-                    <div className="flex flex-col">
-                      <span>{post.title}</span>
-                      <span className="text-xs text-muted-foreground font-normal">
-                        {post.publishedAt ? format(new Date(post.publishedAt), "dd/MM/yyyy", { locale: vi }) : "Chưa xuất bản"}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell><PostBadge type={post.type} /></TableCell>
-                  <TableCell><PostStatusBadge status={post.status} /></TableCell>
-                  <TableCell>{post.viewCount}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary border shrink-0 overflow-hidden">
-                        {post.author?.avatarUrl ? (
-                          <img src={post.author.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                        ) : (
-                          (post.author?.fullName || "U")[0].toUpperCase()
-                        )}
-                      </div>
-                      <span className="text-sm truncate max-w-[120px]">{post.author?.fullName || "Quản trị viên"}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="icon" asChild title="Xem trên web">
-                        <Link to={`${ROUTES.NEWS}/${post.slug}`} target="_blank">
-                          <Eye className="w-4 h-4 text-muted-foreground" />
-                        </Link>
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => setPostToEdit(post)}>
-                        Sửa
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={() => setPostToDelete(post)}>
-                        Xóa
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+      <div className="flex-1">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center p-16 border border-dashed border-border/60 rounded-2xl bg-card/30 text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary/40 mb-4" />
+            <span className="text-muted-foreground text-sm">Đang tải dữ liệu...</span>
+          </div>
+        ) : (
+          <DashboardPostList
+            data={pageData?.content || []}
+            onDeleteClick={setPostToDelete}
+            onEditClick={setPostToEdit}
+          />
+        )}
+      </div>
 
-        {pageData && pageData.page.totalPages > 1 && (
-          <div className="p-4 border-t mt-auto flex items-center justify-center">
+      {pageData && pageData.page.totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+          <p className="text-sm text-muted-foreground whitespace-nowrap">
+            Hiển thị <span className="font-medium">{(apiPageOffset * pageData.page.size) + 1}</span> đến{" "}
+            <span className="font-medium">
+              {Math.min((apiPageOffset + 1) * pageData.page.size, pageData.page.totalElements)}
+            </span>{" "}
+            trong tổng số <span className="font-medium">{pageData.page.totalElements}</span> bài viết
+          </p>
+          <div className="overflow-x-auto max-w-full">
             <AppPagination 
               currentPage={currentPage}
               totalPages={pageData.page.totalPages}
               onPageChange={setCurrentPage}
             />
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <AlertDialog open={!!postToDelete} onOpenChange={(open) => !open && setPostToDelete(null)}>
         <AlertDialogContent>
