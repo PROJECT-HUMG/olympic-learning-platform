@@ -7,10 +7,10 @@ export const CreatePostSchema = z.object({
     .max(255, "Tiêu đề không được vượt quá 255 ký tự"),
   summary: z
     .string()
-    .min(1, "Mô tả ngắn không được để trống")
-    .max(500, "Mô tả ngắn không được vượt quá 500 ký tự"),
+    .max(500, "Mô tả ngắn không được vượt quá 500 ký tự")
+    .optional(),
   content: z.string().min(1, "Nội dung không được để trống"),
-  thumbnailId: z.uuid("ID ảnh thu nhỏ không hợp lệ").optional().nullable(),
+  thumbnailId: z.string().uuid("ID ảnh thu nhỏ không hợp lệ").optional().nullable(),
   type: z.enum(["BLOG", "NEWS", "ANNOUNCEMENT"], {
     message: "Vui lòng chọn loại bài viết",
   }),

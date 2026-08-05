@@ -20,7 +20,7 @@ interface PostCardProps {
 export function PostCard({ post, className, onClick }: PostCardProps) {
   const formattedDate = post.publishedAt
     ? format(new Date(post.publishedAt), "dd/MM/yyyy", { locale: vi })
-    : format(new Date(post.createdAt), "dd/MM/yyyy", { locale: vi });
+    : "Chưa cập nhật";
 
   return (
     <Card

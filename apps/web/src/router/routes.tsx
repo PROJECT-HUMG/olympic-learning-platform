@@ -21,6 +21,7 @@ const SubjectsPage = lazy(() => import("@/pages/subjects-page"));
 const DocumentsPage = lazy(() => import("@/pages/documents-page"));
 const DocumentDetailPage = lazy(() => import("@/pages/document-detail-page"));
 const NewsPage = lazy(() => import("@/pages/news-page"));
+const NewsDetailPage = lazy(() => import("@/pages/news-detail-page"));
 const CompetitionsPage = lazy(() => import("@/pages/competitions-page"));
 const AboutPage = lazy(() => import("@/pages/about-page"));
 const ToolkitPage = lazy(() => import("@/pages/toolkit-page"));
@@ -34,8 +35,9 @@ const HistoryPage = lazy(() => import("@/pages/history-page"));
 // Lazy load fallback pages
 const NotFoundPage = lazy(() => import("@/pages/not-found-page"));
 
-// Lazy load admin pages
+// Lazy load admin/management pages
 const DocumentsManagementPage = lazy(() => import("@/pages/dashboard/documents/documents-management-page"));
+const PostManagementPage = lazy(() => import("@/pages/dashboard/posts/post-management-page"));
 const AdminCategoriesPage = lazy(() => import("@/pages/dashboard/categories/admin-categories-page"));
 const AdminUsersPage = lazy(() => import("@/pages/admin/users/admin-users-page"));
 
@@ -81,6 +83,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={null}>
             <NewsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: `${ROUTES.NEWS}/:slug`,
+        element: (
+          <Suspense fallback={null}>
+            <NewsDetailPage />
           </Suspense>
         ),
       },
@@ -222,6 +232,14 @@ export const router = createBrowserRouter([
               </Suspense>
             ),
           },
+          {
+            path: "/lecturer/posts",
+            element: (
+              <Suspense fallback={null}>
+                <PostManagementPage />
+              </Suspense>
+            ),
+          },
         ],
       },
     ],
@@ -263,6 +281,14 @@ export const router = createBrowserRouter([
             element: (
               <Suspense fallback={null}>
                 <AdminCategoriesPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "/admin/posts",
+            element: (
+              <Suspense fallback={null}>
+                <PostManagementPage />
               </Suspense>
             ),
           },

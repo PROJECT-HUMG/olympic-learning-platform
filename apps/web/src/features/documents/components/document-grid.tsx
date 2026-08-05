@@ -1,6 +1,6 @@
 import type { DocumentResponse } from "@/features/documents/types/documents.types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   Eye, Download, Pencil, Trash2, MoreVertical, 

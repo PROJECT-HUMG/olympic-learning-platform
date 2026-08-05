@@ -27,7 +27,9 @@ public class SecurityEndpoints {
     "/api/v1/cms/contents",
     "/api/v1/cms/contents/**",
     "/api/v1/cms/categories",
-    "/api/v1/cms/tags"
+    "/api/v1/cms/tags",
+    "/api/v1/posts",
+    "/api/v1/posts/**"
   };
 
   protected static final String[] PUBLIC_FALLBACK_ENDPOINTS = {"/actuator/health/readiness"};

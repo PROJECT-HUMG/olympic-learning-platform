@@ -27,21 +27,26 @@ export interface PostSummaryResponse {
   publishedAt: string | null;
   author: {
     id: string;
+    email: string;
+    username: string;
     fullName: string;
     avatarUrl: string | null;
   } | null;
   viewCount: number;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface PostDetailResponse extends PostSummaryResponse {
   content: string;
+  expiredAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PostSearchRequest {
+  keyword?: string;
   type?: string;
   status?: string;
+  authorId?: string;
   page?: number;
   size?: number;
   sort?: string;

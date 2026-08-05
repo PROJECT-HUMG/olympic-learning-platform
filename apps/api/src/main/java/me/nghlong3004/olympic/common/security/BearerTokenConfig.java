@@ -25,10 +25,6 @@ public class BearerTokenConfig {
       var method = request.getMethod();
       var path = request.getServletPath();
 
-      if (HttpMethod.GET.matches(method)) {
-        return null;
-      }
-
       if (HttpMethod.POST.matches(method)
           && Arrays.stream(PUBLIC_POST_ENDPOINTS)
               .anyMatch(endpoint -> endpoint.equalsIgnoreCase(path))) {
