@@ -48,12 +48,12 @@ export function PostManagementFeature() {
   });
 
   useEffect(() => {
-    if (pageData && pageData.page.totalPages > 0) {
-      if (currentPage > pageData.page.totalPages) {
-        setCurrentPage(pageData.page.totalPages);
+    if (pageData && pageData.totalPages > 0) {
+      if (currentPage > pageData.totalPages) {
+        setCurrentPage(pageData.totalPages);
       }
     }
-  }, [pageData?.page.totalPages, currentPage]);
+  }, [pageData?.totalPages, currentPage]);
 
   const deletePost = useDeletePost();
   const [postToDelete, setPostToDelete] = useState<PostSummaryResponse | null>(null);
@@ -147,19 +147,19 @@ export function PostManagementFeature() {
         )}
       </div>
 
-      {pageData && pageData.page.totalPages > 1 && (
+      {pageData && pageData.totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
           <p className="text-sm text-muted-foreground whitespace-nowrap">
-            Hiển thị <span className="font-medium">{(apiPageOffset * pageData.page.size) + 1}</span> đến{" "}
+            Hiển thị <span className="font-medium">{(apiPageOffset * pageData.size) + 1}</span> đến{" "}
             <span className="font-medium">
-              {Math.min((apiPageOffset + 1) * pageData.page.size, pageData.page.totalElements)}
+              {Math.min((apiPageOffset + 1) * pageData.size, pageData.totalElements)}
             </span>{" "}
-            trong tổng số <span className="font-medium">{pageData.page.totalElements}</span> bài viết
+            trong tổng số <span className="font-medium">{pageData.totalElements}</span> bài viết
           </p>
           <div className="overflow-x-auto max-w-full">
             <AppPagination 
               currentPage={currentPage}
-              totalPages={pageData.page.totalPages}
+              totalPages={pageData.totalPages}
               onPageChange={setCurrentPage}
             />
           </div>

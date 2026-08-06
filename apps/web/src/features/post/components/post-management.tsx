@@ -171,11 +171,11 @@ export function PostManagement() {
           </TableBody>
         </Table>
         
-        {data && data.page.totalPages > 1 && (
+        {data && data.totalPages > 1 && (
           <div className="p-4 border-t mt-auto">
             <AppPagination 
               currentPage={page}
-              totalPages={data.page.totalPages}
+              totalPages={data.totalPages}
               onPageChange={setPage}
             />
           </div>

@@ -21,15 +21,15 @@ export function PublicNewsFeature() {
   });
 
   useEffect(() => {
-    if (data && data.page.totalPages > 0) {
-      if (currentPage > data.page.totalPages) {
+    if (data && data.totalPages > 0) {
+      if (currentPage > data.totalPages) {
         setSearchParams((prev) => {
-          prev.set("page", data.page.totalPages.toString());
+          prev.set("page", data.totalPages.toString());
           return prev;
         }, { replace: true });
       }
     }
-  }, [data?.page.totalPages, currentPage, setSearchParams]);
+  }, [data?.totalPages, currentPage, setSearchParams]);
 
   const handlePageChange = (newPage: number) => {
     setSearchParams((prev) => {
@@ -80,11 +80,11 @@ export function PublicNewsFeature() {
         />
       </div>
 
-      {data && data.page.totalPages > 1 && (
+      {data && data.totalPages > 1 && (
         <div className="mt-12 flex justify-center pb-8">
           <AppPagination
             currentPage={currentPage}
-            totalPages={data.page.totalPages}
+            totalPages={data.totalPages}
             onPageChange={handlePageChange}
           />
         </div>
