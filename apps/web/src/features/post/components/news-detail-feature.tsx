@@ -69,7 +69,7 @@ export function NewsDetailFeature() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 min-h-screen">
-      <div className="mb-8">
+      <div className="mb-8 max-w-3xl mx-auto">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -81,7 +81,7 @@ export function NewsDetailFeature() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage className="max-w-[200px] sm:max-w-[400px] truncate">
+              <BreadcrumbPage className="max-w-[150px] sm:max-w-[300px] truncate">
                 {post.title}
               </BreadcrumbPage>
             </BreadcrumbItem>
@@ -89,8 +89,9 @@ export function NewsDetailFeature() {
         </Breadcrumb>
       </div>
 
-      <article className="rounded-2xl border border-border/50 bg-card p-6 sm:p-10 lg:p-14 shadow-sm mb-12">
-        <header className="mb-10 border-b border-border/50 pb-8 space-y-6 text-center sm:text-left">
+      <article className="mb-16">
+        {/* HEADER SECTION */}
+        <header className="mb-10 max-w-3xl mx-auto space-y-6 text-center sm:text-left">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
             <PostBadge type={post.type} />
             <span className="hidden sm:inline text-muted-foreground">•</span>
@@ -105,18 +106,34 @@ export function NewsDetailFeature() {
             </span>
           </div>
           
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-tight sm:leading-[1.15]">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-tight">
             {post.title}
           </h1>
 
-          <div className="flex items-center justify-center sm:justify-start gap-1.5 text-sm text-muted-foreground pt-2">
-            <Eye className="h-4 w-4" />
-            <span>{post.viewCount} lượt xem</span>
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-4 border-t border-border/40">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
+                {post.author?.avatarUrl ? (
+                  <img src={post.author.avatarUrl} alt={post.author.fullName} className="h-full w-full object-cover" />
+                ) : (
+                  <User className="h-4 w-4 text-primary" />
+                )}
+              </div>
+              <span className="text-sm font-medium text-foreground">
+                {post.author?.fullName || "Quản trị viên"}
+              </span>
+            </div>
+            <span className="text-muted-foreground text-sm">•</span>
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Eye className="h-4 w-4" />
+              <span>{post.viewCount} lượt xem</span>
+            </div>
           </div>
         </header>
 
+        {/* THUMBNAIL */}
         {post.thumbnailUrl && (
-          <div className="mb-12 aspect-video sm:aspect-[21/9] w-full overflow-hidden rounded-xl border bg-muted">
+          <div className="mb-12 max-w-5xl mx-auto aspect-video sm:aspect-[21/9] w-full overflow-hidden rounded-2xl bg-muted shadow-sm">
             <img 
               src={post.thumbnailUrl} 
               alt={post.title} 
@@ -125,35 +142,38 @@ export function NewsDetailFeature() {
           </div>
         )}
 
-        {post.summary && (
-          <div className="mb-10 text-xl font-medium italic text-muted-foreground border-l-4 border-primary/60 pl-6 py-2 leading-relaxed">
-            {post.summary}
-          </div>
-        )}
+        {/* CONTENT SECTION */}
+        <div className="max-w-3xl mx-auto">
+          {post.summary && (
+            <div className="mb-10 text-xl md:text-2xl font-medium text-muted-foreground leading-relaxed">
+              {post.summary}
+            </div>
+          )}
 
-        <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-primary hover:prose-a:text-primary/80 prose-img:rounded-xl">
-          <RichTextViewer content={post.content} />
+          <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-primary hover:prose-a:text-primary/80 prose-img:rounded-xl">
+            <RichTextViewer content={post.content} />
+          </div>
+
+          <footer className="mt-16 pt-8 border-t border-border/50">
+            <div className="flex items-center gap-4 p-6 bg-muted/30 rounded-2xl border border-border/30">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary overflow-hidden shrink-0">
+                {post.author?.avatarUrl ? (
+                  <img src={post.author.avatarUrl} alt={post.author.fullName} className="h-full w-full object-cover" />
+                ) : (
+                  <User className="h-6 w-6" />
+                )}
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg text-foreground">
+                  {post.author?.fullName || "Quản trị viên"}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Tác giả bài viết
+                </p>
+              </div>
+            </div>
+          </footer>
         </div>
-
-        <footer className="mt-16 pt-8 border-t border-border/50">
-          <div className="flex flex-col sm:flex-row items-center gap-4 p-6 bg-muted/30 rounded-xl border border-border/50">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary overflow-hidden border-2 border-background shadow-sm shrink-0">
-              {post.author?.avatarUrl ? (
-                <img src={post.author.avatarUrl} alt={post.author.fullName} className="h-full w-full object-cover" />
-              ) : (
-                <User className="h-8 w-8" />
-              )}
-            </div>
-            <div className="text-center sm:text-left">
-              <h3 className="font-semibold text-lg text-foreground">
-                {post.author?.fullName || "Quản trị viên"}
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Người đăng tải bài viết. Theo dõi thêm các cập nhật mới nhất từ tác giả trên hệ thống.
-              </p>
-            </div>
-          </div>
-        </footer>
       </article>
 
       {filteredRelatedPosts.length > 0 && (

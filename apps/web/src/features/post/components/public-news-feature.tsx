@@ -15,7 +15,7 @@ export function PublicNewsFeature() {
 
   const { data, isLoading, isError } = usePosts({
     page: apiPageOffset,
-    size: 9,
+    size: 9, 
     status: "PUBLISHED",
     type: type !== "ALL" ? type : undefined,
   });
@@ -52,36 +52,38 @@ export function PublicNewsFeature() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 min-h-[80vh] flex flex-col">
-      <div className="mb-8">
+    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 min-h-[80vh] flex flex-col">
+      <div className="mb-10 text-center sm:text-left">
         <PublicPageHeader 
           title="Tin Tức & Thông Báo" 
           description="Cập nhật những tin tức mới nhất, bài viết blog và thông báo về các kỳ thi Olympic." 
         />
       </div>
       
-      <div className="mb-8">
-        <Tabs value={type} onValueChange={handleTypeChange} className="w-full sm:w-auto">
-          <TabsList className="grid w-full grid-cols-4 lg:w-[400px]">
-            <TabsTrigger value="ALL">Tất cả</TabsTrigger>
-            <TabsTrigger value="NEWS">Tin tức</TabsTrigger>
-            <TabsTrigger value="ANNOUNCEMENT">Thông báo</TabsTrigger>
-            <TabsTrigger value="BLOG">Blog</TabsTrigger>
+      <div className="mb-12 flex justify-start sm:justify-center overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 hide-scrollbar">
+        <Tabs value={type} onValueChange={handleTypeChange}>
+          <TabsList className="inline-flex h-12 items-center justify-center rounded-full bg-muted/80 p-1 text-muted-foreground">
+            <TabsTrigger value="ALL" className="rounded-full px-6 h-10 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Tất cả</TabsTrigger>
+            <TabsTrigger value="NEWS" className="rounded-full px-6 h-10 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Tin tức</TabsTrigger>
+            <TabsTrigger value="ANNOUNCEMENT" className="rounded-full px-6 h-10 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Thông báo</TabsTrigger>
+            <TabsTrigger value="BLOG" className="rounded-full px-6 h-10 text-sm font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Blog</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
-      <div className="flex-1">
-        <NewsList 
-          posts={data?.content} 
-          isLoading={isLoading} 
-          isError={isError}
-          isEmpty={!data || data.content.length === 0}
-        />
+      <div className="flex-1 space-y-12">
+        <section>
+          <NewsList 
+            posts={data?.content} 
+            isLoading={isLoading} 
+            isError={isError}
+            isEmpty={!data || data.content.length === 0}
+          />
+        </section>
       </div>
 
       {data && data.totalPages > 1 && (
-        <div className="mt-12 flex justify-center pb-8">
+        <div className="mt-16 flex justify-center pb-8 border-t border-border/50 pt-8">
           <AppPagination
             currentPage={currentPage}
             totalPages={data.totalPages}

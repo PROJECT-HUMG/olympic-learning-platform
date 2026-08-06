@@ -5,7 +5,7 @@ import type { StorageUploadResponse } from "@/features/documents/types/documents
 export const storageService = {
   uploadFile(
     file: File,
-    folder: "DOCUMENT" | "AVATAR",
+    folder: "DOCUMENT" | "AVATAR" | "POST",
     onUploadProgress?: (progressEvent: AxiosProgressEvent) => void
   ) {
     const formData = new FormData();

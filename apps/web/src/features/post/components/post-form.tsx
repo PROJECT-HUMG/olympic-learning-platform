@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -17,6 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import type { PostSummaryResponse, CreatePostRequest } from "../types/post.types";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { PostImageUpload } from "./post-image-upload";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const postSchema = z.object({
   title: z.string().min(2, "Tiêu đề phải có ít nhất 2 ký tự").max(200, "Tiêu đề không được vượt quá 200 ký tự"),
@@ -61,115 +62,143 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tiêu đề bài viết</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nhập tiêu đề bài viết" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="thumbnailId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ID Ảnh đại diện</FormLabel>
-                  <FormControl>
-                    <Input placeholder="UUID của ảnh đại diện (Tùy chọn)" {...field} />
-                  </FormControl>
-                  <FormDescription>UUID của ảnh thumbnail đã upload</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Loại bài viết</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+        
+        {/* NỬA TRÊN: THÔNG TIN & ẢNH BÌA */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Trái (Desktop) / Dưới (Mobile): Thông tin cơ bản */}
+          <div className="order-2 lg:order-1 lg:col-span-2 space-y-6">
+            <Card className="border-border/50 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Thông tin bài viết</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tiêu đề bài viết</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn loại bài viết" />
-                        </SelectTrigger>
+                        <Input placeholder="Nhập tiêu đề bài viết" {...field} />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="NEWS">Tin tức</SelectItem>
-                        <SelectItem value="BLOG">Blog</SelectItem>
-                        <SelectItem value="ANNOUNCEMENT">Thông báo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Trạng thái</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Loại bài viết</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn loại bài viết" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="NEWS">Tin tức</SelectItem>
+                            <SelectItem value="BLOG">Blog</SelectItem>
+                            <SelectItem value="ANNOUNCEMENT">Thông báo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Trạng thái</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn trạng thái" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="DRAFT">Bản nháp</SelectItem>
+                            <SelectItem value="PUBLISHED">Xuất bản</SelectItem>
+                            <SelectItem value="ARCHIVED">Lưu trữ</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="summary"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tóm tắt</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn trạng thái" />
-                        </SelectTrigger>
+                        <Textarea
+                          placeholder="Nhập tóm tắt bài viết (hiển thị ở dạng danh sách)"
+                          className="resize-none h-20"
+                          {...field}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="DRAFT">Bản nháp</SelectItem>
-                        <SelectItem value="PUBLISHED">Xuất bản</SelectItem>
-                        <SelectItem value="ARCHIVED">Lưu trữ</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="summary"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tóm tắt</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Nhập tóm tắt bài viết (hiển thị ở dạng danh sách)" 
-                      className="resize-none h-24"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="space-y-6 md:col-span-2">
+          {/* Phải (Desktop) / Trên (Mobile): Ảnh bìa */}
+          <div className="order-1 lg:order-2 lg:col-span-1 space-y-6">
+            <Card className="border-border/50 shadow-sm h-full">
+              <CardHeader>
+                <CardTitle className="text-lg">Ảnh bìa</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name="thumbnailId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <PostImageUpload
+                          value={field.value}
+                          onChange={field.onChange}
+                          initialPreviewUrl={initialData?.thumbnailUrl}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* NỬA DƯỚI: NỘI DUNG */}
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg">Nội dung</CardTitle>
+          </CardHeader>
+          <CardContent>
             <FormField
               control={form.control}
               name="content"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nội dung</FormLabel>
-                  <FormControl>
-                    <RichTextEditor 
-                      value={field.value} 
-                      onChange={field.onChange} 
+                  <FormControl className="min-h-[400px]">
+                    <RichTextEditor
+                      value={field.value}
+                      onChange={field.onChange}
                       placeholder="Nhập nội dung bài viết ở đây..."
                     />
                   </FormControl>
@@ -177,10 +206,10 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                 </FormItem>
               )}
             />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-border">
+        <div className="flex justify-end gap-3 pt-4">
           <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
             Hủy
           </Button>
