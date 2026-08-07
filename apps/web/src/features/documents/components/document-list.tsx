@@ -1,6 +1,7 @@
 import { DocumentCard } from "./document-card";
 import { DocumentListItem } from "./document-list-item";
-import { Skeleton } from "@/components/ui/skeleton";
+import { DocumentCardSkeleton } from "./document-card-skeleton";
+import { DocumentListItemSkeleton } from "./document-list-item-skeleton";
 import { FileQuestion } from "lucide-react";
 import type { DocumentResponse } from "@/features/documents/types/documents.types";
 
@@ -36,21 +37,7 @@ export function DocumentList({ documents, isLoading, isError, isEmpty, viewMode 
             <div className="w-[40px]"></div>
           </div>
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center justify-between py-3 px-4 border-b border-border/40">
-              <div className="flex items-center gap-4 flex-1 pr-4">
-                <Skeleton className="w-5 h-5 rounded" />
-                <Skeleton className="h-5 w-[200px]" />
-              </div>
-              <div className="hidden sm:block w-[180px] pr-4">
-                <Skeleton className="h-4 w-[120px]" />
-              </div>
-              <div className="hidden md:block w-[150px]">
-                <Skeleton className="h-4 w-[100px]" />
-              </div>
-              <div className="w-[40px] flex justify-end">
-                <Skeleton className="w-6 h-6 rounded-full" />
-              </div>
-            </div>
+            <DocumentListItemSkeleton key={i} />
           ))}
         </div>
       );
@@ -59,19 +46,7 @@ export function DocumentList({ documents, isLoading, isError, isEmpty, viewMode 
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:grid-cols-5 gap-4">
         {Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className="flex flex-col h-[280px] rounded-xl border border-border/50 bg-card overflow-hidden">
-            <Skeleton className="h-[180px] w-full rounded-none" />
-            <div className="p-3 flex gap-3 h-[100px]">
-              <Skeleton className="w-5 h-5 rounded mt-0.5" />
-              <div className="flex-1 flex flex-col gap-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
-                <div className="mt-auto">
-                  <Skeleton className="h-3 w-1/2" />
-                </div>
-              </div>
-            </div>
-          </div>
+          <DocumentCardSkeleton key={i} />
         ))}
       </div>
     );

@@ -63,10 +63,72 @@ export default function DocumentDetailPage() {
 
   if (isLoading || !document) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <Skeleton className="w-24 h-8 mb-6" />
-        <Skeleton className="w-full h-40 rounded-2xl mb-8" />
-        <Skeleton className="w-full h-[600px] rounded-2xl mb-6" />
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-6">
+        <div>
+          <Skeleton className="w-32 h-6" />
+        </div>
+
+        <div className="flex flex-col gap-6">
+          <div className="rounded-2xl border border-border/40 bg-card/60 p-6 md:p-8 backdrop-blur-md shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+              <div className="flex-1 min-w-0">
+                <div className="flex gap-2 flex-wrap mb-4">
+                  <Skeleton className="w-20 h-6 rounded-full" />
+                  <Skeleton className="w-24 h-6 rounded-full" />
+                  <Skeleton className="w-16 h-6 rounded-full" />
+                </div>
+
+                <div className="space-y-3 mb-6">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-3/4" />
+                </div>
+                
+                <div className="flex items-center flex-wrap gap-4">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="w-8 h-8 rounded-full" />
+                    <div className="flex flex-col gap-1">
+                      <Skeleton className="w-24 h-3" />
+                      <Skeleton className="w-16 h-2" />
+                    </div>
+                  </div>
+                  <Skeleton className="w-1 h-1 rounded-full" />
+                  <Skeleton className="w-20 h-4" />
+                  <Skeleton className="w-1 h-1 rounded-full" />
+                  <Skeleton className="w-24 h-4" />
+                  <Skeleton className="w-1 h-1 rounded-full" />
+                  <Skeleton className="w-24 h-4" />
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-start lg:items-end gap-3 shrink-0">
+                <div className="flex gap-2 w-full lg:w-auto">
+                  <Skeleton className="h-12 w-[120px] rounded-md" />
+                  <Skeleton className="h-12 w-[200px] rounded-md" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border/40 bg-card/60 overflow-hidden shadow-sm flex flex-col ring-1 ring-black/5">
+            <div className="px-6 py-4 border-b border-border/40 bg-muted/20">
+              <Skeleton className="w-40 h-6" />
+            </div>
+            <div className="w-full bg-muted/10 relative" style={{ height: "75vh", minHeight: "600px" }}>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                <Skeleton className="w-12 h-12 rounded-full" />
+                <Skeleton className="w-48 h-5" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="rounded-2xl border border-border/40 bg-card/60 p-6 md:p-8 backdrop-blur-md shadow-sm space-y-4">
+            <Skeleton className="w-32 h-6 mb-4" />
+            <Skeleton className="w-full h-4" />
+            <Skeleton className="w-full h-4" />
+            <Skeleton className="w-5/6 h-4" />
+            <Skeleton className="w-3/4 h-4" />
+          </div>
+        </div>
       </div>
     );
   }
