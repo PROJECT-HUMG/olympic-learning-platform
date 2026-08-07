@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { PostCard } from "@/features/post/components/post-card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UserHoverCard } from "@/features/user/components/user-hover-card";
 
 function calculateReadingTime(text: string): number {
   const wordsPerMinute = 250;
@@ -162,18 +163,31 @@ export function NewsDetailFeature() {
           </h1>
 
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-4 border-t border-border/40">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
-                {post.author?.avatarUrl ? (
-                  <img src={post.author.avatarUrl} alt={post.author.fullName} className="h-full w-full object-cover" />
-                ) : (
+            {post.author ? (
+              <UserHoverCard user={post.author as any}>
+                <div className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 -ml-1 rounded-md transition-colors">
+                  <div className="h-8 w-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center border border-border/50">
+                    {post.author.avatarUrl ? (
+                      <img src={post.author.avatarUrl} alt={post.author.fullName} className="h-full w-full object-cover" />
+                    ) : (
+                      <User className="h-4 w-4 text-primary" />
+                    )}
+                  </div>
+                  <span className="text-sm font-medium text-foreground">
+                    {post.author.fullName || post.author.username}
+                  </span>
+                </div>
+              </UserHoverCard>
+            ) : (
+              <div className="flex items-center gap-2 p-1 -ml-1">
+                <div className="h-8 w-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center border border-border/50">
                   <User className="h-4 w-4 text-primary" />
-                )}
+                </div>
+                <span className="text-sm font-medium text-foreground">
+                  Quản trị viên
+                </span>
               </div>
-              <span className="text-sm font-medium text-foreground">
-                {post.author?.fullName || "Quản trị viên"}
-              </span>
-            </div>
+            )}
             <span className="text-muted-foreground text-sm">•</span>
             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <Eye className="h-4 w-4" />
@@ -206,23 +220,41 @@ export function NewsDetailFeature() {
           </div>
 
           <footer className="mt-16 pt-8 border-t border-border/50">
-            <div className="flex items-center gap-4 p-6 bg-muted/30 rounded-2xl border border-border/30">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary overflow-hidden shrink-0">
-                {post.author?.avatarUrl ? (
-                  <img src={post.author.avatarUrl} alt={post.author.fullName} className="h-full w-full object-cover" />
-                ) : (
+            {post.author ? (
+              <UserHoverCard user={post.author as any}>
+                <div className="flex items-center gap-4 p-6 bg-muted/30 rounded-2xl border border-border/30 hover:bg-muted/50 transition-colors cursor-pointer">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary overflow-hidden shrink-0 border border-border/50">
+                    {post.author.avatarUrl ? (
+                      <img src={post.author.avatarUrl} alt={post.author.fullName} className="h-full w-full object-cover" />
+                    ) : (
+                      <User className="h-6 w-6" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg text-foreground">
+                      {post.author.fullName || post.author.username}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Tác giả bài viết
+                    </p>
+                  </div>
+                </div>
+              </UserHoverCard>
+            ) : (
+              <div className="flex items-center gap-4 p-6 bg-muted/30 rounded-2xl border border-border/30">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary overflow-hidden shrink-0 border border-border/50">
                   <User className="h-6 w-6" />
-                )}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg text-foreground">
+                    Quản trị viên
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Tác giả bài viết
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-lg text-foreground">
-                  {post.author?.fullName || "Quản trị viên"}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Tác giả bài viết
-                </p>
-              </div>
-            </div>
+            )}
           </footer>
         </div>
       </article>
