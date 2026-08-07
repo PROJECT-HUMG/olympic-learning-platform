@@ -1,5 +1,6 @@
-import { Loader2 } from "lucide-react";
+
 import { PostCard } from "./post-card";
+import { PostCardSkeleton } from "./post-card-skeleton";
 import type { PostSummaryResponse } from "../types/post.types";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/router/route-constants";
@@ -16,9 +17,10 @@ export function NewsList({ posts, isLoading, isError, isEmpty }: NewsListProps) 
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-4">
-        <Loader2 className="w-8 h-8 animate-spin text-primary/60" />
-        <p>Đang tải tin tức...</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8 lg:gap-10">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <PostCardSkeleton key={i} />
+        ))}
       </div>
     );
   }

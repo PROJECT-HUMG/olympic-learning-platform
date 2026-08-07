@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Loader2, ArrowLeft, Calendar, Eye, User, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, Eye, User, Clock } from "lucide-react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { usePost } from "@/features/post/hooks/use-post";
 import { usePosts } from "@/features/post/hooks/use-posts";
@@ -17,6 +17,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { PostCard } from "@/features/post/components/post-card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function calculateReadingTime(text: string): number {
   const wordsPerMinute = 250;
@@ -38,9 +39,59 @@ export function NewsDetailFeature() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground">Đang tải bài viết...</p>
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 min-h-screen">
+        <div className="mb-8 max-w-3xl mx-auto flex items-center gap-2">
+          <Skeleton className="h-4 w-16" />
+          <span className="text-muted-foreground/30">/</span>
+          <Skeleton className="h-4 w-32" />
+          <span className="text-muted-foreground/30">/</span>
+          <Skeleton className="h-4 w-48" />
+        </div>
+
+        <article className="mb-16">
+          <header className="mb-10 max-w-3xl mx-auto space-y-6 text-center sm:text-left">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <span className="hidden sm:inline text-muted-foreground/30">•</span>
+              <Skeleton className="h-4 w-32" />
+              <span className="hidden sm:inline text-muted-foreground/30">•</span>
+              <Skeleton className="h-4 w-24" />
+            </div>
+            
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-4/5 mx-auto sm:mx-0" />
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-4 border-t border-border/40">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <span className="text-muted-foreground text-sm">•</span>
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </header>
+
+          <div className="mb-12 max-w-5xl mx-auto aspect-video sm:aspect-[21/9] w-full overflow-hidden rounded-2xl">
+            <Skeleton className="h-full w-full" />
+          </div>
+
+          <div className="max-w-3xl mx-auto space-y-6">
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-4/5" />
+            <div className="h-4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-[90%]" />
+            <div className="h-4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-[85%]" />
+            <Skeleton className="h-4 w-full" />
+          </div>
+        </article>
       </div>
     );
   }
