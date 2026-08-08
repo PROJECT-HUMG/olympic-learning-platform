@@ -2,6 +2,7 @@ package me.nghlong3004.olympic.post.service;
 
 import java.util.UUID;
 import me.nghlong3004.olympic.post.request.CreatePostRequest;
+import me.nghlong3004.olympic.post.request.PostSearchRequest;
 import me.nghlong3004.olympic.post.request.UpdatePostRequest;
 import me.nghlong3004.olympic.post.response.PostDetailResponse;
 import me.nghlong3004.olympic.post.response.PostSummaryResponse;
@@ -50,10 +51,11 @@ public interface PostService {
   /**
    * Retrieves a paginated list of posts.
    *
+   * @param request search filters
    * @param pageable pagination information
    * @return a page of post summaries
    */
-  Page<PostSummaryResponse> getAll(Pageable pageable);
+  Page<PostSummaryResponse> getAll(PostSearchRequest request, Pageable pageable);
 
   /**
    * Soft deletes a post by its ID.

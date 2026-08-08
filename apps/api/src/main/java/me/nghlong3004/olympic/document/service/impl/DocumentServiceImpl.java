@@ -8,6 +8,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nghlong3004.olympic.common.error.ErrorCode;
+import me.nghlong3004.olympic.common.properties.UserProperties;
 import me.nghlong3004.olympic.common.security.CurrentUser;
 import me.nghlong3004.olympic.common.security.CurrentUserProvider;
 import me.nghlong3004.olympic.document.entity.Document;
@@ -63,6 +64,7 @@ public class DocumentServiceImpl implements DocumentService {
   private final SlugGenerator slugGenerator;
   private final SearchTextNormalizer searchTextNormalizer;
   private final CurrentUserProvider currentUserProvider;
+  private final UserProperties userProperties;
 
   @Override
   @Transactional
@@ -262,10 +264,14 @@ public class DocumentServiceImpl implements DocumentService {
     }
     
     UserResponse enrichedOwner = response.owner();
-    if (document.getOwner() != null && document.getOwner().getAvatar() != null) {
-        URI avatarUri = storageService.getDownloadUri(document.getOwner().getAvatar().getStorageKey());
-        if (avatarUri != null) {
-            enrichedOwner = enrichedOwner.withAvatarUrl(avatarUri.toString());
+    if (document.getOwner() != null && enrichedOwner != null) {
+        if (document.getOwner().getAvatar() != null) {
+            URI avatarUri = storageService.getDownloadUri(document.getOwner().getAvatar().getStorageKey());
+            if (avatarUri != null) {
+                enrichedOwner = enrichedOwner.withAvatarUrl(avatarUri.toString());
+            }
+        } else {
+            enrichedOwner = enrichedOwner.withAvatarUrl(userProperties.defaultAvatarUrl());
         }
     }
     

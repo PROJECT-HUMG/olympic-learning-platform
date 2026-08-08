@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import me.nghlong3004.olympic.post.request.CreatePostRequest;
+import me.nghlong3004.olympic.post.request.PostSearchRequest;
 import me.nghlong3004.olympic.post.request.UpdatePostRequest;
 import me.nghlong3004.olympic.post.response.PostDetailResponse;
 import me.nghlong3004.olympic.post.response.PostSummaryResponse;
@@ -68,8 +69,8 @@ public class PostController {
   @GetMapping
   @Operation(summary = "Get paginated posts")
   @ResponseStatus(HttpStatus.OK)
-  public Page<PostSummaryResponse> getAll(@ParameterObject Pageable pageable) {
-    return postService.getAll(pageable);
+  public Page<PostSummaryResponse> getAll(@ParameterObject PostSearchRequest request, @ParameterObject Pageable pageable) {
+    return postService.getAll(request, pageable);
   }
 
   @DeleteMapping("/{id}")
