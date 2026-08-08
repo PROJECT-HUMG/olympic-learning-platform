@@ -22,11 +22,22 @@ export function PostThumbnail({ src, alt = "Post thumbnail", className }: PostTh
   }
 
   return (
-    <img
-      src={src}
-      alt={alt}
-      className={cn("object-cover", className)}
-      loading="lazy"
-    />
+    <div className={cn("relative h-full w-full overflow-hidden bg-muted", className)}>
+      {/* Blurred background fill */}
+      <img
+        src={src}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover blur-xl scale-110 opacity-60 dark:opacity-40"
+        aria-hidden="true"
+        loading="lazy"
+      />
+      {/* Actual image */}
+      <img
+        src={src}
+        alt={alt}
+        className="relative z-10 h-full w-full object-contain drop-shadow-md"
+        loading="lazy"
+      />
+    </div>
   );
 }

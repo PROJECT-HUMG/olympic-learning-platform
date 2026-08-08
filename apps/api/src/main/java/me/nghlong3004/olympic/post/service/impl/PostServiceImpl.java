@@ -6,6 +6,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nghlong3004.olympic.common.error.ErrorCode;
+import me.nghlong3004.olympic.common.properties.UserProperties;
 import me.nghlong3004.olympic.common.security.CurrentUser;
 import me.nghlong3004.olympic.common.security.CurrentUserProvider;
 import me.nghlong3004.olympic.common.util.SlugGenerator;
@@ -14,6 +15,7 @@ import me.nghlong3004.olympic.post.exception.PostNotFoundException;
 import me.nghlong3004.olympic.post.mapper.PostMapper;
 import me.nghlong3004.olympic.post.repository.PostRepository;
 import me.nghlong3004.olympic.post.request.CreatePostRequest;
+import me.nghlong3004.olympic.post.request.PostSearchRequest;
 import me.nghlong3004.olympic.post.request.UpdatePostRequest;
 import me.nghlong3004.olympic.post.response.PostDetailResponse;
 import me.nghlong3004.olympic.post.response.PostSummaryResponse;
@@ -48,6 +50,7 @@ public class PostServiceImpl implements PostService {
   private final PostMapper postMapper;
   private final SlugGenerator slugGenerator;
   private final CurrentUserProvider currentUserProvider;
+  private final UserProperties userProperties;
 
   @Override
   @Transactional
@@ -166,9 +169,9 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public Page<PostSummaryResponse> getAll(Pageable pageable) {
+  public Page<PostSummaryResponse> getAll(PostSearchRequest request, Pageable pageable) {
     return postRepository
-        .findAll(pageable)
+        .searchPosts(request.keyword(), request.type(), request.status(), pageable)
         .map(post -> enrichSummary(postMapper.toSummaryResponse(post), post));
   }
 
@@ -206,10 +209,14 @@ public class PostServiceImpl implements PostService {
     }
     
     UserResponse enrichedAuthor = response.author();
-    if (post.getAuthor() != null && post.getAuthor().getAvatar() != null && enrichedAuthor != null) {
-        URI avatarUri = storageService.getDownloadUri(post.getAuthor().getAvatar().getStorageKey());
-        if (avatarUri != null) {
-            enrichedAuthor = enrichedAuthor.withAvatarUrl(avatarUri.toString());
+    if (post.getAuthor() != null && enrichedAuthor != null) {
+        if (post.getAuthor().getAvatar() != null) {
+            URI avatarUri = storageService.getDownloadUri(post.getAuthor().getAvatar().getStorageKey());
+            if (avatarUri != null) {
+                enrichedAuthor = enrichedAuthor.withAvatarUrl(avatarUri.toString());
+            }
+        } else {
+            enrichedAuthor = enrichedAuthor.withAvatarUrl(userProperties.defaultAvatarUrl());
         }
     }
     
@@ -229,10 +236,14 @@ public class PostServiceImpl implements PostService {
     }
     
     UserResponse enrichedAuthor = response.author();
-    if (post.getAuthor() != null && post.getAuthor().getAvatar() != null && enrichedAuthor != null) {
-        URI avatarUri = storageService.getDownloadUri(post.getAuthor().getAvatar().getStorageKey());
-        if (avatarUri != null) {
-            enrichedAuthor = enrichedAuthor.withAvatarUrl(avatarUri.toString());
+    if (post.getAuthor() != null && enrichedAuthor != null) {
+        if (post.getAuthor().getAvatar() != null) {
+            URI avatarUri = storageService.getDownloadUri(post.getAuthor().getAvatar().getStorageKey());
+            if (avatarUri != null) {
+                enrichedAuthor = enrichedAuthor.withAvatarUrl(avatarUri.toString());
+            }
+        } else {
+            enrichedAuthor = enrichedAuthor.withAvatarUrl(userProperties.defaultAvatarUrl());
         }
     }
     
