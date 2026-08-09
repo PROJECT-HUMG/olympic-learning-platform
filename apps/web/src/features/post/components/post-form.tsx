@@ -129,33 +129,9 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                   )}
                 />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Loại bài viết</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Chọn loại bài viết" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="NEWS">Tin tức</SelectItem>
-                            <SelectItem value="BLOG">Blog</SelectItem>
-                            <SelectItem value="ANNOUNCEMENT">Thông báo</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {initialData && <FormField
-                    control={form.control}
-                    name="status"
+                {initialData && <FormField
+                  control={form.control}
+                  name="status"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Trạng thái</FormLabel>
@@ -175,7 +151,6 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                       </FormItem>
                     )}
                   />}
-                </div>
 
                 <FormField
                   control={form.control}
@@ -194,7 +169,25 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                     </FormItem>
                   )}
                 />
-                <div className="grid gap-6 sm:grid-cols-2">
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1.35fr)]">
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Loại bài viết</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Chọn loại bài viết" /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            <SelectItem value="NEWS">Tin tức</SelectItem>
+                            <SelectItem value="BLOG">Blog</SelectItem>
+                            <SelectItem value="ANNOUNCEMENT">Thông báo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <FormField control={form.control} name="expiredAt" render={({ field }) => <FormItem><FormLabel>Thời hạn hiệu lực</FormLabel><FormControl><Input type="datetime-local" {...field} /></FormControl><FormMessage /></FormItem>} />
                   <FormField control={form.control} name="pinned" render={({ field }) => <FormItem className="flex items-center gap-3 rounded-xl border border-border/60 p-4"><FormControl><input type="checkbox" checked={field.value} onChange={field.onChange} disabled={form.watch("status") !== "PUBLISHED"} className="size-4 accent-primary" /></FormControl><div><FormLabel>Ghim vào thông tin quan trọng</FormLabel><p className="mt-1 text-xs text-muted-foreground">Tối đa 3 bài đang xuất bản.</p></div></FormItem>} />
                 </div>
