@@ -68,7 +68,7 @@ export function DashboardPostList({ data, onDeleteClick, onEditClick }: Dashboar
                   <div className="flex flex-wrap gap-2">
                     <PostBadge type={post.type} />
                     <PostStatusBadge status={displayStatus} />
-                    {post.pinned && <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary"><Pin className="size-3" />Ưu tiên</span>}
+                    {post.pinned && <span className="inline-flex items-center text-primary" title="Bài viết được ghim" aria-label="Bài viết được ghim"><Pin className="size-3.5 fill-current" /></span>}
                   </div>
                   <span className="hidden sm:inline">•</span>
                   <div className="flex items-center gap-1">

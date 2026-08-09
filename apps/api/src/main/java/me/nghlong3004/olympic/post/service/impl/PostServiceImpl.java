@@ -46,8 +46,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class PostServiceImpl implements PostService {
 
-  private static final int MAX_ACTIVE_PINNED_POSTS = 3;
-
   private final PostRepository postRepository;
   private final UserRepository userRepository;
   private final FileRepository fileRepository;
@@ -82,7 +80,6 @@ public class PostServiceImpl implements PostService {
 
     OffsetDateTime publishedAt = resolvePublishedAt(request.status(), request.publishedAt(), null);
     validateExpiry(request.expiredAt(), publishedAt);
-    validatePinning(request.pinned(), request.status(), request.expiredAt(), null);
 
     Post post =
         Post.builder()
@@ -133,7 +130,6 @@ public class PostServiceImpl implements PostService {
     post.setStatus(request.status());
     OffsetDateTime publishedAt = resolvePublishedAt(request.status(), request.publishedAt(), post.getPublishedAt());
     validateExpiry(request.expiredAt(), publishedAt);
-    validatePinning(request.pinned(), request.status(), request.expiredAt(), post.getId());
 
     post.setPublishedAt(publishedAt);
     post.setExpiredAt(request.expiredAt());
@@ -332,17 +328,4 @@ public class PostServiceImpl implements PostService {
     }
   }
 
-  private void validatePinning(
-      boolean pinned, PostStatus status, OffsetDateTime expiredAt, UUID currentPostId) {
-    if (!pinned || status != PostStatus.PUBLISHED || (expiredAt != null && !expiredAt.isAfter(OffsetDateTime.now()))) {
-      return;
-    }
-
-    long otherPinnedPosts = postRepository.findActivePinnedPostsForUpdate(PostStatus.PUBLISHED, OffsetDateTime.now()).stream()
-        .filter(post -> !post.getId().equals(currentPostId))
-        .count();
-    if (otherPinnedPosts >= MAX_ACTIVE_PINNED_POSTS) {
-      throw ErrorCode.VALIDATION_ERROR.throwIt("Only three active posts can be pinned at once");
-    }
-  }
 }

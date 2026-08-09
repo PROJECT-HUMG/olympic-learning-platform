@@ -20,7 +20,7 @@ export function PostListItem({ post, priority = false }: { post: PostSummaryResp
       <div className="min-w-0 py-1">
         <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
           <PostBadge type={post.type} />
-          {priority && <span className="inline-flex items-center gap-1 font-semibold text-primary"><Pin className="size-3" />Ưu tiên</span>}
+          {priority && <span className="inline-flex items-center text-primary" title="Bài viết được ghim" aria-label="Bài viết được ghim"><Pin className="size-3.5 fill-current" /></span>}
           {deadline && <span className={`inline-flex items-center gap-1 font-medium ${isUrgent ? "text-destructive" : "text-muted-foreground"}`}><Clock3 className="size-3" />{isUrgent ? (daysLeft! <= 0 ? "Hết hạn hôm nay" : `Còn ${formatDistanceToNowStrict(deadline, { locale: vi })}`) : `Hạn ${format(deadline, "dd/MM/yyyy", { locale: vi })}`}</span>}
         </div>
         <Link to={`${ROUTES.NEWS}/${post.slug}`} className="block text-base font-semibold leading-snug text-foreground outline-none transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring sm:text-lg">

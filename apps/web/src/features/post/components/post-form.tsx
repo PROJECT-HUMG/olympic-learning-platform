@@ -189,7 +189,7 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                     )}
                   />
                   <FormField control={form.control} name="expiredAt" render={({ field }) => <FormItem><FormLabel>Thời hạn hiệu lực</FormLabel><FormControl><Input type="datetime-local" {...field} /></FormControl><FormMessage /></FormItem>} />
-                  <FormField control={form.control} name="pinned" render={({ field }) => <FormItem className="flex items-center gap-3 rounded-xl border border-border/60 p-4"><FormControl><input type="checkbox" checked={field.value} onChange={field.onChange} disabled={form.watch("status") !== "PUBLISHED"} className="size-4 accent-primary" /></FormControl><div><FormLabel>Ghim vào thông tin quan trọng</FormLabel><p className="mt-1 text-xs text-muted-foreground">Tối đa 3 bài đang xuất bản.</p></div></FormItem>} />
+                  <FormField control={form.control} name="pinned" render={({ field }) => <FormItem className="flex items-center gap-3 rounded-xl border border-border/60 p-4"><FormControl><input type="checkbox" checked={field.value} onChange={field.onChange} disabled={form.watch("status") !== "PUBLISHED"} className="size-4 accent-primary" /></FormControl><div><FormLabel>Ghim bài viết</FormLabel><p className="mt-1 text-xs text-muted-foreground">Hiển thị trong nhóm thông tin quan trọng.</p></div></FormItem>} />
                 </div>
               </CardContent>
             </Card>
