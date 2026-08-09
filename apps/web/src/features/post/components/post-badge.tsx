@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import type { PostType } from "../types/post.types";
 
 interface PostBadgeProps {
@@ -7,16 +6,13 @@ interface PostBadgeProps {
 }
 
 export function PostBadge({ type, className }: PostBadgeProps) {
-  const getBadgeVariant = (type: string) => {
+  const getBadgeTone = (type: string) => {
     switch (type) {
-      case "BLOG":
-        return "default";
-      case "NEWS":
-        return "destructive";
-      case "ANNOUNCEMENT":
-        return "secondary";
+      case "ANNOUNCEMENT": return "text-amber-700 dark:text-amber-300";
+      case "NEWS": return "text-primary";
+      case "BLOG": return "text-teal-700 dark:text-teal-300";
       default:
-        return "outline";
+        return "text-muted-foreground";
     }
   };
 
@@ -33,9 +29,8 @@ export function PostBadge({ type, className }: PostBadgeProps) {
     }
   };
 
-  return (
-    <Badge variant={getBadgeVariant(type) as any} className={className}>
-      {getLabel(type)}
-    </Badge>
-  );
+  return <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${getBadgeTone(type)} ${className || ""}`}>
+    <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
+    {getLabel(type)}
+  </span>;
 }
