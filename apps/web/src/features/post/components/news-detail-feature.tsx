@@ -235,39 +235,21 @@ export function NewsDetailFeature() {
         </div>
       </div>
 
-      {/* ── Full-Width Hero Image ── */}
-      {post.thumbnailUrl && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto w-full max-w-5xl px-4 sm:px-6"
-        >
-          <div className="relative aspect-video max-h-[420px] w-full overflow-hidden rounded-xl bg-muted ring-1 ring-border/60 sm:aspect-[21/9] group">
-            <ImageLightbox
-              src={post.thumbnailUrl}
-              alt={post.title}
-              containerClassName="h-full w-full"
-              withBlurFill={false}
-              className="h-full object-cover"
-            />
-          </div>
-        </motion.div>
-      )}
-
-      {/* ── Title + Metadata Strip ── */}
+      {/* ── Compact title and thumbnail header ── */}
       <motion.header
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
         className="mx-auto max-w-4xl px-4 pt-10 sm:px-6"
       >
-        <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-[2.75rem]">
-          {post.title}
-        </h1>
+        <div className={`grid gap-8 ${post.thumbnailUrl ? "lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start" : ""}`}>
+          <div>
+            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-[2.75rem]">
+              {post.title}
+            </h1>
 
-        {/* Compact metadata strip */}
-        <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
+            {/* Compact metadata strip */}
+            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
           <PostBadge type={post.type} />
           <span className="hidden sm:inline text-border">·</span>
           <span className="flex items-center gap-1.5">
@@ -279,10 +261,10 @@ export function NewsDetailFeature() {
             {readingTime} phút đọc
           </span>
           {post.expiredAt && <><span className="hidden sm:inline text-border">·</span><span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />Hiệu lực đến {format(new Date(post.expiredAt), "dd/MM/yyyy", { locale: vi })}</span></>}
-        </div>
+            </div>
 
-        {/* Author strip */}
-        <div className="mt-6 border-t border-border/40 pt-6">
+            {/* Author strip */}
+            <div className="mt-6 border-t border-border/40 pt-6">
           {post.author ? (
             <UserHoverCard user={post.author as any}>
               <div className="-ml-1 flex cursor-pointer items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-muted/50">
@@ -322,6 +304,20 @@ export function NewsDetailFeature() {
                   Tác giả bài viết
                 </p>
               </div>
+            </div>
+          )}
+            </div>
+          </div>
+
+          {post.thumbnailUrl && (
+            <div className="overflow-hidden rounded-xl border border-border/60 bg-muted/20 p-2 lg:mt-1">
+              <ImageLightbox
+                src={post.thumbnailUrl}
+                alt={post.title}
+                containerClassName="flex max-h-[220px] w-full items-center justify-center"
+                withBlurFill={false}
+                className="max-h-[204px] w-full object-contain"
+              />
             </div>
           )}
         </div>
