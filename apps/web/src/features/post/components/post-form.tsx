@@ -26,6 +26,8 @@ const postSchema = z.object({
   thumbnailId: z.string().uuid("ID ảnh thu nhỏ không hợp lệ").optional().or(z.literal("")),
   type: z.enum(["NEWS", "BLOG", "ANNOUNCEMENT"]),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+  expiredAt: z.string().optional(),
+  pinned: z.boolean(),
 });
 
 type PostFormValues = z.infer<typeof postSchema>;
@@ -47,6 +49,8 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
       thumbnailId: "",
       type: (initialData?.type as "NEWS" | "BLOG" | "ANNOUNCEMENT") || "NEWS",
       status: (initialData?.status as "DRAFT" | "PUBLISHED" | "ARCHIVED") || "DRAFT",
+      expiredAt: initialData?.expiredAt ? initialData.expiredAt.slice(0, 16) : "",
+      pinned: initialData?.pinned || false,
     },
   });
 
@@ -55,7 +59,9 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
       ...values,
       thumbnailId: values.thumbnailId || null,
       summary: values.summary || "",
-      publishedAt: initialData ? undefined : new Date().toISOString(), // Assuming we want it or just undefined
+      publishedAt: initialData ? undefined : values.status === "PUBLISHED" ? new Date().toISOString() : undefined,
+      expiredAt: values.expiredAt ? new Date(values.expiredAt).toISOString() : null,
+      pinned: values.status === "PUBLISHED" ? values.pinned : false,
     } as CreatePostRequest);
   };
 
@@ -152,6 +158,10 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                     </FormItem>
                   )}
                 />
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <FormField control={form.control} name="expiredAt" render={({ field }) => <FormItem><FormLabel>Thời hạn hiệu lực</FormLabel><FormControl><Input type="datetime-local" {...field} /></FormControl><FormMessage /></FormItem>} />
+                  <FormField control={form.control} name="pinned" render={({ field }) => <FormItem className="flex items-center gap-3 rounded-xl border border-border/60 p-4"><FormControl><input type="checkbox" checked={field.value} onChange={field.onChange} disabled={form.watch("status") !== "PUBLISHED"} className="size-4 accent-primary" /></FormControl><div><FormLabel>Ghim vào thông tin quan trọng</FormLabel><p className="mt-1 text-xs text-muted-foreground">Tối đa 3 bài đang xuất bản.</p></div></FormItem>} />
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -172,7 +182,7 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                         <PostImageUpload
                           value={field.value}
                           onChange={field.onChange}
-                          initialPreviewUrl={initialData?.thumbnailUrl}
+                          initialPreviewUrl={initialData?.thumbnailUrl || undefined}
                         />
                       </FormControl>
                       <FormMessage />

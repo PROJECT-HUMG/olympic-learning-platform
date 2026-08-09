@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Newspaper, Calendar, Eye } from "lucide-react";
+import { Pencil, Trash2, Newspaper, Calendar, Eye, Pin, Clock3 } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Link } from "react-router-dom";
@@ -35,6 +35,7 @@ export function DashboardPostList({ data, onDeleteClick, onEditClick }: Dashboar
         const formattedDate = post.publishedAt
           ? format(new Date(post.publishedAt), "dd/MM/yyyy", { locale: vi })
           : "Chưa xuất bản";
+        const displayStatus = post.expiredAt && new Date(post.expiredAt) <= new Date() ? "EXPIRED" : post.status;
 
         return (
           <div 
@@ -64,9 +65,10 @@ export function DashboardPostList({ data, onDeleteClick, onEditClick }: Dashboar
                   </p>
                 )}
                 <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <PostBadge type={post.type} />
-                    <PostStatusBadge status={post.status} />
+                    <PostStatusBadge status={displayStatus} />
+                    {post.pinned && <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary"><Pin className="size-3" />Ưu tiên</span>}
                   </div>
                   <span className="hidden sm:inline">•</span>
                   <div className="flex items-center gap-1">
@@ -95,6 +97,7 @@ export function DashboardPostList({ data, onDeleteClick, onEditClick }: Dashboar
                       </div>
                     </>
                   )}
+                  {post.expiredAt && <><span className="hidden sm:inline">•</span><div className="flex items-center gap-1"><Clock3 className="w-3 h-3" />Hạn {format(new Date(post.expiredAt), "dd/MM/yyyy", { locale: vi })}</div></>}
                 </div>
               </div>
             </div>

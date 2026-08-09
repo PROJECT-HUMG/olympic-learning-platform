@@ -3,8 +3,7 @@ import { Plus, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppPagination } from "@/components/ui/app-pagination";
-import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
-import { usePosts } from "@/features/post/hooks/use-posts";
+import { useManagementPosts, useManagementPostStatusCounts } from "@/features/post/hooks/use-posts";
 import { useCreatePost } from "@/features/post/hooks/use-create-post";
 import { useUpdatePost } from "@/features/post/hooks/use-update-post";
 import { useDeletePost } from "@/features/post/hooks/use-delete-post";
@@ -36,16 +35,16 @@ export function PostManagementFeature() {
   const [keyword, setKeyword] = useState("");
   const debouncedKeyword = useDebounce(keyword, 500);
   const [currentPage, setCurrentPage] = useState(1);
-  const { data: user } = useCurrentUser();
 
   const apiPageOffset = Math.max(0, currentPage - 1);
 
-  const { data: pageData, isLoading } = usePosts({
+  const { data: pageData, isLoading } = useManagementPosts({
     keyword: debouncedKeyword,
     page: apiPageOffset,
     size: 10,
-    authorId: user?.role === "LECTURER" ? user.id : undefined,
+    status: undefined,
   });
+  const { data: counts } = useManagementPostStatusCounts();
 
   useEffect(() => {
     if (pageData && pageData.totalPages > 0) {
@@ -116,6 +115,10 @@ export function PostManagementFeature() {
           Tạo bài viết mới
         </Button>
       </div>
+
+      {counts && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[['Bản nháp', counts.draft], ['Đã xuất bản', counts.published], ['Hết hiệu lực', counts.expired], ['Lưu trữ', counts.archived]].map(([label, count]) => <div key={String(label)} className="rounded-xl border border-border/60 bg-card px-4 py-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-xl font-bold">{count}</p></div>)}
+      </div>}
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm">
         <div className="relative max-w-sm w-full">

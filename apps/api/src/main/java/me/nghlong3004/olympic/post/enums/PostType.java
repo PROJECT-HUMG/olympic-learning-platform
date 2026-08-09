@@ -6,5 +6,6 @@ package me.nghlong3004.olympic.post.enums;
  */
 public enum PostType {
   NEWS,
-  ANNOUNCEMENT
+  ANNOUNCEMENT,
+  BLOG
 }

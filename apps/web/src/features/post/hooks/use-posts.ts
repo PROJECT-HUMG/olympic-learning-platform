@@ -13,3 +13,21 @@ export function usePosts(
     ...options,
   });
 }
+
+export function useManagementPosts(
+  params?: PostSearchRequest,
+  options?: Omit<UseQueryOptions<Page<PostSummaryResponse>, Error>, "queryKey" | "queryFn">
+) {
+  return useQuery({
+    queryKey: ["posts", "management", params],
+    queryFn: () => postService.getManagement(params),
+    ...options,
+  });
+}
+
+export function useManagementPostStatusCounts() {
+  return useQuery({
+    queryKey: ["posts", "management", "status-counts"],
+    queryFn: () => postService.getManagementStatusCounts(),
+  });
+}

@@ -44,6 +44,9 @@ public record PostDetailResponse(
     @Schema(example = "2026-12-31T23:59:59Z")
     OffsetDateTime expiredAt,
 
+    @Schema(example = "false")
+    boolean pinned,
+
     @Schema(example = "100")
     Long viewCount,
 

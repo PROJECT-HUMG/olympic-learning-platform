@@ -8,10 +8,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-function FaviconIcon({ domain, className }: { domain: string; className?: string }) {
+function FaviconIcon({ src, domain, className }: { src: string; domain: string; className?: string }) {
   return (
     <img
-      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+      src={src}
       alt={`${domain} icon`}
       className={className}
       loading="lazy"
@@ -71,7 +71,7 @@ export function ShareButtons({
     },
     {
       label: "Facebook",
-      icon: <FaviconIcon domain="facebook.com" className="size-4 rounded-sm" />,
+      icon: <FaviconIcon src="/social-icons/facebook.png" domain="facebook.com" className="size-4 rounded-sm" />,
       onClick: () =>
         openShareWindow(
           `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`
@@ -79,7 +79,7 @@ export function ShareButtons({
     },
     {
       label: "X (Twitter)",
-      icon: <FaviconIcon domain="x.com" className="size-4 rounded-sm" />,
+      icon: <FaviconIcon src="/social-icons/x.png" domain="x.com" className="size-4 rounded-sm" />,
       onClick: () =>
         openShareWindow(
           `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`
@@ -87,7 +87,7 @@ export function ShareButtons({
     },
     {
       label: "LinkedIn",
-      icon: <FaviconIcon domain="linkedin.com" className="size-4 rounded-sm" />,
+      icon: <FaviconIcon src="/social-icons/linkedin.png" domain="linkedin.com" className="size-4 rounded-sm" />,
       onClick: () =>
         openShareWindow(
           `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
@@ -95,7 +95,7 @@ export function ShareButtons({
     },
     {
       label: "Telegram",
-      icon: <FaviconIcon domain="telegram.org" className="size-4 rounded-sm" />,
+      icon: <FaviconIcon src="/social-icons/telegram.png" domain="telegram.org" className="size-4 rounded-sm" />,
       onClick: () =>
         openShareWindow(
           `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`

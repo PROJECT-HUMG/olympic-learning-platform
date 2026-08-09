@@ -3,6 +3,8 @@ package me.nghlong3004.olympic.post.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import me.nghlong3004.olympic.post.enums.PostStatus;
 import me.nghlong3004.olympic.post.enums.PostType;
+import me.nghlong3004.olympic.post.enums.PostStatus;
+import me.nghlong3004.olympic.post.enums.PostType;
 
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
@@ -11,5 +13,7 @@ import me.nghlong3004.olympic.post.enums.PostType;
 public record PostSearchRequest(
     @Schema(description = "Search by title keyword") String keyword,
     @Schema(description = "Filter by post type") PostType type,
-    @Schema(description = "Filter by post status") PostStatus status
+    @Schema(description = "Filter by post status") PostStatus status,
+    @Schema(description = "Filter by priority placement") Boolean pinned,
+    @Schema(description = "Filter by expiry state in the management workspace") Boolean expired
 ) {}

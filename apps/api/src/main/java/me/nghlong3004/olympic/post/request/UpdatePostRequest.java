@@ -41,5 +41,14 @@ public record UpdatePostRequest(
     OffsetDateTime publishedAt,
 
     @Schema(example = "2026-12-31T23:59:59Z")
-    OffsetDateTime expiredAt
-) {}
+    OffsetDateTime expiredAt,
+
+    @Schema(description = "Whether this post is shown in the priority section", example = "false")
+    boolean pinned
+) {
+  public UpdatePostRequest(
+      String title, String summary, String content, UUID thumbnailId, PostType type,
+      PostStatus status, OffsetDateTime publishedAt, OffsetDateTime expiredAt) {
+    this(title, summary, content, thumbnailId, type, status, publishedAt, expiredAt, false);
+  }
+}

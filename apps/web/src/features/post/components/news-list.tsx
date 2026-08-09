@@ -1,56 +1,18 @@
-
-import { PostCard } from "./post-card";
-import { PostCardSkeleton } from "./post-card-skeleton";
 import type { PostSummaryResponse } from "../types/post.types";
-import { useNavigate } from "react-router-dom";
-import { ROUTES } from "@/router/route-constants";
+import { PostListItem } from "./post-list-item";
+import { PostCardSkeleton } from "./post-card-skeleton";
 
 interface NewsListProps {
   posts?: PostSummaryResponse[];
   isLoading: boolean;
   isError: boolean;
   isEmpty: boolean;
+  onReset?: () => void;
 }
 
-export function NewsList({ posts, isLoading, isError, isEmpty }: NewsListProps) {
-  const navigate = useNavigate();
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8 lg:gap-10">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <PostCardSkeleton key={i} />
-        ))}
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-2">
-        <p className="text-destructive font-medium">Đã có lỗi xảy ra</p>
-        <p className="text-sm">Không thể tải danh sách tin tức. Vui lòng thử lại sau.</p>
-      </div>
-    );
-  }
-
-  if (isEmpty || !posts || posts.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-4 border border-dashed rounded-xl bg-card/50">
-        <p>Chưa có bài viết nào trong mục này.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8 lg:gap-10">
-      {posts.map((post) => (
-        <PostCard 
-          key={post.id} 
-          post={post} 
-          onClick={() => navigate(`${ROUTES.NEWS}/${post.slug}`)}
-        />
-      ))}
-    </div>
-  );
+export function NewsList({ posts, isLoading, isError, isEmpty, onReset }: NewsListProps) {
+  if (isLoading) return <div className="space-y-4">{Array.from({ length: 5 }).map((_, index) => <PostCardSkeleton key={index} className="h-36" />)}</div>;
+  if (isError) return <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-8 text-center"><p className="font-semibold text-destructive">Không thể tải danh sách tin tức</p><p className="mt-1 text-sm text-muted-foreground">Vui lòng thử lại sau.</p></div>;
+  if (isEmpty || !posts?.length) return <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center"><p className="font-semibold">Không tìm thấy bài viết phù hợp</p><p className="mt-1 text-sm text-muted-foreground">Hãy thử thay đổi từ khóa hoặc bộ lọc.</p>{onReset && <button type="button" onClick={onReset} className="mt-4 text-sm font-semibold text-primary underline-offset-4 hover:underline">Xóa bộ lọc</button>}</div>;
+  return <div className="space-y-4">{posts.map((post) => <PostListItem key={post.id} post={post} />)}</div>;
 }

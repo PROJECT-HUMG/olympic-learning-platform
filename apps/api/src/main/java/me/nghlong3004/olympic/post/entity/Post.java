@@ -77,6 +77,10 @@ public class Post {
   @Column(name = "expired_at")
   private OffsetDateTime expiredAt;
 
+  @Column(name = "is_pinned", nullable = false)
+  @Builder.Default
+  private boolean pinned = false;
+
   @Column(name = "view_count", nullable = false)
   @Builder.Default
   private Long viewCount = 0L;

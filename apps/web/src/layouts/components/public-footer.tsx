@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 import { ROUTES } from "@/router/route-constants";
 import { Logo } from "@/components/ui/logo";
 
-const FaviconIcon = ({ domain, className }: { domain: string; className?: string }) => (
-  <img 
-    src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`} 
+const FaviconIcon = ({ src, domain, className }: { src: string; domain: string; className?: string }) => (
+  <img
+    src={src}
     alt={`${domain} icon`}
     className={className}
     loading="lazy"
@@ -12,10 +12,10 @@ const FaviconIcon = ({ domain, className }: { domain: string; className?: string
 );
 
 const SOCIAL_LINKS = [
-  { name: "Facebook", href: "https://www.facebook.com/people/Olympic-HUMG/61586595247041/#", domain: "facebook.com" },
-  { name: "YouTube", href: "https://youtube.com", domain: "youtube.com" },
-  { name: "Zalo", href: "https://zalo.me/g/qogcgc751", domain: "zalo.me" },
-  { name: "GitHub", href: "https://github.com/PROJECT-HUMG/olympic-learning-platform", domain: "github.com" },
+  { name: "Facebook", href: "https://www.facebook.com/people/Olympic-HUMG/61586595247041/#", domain: "facebook.com", iconSrc: "/social-icons/facebook.png" },
+  { name: "YouTube", href: "https://youtube.com", domain: "youtube.com", iconSrc: "/social-icons/youtube.png" },
+  { name: "Zalo", href: "https://zalo.me/g/qogcgc751", domain: "zalo.me", iconSrc: "/social-icons/zalo.png" },
+  { name: "GitHub", href: "https://github.com/PROJECT-HUMG/olympic-learning-platform", domain: "github.com", iconSrc: "/social-icons/github.png" },
 ];
 
 const FOOTER_GROUPS = [
@@ -66,7 +66,7 @@ export function PublicFooter() {
                   rel="noreferrer"
                   className="transition-transform hover:-translate-y-1 group"
                 >
-                  <FaviconIcon domain={social.domain} className="size-5 rounded-sm grayscale group-hover:grayscale-0 opacity-70 group-hover:opacity-100 transition-all duration-300" />
+                  <FaviconIcon src={social.iconSrc} domain={social.domain} className="size-5 rounded-sm grayscale group-hover:grayscale-0 opacity-70 group-hover:opacity-100 transition-all duration-300" />
                   <span className="sr-only">{social.name}</span>
                 </a>
               ))}

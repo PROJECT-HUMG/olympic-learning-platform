@@ -15,6 +15,8 @@ export function PostStatusBadge({ status, className }: PostStatusBadgeProps) {
         return "secondary";
       case "ARCHIVED":
         return "outline";
+      case "EXPIRED":
+        return "destructive";
       default:
         return "outline";
     }
@@ -28,6 +30,8 @@ export function PostStatusBadge({ status, className }: PostStatusBadgeProps) {
         return "Bản nháp";
       case "ARCHIVED":
         return "Lưu trữ";
+      case "EXPIRED":
+        return "Hết hiệu lực";
       default:
         return status;
     }

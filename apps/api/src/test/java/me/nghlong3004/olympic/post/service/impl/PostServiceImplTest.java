@@ -197,7 +197,7 @@ class PostServiceImplTest {
 
   @Test
   void getBySlug_HappyPath() {
-    Post post = Post.builder().id(UUID.randomUUID()).viewCount(5L).build();
+    Post post = Post.builder().id(UUID.randomUUID()).viewCount(5L).status(PostStatus.PUBLISHED).build();
     when(postRepository.findBySlug("test-slug")).thenReturn(Optional.of(post));
     when(postMapper.toDetailResponse(post)).thenReturn(PostDetailResponse.builder().id(post.getId()).build());
 

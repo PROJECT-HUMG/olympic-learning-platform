@@ -123,7 +123,7 @@ class PostControllerTest {
     PostSummaryResponse summary = PostSummaryResponse.builder().id(id).title("Title").build();
     Page<PostSummaryResponse> page = new PageImpl<>(List.of(summary));
     
-    when(postService.getAll(any(Pageable.class))).thenReturn(page);
+    when(postService.getAll(any(me.nghlong3004.olympic.post.request.PostSearchRequest.class), any(Pageable.class))).thenReturn(page);
 
     mockMvc.perform(get("/api/v1/posts"))
         .andExpect(status().isOk())

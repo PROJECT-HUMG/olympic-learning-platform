@@ -18,6 +18,8 @@ export const CreatePostSchema = z.object({
     message: "Vui lòng chọn trạng thái",
   }),
   publishedAt: z.iso.datetime({ message: "Định dạng thời gian không hợp lệ" }).optional().nullable(),
+  expiredAt: z.iso.datetime({ message: "Định dạng thời gian không hợp lệ" }).optional().nullable(),
+  pinned: z.boolean().default(false),
 });
 
 // Assuming PUT requires the same fields as POST. 

@@ -11,14 +11,17 @@ import me.nghlong3004.olympic.common.security.CurrentUser;
 import me.nghlong3004.olympic.common.security.CurrentUserProvider;
 import me.nghlong3004.olympic.common.util.SlugGenerator;
 import me.nghlong3004.olympic.post.entity.Post;
+import me.nghlong3004.olympic.post.enums.PostStatus;
 import me.nghlong3004.olympic.post.exception.PostNotFoundException;
 import me.nghlong3004.olympic.post.mapper.PostMapper;
 import me.nghlong3004.olympic.post.repository.PostRepository;
+import me.nghlong3004.olympic.post.repository.PostSpecifications;
 import me.nghlong3004.olympic.post.request.CreatePostRequest;
 import me.nghlong3004.olympic.post.request.PostSearchRequest;
 import me.nghlong3004.olympic.post.request.UpdatePostRequest;
 import me.nghlong3004.olympic.post.response.PostDetailResponse;
 import me.nghlong3004.olympic.post.response.PostSummaryResponse;
+import me.nghlong3004.olympic.post.response.PostStatusCountsResponse;
 import me.nghlong3004.olympic.post.service.PostService;
 import me.nghlong3004.olympic.storage.entity.File;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
@@ -42,6 +45,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PostServiceImpl implements PostService {
+
+  private static final int MAX_ACTIVE_PINNED_POSTS = 3;
 
   private final PostRepository postRepository;
   private final UserRepository userRepository;
@@ -75,6 +80,10 @@ public class PostServiceImpl implements PostService {
       slug = slug + "-" + UUID.randomUUID().toString().substring(0, 8);
     }
 
+    OffsetDateTime publishedAt = resolvePublishedAt(request.status(), request.publishedAt(), null);
+    validateExpiry(request.expiredAt(), publishedAt);
+    validatePinning(request.pinned(), request.status(), request.expiredAt(), null);
+
     Post post =
         Post.builder()
             .title(request.title())
@@ -84,8 +93,9 @@ public class PostServiceImpl implements PostService {
             .thumbnail(thumbnail)
             .type(request.type())
             .status(request.status())
-            .publishedAt(request.publishedAt())
+            .publishedAt(publishedAt)
             .expiredAt(request.expiredAt())
+            .pinned(request.status() == PostStatus.ARCHIVED ? false : request.pinned())
             .author(author)
             .build();
 
@@ -121,8 +131,13 @@ public class PostServiceImpl implements PostService {
     post.setThumbnail(thumbnail);
     post.setType(request.type());
     post.setStatus(request.status());
-    post.setPublishedAt(request.publishedAt());
+    OffsetDateTime publishedAt = resolvePublishedAt(request.status(), request.publishedAt(), post.getPublishedAt());
+    validateExpiry(request.expiredAt(), publishedAt);
+    validatePinning(request.pinned(), request.status(), request.expiredAt(), post.getId());
+
+    post.setPublishedAt(publishedAt);
     post.setExpiredAt(request.expiredAt());
+    post.setPinned(request.status() == PostStatus.ARCHIVED ? false : request.pinned());
 
     if (titleChanged) {
       String slug = slugGenerator.generate(request.title());
@@ -145,7 +160,7 @@ public class PostServiceImpl implements PostService {
             .findBySlug(slug)
             .orElseThrow(() -> new PostNotFoundException(slug));
             
-    if (post.getDeletedAt() != null) {
+    if (post.getDeletedAt() != null || post.getStatus() != PostStatus.PUBLISHED) {
         throw new PostNotFoundException(slug);
     }
 
@@ -165,14 +180,47 @@ public class PostServiceImpl implements PostService {
         throw new PostNotFoundException(id);
     }
 
+    checkUpdateDeletePermission(post);
     return enrichDetail(postMapper.toDetailResponse(post), post);
   }
 
   @Override
   public Page<PostSummaryResponse> getAll(PostSearchRequest request, Pageable pageable) {
     return postRepository
-        .searchPosts(request.keyword(), request.type(), request.status(), pageable)
+        .findAll(PostSpecifications.publicPosts(request, OffsetDateTime.now()), pageable)
         .map(post -> enrichSummary(postMapper.toSummaryResponse(post), post));
+  }
+
+  @Override
+  public Page<PostSummaryResponse> getAll(Pageable pageable) {
+    return postRepository.findAll(pageable)
+        .map(post -> enrichSummary(postMapper.toSummaryResponse(post), post));
+  }
+
+  @Override
+  @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
+  public Page<PostSummaryResponse> getManagementPosts(PostSearchRequest request, Pageable pageable) {
+    CurrentUser currentUser = currentUserProvider.getCurrentUser();
+    UUID authorId = currentUser.role() == Role.ADMIN ? null : currentUser.id();
+
+    return postRepository
+        .findAll(PostSpecifications.managementPosts(request, authorId, OffsetDateTime.now()), pageable)
+        .map(post -> enrichSummary(postMapper.toSummaryResponse(post), post));
+  }
+
+  @Override
+  @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
+  public PostStatusCountsResponse getManagementStatusCounts() {
+    CurrentUser currentUser = currentUserProvider.getCurrentUser();
+    UUID authorId = currentUser.role() == Role.ADMIN ? null : currentUser.id();
+    OffsetDateTime now = OffsetDateTime.now();
+
+    return new PostStatusCountsResponse(
+        postRepository.count(PostSpecifications.status(PostStatus.DRAFT, authorId, now)),
+        postRepository.count(PostSpecifications.status(PostStatus.PUBLISHED, authorId, now))
+            - postRepository.count(PostSpecifications.expired(authorId, now)),
+        postRepository.count(PostSpecifications.status(PostStatus.ARCHIVED, authorId, now)),
+        postRepository.count(PostSpecifications.expired(authorId, now)));
   }
 
   @Override
@@ -265,5 +313,36 @@ public class PostServiceImpl implements PostService {
           return;
       }
       throw ErrorCode.ACCESS_DENIED.throwIt("You do not have permission to modify this post");
+  }
+
+  private OffsetDateTime resolvePublishedAt(
+      PostStatus status, OffsetDateTime requestedPublishedAt, OffsetDateTime existingPublishedAt) {
+    if (status != PostStatus.PUBLISHED) {
+      return existingPublishedAt;
+    }
+    if (existingPublishedAt != null) {
+      return existingPublishedAt;
+    }
+    return requestedPublishedAt != null ? requestedPublishedAt : OffsetDateTime.now();
+  }
+
+  private void validateExpiry(OffsetDateTime expiredAt, OffsetDateTime publishedAt) {
+    if (expiredAt != null && publishedAt != null && !expiredAt.isAfter(publishedAt)) {
+      throw ErrorCode.VALIDATION_ERROR.throwIt("Expiry time must be after the publication time");
+    }
+  }
+
+  private void validatePinning(
+      boolean pinned, PostStatus status, OffsetDateTime expiredAt, UUID currentPostId) {
+    if (!pinned || status != PostStatus.PUBLISHED || (expiredAt != null && !expiredAt.isAfter(OffsetDateTime.now()))) {
+      return;
+    }
+
+    long otherPinnedPosts = postRepository.findActivePinnedPostsForUpdate(PostStatus.PUBLISHED, OffsetDateTime.now()).stream()
+        .filter(post -> !post.getId().equals(currentPostId))
+        .count();
+    if (otherPinnedPosts >= MAX_ACTIVE_PINNED_POSTS) {
+      throw ErrorCode.VALIDATION_ERROR.throwIt("Only three active posts can be pinned at once");
+    }
   }
 }

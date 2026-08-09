@@ -7,6 +7,7 @@ import type {
   CreatePostRequest,
   UpdatePostRequest,
   PostSearchRequest,
+  PostStatusCountsResponse,
 } from "../types/post.types";
 
 export const postService = {
@@ -25,6 +26,18 @@ export const postService = {
   getBySlug(slug: string) {
     return apiClient
       .get<PostDetailResponse>(`/posts/slug/${slug}`)
+      .then((res) => res.data);
+  },
+
+  getManagement(params?: PostSearchRequest) {
+    return apiClient
+      .get<Page<PostSummaryResponse>>("/posts/management", { params })
+      .then((res) => res.data);
+  },
+
+  getManagementStatusCounts() {
+    return apiClient
+      .get<PostStatusCountsResponse>("/posts/management/status-counts")
       .then((res) => res.data);
   },
 

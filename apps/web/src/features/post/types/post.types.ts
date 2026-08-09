@@ -25,6 +25,8 @@ export interface PostSummaryResponse {
   status: string;
   thumbnailUrl: string | null;
   publishedAt: string | null;
+  expiredAt: string | null;
+  pinned: boolean;
   author: {
     id: string;
     email: string;
@@ -33,23 +35,31 @@ export interface PostSummaryResponse {
     avatarUrl: string | null;
   } | null;
   viewCount: number;
+  updatedAt: string;
 }
 
 export interface PostDetailResponse extends PostSummaryResponse {
   content: string;
-  expiredAt: string | null;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface PostSearchRequest {
   keyword?: string;
   type?: string;
   status?: string;
-  authorId?: string;
   page?: number;
   size?: number;
   sort?: string;
+  authorId?: string;
+  pinned?: boolean;
+  expired?: boolean;
+}
+
+export interface PostStatusCountsResponse {
+  draft: number;
+  published: number;
+  archived: number;
+  expired: number;
 }
 
 export type CreatePostRequest = CreatePostInput;

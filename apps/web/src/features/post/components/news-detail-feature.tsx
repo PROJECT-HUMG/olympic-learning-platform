@@ -4,10 +4,10 @@ import { vi } from "date-fns/locale";
 import {
   ArrowLeft,
   Calendar,
-  Eye,
   User,
   Clock,
   ChevronDown,
+  AlertTriangle,
 } from "lucide-react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,7 +27,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { PostCard } from "@/features/post/components/post-card";
+import { PostListItem } from "@/features/post/components/post-list-item";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserHoverCard } from "@/features/user/components/user-hover-card";
 import { ReadingProgressBar } from "@/features/post/components/reading-progress-bar";
@@ -206,6 +206,12 @@ export function NewsDetailFeature() {
 
       {/* ── Breadcrumb ── */}
       <div className="mx-auto max-w-5xl px-4 pt-8 sm:px-6 lg:px-8">
+        {post.expiredAt && new Date(post.expiredAt) <= new Date() && (
+          <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+            <div><p className="font-semibold">Bài viết này đã hết hiệu lực</p><p className="mt-1">Thông tin có thể đã thay đổi. Hãy xem các thông báo mới nhất trước khi thực hiện.</p></div>
+          </div>
+        )}
         <div className="mb-6">
           <Breadcrumb>
             <BreadcrumbList>
@@ -235,17 +241,15 @@ export function NewsDetailFeature() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto w-full max-w-6xl px-4 sm:px-6"
+          className="mx-auto w-full max-w-5xl px-4 sm:px-6"
         >
-          <div className="relative aspect-video max-h-[480px] w-full overflow-hidden rounded-2xl bg-muted shadow-lg sm:aspect-[21/9] group">
+          <div className="relative aspect-video max-h-[420px] w-full overflow-hidden rounded-xl bg-muted ring-1 ring-border/60 sm:aspect-[21/9] group">
             <ImageLightbox
               src={post.thumbnailUrl}
               alt={post.title}
               containerClassName="h-full w-full"
               withBlurFill={true}
             />
-            {/* Bottom gradient overlay for visual depth */}
-            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent pointer-events-none z-10" />
           </div>
         </motion.div>
       )}
@@ -255,7 +259,7 @@ export function NewsDetailFeature() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-        className="mx-auto max-w-3xl px-4 pt-10 sm:px-6"
+        className="mx-auto max-w-4xl px-4 pt-10 sm:px-6"
       >
         <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-[2.75rem]">
           {post.title}
@@ -269,16 +273,11 @@ export function NewsDetailFeature() {
             <Calendar className="h-3.5 w-3.5" />
             {formattedDate}
           </span>
-          <span className="hidden sm:inline text-border">·</span>
           <span className="flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" />
             {readingTime} phút đọc
           </span>
-          <span className="hidden sm:inline text-border">·</span>
-          <span className="flex items-center gap-1.5">
-            <Eye className="h-3.5 w-3.5" />
-            {post.viewCount} lượt xem
-          </span>
+          {post.expiredAt && <><span className="hidden sm:inline text-border">·</span><span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />Hiệu lực đến {format(new Date(post.expiredAt), "dd/MM/yyyy", { locale: vi })}</span></>}
         </div>
 
         {/* Author strip */}
@@ -304,7 +303,7 @@ export function NewsDetailFeature() {
                     {post.author.fullName || post.author.username}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Tác giả bài viết
+                    Cập nhật {format(new Date(post.updatedAt), "dd/MM/yyyy", { locale: vi })}
                   </p>
                 </div>
               </div>
@@ -354,7 +353,7 @@ export function NewsDetailFeature() {
 
           {/* Summary / Lead text */}
           {post.summary && (
-            <p className="mb-10 text-lg font-medium leading-relaxed text-muted-foreground md:text-xl">
+            <p className="mb-10 border-l-2 border-primary/40 pl-4 text-lg font-medium leading-relaxed text-muted-foreground md:text-xl">
               {post.summary}
             </p>
           )}
@@ -375,50 +374,6 @@ export function NewsDetailFeature() {
             />
           </div>
 
-          {/* Author bio footer */}
-          <footer className="mt-14 border-t border-border/50 pt-8">
-            {post.author ? (
-              <UserHoverCard user={post.author as any}>
-                <div className="flex cursor-pointer items-center gap-4 rounded-2xl border border-border/30 bg-muted/30 p-6 transition-colors hover:bg-muted/50">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-primary/10 text-primary">
-                    {post.author.avatarUrl ? (
-                      <img
-                        src={post.author.avatarUrl}
-                        alt={post.author.fullName}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-xl font-bold">
-                        {(post.author.fullName || post.author.username || "U").charAt(0)}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {post.author.fullName || post.author.username}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Tác giả bài viết
-                    </p>
-                  </div>
-                </div>
-              </UserHoverCard>
-            ) : (
-              <div className="flex items-center gap-4 rounded-2xl border border-border/30 bg-muted/30 p-6">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-primary/10 text-primary">
-                  <span className="text-xl font-bold">Q</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground">
-                    Quản trị viên
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Tác giả bài viết
-                  </p>
-                </div>
-              </div>
-            )}
-          </footer>
         </motion.article>
       </div>
 
@@ -439,7 +394,7 @@ export function NewsDetailFeature() {
               <Link to={ROUTES.NEWS}>Xem tất cả</Link>
             </Button>
           </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-3">
             {filteredRelatedPosts.map((relatedPost, index) => (
               <motion.div
                 key={relatedPost.id}
@@ -452,12 +407,7 @@ export function NewsDetailFeature() {
                   ease: [0.16, 1, 0.3, 1],
                 }}
               >
-                <PostCard
-                  post={relatedPost}
-                  onClick={() =>
-                    navigate(`${ROUTES.NEWS}/${relatedPost.slug}`)
-                  }
-                />
+                <PostListItem post={relatedPost} />
               </motion.div>
             ))}
           </div>

@@ -9,6 +9,7 @@ import me.nghlong3004.olympic.post.request.CreatePostRequest;
 import me.nghlong3004.olympic.post.request.PostSearchRequest;
 import me.nghlong3004.olympic.post.request.UpdatePostRequest;
 import me.nghlong3004.olympic.post.response.PostDetailResponse;
+import me.nghlong3004.olympic.post.response.PostStatusCountsResponse;
 import me.nghlong3004.olympic.post.response.PostSummaryResponse;
 import me.nghlong3004.olympic.post.service.PostService;
 import org.springdoc.core.annotations.ParameterObject;
@@ -64,6 +65,21 @@ public class PostController {
   @ResponseStatus(HttpStatus.OK)
   public PostDetailResponse getById(@PathVariable UUID id) {
     return postService.getById(id);
+  }
+
+  @GetMapping("/management")
+  @Operation(summary = "Get posts visible in the current management workspace")
+  @ResponseStatus(HttpStatus.OK)
+  public Page<PostSummaryResponse> getManagementPosts(
+      @ParameterObject PostSearchRequest request, @ParameterObject Pageable pageable) {
+    return postService.getManagementPosts(request, pageable);
+  }
+
+  @GetMapping("/management/status-counts")
+  @Operation(summary = "Get post status totals for the current management workspace")
+  @ResponseStatus(HttpStatus.OK)
+  public PostStatusCountsResponse getManagementStatusCounts() {
+    return postService.getManagementStatusCounts();
   }
 
   @GetMapping

@@ -36,10 +36,19 @@ public record PostSummaryResponse(
     @Schema(example = "2026-08-04T15:00:00Z")
     OffsetDateTime publishedAt,
 
+    @Schema(example = "2026-12-31T23:59:59Z")
+    OffsetDateTime expiredAt,
+
+    @Schema(example = "false")
+    boolean pinned,
+
     @Schema(example = "100")
     Long viewCount,
 
     String thumbnailUrl,
 
-    UserResponse author
+    UserResponse author,
+
+    @Schema(example = "2026-08-04T15:00:00Z")
+    OffsetDateTime updatedAt
 ) {}
