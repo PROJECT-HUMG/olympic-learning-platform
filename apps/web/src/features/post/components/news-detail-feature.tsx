@@ -58,45 +58,41 @@ function NewsDetailSkeleton() {
         </div>
       </div>
 
-      {/* Hero image skeleton */}
-      <div className="w-full">
-        <Skeleton className="mx-auto aspect-[21/9] max-h-[480px] w-full max-w-6xl sm:rounded-2xl" />
+      {/* Compact title + thumbnail skeleton */}
+      <div className="mx-auto max-w-4xl px-4 pt-10 sm:px-6">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px]">
+          <div>
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-4/5" />
+            </div>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-4 w-20" />
+            </div>
+            <div className="mt-6 flex items-center gap-3 border-t border-border/40 pt-6">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+          </div>
+          <Skeleton className="h-[180px] w-full rounded-xl lg:mt-1" />
+        </div>
       </div>
 
-      {/* Title + metadata skeleton */}
-      <div className="mx-auto max-w-3xl px-4 pt-10 sm:px-6">
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-4/5" />
-        </div>
-        <div className="mt-6 flex items-center gap-3">
-          <Skeleton className="h-6 w-20 rounded-full" />
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-4 w-20" />
-          <Skeleton className="h-4 w-24" />
-        </div>
-        <div className="mt-6 flex items-center gap-3 border-t border-border/40 pt-6">
-          <Skeleton className="h-10 w-10 rounded-full" />
-          <div className="space-y-1.5">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-20" />
+      {/* Article content skeleton */}
+      <div className="mx-auto mt-10 max-w-4xl px-4 sm:px-6">
+        <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
+          <Skeleton className="h-4 w-36" />
+          <div className="mt-3 space-y-2">
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-3 w-2/3" />
           </div>
         </div>
-      </div>
-
-      {/* Content skeleton */}
-      <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-12 px-4 sm:px-6 lg:grid-cols-[220px_1fr]">
-        {/* Sidebar skeleton */}
-        <div className="hidden space-y-4 lg:block">
-          <Skeleton className="h-3 w-16" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-4/5" />
-          <Skeleton className="h-4 w-3/5" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-2/3" />
-        </div>
-        {/* Article skeleton */}
-        <div className="space-y-6">
+        <div className="mt-8 space-y-5">
           <Skeleton className="h-6 w-full" />
           <Skeleton className="h-6 w-full" />
           <Skeleton className="h-6 w-4/5" />
@@ -108,6 +104,10 @@ function NewsDetailSkeleton() {
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-[85%]" />
           <Skeleton className="h-4 w-full" />
+        </div>
+        <div className="mt-12 border-t border-border/40 pt-6">
+          <Skeleton className="h-4 w-16" />
+          <div className="mt-3 flex gap-2"><Skeleton className="h-9 w-9 rounded-lg" /><Skeleton className="h-9 w-9 rounded-lg" /><Skeleton className="h-9 w-9 rounded-lg" /></div>
         </div>
       </div>
     </div>
