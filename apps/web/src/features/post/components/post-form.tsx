@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -13,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { ListTree, Loader2 } from "lucide-react";
 import type { PostSummaryResponse, CreatePostRequest } from "../types/post.types";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { PostImageUpload } from "./post-image-upload";
@@ -32,6 +33,39 @@ const postSchema = z.object({
 
 type PostFormValues = z.infer<typeof postSchema>;
 
+function ArticleOutlinePreview({ content }: { content: string }) {
+  const headings = useMemo(() => {
+    if (!content || typeof DOMParser === "undefined") return [];
+    const document = new DOMParser().parseFromString(content, "text/html");
+    return Array.from(document.querySelectorAll("h2, h3")).map((heading) => ({
+      text: heading.textContent?.trim() || "Tiêu đề chưa đặt",
+      level: heading.tagName === "H2" ? 2 : 3,
+    }));
+  }, [content]);
+
+  return (
+    <div className="mt-4 rounded-xl border border-border/60 bg-muted/30 p-4">
+      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+        <ListTree className="size-4 text-primary" />
+        Mục lục dự kiến
+      </div>
+      {headings.length > 0 ? (
+        <ol className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+          {headings.map((heading, index) => (
+            <li key={`${heading.text}-${index}`} className={heading.level === 3 ? "pl-5" : "font-medium text-foreground"}>
+              {index + 1}. {heading.text}
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">
+          Dùng “Tiêu đề 2” hoặc “Tiêu đề 3” trong thanh công cụ để tạo mục lục tự động.
+        </p>
+      )}
+    </div>
+  );
+}
+
 interface PostFormProps {
   initialData?: PostSummaryResponse & { content?: string };
   onSubmit: (data: CreatePostRequest) => void;
@@ -48,26 +82,28 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
       content: initialData?.content || "",
       thumbnailId: "",
       type: (initialData?.type as "NEWS" | "BLOG" | "ANNOUNCEMENT") || "NEWS",
-      status: (initialData?.status as "DRAFT" | "PUBLISHED" | "ARCHIVED") || "DRAFT",
+      status: (initialData?.status as "DRAFT" | "PUBLISHED" | "ARCHIVED") || "PUBLISHED",
       expiredAt: initialData?.expiredAt ? initialData.expiredAt.slice(0, 16) : "",
       pinned: initialData?.pinned || false,
     },
   });
 
-  const handleSubmit = (values: PostFormValues) => {
+  const handleSubmit = (values: PostFormValues, forcedStatus?: "DRAFT" | "PUBLISHED") => {
+    const status = initialData ? values.status : (forcedStatus || "PUBLISHED");
     onSubmit({
       ...values,
+      status,
       thumbnailId: values.thumbnailId || null,
       summary: values.summary || "",
-      publishedAt: initialData ? undefined : values.status === "PUBLISHED" ? new Date().toISOString() : undefined,
+      publishedAt: initialData ? undefined : status === "PUBLISHED" ? new Date().toISOString() : undefined,
       expiredAt: values.expiredAt ? new Date(values.expiredAt).toISOString() : null,
-      pinned: values.status === "PUBLISHED" ? values.pinned : false,
+      pinned: status === "PUBLISHED" ? values.pinned : false,
     } as CreatePostRequest);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit((values) => handleSubmit(values))} className="space-y-6">
         
         {/* NỬA TRÊN: THÔNG TIN & ẢNH BÌA */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -117,7 +153,7 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                     )}
                   />
 
-                  <FormField
+                  {initialData && <FormField
                     control={form.control}
                     name="status"
                     render={({ field }) => (
@@ -138,7 +174,7 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                  />}
                 </div>
 
                 <FormField
@@ -216,16 +252,22 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                 </FormItem>
               )}
             />
+            <ArticleOutlinePreview content={form.watch("content")} />
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-3 pt-4">
+        <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
             Hủy
           </Button>
+          {!initialData && <Button type="button" variant="secondary" disabled={isLoading} onClick={() => {
+            void form.handleSubmit((values) => handleSubmit(values, "DRAFT"))();
+          }}>
+            Lưu bản nháp
+          </Button>}
           <Button type="submit" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {initialData ? "Cập nhật bài viết" : "Tạo bài viết"}
+            {initialData ? "Cập nhật bài viết" : "Xuất bản bài viết"}
           </Button>
         </div>
       </form>
