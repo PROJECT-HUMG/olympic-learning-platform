@@ -124,7 +124,7 @@ function MobileToc({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="mb-8 rounded-xl border border-border/50 bg-muted/30 lg:hidden">
+    <div className="mb-8 rounded-xl border border-border/50 bg-muted/30">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -248,7 +248,8 @@ export function NewsDetailFeature() {
               src={post.thumbnailUrl}
               alt={post.title}
               containerClassName="h-full w-full"
-              withBlurFill={true}
+              withBlurFill={false}
+              className="h-full object-cover"
             />
           </div>
         </motion.div>
@@ -327,28 +328,14 @@ export function NewsDetailFeature() {
       </motion.header>
 
       {/* ── Content Area: Sidebar + Article ── */}
-      <div className="mx-auto mt-10 grid max-w-5xl grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-[220px_1fr] lg:gap-12">
-        {/* ── Desktop Sidebar (sticky) ── */}
-        <aside className="hidden lg:block">
-          <div className="sticky top-20 space-y-8">
-            <ArticleToc contentRef={contentRef} />
-            <div className="border-t border-border/30 pt-4">
-              <ShareButtons
-                url={currentUrl}
-                title={post.title}
-                direction="vertical"
-              />
-            </div>
-          </div>
-        </aside>
-
+      <div className="mx-auto mt-10 max-w-4xl px-4 sm:px-6">
         {/* ── Article Content ── */}
         <motion.article
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
-          {/* Mobile TOC */}
+          {/* Article contents */}
           <MobileToc contentRef={contentRef} />
 
           {/* Summary / Lead text */}
@@ -365,8 +352,8 @@ export function NewsDetailFeature() {
             </div>
           </div>
 
-          {/* Mobile share buttons */}
-          <div className="mt-10 border-t border-border/40 pt-6 lg:hidden">
+          {/* Share after reading, keeping the article column straight */}
+          <div className="mt-12 border-t border-border/40 pt-6">
             <ShareButtons
               url={currentUrl}
               title={post.title}

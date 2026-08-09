@@ -115,7 +115,10 @@ export function ShareButtons({
           className
         )}
       >
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+        <p className={cn(
+          "text-xs font-semibold uppercase tracking-wider text-muted-foreground/70",
+          direction === "vertical" ? "mb-1" : "mr-2 self-center"
+        )}>
           Chia sẻ
         </p>
 
