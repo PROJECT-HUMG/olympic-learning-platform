@@ -28,6 +28,17 @@ public interface StorageService {
   UploadedFile upload(MultipartFile file, StorageFolder folder);
 
   /**
+   * Uploads generated binary content into the specified logical storage folder.
+   *
+   * @param content generated file bytes
+   * @param originalName display name for the generated file
+   * @param contentType MIME type of the generated file
+   * @param folder logical destination folder
+   * @return metadata describing the stored file
+   */
+  UploadedFile upload(byte[] content, String originalName, String contentType, StorageFolder folder);
+
+  /**
    * Deletes a previously stored file.
    *
    * <p>If the file does not exist, implementations should silently ignore the request.
@@ -56,4 +67,12 @@ public interface StorageService {
    * @return thumbnail URI
    */
   URI getThumbnailUri(String storageKey);
+
+  /**
+   * Downloads the stored binary for an internal processing workflow.
+   *
+   * @param storageKey unique storage key
+   * @return stored bytes
+   */
+  byte[] download(String storageKey);
 }

@@ -11,8 +11,8 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 25MB
+      max-request-size: 25MB
 
   ai:
     model:
@@ -29,6 +29,14 @@ logging:
     level: "%5p [traceId=%X{traceId:-}]"
 
 olympic:
+  assessment:
+    import:
+      max-file-size-mb: ${ASSESSMENT_IMPORT_MAX_FILE_SIZE_MB:25}
+      max-pages: ${ASSESSMENT_IMPORT_MAX_PAGES:100}
+      gemini:
+        api-key: ${GEMINI_API_KEY:}
+        model: ${GEMINI_MODEL:gemini-2.5-flash}
+        max-tokens: ${GEMINI_MAX_TOKENS:8192}
   storage:
     provider: ${STORAGE_PROVIDER:cloudinary}
   auth:

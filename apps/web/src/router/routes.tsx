@@ -31,6 +31,7 @@ const DashboardPage = lazy(() => import("@/pages/dashboard-page"));
 const ProfilePage = lazy(() => import("@/pages/profile-page"));
 const PracticePage = lazy(() => import("@/pages/practice-page"));
 const HistoryPage = lazy(() => import("@/pages/history-page"));
+const AssessmentImportPage = lazy(() => import("@/pages/assessment-import-page"));
 
 // Lazy load fallback pages
 const NotFoundPage = lazy(() => import("@/pages/not-found-page"));
@@ -240,6 +241,14 @@ export const router = createBrowserRouter([
               </Suspense>
             ),
           },
+          {
+            path: "/lecturer/questions/import",
+            element: (
+              <Suspense fallback={<div className="p-6"><div className="h-8 w-64 animate-pulse rounded-lg bg-muted" /></div>}>
+                <AssessmentImportPage />
+              </Suspense>
+            ),
+          },
         ],
       },
     ],
@@ -289,6 +298,14 @@ export const router = createBrowserRouter([
             element: (
               <Suspense fallback={null}>
                 <PostManagementPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "/admin/questions/import",
+            element: (
+              <Suspense fallback={<div className="p-6"><div className="h-8 w-64 animate-pulse rounded-lg bg-muted" /></div>}>
+                <AssessmentImportPage />
               </Suspense>
             ),
           },

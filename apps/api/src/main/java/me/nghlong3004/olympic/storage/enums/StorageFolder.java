@@ -18,6 +18,8 @@ public enum StorageFolder {
   DOCUMENT("documents"),
   QUESTION("questions"),
   SUBMISSION("submissions"),
+  ASSESSMENT_SOURCE("assessment-sources"),
+  ASSESSMENT_PAGE("assessment-pages"),
   POST("posts");
 
   private final String path;

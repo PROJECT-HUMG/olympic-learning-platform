@@ -20,6 +20,7 @@ export const ROUTES = {
   PROFILE: "/profile",
   PRACTICE: "/practice",
   HISTORY: "/history",
+  QUESTION_IMPORT: "/questions/import",
 
   // Admin area
   ADMIN: "/admin/dashboard",

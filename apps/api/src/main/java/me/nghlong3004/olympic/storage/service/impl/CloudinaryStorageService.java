@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.Transformation;
 import com.cloudinary.utils.ObjectUtils;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
@@ -38,13 +39,23 @@ public class CloudinaryStorageService implements StorageService {
 
   @Override
   public UploadedFile upload(MultipartFile file, StorageFolder folder) {
+    try {
+      return upload(file.getBytes(), file.getOriginalFilename(), file.getContentType(), folder);
+    } catch (Exception e) {
+      log.error("Cloudinary upload failed: folder={}", folder, e);
+      throw ErrorCode.FILE_UPLOAD_FAILED.throwIt();
+    }
+  }
+
+  @Override
+  public UploadedFile upload(byte[] content, String originalName, String contentType, StorageFolder folder) {
     var publicIdRaw = folder.getPath() + "/" + UUID.randomUUID();
     try {
       Map<?, ?> result =
           cloudinary
               .uploader()
               .upload(
-                  file.getBytes(),
+                  content,
                   ObjectUtils.asMap(
                       "public_id", publicIdRaw, "resource_type", "auto", "overwrite", false));
 
@@ -52,13 +63,13 @@ public class CloudinaryStorageService implements StorageService {
       var format = (String) result.get("format");
       var storageKey = format != null ? publicId + "." + format : publicId;
 
-      log.info("File uploaded to Cloudinary: storageKey={}, size={}", storageKey, file.getSize());
+      log.info("File uploaded to Cloudinary: storageKey={}, size={}", storageKey, content.length);
 
       return new UploadedFile(
           storageKey,
-          file.getOriginalFilename(),
-          file.getContentType(),
-          file.getSize(),
+          originalName,
+          contentType,
+          content.length,
           StorageProvider.CLOUDINARY,
           folder);
 
@@ -104,5 +115,15 @@ public class CloudinaryStorageService implements StorageService {
             .generate(publicId);
 
     return URI.create(url);
+  }
+
+  @Override
+  public byte[] download(String storageKey) {
+    try (InputStream inputStream = getDownloadUri(storageKey).toURL().openStream()) {
+      return inputStream.readAllBytes();
+    } catch (IOException exception) {
+      log.error("Cloudinary download failed: storageKey={}", storageKey, exception);
+      throw ErrorCode.FILE_NOT_FOUND.throwIt();
+    }
   }
 }
