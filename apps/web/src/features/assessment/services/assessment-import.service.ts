@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/axios";
 import type {
   AssessmentImportStatusResponse,
   AssessmentQuestionDraft,
+  Topic,
 } from "../types/assessment-import.types";
 
 export const assessmentImportService = {
@@ -36,6 +37,22 @@ export const assessmentImportService = {
     return apiClient
       .patch<AssessmentQuestionDraft>(`/assessment-imports/${importId}/drafts/${draftId}`, data)
       .then((response) => response.data);
+  },
+
+  approveDraft(importId: string, draftId: string) {
+    return apiClient.post<AssessmentQuestionDraft>(`/assessment-imports/${importId}/drafts/${draftId}/approve`).then((response) => response.data);
+  },
+
+  rejectDraft(importId: string, draftId: string) {
+    return apiClient.post<AssessmentQuestionDraft>(`/assessment-imports/${importId}/drafts/${draftId}/reject`).then((response) => response.data);
+  },
+
+  publish(id: string) {
+    return apiClient.post<AssessmentImportStatusResponse>(`/assessment-imports/${id}/publish`).then((response) => response.data);
+  },
+
+  getTopics(subjectId: string) {
+    return apiClient.get<Topic[]>("/topics", { params: { subjectId } }).then((response) => response.data);
   },
 
   retry(id: string) {

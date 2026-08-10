@@ -34,11 +34,13 @@ export function DashboardLayout() {
       items.push({ label: "Quản lý tài liệu", href: "/admin/documents", icon: FileText });
       items.push({ label: "Danh mục hệ thống", href: "/admin/categories", icon: FolderTree });
       items.push({ label: "Quản lý bài viết", href: "/admin/posts", icon: Newspaper });
+      items.push({ label: "Ngân hàng câu hỏi", href: "/admin/questions", icon: BookOpen });
       items.push({ label: "Nhập đề Toán", href: "/admin/questions/import", icon: FileUp });
     } else if (user?.role === "LECTURER") {
       items.push({ label: "Dashboard", href: ROUTES.LECTURER, icon: LayoutDashboard });
       items.push({ label: "Quản lý tài liệu", href: "/lecturer/documents", icon: FileText });
       items.push({ label: "Quản lý bài viết", href: "/lecturer/posts", icon: Newspaper });
+      items.push({ label: "Ngân hàng câu hỏi", href: "/lecturer/questions", icon: BookOpen });
       items.push({ label: "Nhập đề Toán", href: "/lecturer/questions/import", icon: FileUp });
     } else {
       items.push({ label: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard });

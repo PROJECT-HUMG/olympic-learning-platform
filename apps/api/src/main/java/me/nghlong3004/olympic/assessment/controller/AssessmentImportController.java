@@ -57,6 +57,22 @@ public class AssessmentImportController {
     return assessmentImportService.updateDraft(importId, draftId, request);
   }
 
+  @PostMapping("/{importId}/drafts/{draftId}/approve")
+  public AssessmentQuestionDraftResponse approveDraft(@PathVariable UUID importId, @PathVariable UUID draftId) {
+    return assessmentImportService.approveDraft(importId, draftId);
+  }
+
+  @PostMapping("/{importId}/drafts/{draftId}/reject")
+  public AssessmentQuestionDraftResponse rejectDraft(@PathVariable UUID importId, @PathVariable UUID draftId) {
+    return assessmentImportService.rejectDraft(importId, draftId);
+  }
+
+  @PostMapping("/{id}/approve-all")
+  public void approveAll(@PathVariable UUID id) { assessmentImportService.approveAll(id); }
+
+  @PostMapping("/{id}/publish")
+  public AssessmentImportStatusResponse publish(@PathVariable UUID id) { return assessmentImportService.publish(id); }
+
   @PostMapping("/{id}/retry")
   @Operation(summary = "Retry a failed assessment import")
   public AssessmentImportStatusResponse retry(@PathVariable UUID id) {

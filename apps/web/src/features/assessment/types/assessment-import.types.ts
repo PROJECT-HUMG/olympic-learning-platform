@@ -1,4 +1,4 @@
-export type AssessmentImportStatus = "QUEUED" | "PROCESSING" | "REVIEW_REQUIRED" | "FAILED";
+export type AssessmentImportStatus = "QUEUED" | "PROCESSING" | "REVIEW_REQUIRED" | "PUBLISHED" | "FAILED";
 export type AssessmentImportPhase =
   | "QUEUED"
   | "RENDERING_PAGES"
@@ -7,6 +7,7 @@ export type AssessmentImportPhase =
   | "CROPPING_ASSETS"
   | "SAVING_DRAFTS"
   | "REVIEW_REQUIRED"
+  | "PUBLISHED"
   | "FAILED";
 
 export interface AssessmentImportStatusResponse {
@@ -44,3 +45,5 @@ export interface AssessmentQuestionDraft {
   sourcePageUrl?: string | null;
   assets: AssessmentDraftAsset[];
 }
+
+export interface Topic { id: string; subjectId: string; name: string; slug: string }

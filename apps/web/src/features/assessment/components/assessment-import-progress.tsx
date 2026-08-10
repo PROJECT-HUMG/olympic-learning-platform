@@ -11,6 +11,7 @@ const phases = [
   ["PARSING_QUESTIONS", "Nhận diện câu hỏi"],
   ["CROPPING_ASSETS", "Lưu hình minh họa"],
   ["REVIEW_REQUIRED", "Sẵn sàng kiểm duyệt"],
+  ["PUBLISHED", "Đã xuất bản"],
 ] as const;
 
 export function AssessmentImportProgress({ status }: { status: AssessmentImportStatusResponse }) {
@@ -27,14 +28,14 @@ export function AssessmentImportProgress({ status }: { status: AssessmentImportS
           <div className="min-w-0">
             <CardTitle className="text-base">{failed ? "Không thể xử lý đề" : "Đang xử lý đề Toán"}</CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              {failed ? status.lastError ?? "Đã xảy ra lỗi khi đọc file." : `${status.processedPages}/${status.totalPages || "?"} trang · ${status.draftCount} câu đã nhận diện`}
+              {failed ? status.lastError ?? "Đã xảy ra lỗi khi đọc file." : status.status === "PUBLISHED" ? `${status.draftCount} câu đã được đưa vào ngân hàng` : `${status.processedPages}/${status.totalPages || "?"} trang · ${status.draftCount} câu đã nhận diện`}
             </p>
           </div>
           {!failed && status.status === "PROCESSING" && <Loader2 className="ml-auto size-4 animate-spin text-primary" />}
         </div>
         <Progress value={status.progress} className="h-2" />
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{status.phase === "REVIEW_REQUIRED" ? "Đã hoàn tất phân tích" : "Bạn có thể rời màn hình, job vẫn tiếp tục"}</span>
+          <span>{status.phase === "REVIEW_REQUIRED" ? "Đã hoàn tất phân tích" : status.phase === "PUBLISHED" ? "Hoàn tất" : "Bạn có thể rời màn hình, job vẫn tiếp tục"}</span>
           <span>{status.progress}%</span>
         </div>
       </CardHeader>

@@ -12,5 +12,6 @@ public enum AssessmentImportPhase {
   CROPPING_ASSETS,
   SAVING_DRAFTS,
   REVIEW_REQUIRED,
+  PUBLISHED,
   FAILED
 }

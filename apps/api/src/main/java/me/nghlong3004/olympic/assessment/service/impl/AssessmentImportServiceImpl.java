@@ -19,6 +19,7 @@ import me.nghlong3004.olympic.assessment.response.AssessmentImportStatusResponse
 import me.nghlong3004.olympic.assessment.response.AssessmentQuestionDraftResponse;
 import me.nghlong3004.olympic.assessment.service.AssessmentImportQueue;
 import me.nghlong3004.olympic.assessment.service.AssessmentImportService;
+import me.nghlong3004.olympic.question.service.QuestionService;
 import me.nghlong3004.olympic.assessment.properties.AssessmentImportProperties;
 import me.nghlong3004.olympic.common.error.ErrorCode;
 import me.nghlong3004.olympic.common.security.CurrentUser;
@@ -53,6 +54,7 @@ public class AssessmentImportServiceImpl implements AssessmentImportService {
   private final AssessmentImportProperties properties;
   private final CurrentUserProvider currentUserProvider;
   private final UserRepository userRepository;
+  private final QuestionService questionService;
 
   @Override
   @Transactional
@@ -95,9 +97,36 @@ public class AssessmentImportServiceImpl implements AssessmentImportService {
     if (request.content() != null) draft.setContentJson(request.content());
     if (request.answer() != null) draft.setAnswerJson(request.answer());
     if (request.confidence() != null) draft.setConfidence(request.confidence());
+    draft.setStatus(AssessmentDraftStatus.NEEDS_REVIEW);
+    return toDraftResponse(draftRepository.save(draft));
+  }
+
+  @Override
+  @Transactional
+  public AssessmentQuestionDraftResponse approveDraft(UUID importId, UUID draftId) {
+    var draft = requireDraft(importId, draftId);
     draft.setStatus(AssessmentDraftStatus.APPROVED);
     return toDraftResponse(draftRepository.save(draft));
   }
+
+  @Override
+  @Transactional
+  public AssessmentQuestionDraftResponse rejectDraft(UUID importId, UUID draftId) {
+    var draft = requireDraft(importId, draftId);
+    draft.setStatus(AssessmentDraftStatus.REJECTED);
+    return toDraftResponse(draftRepository.save(draft));
+  }
+
+  @Override
+  @Transactional
+  public void approveAll(UUID importId) {
+    var assessmentImport = requireImport(importId);
+    draftRepository.findByAssessmentImportIdOrderByOrdinalAsc(assessmentImport.getId()).forEach(draft -> draft.setStatus(AssessmentDraftStatus.APPROVED));
+  }
+
+  @Override
+  @Transactional
+  public AssessmentImportStatusResponse publish(UUID importId) { return questionService.publishImport(importId); }
 
   @Override
   @Transactional
@@ -129,6 +158,13 @@ public class AssessmentImportServiceImpl implements AssessmentImportService {
       throw ErrorCode.ACCESS_DENIED.throwIt();
     }
     return currentUser;
+  }
+
+  private AssessmentQuestionDraft requireDraft(UUID importId, UUID draftId) {
+    var assessmentImport = requireImport(importId);
+    return draftRepository.findById(draftId)
+        .filter(candidate -> candidate.getAssessmentImport().getId().equals(assessmentImport.getId()))
+        .orElseThrow(() -> ErrorCode.RESOURCE_NOT_FOUND.throwIt());
   }
 
   private void validateUpload(MultipartFile file) {

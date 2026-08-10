@@ -49,6 +49,14 @@ public interface AssessmentImportService {
    */
   AssessmentQuestionDraftResponse updateDraft(UUID importId, UUID draftId, UpdateAssessmentDraftRequest request);
 
+  AssessmentQuestionDraftResponse approveDraft(UUID importId, UUID draftId);
+
+  AssessmentQuestionDraftResponse rejectDraft(UUID importId, UUID draftId);
+
+  void approveAll(UUID importId);
+
+  AssessmentImportStatusResponse publish(UUID importId);
+
   /**
    * Requeues a failed import using its already stored source PDF.
    *

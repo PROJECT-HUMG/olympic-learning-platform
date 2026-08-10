@@ -40,6 +40,35 @@ export function useUpdateAssessmentDraft(importId: string) {
   });
 }
 
+export function useDraftReviewAction(importId: string) {
+  const queryClient = useQueryClient();
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: assessmentImportKeys.drafts(importId) });
+  return {
+    approve: useMutation({ mutationFn: (draftId: string) => assessmentImportService.approveDraft(importId, draftId), onSuccess: invalidate }),
+    reject: useMutation({ mutationFn: (draftId: string) => assessmentImportService.rejectDraft(importId, draftId), onSuccess: invalidate }),
+  };
+}
+
+export function usePublishAssessmentImport() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => assessmentImportService.publish(id),
+    onSuccess: (status) => {
+      queryClient.invalidateQueries({ queryKey: assessmentImportKeys.status(status.id) });
+      queryClient.invalidateQueries({ queryKey: assessmentImportKeys.drafts(status.id) });
+    },
+  });
+}
+
+export function useAssessmentTopics(subjectId?: string) {
+  return useQuery({
+    queryKey: ["assessment-topics", subjectId ?? ""],
+    queryFn: () => assessmentImportService.getTopics(subjectId!),
+    enabled: Boolean(subjectId),
+    staleTime: 1000 * 60 * 30,
+  });
+}
+
 export function useRetryAssessmentImport() {
   const queryClient = useQueryClient();
   return useMutation({

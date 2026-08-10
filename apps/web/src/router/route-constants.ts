@@ -21,6 +21,7 @@ export const ROUTES = {
   PRACTICE: "/practice",
   HISTORY: "/history",
   QUESTION_IMPORT: "/questions/import",
+  QUESTION_BANK: "/questions",
 
   // Admin area
   ADMIN: "/admin/dashboard",

@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { FileUp, RefreshCw, UploadCloud } from "lucide-react";
+import { FileUp, RefreshCw, UploadCloud, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AssessmentDraftList } from "@/features/assessment/components/assessment-draft-list";
 import { AssessmentImportProgress } from "@/features/assessment/components/assessment-import-progress";
 import { AssessmentImportSkeleton } from "@/features/assessment/components/assessment-import-skeleton";
-import { useAssessmentImportDrafts, useAssessmentImportStatus, useCreateAssessmentImport, useRetryAssessmentImport } from "@/features/assessment/hooks/use-assessment-import";
+import { useAssessmentImportDrafts, useAssessmentImportStatus, useCreateAssessmentImport, usePublishAssessmentImport, useRetryAssessmentImport } from "@/features/assessment/hooks/use-assessment-import";
 
 export default function AssessmentImportPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -14,6 +14,7 @@ export default function AssessmentImportPage() {
   const [error, setError] = useState<string>();
   const createImport = useCreateAssessmentImport();
   const retryImport = useRetryAssessmentImport();
+  const publishImport = usePublishAssessmentImport();
   const statusQuery = useAssessmentImportStatus(importId);
   const draftsQuery = useAssessmentImportDrafts(importId, statusQuery.data?.status === "REVIEW_REQUIRED");
 
@@ -45,6 +46,13 @@ export default function AssessmentImportPage() {
     }
   };
 
+  const handlePublish = async () => {
+    if (!importId) return;
+    setError(undefined);
+    try { await publishImport.mutateAsync(importId); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : "Chưa thể xuất bản đề."); }
+  };
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <header className="space-y-2">
@@ -72,7 +80,15 @@ export default function AssessmentImportPage() {
         <AssessmentImportProgress status={statusQuery.data} />
         {statusQuery.data.status === "FAILED" && <Button variant="outline" onClick={() => void handleRetry()} loading={retryImport.isPending}><RefreshCw className="size-4" />Thử lại file này</Button>}
         {statusQuery.data.status === "REVIEW_REQUIRED" && draftsQuery.isLoading && <AssessmentImportSkeleton />}
-        {statusQuery.data.status === "REVIEW_REQUIRED" && draftsQuery.data && <AssessmentDraftList drafts={draftsQuery.data} importId={statusQuery.data.id} />}
+        {statusQuery.data.status === "REVIEW_REQUIRED" && draftsQuery.data && <>
+          <AssessmentDraftList drafts={draftsQuery.data} importId={statusQuery.data.id} />
+          <Card><CardContent className="flex flex-col items-start justify-between gap-3 p-4 sm:flex-row sm:items-center sm:p-5">
+            <div><p className="font-medium">Đã kiểm tra xong?</p><p className="text-sm text-muted-foreground">Tất cả câu phải được duyệt và có môn/chủ đề trước khi xuất bản.</p></div>
+            <Button onClick={() => void handlePublish()} loading={publishImport.isPending} disabled={!draftsQuery.data.length || draftsQuery.data.some((draft) => draft.status !== "APPROVED")}><Send className="size-4" />Xuất bản ngân hàng câu hỏi</Button>
+          </CardContent></Card>
+        </>}
+        {statusQuery.data.status === "PUBLISHED" && <Card><CardContent className="p-5 text-sm text-emerald-700 dark:text-emerald-300">Đợt nhập đã được xuất bản vào ngân hàng câu hỏi.</CardContent></Card>}
+        {error && <p role="alert" className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
       </>}
     </div>
   );

@@ -8,5 +8,6 @@ public enum AssessmentImportStatus {
   QUEUED,
   PROCESSING,
   REVIEW_REQUIRED,
+  PUBLISHED,
   FAILED
 }

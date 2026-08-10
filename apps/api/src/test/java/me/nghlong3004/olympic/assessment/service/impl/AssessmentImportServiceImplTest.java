@@ -9,6 +9,7 @@ import me.nghlong3004.olympic.assessment.repository.AssessmentImportRepository;
 import me.nghlong3004.olympic.assessment.repository.AssessmentQuestionDraftAssetRepository;
 import me.nghlong3004.olympic.assessment.repository.AssessmentQuestionDraftRepository;
 import me.nghlong3004.olympic.assessment.service.AssessmentImportQueue;
+import me.nghlong3004.olympic.question.service.QuestionService;
 import me.nghlong3004.olympic.common.error.ApiException;
 import me.nghlong3004.olympic.common.error.ErrorCode;
 import me.nghlong3004.olympic.common.security.CurrentUserProvider;
@@ -40,6 +41,7 @@ class AssessmentImportServiceImplTest {
   @Mock private CurrentUserProvider currentUserProvider;
   @Mock private UserRepository userRepository;
   @Mock private AssessmentImportProperties properties;
+  @Mock private QuestionService questionService;
 
   @InjectMocks private AssessmentImportServiceImpl service;
 
