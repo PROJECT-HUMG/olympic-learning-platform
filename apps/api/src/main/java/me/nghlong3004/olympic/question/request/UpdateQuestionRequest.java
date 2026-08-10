@@ -1,16 +1,20 @@
 package me.nghlong3004.olympic.question.request;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
-/** @author nghlong3004 (Long Nguyen Hoang) @since 8/10/2026 */
+/**
+ * @author nghlong3004 (Long Nguyen Hoang)
+ * @since 8/10/2026
+ */
 public record UpdateQuestionRequest(
-    @NotNull UUID subjectId,
-    @NotNull UUID topicId,
-    @NotBlank String type,
-    @NotNull JsonNode content,
-    @NotNull JsonNode answer,
-    JsonNode explanation,
-    String difficulty) {}
+    @Schema(description = "Subject identifier") @NotNull UUID subjectId,
+    @Schema(description = "Topic identifier") @NotNull UUID topicId,
+    @Schema(description = "Question type", example = "multiple_choice") @NotBlank String type,
+    @Schema(description = "Structured question content") @NotNull JsonNode content,
+    @Schema(description = "Structured answer payload") @NotNull JsonNode answer,
+    @Schema(description = "Structured answer explanation") JsonNode explanation,
+    @Schema(description = "Question difficulty", example = "MEDIUM") String difficulty) {}
