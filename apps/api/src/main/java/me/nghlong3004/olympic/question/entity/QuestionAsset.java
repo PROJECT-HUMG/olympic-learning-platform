@@ -20,7 +20,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.nghlong3004.olympic.assessment.enums.AssessmentAssetRole;
+import me.nghlong3004.olympic.question.enums.QuestionAssetRole;
 import me.nghlong3004.olympic.storage.entity.File;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -52,7 +52,7 @@ public class QuestionAsset {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false, length = 40)
-  private AssessmentAssetRole role;
+  private QuestionAssetRole role;
 
   @Column(name = "sort_order", nullable = false)
   @Builder.Default

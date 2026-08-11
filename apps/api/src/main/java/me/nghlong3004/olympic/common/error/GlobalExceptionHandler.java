@@ -4,21 +4,26 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.net.URI;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import me.nghlong3004.olympic.common.filter.RequestTraceFilter;
 import me.nghlong3004.olympic.user.exception.UserDisabledException;
 import me.nghlong3004.olympic.user.exception.UserPendingException;
 import org.slf4j.MDC;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ProblemDetail;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+/**
+ * @author nghlong3004 (Long Nguyen Hoang)
+ * @since 8/10/2026
+ */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -77,6 +82,15 @@ public class GlobalExceptionHandler {
         request.getRequestURI());
   }
 
+  @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+  public ProblemDetail handleOptimisticLock(
+      ObjectOptimisticLockingFailureException exception, HttpServletRequest request) {
+    return problem(
+        ErrorCode.RESOURCE_STATE_CONFLICT,
+        "The resource was changed by another request",
+        request.getRequestURI());
+  }
+
   @ExceptionHandler(AccessDeniedException.class)
   ProblemDetail handleAccessDenied(AccessDeniedException exception, HttpServletRequest request) {
     return problem(
@@ -105,7 +119,10 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ProblemDetail handleUnexpected(Exception exception, HttpServletRequest request) {
-    log.error("Unexpected error occurred while processing request: URI={}", request.getRequestURI(), exception);
+    log.error(
+        "Unexpected error occurred while processing request: URI={}",
+        request.getRequestURI(),
+        exception);
     return problem(
         ErrorCode.INTERNAL_ERROR,
         ErrorCode.INTERNAL_ERROR.getDefaultDetail(),

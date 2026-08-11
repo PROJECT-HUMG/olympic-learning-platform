@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.nghlong3004.olympic.assessment.entity.AssessmentQuestionDraft;
 import me.nghlong3004.olympic.document.entity.Subject;
 import me.nghlong3004.olympic.question.enums.QuestionStatus;
 import me.nghlong3004.olympic.topic.entity.Topic;
@@ -60,9 +60,8 @@ public class Question {
   @JoinColumn(name = "created_by", nullable = false)
   private User createdBy;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "source_draft_id")
-  private AssessmentQuestionDraft sourceDraft;
+  @Column(name = "source_draft_id")
+  private UUID sourceDraftId;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false, length = 30)
@@ -103,6 +102,10 @@ public class Question {
   @Column(name = "updated_at", nullable = false)
   @Builder.Default
   private OffsetDateTime updatedAt = OffsetDateTime.now();
+
+  @Version
+  @Column(name = "version", nullable = false)
+  private long version;
 
   @PreUpdate
   void preUpdate() {

@@ -3,6 +3,7 @@ package me.nghlong3004.olympic.assessment.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.UUID;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
@@ -108,7 +109,7 @@ public class AssessmentImportProcessorImpl implements AssessmentImportProcessor 
             .contentJson(parsedQuestion.content())
             .answerJson(parsedQuestion.answer())
             .parserPayloadJson(objectMapper.valueToTree(parsedQuestion))
-            .confidence(parsedQuestion.confidence())
+            .confidence(BigDecimal.valueOf(parsedQuestion.confidence()))
             .warningsJson(objectMapper.valueToTree(parsedQuestion.warnings()))
             .sourcePage(page.pageNumber())
             .sourceBbox(objectMapper.valueToTree(parsedQuestion.questionBbox()))

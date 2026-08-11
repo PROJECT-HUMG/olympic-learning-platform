@@ -6,6 +6,7 @@ import me.nghlong3004.olympic.question.entity.Question;
 import me.nghlong3004.olympic.question.enums.QuestionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,6 +28,7 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
         and (:search is null or lower(cast(q.contentJson as string)) like lower(concat('%', :search, '%')))
       order by q.updatedAt desc
       """)
+  @EntityGraph(attributePaths = {"subject", "topic"})
   Page<Question> search(
       @Param("ownerId") UUID ownerId,
       @Param("status") QuestionStatus status,
@@ -35,5 +37,10 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
       @Param("search") String search,
       Pageable pageable);
 
+  @EntityGraph(attributePaths = {"subject", "topic"})
   Optional<Question> findByIdAndCreatedById(UUID id, UUID createdById);
+
+  @EntityGraph(attributePaths = {"subject", "topic"})
+  @Query("select question from Question question where question.id = :id")
+  Optional<Question> findDetailedById(@Param("id") UUID id);
 }

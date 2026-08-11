@@ -56,8 +56,9 @@ public class QuestionController {
   @PatchMapping("/{id}")
   @Operation(summary = "Update a draft question")
   @ApiResponse(responseCode = "200", description = "Draft question updated")
-  @ApiResponse(responseCode = "400", description = "Invalid request or non-draft question")
+  @ApiResponse(responseCode = "400", description = "Invalid question content")
   @ApiResponse(responseCode = "404", description = "Question, subject, or topic not found")
+  @ApiResponse(responseCode = "409", description = "Question is not a draft or changed concurrently")
   public QuestionResponse update(
       @PathVariable UUID id, @Valid @RequestBody UpdateQuestionRequest request) {
     return questionService.update(id, request);
@@ -74,8 +75,9 @@ public class QuestionController {
   @PostMapping("/{id}/publish")
   @Operation(summary = "Publish a draft question")
   @ApiResponse(responseCode = "200", description = "Question published")
-  @ApiResponse(responseCode = "400", description = "Question is incomplete or not a draft")
+  @ApiResponse(responseCode = "400", description = "Question is incomplete")
   @ApiResponse(responseCode = "404", description = "Question not found")
+  @ApiResponse(responseCode = "409", description = "Question is not a draft or changed concurrently")
   public QuestionResponse publish(@PathVariable UUID id) {
     return questionService.publish(id);
   }
@@ -83,8 +85,8 @@ public class QuestionController {
   @PostMapping("/{id}/archive")
   @Operation(summary = "Archive a published question")
   @ApiResponse(responseCode = "200", description = "Question archived")
-  @ApiResponse(responseCode = "400", description = "Question is not published")
   @ApiResponse(responseCode = "404", description = "Question not found")
+  @ApiResponse(responseCode = "409", description = "Question is not published or changed concurrently")
   public QuestionResponse archive(@PathVariable UUID id) {
     return questionService.archive(id);
   }
@@ -92,8 +94,8 @@ public class QuestionController {
   @PostMapping("/{id}/restore")
   @Operation(summary = "Restore an archived question")
   @ApiResponse(responseCode = "200", description = "Question restored")
-  @ApiResponse(responseCode = "400", description = "Question is not archived")
   @ApiResponse(responseCode = "404", description = "Question not found")
+  @ApiResponse(responseCode = "409", description = "Question is not archived or changed concurrently")
   public QuestionResponse restore(@PathVariable UUID id) {
     return questionService.restore(id);
   }

@@ -33,6 +33,8 @@ public enum ErrorCode {
   ACCESS_DENIED(HttpStatus.FORBIDDEN, "Access denied", "error.accessDenied"),
   RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "Resource not found", "error.resource.notFound"),
   DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "Resource already exists", "error.resource.duplicate"),
+  RESOURCE_STATE_CONFLICT(
+      HttpStatus.CONFLICT, "Resource state conflict", "error.resource.stateConflict"),
   INVALID_RESOURCE_NAME(
       HttpStatus.BAD_REQUEST, "Resource name is invalid", "error.resource.invalidName"),
   INVALID_CURRENT_PASSWORD(

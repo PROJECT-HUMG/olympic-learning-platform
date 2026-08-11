@@ -1,6 +1,7 @@
 package me.nghlong3004.olympic.assessment.response;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import me.nghlong3004.olympic.assessment.enums.AssessmentDraftStatus;
@@ -15,7 +16,7 @@ public record AssessmentQuestionDraftResponse(
     AssessmentDraftStatus status,
     JsonNode content,
     JsonNode answer,
-    Double confidence,
+    BigDecimal confidence,
     JsonNode warnings,
     Integer sourcePage,
     JsonNode sourceBbox,

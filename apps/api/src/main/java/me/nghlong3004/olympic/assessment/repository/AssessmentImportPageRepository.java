@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import me.nghlong3004.olympic.assessment.entity.AssessmentImportPage;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,7 +15,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AssessmentImportPageRepository extends JpaRepository<AssessmentImportPage, UUID> {
 
+  @EntityGraph(attributePaths = "file")
   List<AssessmentImportPage> findByAssessmentImportIdOrderByPageNumberAsc(UUID importId);
 
+  @EntityGraph(attributePaths = "file")
   Optional<AssessmentImportPage> findByAssessmentImportIdAndPageNumber(UUID importId, int pageNumber);
 }

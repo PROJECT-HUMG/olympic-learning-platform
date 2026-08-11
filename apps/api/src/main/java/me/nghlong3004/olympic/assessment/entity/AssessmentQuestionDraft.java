@@ -2,6 +2,7 @@ package me.nghlong3004.olympic.assessment.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.*;
@@ -55,7 +56,7 @@ public class AssessmentQuestionDraft {
   private JsonNode parserPayloadJson = JsonNodeFactoryHolder.emptyObject();
 
   @Column(precision = 5, scale = 4)
-  private Double confidence;
+  private BigDecimal confidence;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "warnings_json", nullable = false, columnDefinition = "jsonb")

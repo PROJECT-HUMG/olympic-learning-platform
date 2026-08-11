@@ -1,7 +1,6 @@
 package me.nghlong3004.olympic.question.service;
 
 import java.util.UUID;
-import me.nghlong3004.olympic.assessment.response.AssessmentImportStatusResponse;
 import me.nghlong3004.olympic.question.enums.QuestionStatus;
 import me.nghlong3004.olympic.question.request.UpdateQuestionRequest;
 import me.nghlong3004.olympic.question.response.QuestionPageResponse;
@@ -75,11 +74,4 @@ public interface QuestionService {
    */
   QuestionResponse restore(UUID id);
 
-  /**
-   * Publishes every approved draft from an assessment import atomically.
-   *
-   * @param importId assessment import identifier
-   * @return updated import status
-   */
-  AssessmentImportStatusResponse publishImport(UUID importId);
 }

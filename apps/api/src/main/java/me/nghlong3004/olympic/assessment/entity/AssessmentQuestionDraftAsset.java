@@ -1,11 +1,26 @@
 package me.nghlong3004.olympic.assessment.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.persistence.*;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.*;
-import me.nghlong3004.olympic.assessment.enums.AssessmentAssetRole;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import me.nghlong3004.olympic.question.enums.QuestionAssetRole;
 import me.nghlong3004.olympic.storage.entity.File;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -25,7 +40,7 @@ public class AssessmentQuestionDraftAsset {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(nullable = false, updatable = false)
+  @Column(name = "id", nullable = false, updatable = false)
   private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -37,8 +52,8 @@ public class AssessmentQuestionDraftAsset {
   private File file;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false, length = 40)
-  private AssessmentAssetRole role;
+  @Column(name = "role", nullable = false, length = 40)
+  private QuestionAssetRole role;
 
   @Column(name = "sort_order", nullable = false)
   @Builder.Default
@@ -50,7 +65,7 @@ public class AssessmentQuestionDraftAsset {
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "crop_json", nullable = false, columnDefinition = "jsonb")
   @Builder.Default
-  private JsonNode cropJson = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
+  private JsonNode cropJson = JsonNodeFactory.instance.objectNode();
 
   @Column(name = "created_at", nullable = false, updatable = false)
   @Builder.Default

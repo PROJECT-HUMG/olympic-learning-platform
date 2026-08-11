@@ -1,8 +1,13 @@
 package me.nghlong3004.olympic.question.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.util.Optional;
 import java.util.UUID;
 import me.nghlong3004.olympic.common.error.ApiException;
 import me.nghlong3004.olympic.common.error.ErrorCode;
@@ -34,11 +39,16 @@ class QuestionServiceImplTest {
   void cannotArchiveDraftQuestion() {
     var id = UUID.randomUUID();
     var question = Question.builder().id(id).status(QuestionStatus.DRAFT).build();
-    when(currentUserProvider.getCurrentUser()).thenReturn(CurrentUser.builder().id(UUID.randomUUID()).role(Role.LECTURER).build());
-    when(questionRepository.findByIdAndCreatedById(eq(id), any())).thenReturn(java.util.Optional.of(question));
+    when(currentUserProvider.getCurrentUser())
+        .thenReturn(
+            CurrentUser.builder().id(UUID.randomUUID()).role(Role.LECTURER).build());
+    when(questionRepository.findByIdAndCreatedById(eq(id), any()))
+        .thenReturn(Optional.of(question));
 
-    assertThatThrownBy(() -> service.archive(id)).isInstanceOf(ApiException.class)
-        .extracting("errorCode").isEqualTo(ErrorCode.INVALID_RESOURCE_NAME);
+    assertThatThrownBy(() -> service.archive(id))
+        .isInstanceOf(ApiException.class)
+        .extracting("errorCode")
+        .isEqualTo(ErrorCode.RESOURCE_STATE_CONFLICT);
     verify(questionRepository, never()).save(any());
   }
 }

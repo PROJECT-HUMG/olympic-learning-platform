@@ -49,12 +49,37 @@ public interface AssessmentImportService {
    */
   AssessmentQuestionDraftResponse updateDraft(UUID importId, UUID draftId, UpdateAssessmentDraftRequest request);
 
+  /**
+   * Approves a draft while its import is awaiting review.
+   *
+   * @param importId import identifier
+   * @param draftId draft identifier
+   * @return approved draft
+   */
   AssessmentQuestionDraftResponse approveDraft(UUID importId, UUID draftId);
 
+  /**
+   * Rejects a draft so publication will skip it.
+   *
+   * @param importId import identifier
+   * @param draftId draft identifier
+   * @return rejected draft
+   */
   AssessmentQuestionDraftResponse rejectDraft(UUID importId, UUID draftId);
 
+  /**
+   * Approves drafts still awaiting review and preserves explicitly rejected drafts.
+   *
+   * @param importId import identifier
+   */
   void approveAll(UUID importId);
 
+  /**
+   * Atomically publishes approved drafts and skips rejected drafts.
+   *
+   * @param importId import identifier
+   * @return published import status
+   */
   AssessmentImportStatusResponse publish(UUID importId);
 
   /**
