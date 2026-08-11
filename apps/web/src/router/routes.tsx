@@ -33,6 +33,7 @@ const PracticePage = lazy(() => import("@/pages/practice-page"));
 const HistoryPage = lazy(() => import("@/pages/history-page"));
 const AssessmentImportPage = lazy(() => import("@/pages/assessment-import-page"));
 const QuestionBankPage = lazy(() => import("@/pages/question-bank-page"));
+const QuestionDetailPage = lazy(() => import("@/pages/question-detail-page"));
 
 // Lazy load fallback pages
 const NotFoundPage = lazy(() => import("@/pages/not-found-page"));
@@ -251,6 +252,7 @@ export const router = createBrowserRouter([
             ),
           },
           { path: "/lecturer/questions", element: <Suspense fallback={null}><QuestionBankPage /></Suspense> },
+          { path: "/lecturer/questions/:id", element: <Suspense fallback={null}><QuestionDetailPage /></Suspense> },
         ],
       },
     ],
@@ -312,6 +314,7 @@ export const router = createBrowserRouter([
             ),
           },
           { path: "/admin/questions", element: <Suspense fallback={null}><QuestionBankPage /></Suspense> },
+          { path: "/admin/questions/:id", element: <Suspense fallback={null}><QuestionDetailPage /></Suspense> },
         ],
       },
     ],
