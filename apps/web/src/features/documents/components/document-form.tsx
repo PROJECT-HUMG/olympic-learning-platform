@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
 import type {
   CreateDocumentRequest,
   UpdateDocumentRequest,
@@ -21,7 +20,8 @@ import type {
 } from "@/features/documents/types/documents.types";
 import { useDocumentMetadata } from "@/features/documents/hooks/use-documents";
 import { useUploadFile } from "@/features/documents/hooks/use-storage";
-import { UploadCloud, File, X, Loader2 } from "lucide-react";
+import { UploadDropzone } from "@/features/documents/components/upload-dropzone";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
@@ -53,7 +53,6 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
   const [uploadedFileId, setUploadedFileId] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -66,23 +65,21 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
     },
   });
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleFileSelect = (file: File) => {
     setSelectedFile(file);
     setUploadError(null);
     setUploadedFileId(null);
     setUploadProgress(0);
 
-    // Auto upload immediately
     uploadFile.mutate(
-      { 
-        file, 
+      {
+        file,
         folder: "DOCUMENT",
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total,
+            );
             setUploadProgress(percentCompleted);
           }
         },
@@ -92,10 +89,12 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
           setUploadedFileId(res.id);
         },
         onError: (err: any) => {
-          setUploadError(err.response?.data?.message || "Lỗi tải lên tệp");
+          setUploadError(
+            err.response?.data?.message || "Lỗi tải lên tệp",
+          );
           setSelectedFile(null);
         },
-      }
+      },
     );
   };
 
@@ -104,7 +103,6 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
     setUploadedFileId(null);
     setUploadError(null);
     setUploadProgress(0);
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSubmit = (values: FormValues) => {
@@ -239,74 +237,18 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
         {!isEditMode && (
           <div className="space-y-2">
             <Label>Tệp đính kèm <span className="text-destructive">*</span></Label>
-            
-            <div
-              className={cn(
-                "border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center transition-colors h-[calc(100%-28px)] min-h-[250px]",
-                uploadError ? "border-destructive/50 bg-destructive/5" : "border-border hover:bg-muted/50 hover:border-primary/50",
-                selectedFile && !uploadError ? "bg-muted/30 border-solid" : ""
-              )}
-            >
-              {selectedFile ? (
-                <div className="flex items-center gap-4 w-full max-w-md bg-background p-4 rounded-lg border shadow-sm">
-                  <div className="h-10 w-10 shrink-0 bg-primary/10 text-primary rounded flex items-center justify-center">
-                    <File className="size-5" />
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium truncate">{selectedFile.name}</p>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                    {uploadFile.isPending && (
-                      <div className="flex items-center gap-2">
-                        <Progress value={uploadProgress} className="h-1.5" />
-                        <span className="text-xs font-medium min-w-[3ch]">{uploadProgress}%</span>
-                      </div>
-                    )}
-                  </div>
-                  {!uploadFile.isPending && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground hover:text-destructive shrink-0"
-                      onClick={handleClearFile}
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <div className="h-12 w-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
-                    <UploadCloud className="size-6" />
-                  </div>
-                  <p className="text-sm font-medium mb-1">Kéo thả tệp vào đây hoặc nhấp để tải lên</p>
-                  <p className="text-xs text-muted-foreground mb-4">Hỗ trợ PDF (Tối đa 50MB)</p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    Chọn tệp
-                  </Button>
-                </>
-              )}
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                onChange={handleFileSelect}
-                accept=".pdf"
-              />
-            </div>
-            
-            {uploadError && (
-              <p className="text-sm text-destructive font-medium mt-2">{uploadError}</p>
-            )}
-            {uploadedFileId && !uploadFile.isPending && (
-              <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium mt-2">Tải lên thành công!</p>
-            )}
+
+            <UploadDropzone
+              onFileSelect={handleFileSelect}
+              onClear={handleClearFile}
+              progress={uploadProgress}
+              isPending={uploadFile.isPending}
+              selectedFile={selectedFile}
+              uploadedFileId={uploadedFileId}
+              error={uploadError}
+              accept=".pdf"
+              maxSizeMB={50}
+            />
           </div>
         )}
       </div>

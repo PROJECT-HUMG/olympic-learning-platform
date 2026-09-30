@@ -1,11 +1,12 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useScrolled } from "@/hooks/use-scrolled";
 import { SeasonalBackground } from "@/components/ui/seasonal-background";
 import { SeasonToggle } from "@/components/ui/season-toggle";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Logo } from "@/components/ui/logo";
+import { Sidebar, DesktopSidebar, SidebarLink } from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
   User as UserIcon,
@@ -25,6 +26,7 @@ export function DashboardLayout() {
   const location = useLocation();
   const isScrolled = useScrolled(20);
   const { data: user } = useCurrentUser();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = useMemo(() => {
     const items = [];
@@ -58,38 +60,37 @@ export function DashboardLayout() {
     <div className="flex min-h-screen bg-background/50 text-foreground relative selection:bg-primary/30">
       <SeasonalBackground />
       
-      {/* Fixed Sticky Sidebar (Desktop) */}
-      <aside className="sticky top-0 hidden h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
-        <div className="flex h-16 items-center border-b border-sidebar-border px-6">
-          <Logo />
-        </div>
+      {/* Fixed Sticky Animated Sidebar (Desktop) */}
+      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen}>
+        <DesktopSidebar width="260px" collapsedWidth="72px">
+          <div className="flex h-16 items-center border-b border-sidebar-border px-4 overflow-hidden">
+            <Logo className="shrink-0" imageClassName="h-9 w-auto" />
+          </div>
 
-        <nav className="flex-1 space-y-1 p-4">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                }`}
-              >
-                <Icon className="size-4" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+          <nav className="flex-1 space-y-1 p-3 overflow-y-auto overflow-x-hidden">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href;
+              return (
+                <SidebarLink
+                  key={item.href}
+                  link={{
+                    label: item.label,
+                    href: item.href,
+                    icon: <Icon className="size-4" />,
+                  }}
+                  isActive={isActive}
+                />
+              );
+            })}
+          </nav>
 
-        {/* User Profile Footer (Desktop) */}
-        <div className="border-t border-sidebar-border p-3">
-          <UserDropdown direction="up" />
-        </div>
-      </aside>
+          {/* User Profile Footer (Desktop) */}
+          <div className="border-t border-sidebar-border p-3 overflow-hidden">
+            <UserDropdown direction="up" />
+          </div>
+        </DesktopSidebar>
+      </Sidebar>
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0">

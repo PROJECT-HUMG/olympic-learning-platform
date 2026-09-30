@@ -30,6 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUiStore } from "@/stores/use-ui-store";
+import { Toggle } from "@/components/ui/toggle";
 import { Bot } from "lucide-react";
 
 export function PublicHeader() {
@@ -38,7 +39,7 @@ export function PublicHeader() {
   const { data: user } = useCurrentUser();
   const { logout } = useAuth();
   const isScrolled = useScrolled(20);
-  const { showAiWidget, toggleAiWidget } = useUiStore();
+  const { showAiWidget, toggleAiWidget, setShowAiWidget } = useUiStore();
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -128,13 +129,36 @@ export function PublicHeader() {
                     <UserIcon className="size-4 text-primary" />
                     <span>Hồ sơ cá nhân</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => { e.preventDefault(); toggleAiWidget(); }} className="rounded-xl px-2 py-2 cursor-pointer justify-between">
+                  <div
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleAiWidget();
+                    }}
+                    className="rounded-xl px-2 py-2 cursor-pointer flex items-center justify-between hover:bg-muted/50 transition-colors select-none group"
+                  >
                     <div className="flex items-center gap-2.5">
                       <Bot className="size-4 text-primary" />
-                      <span>Trợ lý AI</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium leading-none text-foreground">Trợ lý AI</span>
+                        <span className="text-[10px] text-muted-foreground mt-0.5">{showAiWidget ? "Đang bật" : "Đã tắt"}</span>
+                      </div>
                     </div>
-                    <span className="text-xs text-muted-foreground">{showAiWidget ? "Bật" : "Tắt"}</span>
-                  </DropdownMenuItem>
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className="shrink-0 flex items-center"
+                    >
+                      <Toggle
+                        checked={showAiWidget}
+                        onCheckedChange={setShowAiWidget}
+                        stretch={36}
+                        speed={50}
+                        scale={0.58}
+                        aria-label="Bật tắt Trợ lý AI"
+                      />
+                    </div>
+                  </div>
                   <DropdownMenuSeparator className="my-1 bg-border/60" />
                   <DropdownMenuItem onClick={() => logout()} className="rounded-xl px-2 py-2 cursor-pointer gap-2.5 text-destructive focus:text-destructive focus:bg-destructive/10">
                     <LogOut className="size-4" />
@@ -217,17 +241,31 @@ export function PublicHeader() {
                           <UserIcon className="size-4 text-primary" />
                           Hồ sơ cá nhân
                         </Link>
-                        <button
-                          type="button"
+                        <div
                           onClick={() => toggleAiWidget()}
-                          className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                          className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent cursor-pointer select-none"
                         >
                           <div className="flex items-center gap-2.5">
                             <Bot className="size-4 text-primary" />
-                            Trợ lý AI
+                            <div className="flex flex-col">
+                              <span>Trợ lý AI</span>
+                              <span className="text-[10px] text-muted-foreground">{showAiWidget ? "Đang bật" : "Đã tắt"}</span>
+                            </div>
                           </div>
-                          <span className="text-xs text-muted-foreground">{showAiWidget ? "Bật" : "Tắt"}</span>
-                        </button>
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                          >
+                            <Toggle
+                              checked={showAiWidget}
+                              onCheckedChange={setShowAiWidget}
+                              stretch={36}
+                              speed={50}
+                              scale={0.58}
+                              aria-label="Bật tắt Trợ lý AI"
+                            />
+                          </div>
+                        </div>
                         <button
                           type="button"
                           onClick={() => {

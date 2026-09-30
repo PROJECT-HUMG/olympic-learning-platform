@@ -5,6 +5,8 @@ import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useThemeStore } from "@/stores/use-theme-store";
 import { useUiStore } from "@/stores/use-ui-store";
+import { Toggle } from "@/components/ui/toggle";
+import { useSidebar } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +27,9 @@ export function UserDropdown({ direction = "up", className = "", showChevron = t
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { theme, setTheme } = useThemeStore();
-  const { showAiWidget, toggleAiWidget } = useUiStore();
+  const { showAiWidget, toggleAiWidget, setShowAiWidget } = useUiStore();
+  const sidebar = useSidebar();
+  const isSidebarCollapsed = sidebar ? !sidebar.open : false;
 
   if (!user) return null;
 
@@ -33,7 +37,7 @@ export function UserDropdown({ direction = "up", className = "", showChevron = t
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className={`flex w-full items-center justify-between gap-3 rounded-xl p-2 hover:bg-muted/50 transition-colors cursor-pointer group ${className}`}
+          className={`flex w-full items-center ${isSidebarCollapsed ? "justify-center" : "justify-between"} gap-3 rounded-xl p-2 hover:bg-muted/50 transition-colors cursor-pointer group ${className}`}
         >
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="size-9 shrink-0 overflow-hidden rounded-full border border-border bg-muted">
@@ -49,16 +53,18 @@ export function UserDropdown({ direction = "up", className = "", showChevron = t
                 </div>
               )}
             </div>
-            <div className="text-left overflow-hidden py-0.5">
-              <p className="truncate text-sm font-semibold leading-tight text-foreground">
-                {user.fullName || user.username}
-              </p>
-              <p className="truncate text-xs text-muted-foreground mt-0.5">
-                @{user.username}
-              </p>
-            </div>
+            {!isSidebarCollapsed && (
+              <div className="text-left overflow-hidden py-0.5 whitespace-nowrap">
+                <p className="truncate text-sm font-semibold leading-tight text-foreground">
+                  {user.fullName || user.username}
+                </p>
+                <p className="truncate text-xs text-muted-foreground mt-0.5">
+                  @{user.username}
+                </p>
+              </div>
+            )}
           </div>
-          {showChevron && (
+          {showChevron && !isSidebarCollapsed && (
             <MoreVertical className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
           )}
         </button>
@@ -88,19 +94,36 @@ export function UserDropdown({ direction = "up", className = "", showChevron = t
           <span className="text-xs text-muted-foreground">{theme === "dark" ? "Tối" : "Sáng"}</span>
         </DropdownMenuItem>
 
-        <DropdownMenuItem 
+        <div
           onClick={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             toggleAiWidget();
           }} 
-          className="rounded-xl px-3 py-2 cursor-pointer justify-between"
+          className="rounded-xl px-3 py-2 cursor-pointer flex items-center justify-between hover:bg-muted/50 transition-colors select-none group"
         >
           <div className="flex items-center gap-2.5">
             <Bot className="size-4 text-primary" />
-            <span>Trợ lý AI</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium leading-none text-foreground">Trợ lý AI</span>
+              <span className="text-[10px] text-muted-foreground mt-0.5">{showAiWidget ? "Đang bật" : "Đã tắt"}</span>
+            </div>
           </div>
-          <span className="text-xs text-muted-foreground">{showAiWidget ? "Bật" : "Tắt"}</span>
-        </DropdownMenuItem>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="shrink-0 flex items-center"
+          >
+            <Toggle
+              checked={showAiWidget}
+              onCheckedChange={setShowAiWidget}
+              stretch={36}
+              speed={50}
+              scale={0.58}
+              aria-label="Bật tắt Trợ lý AI"
+            />
+          </div>
+        </div>
 
         <DropdownMenuItem onClick={() => navigate(ROUTES.HOME)} className="rounded-xl px-3 py-2 cursor-pointer gap-2.5">
           <Globe className="size-4 text-primary" />

@@ -1,63 +1,61 @@
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowDownRight, ArrowUpRight, BookOpenText, FileText, Trophy } from "lucide-react";
 import { ROUTES } from "@/router/route-constants";
 import { HOME_HERO_DATA } from "../data/home-mock-data";
+import "./home-hero-section.css";
+
+const paths = [
+  { label: "Môn học", detail: "Bắt đầu từ nền tảng", href: ROUTES.SUBJECTS, icon: BookOpenText, className: "hero-path--subjects" },
+  { label: "Tài liệu", detail: "Đào sâu từng chủ đề", href: ROUTES.DOCUMENTS, icon: FileText, className: "hero-path--documents" },
+  { label: "Kỳ thi", detail: "Thử sức và tiến xa", href: ROUTES.COMPETITIONS, icon: Trophy, className: "hero-path--competitions" },
+] as const;
 
 export function HomeHeroSection() {
-  const HeroImage = () => (
-    <div className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-border/50 shadow-2xl ring-1 ring-black/5 dark:ring-white/5 aspect-video lg:aspect-[4/3] bg-muted">
-      <img
-        src={HOME_HERO_DATA.heroImage}
-        alt={HOME_HERO_DATA.heroImageAlt}
-        className="size-full object-cover object-center transition-transform duration-700 hover:scale-105"
-      />
-      {/* Subtle gradient overlay to make it look premium */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-black/20 via-transparent to-transparent pointer-events-none" />
-    </div>
-  );
-
   return (
-    <section className="mx-auto max-w-7xl pt-4 pb-12 sm:pt-12 sm:pb-20">
-      <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-10">
-        
-        {/* Text Content & Mobile Image */}
-        <div className="flex-1 flex flex-col space-y-8 text-center lg:text-left max-w-3xl mx-auto lg:mx-0 w-full">
-
-          <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl lg:leading-[1.15]">
-            {HOME_HERO_DATA.titleStart} <span className="text-primary">{HOME_HERO_DATA.titleHighlight}</span> <br className="hidden sm:block" /> {HOME_HERO_DATA.titleEnd}
-          </h1>
-          
-          <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0">
-            {HOME_HERO_DATA.description}
-          </p>
-          
-          {/* Mobile Hero Image (Hidden on Desktop) */}
-          <div className="block lg:hidden w-full max-w-2xl mx-auto pt-2">
-            <HeroImage />
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4 lg:pt-4">
-            <Button asChild size="lg" className="rounded-full px-8 shadow-lg shadow-primary/25">
-              <Link to={ROUTES.COMPETITIONS}>
-                Khám phá kỳ thi
-                <ArrowRight className="ml-2 size-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="rounded-full px-8 bg-background/50 backdrop-blur-sm border-border/80">
-              <Link to={ROUTES.SUBJECTS}>
-                Danh mục môn học
-              </Link>
-            </Button>
-          </div>
+    <section className="home-hero" aria-labelledby="home-hero-title">
+      <div className="home-hero__copy">
+        <p className="home-hero__eyebrow"><span className="home-hero__eyebrow-mark" /> Không gian học tập Olympic HUMG</p>
+        <h1 id="home-hero-title" className="home-hero__title">
+          <span>{HOME_HERO_DATA.titleStart}</span>
+          <span className="home-hero__title-accent">{HOME_HERO_DATA.titleHighlight}<span className="home-hero__title-dot">.</span></span>
+          <span>{HOME_HERO_DATA.titleEnd}</span>
+        </h1>
+        <p className="home-hero__description">{HOME_HERO_DATA.description}</p>
+        <div className="home-hero__actions">
+          <Link className="home-hero__primary" to={ROUTES.COMPETITIONS}>
+            Khám phá kỳ thi <ArrowUpRight aria-hidden="true" size={19} />
+          </Link>
+          <Link className="home-hero__secondary" to={ROUTES.SUBJECTS}>
+            Danh mục môn học <ArrowUpRight aria-hidden="true" size={18} />
+          </Link>
         </div>
-
-        {/* Desktop Hero Image (Hidden on Mobile) */}
-        <div className="hidden lg:block flex-1 w-full max-w-2xl lg:max-w-none mx-auto">
-          <HeroImage />
+        <div className="home-hero__footnote">
+          <span className="home-hero__footnote-line" aria-hidden="true" />
+          Một hành trình học tập, nhiều hướng khám phá
         </div>
-        
       </div>
+
+      <nav className="home-hero__visual" aria-label="Khám phá môn học, tài liệu và kỳ thi">
+        <div className="home-hero__visual-grid" aria-hidden="true" />
+        <div className="home-hero__orbit home-hero__orbit--outer" aria-hidden="true" />
+        <div className="home-hero__orbit home-hero__orbit--inner" aria-hidden="true" />
+        <div className="home-hero__orbit-point" aria-hidden="true" />
+        <div className="home-hero__core" aria-hidden="true">
+          <span>HỌC</span>
+          <span className="home-hero__core-star">✳</span>
+          <span>THỬ SỨC</span>
+          <span className="home-hero__core-rule" />
+          <small>PHÁT TRIỂN TƯ DUY</small>
+        </div>
+        {paths.map(({ label, detail, href, icon: Icon, className }) => (
+          <Link key={href} className={`hero-path ${className}`} to={href}>
+            <span className="hero-path__icon"><Icon aria-hidden="true" size={18} strokeWidth={1.8} /></span>
+            <span className="hero-path__text"><strong>{label}</strong><small>{detail}</small></span>
+            <ArrowUpRight className="hero-path__arrow" aria-hidden="true" size={17} />
+          </Link>
+        ))}
+        <span className="home-hero__visual-caption">Từ tò mò đến bứt phá <ArrowDownRight aria-hidden="true" size={16} /></span>
+      </nav>
     </section>
   );
 }

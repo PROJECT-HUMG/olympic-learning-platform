@@ -1,0 +1,370 @@
+/* ══ Upload dropzone ═════════════════════════════════════
+   Animated drop zone with SVG file icons, rolling percentage,
+   suction/gulp effects, and spring bounce — adapted from the
+   Upload component, integrated with real file uploads.
+   ══════════════════════════════════════════════════════════ */
+
+.upl {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  color: var(--foreground);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* a slot of fixed size, so the box can close in round an upload
+   without moving anything below it */
+.upl-zone-wrap {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+}
+
+.upl-zone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 220px;
+  padding: 24px 16px;
+  overflow: hidden;
+  border-radius: var(--upl-r, 16px);
+  border: 2px dashed var(--border);
+  background: var(--card);
+  cursor: pointer;
+  transition:
+    scale 420ms cubic-bezier(0.3, 1.35, 0.4, 1),
+    width 460ms cubic-bezier(0.3, 1.2, 0.4, 1),
+    height 460ms cubic-bezier(0.3, 1.2, 0.4, 1),
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+.upl-zone:hover {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 4%, var(--card));
+}
+
+.upl-zone[data-over] {
+  scale: 1.02;
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, var(--card));
+}
+
+.upl-zone[data-busy] {
+  border-style: solid;
+  border-color: var(--border);
+  cursor: default;
+}
+
+.upl-zone[data-refuse] {
+  border-color: var(--destructive);
+}
+
+/* the gulp: in a little as the file goes down, out past its size,
+   and settle */
+.upl-zone[data-gulp] {
+  animation: upl-gulp 460ms cubic-bezier(0.3, 1.2, 0.4, 1);
+}
+
+.upl-zone[data-gulp] .upl-icon {
+  animation: upl-open 460ms cubic-bezier(0.3, 1.4, 0.4, 1);
+}
+
+/* ── the upload icon ──────────────────────────────────── */
+.upl-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 10%, var(--card));
+  color: var(--primary);
+  transition: translate 320ms cubic-bezier(0.3, 1.5, 0.4, 1),
+    background-color 200ms ease, color 200ms ease;
+}
+
+.upl-zone[data-over] .upl-icon {
+  translate: 0 -4px;
+  color: var(--primary);
+}
+
+/* ── text prompts ─────────────────────────────────────── */
+.upl-say {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.upl-say b {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.upl-say span {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.upl-zone[data-refuse] .upl-say b {
+  color: var(--destructive);
+}
+
+/* ── the file, arrived in the box ─────────────────────── */
+.upl-now {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: 100%;
+  flex: none;
+  animation: upl-land 420ms var(--upl-spring, cubic-bezier(0.3, 1.4, 0.4, 1)) both;
+}
+
+.upl-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  max-width: 200px;
+}
+
+.upl-name {
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--foreground);
+}
+
+.upl-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 14px;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+
+.upl-track {
+  position: relative;
+  height: 4px;
+  margin-top: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--foreground) 8%, var(--card));
+}
+
+.upl-bar {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--primary);
+  transform-origin: left center;
+  transition: transform 150ms ease-out;
+}
+
+/* ── rolling percentage ───────────────────────────────── */
+.upl-roll {
+  display: inline-flex;
+  line-height: 1em;
+  height: 1em;
+  overflow: hidden;
+}
+
+.upl-roll-col {
+  display: inline-block;
+  height: 1em;
+  overflow: hidden;
+}
+
+.upl-roll-strip {
+  display: flex;
+  flex-direction: column;
+  transition: transform 220ms cubic-bezier(0.3, 1.2, 0.4, 1);
+}
+
+.upl-roll-strip > span {
+  height: 1em;
+}
+
+/* ── tick icon ────────────────────────────────────────── */
+.upl-end {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+
+.upl-tick {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #15803d;
+  color: #fff;
+  animation: upl-pop 380ms cubic-bezier(0.3, 1.6, 0.4, 1) both;
+}
+
+/* ── SVG file page icon ───────────────────────────────── */
+.upl-page {
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+.upl-page-line {
+  stroke: var(--border);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.upl-page-ext {
+  fill: #fff;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* ── the tray: files lying under the box ──────────────── */
+.upl-tray {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+
+.upl-slot {
+  position: relative;
+  width: 76px;
+  height: 78px;
+}
+
+.upl-file {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+  cursor: grab;
+  touch-action: none;
+  outline: none;
+  transition: transform 460ms var(--upl-spring, cubic-bezier(0.3, 1.4, 0.4, 1)),
+    opacity 200ms ease;
+}
+
+.upl-file[data-held] {
+  z-index: 5;
+  cursor: grabbing;
+  transition: none;
+}
+
+.upl-file[data-gone] {
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+
+.upl-file:not([data-gone]) {
+  animation: upl-back 360ms var(--upl-spring, cubic-bezier(0.3, 1.4, 0.4, 1)) both;
+}
+
+.upl-file:focus-visible .upl-page {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.upl-label {
+  max-width: 76px;
+  overflow: hidden;
+  font-size: 0.6875rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--muted-foreground);
+}
+
+/* ── clear button ─────────────────────────────────────── */
+.upl-clear {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--foreground) 8%, var(--card));
+  color: var(--muted-foreground);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 160ms ease, color 160ms ease, background-color 160ms ease;
+}
+
+.upl-zone:hover .upl-clear,
+.upl-clear:focus-visible {
+  opacity: 1;
+}
+
+.upl-clear:hover {
+  color: var(--destructive);
+  background: color-mix(in srgb, var(--destructive) 12%, var(--card));
+}
+
+/* ── reduced motion ───────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .upl-zone,
+  .upl-icon,
+  .upl-file {
+    transition-duration: 1ms;
+  }
+
+  .upl-zone[data-gulp],
+  .upl-zone[data-gulp] .upl-icon,
+  .upl-now,
+  .upl-tick,
+  .upl-file:not([data-gone]) {
+    animation: none;
+  }
+}
+
+/* ── keyframes ────────────────────────────────────────── */
+@keyframes upl-gulp {
+  0% { scale: 1.02; }
+  35% { scale: 0.985; }
+  70% { scale: 1.006; }
+  100% { scale: 1; }
+}
+
+@keyframes upl-open {
+  40% { scale: 1.08; }
+}
+
+@keyframes upl-land {
+  from { opacity: 0; scale: 0.85; translate: 0 10px; }
+}
+
+@keyframes upl-pop {
+  from { scale: 0; }
+}
+
+@keyframes upl-back {
+  from { scale: 0.7; opacity: 0; }
+}

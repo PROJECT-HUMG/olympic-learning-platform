@@ -3,26 +3,26 @@ import { HomeFeaturedSubjectsSection } from "@/features/home/components/home-fea
 import { HomeUpcomingCompetitionsSection } from "@/features/home/components/home-upcoming-competitions-section";
 import { HomeFeaturedDocumentsSection } from "@/features/home/components/home-featured-documents-section";
 import { HomeLatestNewsSection } from "@/features/home/components/home-latest-news-section";
-import { FadeIn } from "@/components/ui/fade-in";
+import "./home-page.css";
 
 export default function HomePage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-20">
-      <FadeIn delay={0.1}>
-        <HomeHeroSection />
-      </FadeIn>
-      <FadeIn delay={0.1}>
-        <HomeFeaturedSubjectsSection />
-      </FadeIn>
-      <FadeIn delay={0.1}>
-        <HomeUpcomingCompetitionsSection />
-      </FadeIn>
-      <FadeIn delay={0.1}>
-        <HomeFeaturedDocumentsSection />
-      </FadeIn>
-      <FadeIn delay={0.1}>
-        <HomeLatestNewsSection />
-      </FadeIn>
+    <div className="home-page mx-auto max-w-7xl px-4 pt-6 pb-20 sm:px-6 sm:pt-10 lg:px-8">
+      <HomeHeroSection />
+      <div className="home-page__sections">
+        <div className="home-page__section">
+          <HomeFeaturedSubjectsSection />
+        </div>
+        <div className="home-page__section">
+          <HomeUpcomingCompetitionsSection />
+        </div>
+        <div className="home-page__section">
+          <HomeFeaturedDocumentsSection />
+        </div>
+        <div className="home-page__section">
+          <HomeLatestNewsSection />
+        </div>
+      </div>
     </div>
   );
 }

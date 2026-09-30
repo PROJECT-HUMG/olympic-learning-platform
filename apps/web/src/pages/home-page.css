@@ -1,0 +1,65 @@
+.home-page__sections {
+  display: grid;
+  gap: clamp(4.5rem, 8vw, 7.5rem);
+  padding-top: clamp(4.5rem, 8vw, 7.5rem);
+}
+
+.home-page__section h2 {
+  font-size: clamp(1.7rem, 3vw, 2.5rem);
+  letter-spacing: -.04em;
+}
+
+.home-page__section section > div:first-child {
+  padding-bottom: 1.3rem;
+  border-color: color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+.home-page__section section > div:first-child p {
+  margin-top: .45rem;
+  line-height: 1.6;
+}
+
+.home-page__section section > div:first-child a {
+  transition: gap .25s ease, color .25s ease;
+}
+
+.home-page__section section > div:first-child a:hover {
+  color: var(--foreground);
+}
+
+.home-page__section .grid > div {
+  transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+}
+
+.home-page__section .grid > div:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 45px -32px #153d5b90;
+}
+
+@keyframes home-section-enter {
+  from { opacity: .35; transform: translateY(35px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@supports (animation-timeline: view()) {
+  .home-page__section {
+    animation: home-section-enter linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 25%;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-page__section section > div:first-child { align-items: flex-start; gap: .8rem; }
+  .home-page__section section > div:first-child a { white-space: normal; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page__section,
+  .home-page__section .grid > div {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}

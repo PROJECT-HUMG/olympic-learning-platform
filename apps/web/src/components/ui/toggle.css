@@ -1,0 +1,78 @@
+/* ════ liquid toggle ═══════════════════════════════════════
+   Metaball liquid physics toggle button.
+   Two states: OFF (subtle slab track, mix thumb) and ON (primary brand track, pure white thumb).
+   Thumb stretches with velocity and maintains area.
+*/
+
+/* ── 1 · liquid toggle container ─────────────────────────── */
+.liq-well {
+  display: inline-grid;
+  place-items: center;
+  user-select: none;
+}
+
+/* ── Track (rail) ────────────────────────────────────────── */
+.liq-sw {
+  position: relative;
+  width: 92px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--fill-slab, var(--muted));
+  cursor: pointer;
+  touch-action: none;
+  transition: background 320ms ease, box-shadow 320ms ease;
+  box-shadow: 0 0 0 1px var(--border);
+  outline: none;
+}
+
+.liq-sw:focus-visible {
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
+}
+
+.liq-sw[data-on="true"] {
+  background: var(--fill-on, var(--primary));
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.liq-sw:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.liq-sw-blobs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ── Droplet (thumb) ─────────────────────────────────────── */
+.liq-thumb {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: var(--liq-thumb, 36px);
+  height: var(--liq-thumb, 36px);
+  margin-top: calc(var(--liq-thumb, 36px) / -2);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 22%, var(--card));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: background 320ms ease;
+}
+
+.liq-sw[data-on="true"] .liq-thumb {
+  background: var(--primary-foreground, #ffffff);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Stroke hairline mode */
+[data-stroke="on"] .liq-sw {
+  box-shadow: 0 0 0 1px var(--pane-edge, var(--border));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liq-thumb, .liq-pill, .liq-bead {
+    transition-duration: 1ms;
+  }
+}
