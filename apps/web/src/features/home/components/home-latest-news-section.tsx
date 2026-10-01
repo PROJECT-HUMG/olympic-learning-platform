@@ -1,3 +1,4 @@
+import { FadeIn } from "@/components/ui/fade-in";
 import { Link } from "react-router-dom";
 import { ChevronRight, Newspaper, ArrowRight, Loader2 } from "lucide-react";
 import { ROUTES } from "@/router/route-constants";
@@ -15,7 +16,7 @@ export function HomeLatestNewsSection() {
 
   return (
     <section className="space-y-6">
-      <div className="flex items-end justify-between border-b border-border pb-4">
+      <FadeIn className="flex items-end justify-between border-b border-border pb-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Tin Tức & Thông Báo</h2>
           <p className="text-sm text-muted-foreground mt-1">Tin tức mới nhất về các phong trào thi Olympic</p>
@@ -26,26 +27,27 @@ export function HomeLatestNewsSection() {
         >
           Xem tin tức <ChevronRight className="ml-1 size-4" />
         </Link>
-      </div>
+      </FadeIn>
 
       {isLoading ? (
         <div className="flex justify-center items-center py-12">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       ) : isError || !data || data.content.length === 0 ? (
-        <div className="flex justify-center items-center py-12 border border-dashed rounded-xl bg-muted/20">
+        <FadeIn className="flex justify-center items-center py-12 border border-dashed rounded-xl bg-muted/20">
           <p className="text-sm text-muted-foreground">Chưa có tin tức nào mới.</p>
-        </div>
+        </FadeIn>
       ) : (
         <div className="grid gap-6 md:grid-cols-3">
-          {data.content.map((news) => {
+          {data.content.map((news, index) => {
             const formattedDate = news.publishedAt
               ? format(new Date(news.publishedAt), "dd/MM/yyyy", { locale: vi })
               : "Chưa cập nhật";
 
             return (
-              <div
+              <FadeIn
                 key={news.id}
+                delay={index * 0.08}
                 className="flex flex-col justify-between rounded-2xl border border-border/80 bg-card shadow-sm hover:shadow-md transition-shadow overflow-hidden group"
               >
                 <div className="aspect-video w-full overflow-hidden relative">
@@ -84,7 +86,7 @@ export function HomeLatestNewsSection() {
                     </Link>
                   </div>
                 </div>
-              </div>
+              </FadeIn>
             );
           })}
         </div>

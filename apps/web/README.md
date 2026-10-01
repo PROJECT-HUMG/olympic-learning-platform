@@ -26,6 +26,15 @@ Mở `http://localhost:3000`. Vite proxy request `/api` tới `http://localhost:
 
 Trang chủ có dữ liệu mẫu trong `src/features/home/data/home-mock-data.ts` (môn học nổi bật, kỳ thi, tài liệu và số liệu). Khối tin tức mới nhất dùng API posts. Đừng dùng dữ liệu mẫu làm thông tin công bố chính thức; khi nối API hãy thay tại feature tương ứng.
 
+Các màn học tập công khai:
+
+- `/subjects` lấy danh mục từ `/documents/metadata`, tìm tên/mã môn và mở `/documents?subjectId=...`.
+- `/news` dùng API posts, gồm bài ghim, bộ lọc loại bài, tìm kiếm và phân trang qua URL; `/news/:slug` mở chi tiết.
+- `/toolkit?tool=rooms` là phòng học chung, yêu cầu đăng nhập để tạo hoặc tham gia. `/study-rooms/:roomId` mở phòng qua đường dẫn mời. API lưu lịch học/nghỉ, thành viên và hàng đợi nhạc; client đồng bộ mỗi 5 giây. Chủ phòng duyệt đề xuất YouTube và đặt quyền đề xuất theo thời gian học. Nhạc mặc định là livestream Lofi Girl; trình duyệt có thể yêu cầu bấm “Bật nhạc”. Xem [contract phòng học](../../docs/architecture/study-rooms.md).
+- `/toolkit?tool=gpa` tính trung bình theo tín chỉ trên hệ 4 hoặc 10, không tự quy đổi thang điểm hay áp dụng quy chế của trường. Bản nháp lưu vào localStorage, chưa đồng bộ tài khoản.
+
+Các màn tài khoản dùng video trên desktop. Dưới 1024px, giao diện dùng tông giấy/vở sáng hoặc tối, không mount video hay tải ảnh nền anime.
+
 ## Kiểm tra
 
 ```bash
@@ -35,3 +44,9 @@ pnpm preview
 ```
 
 `pnpm build` gồm kiểm tra TypeScript và bundle Vite. Xem [AGENTS.md](AGENTS.md) trước khi sửa web; giữ responsive, dark mode, keyboard focus và reduced motion khi chỉnh UI.
+
+Kiểm thử phép tính GPA và đường dẫn sau đăng nhập bằng Node.js 24, không cần dependency kiểm thử bổ sung:
+
+```bash
+node --test --test-isolation=none tests/*.test.ts
+```

@@ -15,7 +15,6 @@ import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { SeasonToggle } from "@/components/ui/season-toggle";
 import {
   Sheet,
   SheetContent,
@@ -33,7 +32,7 @@ import { useUiStore } from "@/stores/use-ui-store";
 import { Toggle } from "@/components/ui/toggle";
 import { Bot } from "lucide-react";
 
-export function PublicHeader() {
+export function PublicHeader({ cinematic = false }: { cinematic?: boolean }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { data: user } = useCurrentUser();
@@ -47,7 +46,7 @@ export function PublicHeader() {
     { label: "Trang chủ", href: ROUTES.HOME },
     { label: "Môn học", href: ROUTES.SUBJECTS },
     { label: "Tài liệu", href: ROUTES.DOCUMENTS },
-    { label: "Tin tức", href: ROUTES.NEWS },
+    { label: "Bảng tin", href: ROUTES.NEWS },
     { label: "Kỳ thi", href: ROUTES.COMPETITIONS },
     { label: "Tiện ích", href: ROUTES.TOOLKIT },
     { label: "Giới thiệu", href: ROUTES.ABOUT },
@@ -56,18 +55,30 @@ export function PublicHeader() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 transition-all duration-300",
+        "top-0 z-40 transition-colors duration-300 motion-reduce:transition-none",
+        cinematic
+          ? cn("fixed inset-x-0", !isScrolled && "cinematic-theme")
+          : "sticky",
         isScrolled
-          ? "border-b border-border bg-background/80 backdrop-blur-md shadow-sm"
-          : "border-transparent bg-transparent"
+          ? "border-b border-border bg-background/90 backdrop-blur-xl shadow-sm"
+          : "border-b border-transparent bg-transparent"
       )}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className={cn(
+        "mx-auto flex max-w-7xl items-center justify-between transition-[height] duration-300 motion-reduce:transition-none",
+        cinematic ? cn("gap-4 px-5 sm:px-8", isScrolled ? "h-14" : "h-16") : "h-14 px-4 sm:px-6 lg:px-8"
+      )}>
         {/* Brand Logo */}
-        <Logo />
+        <Logo
+          className="shrink-0 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+          imageClassName="h-12"
+        />
 
         {/* Desktop Navigation Links */}
-        <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
+        <nav aria-label="Điều hướng chính" className={cn(
+          "hidden items-center",
+          cinematic ? "gap-5 xl:flex" : "gap-1 xl:flex"
+        )}>
           {publicNavItems.map((item) => {
             const isActive = location.pathname === item.href;
             return (
@@ -75,7 +86,12 @@ export function PublicHeader() {
                 key={item.href}
                 to={item.href}
                 aria-current={isActive ? "page" : undefined}
-                className="rounded-lg px-3.5 py-2 text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground aria-[current=page]:font-semibold"
+                className={cn(
+                  "rounded-lg py-2 text-sm transition-colors text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring",
+                  cinematic
+                    ? "font-normal aria-[current=page]:text-foreground"
+                    : "px-3.5 font-medium hover:bg-muted aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground aria-[current=page]:font-semibold"
+                )}
               >
                 {item.label}
               </Link>
@@ -84,9 +100,7 @@ export function PublicHeader() {
         </nav>
 
         {/* Desktop Auth / User Action Area */}
-        <div className="hidden items-center gap-3 md:flex">
-          {/* Season Toggle */}
-          <SeasonToggle />
+        <div className="hidden items-center gap-3 xl:flex">
           {/* Theme Toggle */}
           <ThemeToggle />
 
@@ -95,7 +109,10 @@ export function PublicHeader() {
               {/* User Avatar Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-full border border-border/80 bg-card p-1 pr-2 shadow-xs hover:bg-accent transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <button aria-label="Mở menu tài khoản" className={cn(
+                    "flex items-center gap-2 rounded-full p-1 pr-2 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    cinematic ? "liquid-glass" : "border border-border/80 bg-card shadow-xs hover:bg-accent"
+                  )}>
                     <div className="size-8 overflow-hidden rounded-full border border-border bg-muted">
                       {user.avatarUrl ? (
                         <img
@@ -172,16 +189,15 @@ export function PublicHeader() {
               <Button asChild variant="ghost" size="sm">
                 <Link to={ROUTES.LOGIN}>Đăng nhập</Link>
               </Button>
-              <Button asChild size="sm">
-                <Link to={ROUTES.REGISTER}>Đăng ký</Link>
+              <Button asChild size="sm" className={cinematic ? "h-8 rounded-full px-4 text-xs font-medium" : undefined}>
+                <Link to={ROUTES.REGISTER}>{cinematic ? "Bắt đầu học" : "Đăng ký"}</Link>
               </Button>
             </div>
           )}
         </div>
 
         {/* Mobile Actions & Menu Toggle */}
-        <div className="flex items-center gap-1.5 sm:gap-2 md:hidden">
-          <SeasonToggle />
+        <div className="flex items-center gap-1.5 sm:gap-2 xl:hidden">
           <ThemeToggle />
           
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -189,7 +205,8 @@ export function PublicHeader() {
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Toggle menu"
+                aria-label="Mở menu điều hướng"
+                className={cinematic ? "liquid-glass rounded-full" : undefined}
               >
                 <Menu className="size-5" />
               </Button>

@@ -1,22 +1,15 @@
 import { useEffect } from "react";
-import { useThemeStore } from "@/stores/use-theme-store";
+import { useResolvedTheme } from "@/hooks/use-resolved-theme";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { theme } = useThemeStore();
+  const theme = useResolvedTheme();
 
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
 
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(theme);
-    }
+    root.classList.add(theme);
+    root.style.colorScheme = theme;
   }, [theme]);
 
   return <>{children}</>;

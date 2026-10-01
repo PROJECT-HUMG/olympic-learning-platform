@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { authService } from "@/features/auth/services/auth.service";
 import { parseApiError } from "@/lib/api-error";
 import { ROUTES } from "@/router/route-constants";
@@ -33,6 +33,7 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
+  const location = useLocation();
   const [isRegistered, setIsRegistered] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
   const [isUsernameTouched, setIsUsernameTouched] = useState(false);
@@ -84,28 +85,26 @@ export function RegisterForm() {
 
   if (isRegistered) {
     return (
-      <div className="space-y-4 text-center">
-        <MailCheckIcon className="mx-auto size-14 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Xác nhận Email của bạn</h1>
-        <p className="text-sm text-muted-foreground">
+      <div className="auth-status" role="status">
+        <MailCheckIcon className="auth-status__icon" />
+        <h1 className="auth-heading">Còn một bước nữa.</h1>
+        <p className="auth-status__message">
           Chúng tôi đã gửi đường link xác thực đến email{" "}
           <span className="font-semibold text-foreground">{registeredEmail}</span>.
           Vui lòng kiểm tra hộp thư để kích hoạt tài khoản.
         </p>
-        <Button asChild variant="outline" className="w-full">
-          <Link to={ROUTES.LOGIN}>Quay lại Đăng nhập</Link>
+        <Button asChild variant="outline" className="h-11 rounded-full px-6">
+          <Link to={ROUTES.LOGIN} state={location.state}>Về đăng nhập</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold text-foreground">Tạo Tài Khoản</h1>
-        <p className="text-sm text-muted-foreground text-balance">
-          Tạo tài khoản để bắt đầu học tập và ôn luyện
-        </p>
+    <div className="auth-form">
+      <div>
+        <h1 className="auth-heading">Tạo tài khoản</h1>
+        <p className="auth-description">Bắt đầu từ đây.</p>
       </div>
 
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -120,26 +119,28 @@ export function RegisterForm() {
           onChange={handleEmailChange}
         />
 
-        <FormField
-          id="register-username"
-          type="text"
-          label="Tên đăng nhập"
-          required
-          placeholder="user123"
-          error={errors.username?.message}
-          {...usernameRegister}
-          onChange={handleUsernameChange}
-        />
+        <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2">
+          <FormField
+            id="register-username"
+            type="text"
+            label="Tên đăng nhập"
+            required
+            placeholder="user123"
+            error={errors.username?.message}
+            {...usernameRegister}
+            onChange={handleUsernameChange}
+          />
 
-        <FormField
-          id="register-fullName"
-          type="text"
-          label="Họ và tên"
-          required
-          placeholder="Nguyễn Văn A"
-          error={errors.fullName?.message}
-          {...register("fullName")}
-        />
+          <FormField
+            id="register-fullName"
+            type="text"
+            label="Họ và tên"
+            required
+            placeholder="Nguyễn Văn A"
+            error={errors.fullName?.message}
+            {...register("fullName")}
+          />
+        </div>
 
         <FormField
           id="register-password"
@@ -162,19 +163,20 @@ export function RegisterForm() {
         />
 
         <Button type="submit" className="w-full" loading={isSubmitting}>
-          Đăng Ký
+          Tạo tài khoản
         </Button>
-
-        <div className="text-center text-sm text-muted-foreground">
-          Đã có tài khoản?{" "}
-          <Link
-            to={ROUTES.LOGIN}
-            className="font-medium text-primary hover:underline underline-offset-4"
-          >
-            Đăng nhập
-          </Link>
-        </div>
       </form>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Đã có tài khoản?{" "}
+        <Link
+          to={ROUTES.LOGIN}
+          state={location.state}
+          className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
+        >
+          Đăng nhập
+        </Link>
+      </p>
     </div>
   );
 }

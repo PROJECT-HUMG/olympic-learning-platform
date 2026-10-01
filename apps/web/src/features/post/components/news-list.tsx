@@ -1,18 +1,44 @@
+import { Newspaper, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { PostSummaryResponse } from "../types/post.types";
 import { PostListItem } from "./post-list-item";
-import { PostCardSkeleton } from "./post-card-skeleton";
 
 interface NewsListProps {
   posts?: PostSummaryResponse[];
   isLoading: boolean;
   isError: boolean;
   isEmpty: boolean;
-  onReset?: () => void;
+  isRetrying: boolean;
+  hasFilters: boolean;
+  onRetry: () => void;
+  onReset: () => void;
 }
 
-export function NewsList({ posts, isLoading, isError, isEmpty, onReset }: NewsListProps) {
-  if (isLoading) return <div className="grid gap-4 md:grid-cols-2">{Array.from({ length: 6 }).map((_, index) => <PostCardSkeleton key={index} />)}</div>;
-  if (isError) return <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-8 text-center"><p className="font-semibold text-destructive">Không thể tải danh sách tin tức</p><p className="mt-1 text-sm text-muted-foreground">Vui lòng thử lại sau.</p></div>;
-  if (isEmpty || !posts?.length) return <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center"><p className="font-semibold">Không tìm thấy bài viết phù hợp</p><p className="mt-1 text-sm text-muted-foreground">Hãy thử thay đổi từ khóa hoặc bộ lọc.</p>{onReset && <button type="button" onClick={onReset} className="mt-4 text-sm font-semibold text-primary underline-offset-4 hover:underline">Xóa bộ lọc</button>}</div>;
-  return <div className="grid gap-4 md:grid-cols-2">{posts.map((post) => <PostListItem key={post.id} post={post} />)}</div>;
+export function NewsList({ posts, isLoading, isError, isEmpty, isRetrying, hasFilters, onRetry, onReset }: NewsListProps) {
+  if (isLoading) return (
+    <div className="school-news__loading" role="status">
+      <span className="sr-only">Đang tải bảng tin…</span>
+      {Array.from({ length: 3 }, (_, index) => <div key={index} aria-hidden="true"><span /><span /><span /></div>)}
+    </div>
+  );
+
+  if (isError) return (
+    <div className="school-news__state" role="alert">
+      <Newspaper aria-hidden="true" />
+      <h3>Chưa tải được bảng tin.</h3>
+      <p>Kiểm tra kết nối rồi thử tải lại các bài viết.</p>
+      <Button type="button" variant="outline" disabled={isRetrying} onClick={onRetry}><RefreshCw aria-hidden="true" /> Thử lại bảng tin</Button>
+    </div>
+  );
+
+  if (isEmpty || !posts?.length) return (
+    <div className="school-news__state" role="status">
+      <Newspaper aria-hidden="true" />
+      <h3>{hasFilters ? "Chưa tìm thấy bài viết phù hợp." : "Bảng tin chưa có bài viết."}</h3>
+      <p>{hasFilters ? "Thử từ khóa khác hoặc xem tất cả bài viết." : "Các thông báo và bài viết mới sẽ xuất hiện tại đây."}</p>
+      {hasFilters && <Button type="button" variant="outline" onClick={onReset}>Xem tất cả bài viết</Button>}
+    </div>
+  );
+
+  return <div className="school-news__posts">{posts.map((post) => <PostListItem key={post.id} post={post} variant="board" />)}</div>;
 }

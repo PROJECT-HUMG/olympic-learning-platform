@@ -1,0 +1,181 @@
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Check, Copy, Crown, Headphones, LogOut, SkipForward, Users, X } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { parseApiError } from "@/lib/api-error";
+import { ROUTES } from "@/router/route-constants";
+import { useStudyRoom } from "../hooks/use-study-room";
+import type { RoomSettings, StudyRoomSnapshot } from "../types/study-room";
+import { RoomPolicyFields } from "./room-policy-fields";
+import { StudyRoomAccess } from "./study-room-access";
+import { StudyMusicPlayer } from "./study-music-player";
+import "./study-room.css";
+
+const lobby = `${ROUTES.TOOLKIT}?tool=rooms`;
+
+function HostSettings({ room, busy, onSave }: { room: StudyRoomSnapshot; busy: boolean; onSave: (value: RoomSettings) => void }) {
+  const [value, setValue] = useState<RoomSettings>({ requestPolicy: room.requestPolicy, minimumStudyMinutes: room.minimumStudyMinutes });
+  return (
+    <details className="study-room-settings">
+      <summary>Quyền đề xuất nhạc</summary>
+      <form onSubmit={(event) => { event.preventDefault(); onSave(value); }}>
+        <RoomPolicyFields prefix="settings" value={value} onChange={setValue} disabled={busy} />
+        <Button type="submit" variant="outline" disabled={busy}>Lưu quy định</Button>
+      </form>
+    </details>
+  );
+}
+
+export function StudyRoomSession({ id }: { id: string }) {
+  const user = useCurrentUser();
+  const navigate = useNavigate();
+  const { query, action } = useStudyRoom(id, user.data?.id);
+  const [now, setNow] = useState(Date.now);
+  const [title, setTitle] = useState("");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [confirmClose, setConfirmClose] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
+  const [endedVersion, setEndedVersion] = useState<number | null>(null);
+  const room = query.data?.room;
+  const busy = action.isPending;
+  const run = action.mutate;
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const nextTrack = useCallback((version: number) => {
+    if (!busy) run({ type: "next", expectedVersion: version });
+  }, [busy, run]);
+
+  const trackEnded = useCallback((version: number) => setEndedVersion(version), []);
+  useEffect(() => {
+    if (endedVersion === null || busy || !room) return;
+    if (!query.isError && room.me && !room.closed && room.ownerId === user.data?.id && room.playback.version === endedVersion) {
+      run({ type: "next", expectedVersion: endedVersion });
+    }
+    setEndedVersion(null);
+  }, [endedVersion, busy, room, query.isError, user.data?.id, run]);
+
+  async function copyInvite() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopyFailed(false);
+      toast.success("Đã sao chép đường dẫn phòng.");
+    } catch { setCopyFailed(true); }
+  }
+
+  function requestTrack(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    run({ type: "request", input: { title: title.trim(), youtubeUrl: youtubeUrl.trim() } }, {
+      onSuccess: () => { setTitle(""); setYoutubeUrl(""); toast.success("Đã thêm bài vào hàng đợi."); },
+    });
+  }
+
+  function leave() {
+    run({ type: "leave" }, { onSuccess: () => navigate(lobby) });
+  }
+
+  if (user.isPending) return <div className="study-room-page" role="status">Đang kiểm tra phiên đăng nhập…</div>;
+  if (!user.data || (query.error as { status?: number } | null)?.status === 401) return <div className="study-room-page"><StudyRoomAccess /></div>;
+  if (!room) return (
+    <div className="study-room-page study-room-feedback">
+      <Link to={lobby}>Về danh sách phòng</Link>
+      {query.isPending ? <p role="status">Đang mở phòng học…</p> : <><p role="alert">{parseApiError(query.error).status === 404 ? "Phòng học này không còn tồn tại." : "Chưa kết nối được với phòng học."}</p><Button variant="outline" disabled={query.isFetching} onClick={() => void query.refetch()}>Thử kết nối lại</Button></>}
+    </div>
+  );
+
+  const isHost = room.ownerId === user.data.id;
+  const joined = !!room.me && !room.closed;
+  const canAct = joined && !busy && !query.isError;
+  const remaining = Math.max(0, Math.ceil((Date.parse(room.phaseEndsAt) - now - (query.data?.serverOffsetMs ?? 0)) / 1000));
+  const duration = 60 * (room.phase === "FOCUS" ? room.focusMinutes : room.phase === "BREAK" ? room.breakMinutes : room.longBreakMinutes);
+  const hasRequest = room.tracks.some((track) => track.requestedById === user.data.id);
+  const requestAllowed = canAct && !!room.me?.canRequest && !hasRequest;
+  const policyText = room.requestPolicy === "HOST_ONLY" ? "Chủ phòng đang tự chọn nhạc." : room.requestPolicy === "OPEN" ? "Mọi thành viên có thể đề xuất nhạc." : `Học đủ ${room.minimumStudyMinutes} phút để đề xuất nhạc.`;
+
+  return (
+    <div className="study-room-page">
+      <Link className="study-room-back" to={lobby}><ArrowLeft aria-hidden="true" /> Phòng học chung</Link>
+      <header className="study-room-header">
+        <div><h1>{room.name}</h1><p><Crown aria-hidden="true" /> {room.ownerName}<span><Users aria-hidden="true" /> {room.activeMembers} đang có mặt</span></p></div>
+        <div className="study-room-header__actions">
+          <Button variant="outline" onClick={() => void copyInvite()}><Copy aria-hidden="true" /> Mời bạn</Button>
+          {joined && <Button variant="ghost" disabled={busy} onClick={leave}><LogOut aria-hidden="true" /> Rời phòng</Button>}
+        </div>
+      </header>
+      {copyFailed && <label className="study-room-copy">Sao chép đường dẫn này để mời bạn<input readOnly value={window.location.href} onFocus={(event) => event.target.select()} /></label>}
+      {query.isError && <div className="study-room-feedback" role="alert"><p>Mất kết nối với phòng. Đồng hồ và nhạc có thể chưa được cập nhật; thời gian gián đoạn không được cộng vào thời gian học.</p><Button variant="outline" onClick={() => void query.refetch()} disabled={query.isFetching}>Kết nối lại</Button></div>}
+      {action.isError && <p className="study-room-error" role="alert">{parseApiError(action.error).detail}</p>}
+      {room.closed ? (
+        <div className="study-room-feedback" role="status"><h2>Buổi học đã khép lại.</h2><p>Chủ phòng đã đóng bàn học này.</p><Button asChild><Link to={lobby}>Tìm một phòng khác</Link></Button></div>
+      ) : !joined ? (
+        <div className="study-room-join">
+          <Headphones aria-hidden="true" /><h2>Đặt sách xuống, vào học cùng nhé.</h2>
+          <p>{room.focusMinutes} phút tập trung, {room.breakMinutes} phút nghỉ. Nhạc lofi và nhịp học được chia sẻ trong phòng.</p>
+          <p>{policyText} Khi vào phòng này, bạn sẽ rời phòng đang tham gia trước đó.</p>
+          <Button disabled={busy || query.isError} onClick={() => run({ type: "join" })}>{busy ? "Đang vào phòng…" : "Tham gia phòng"}</Button>
+        </div>
+      ) : (
+        <div className="study-room-layout">
+          <div className="study-room-main">
+            <section className="study-room-clock" aria-label="Nhịp học chung">
+              <div><span>{room.phase === "FOCUS" ? "Cùng tập trung" : room.phase === "BREAK" ? "Nghỉ một chút" : "Một khoảng nghỉ dài"}</span><span>Phiên {room.sessionNumber}</span></div>
+              <p className="study-room-clock__time" role="timer" aria-live="off">{String(Math.floor(remaining / 60)).padStart(2, "0")}:{String(remaining % 60).padStart(2, "0")}</p>
+              <progress max={duration} value={Math.max(0, duration - remaining)} aria-label="Tiến độ phiên học" />
+              <p>{remaining === 0 ? "Đang đồng bộ phiên tiếp theo…" : room.phase === "FOCUS" ? "Chọn một việc nhỏ và dành trọn khoảng thời gian này cho nó." : "Rời mắt khỏi màn hình, đứng dậy và uống chút nước nhé."}</p>
+              <small>{room.focusMinutes} phút học / {room.breakMinutes} phút nghỉ / nghỉ {room.longBreakMinutes} phút sau 4 phiên</small>
+            </section>
+            <section className="study-room-music" aria-labelledby="room-music-heading">
+              <div className="study-room-section-heading"><h2 id="room-music-heading">Nhạc ở bàn học</h2>{isHost && <Button variant="outline" disabled={!canAct} onClick={() => nextTrack(room.playback.version)}><SkipForward aria-hidden="true" /> Phát tiếp</Button>}</div>
+              <StudyMusicPlayer playback={room.playback} serverOffsetMs={query.data?.serverOffsetMs ?? 0} isHost={isHost && !query.isError} onEnded={trackEnded} />
+              {isHost && <p className="study-room-note">Bấm “Phát tiếp” để phát bài đã duyệt. Hết hàng đợi sẽ quay về Lofi Girl.</p>}
+            </section>
+            <section className="study-room-request" aria-labelledby="room-request-heading">
+              <h2 id="room-request-heading">Góp một bài cho buổi học</h2>
+              <p>{policyText}</p>
+              {(room.me?.remainingStudySeconds ?? 0) > 0 && <p role="status">Còn {Math.ceil((room.me?.remainingStudySeconds ?? 0) / 60)} phút học để mở quyền đề xuất.</p>}
+              {hasRequest && <p role="status">Bài của bạn đang trong hàng đợi. Bạn có thể đề xuất tiếp sau khi bài này được phát hoặc từ chối.</p>}
+              {room.tracks.length >= 50 && <p role="status">Hàng đợi đã đầy. Đợi chủ phòng phát hoặc gỡ bớt bài để đề xuất tiếp.</p>}
+              <form onSubmit={requestTrack}>
+                <label htmlFor="room-youtube">Đường dẫn YouTube</label>
+                <input id="room-youtube" type="url" required maxLength={500} placeholder="https://www.youtube.com/watch?v=…" value={youtubeUrl} disabled={!requestAllowed} onChange={(event) => setYoutubeUrl(event.target.value)} />
+                <label htmlFor="room-track-title">Tên bài</label>
+                <input id="room-track-title" required maxLength={120} placeholder="Một bài lofi bạn muốn chia sẻ" value={title} disabled={!requestAllowed} onChange={(event) => setTitle(event.target.value)} />
+                <Button type="submit" disabled={!requestAllowed || !title.trim() || !youtubeUrl.trim()}>{isHost ? "Thêm vào hàng đợi" : "Gửi chủ phòng duyệt"}</Button>
+              </form>
+            </section>
+          </div>
+          <aside className="study-room-aside">
+            <section className="study-room-presence" aria-labelledby="room-members-heading">
+              <h2 id="room-members-heading">Cùng bàn với bạn</h2>
+              <p className="study-room-my-time">Bạn đã học <strong>{Math.floor((room.me?.focusSeconds ?? 0) / 60)} phút</strong></p>
+              <p className="study-room-note">Chỉ cộng thời gian tập trung khi còn kết nối với phòng; không cộng giờ nghỉ.</p>
+              <ul>{room.members.map((member) => <li key={member.userId}><span className="study-room-presence__dot" data-online={member.online} aria-label={member.online ? "Đang có mặt" : "Tạm mất kết nối"} /><span>{member.displayName}{member.userId === room.ownerId && <Crown aria-label="Chủ phòng" />}</span><small>{Math.floor(member.focusSeconds / 60)} phút</small></li>)}</ul>
+            </section>
+            <section className="study-room-queue" aria-labelledby="room-queue-heading">
+              <h2 id="room-queue-heading">Hàng đợi nhạc <span>{room.tracks.length}</span></h2>
+              {!room.tracks.length ? <p className="study-room-note">Chưa có bài nào. Lofi Girl sẽ tiếp tục phát cùng buổi học.</p> : <ol>{room.tracks.map((track) => <li key={track.id}>
+                <a href={`https://www.youtube.com/watch?v=${track.videoId}`} target="_blank" rel="noreferrer">{track.title}</a>
+                <p>{track.requestedByName}<span>{track.status === "APPROVED" ? "Đã duyệt" : "Chờ duyệt"}</span></p>
+                {isHost && <div className="study-room-queue__actions">
+                  {track.status === "PENDING" && <Button variant="outline" disabled={!canAct} onClick={() => run({ type: "approve", trackId: track.id })} aria-label={`Duyệt ${track.title}`}><Check aria-hidden="true" /> Duyệt</Button>}
+                  <Button variant="ghost" disabled={!canAct} onClick={() => run({ type: "reject", trackId: track.id })} aria-label={`Bỏ ${track.title}`}><X aria-hidden="true" /> Bỏ</Button>
+                </div>}
+              </li>)}</ol>}
+            </section>
+            {isHost && <>
+              <HostSettings key={`${room.requestPolicy}-${room.minimumStudyMinutes}`} room={room} busy={!canAct} onSave={(input) => run({ type: "settings", input })} />
+              <div className="study-room-close">
+                {confirmClose ? <><p>Đóng phòng sẽ kết thúc buổi học cho tất cả thành viên.</p><div><Button variant="destructive" disabled={!canAct} onClick={() => run({ type: "close" })}>Đóng phòng học</Button><Button variant="ghost" onClick={() => setConfirmClose(false)}>Học tiếp</Button></div></> : <Button variant="ghost" onClick={() => setConfirmClose(true)}>Kết thúc buổi học</Button>}
+              </div>
+            </>}
+          </aside>
+        </div>
+      )}
+    </div>
+  );
+}

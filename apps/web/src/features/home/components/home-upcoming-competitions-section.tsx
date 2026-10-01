@@ -1,3 +1,4 @@
+import { FadeIn } from "@/components/ui/fade-in";
 import { Link } from "react-router-dom";
 import { Flame, ChevronRight, Users, Calendar, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { ROUTES } from "@/router/route-constants";
 export function HomeUpcomingCompetitionsSection() {
   return (
     <section className="space-y-6">
-      <div className="flex items-end justify-between border-b border-border pb-4">
+      <FadeIn className="flex items-end justify-between border-b border-border pb-4">
         <div className="flex items-center gap-2">
           <Flame className="size-6 text-amber-500" />
           <div>
@@ -21,12 +22,13 @@ export function HomeUpcomingCompetitionsSection() {
         >
           Tất cả kỳ thi <ChevronRight className="ml-1 size-4" />
         </Link>
-      </div>
+      </FadeIn>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {UPCOMING_COMPETITIONS.map((comp) => (
-          <div
+        {UPCOMING_COMPETITIONS.map((comp, index) => (
+          <FadeIn
             key={comp.id}
+            delay={index * 0.08}
             className="flex flex-col justify-between rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-card to-card p-6 shadow-xs"
           >
             <div className="space-y-3">
@@ -57,7 +59,7 @@ export function HomeUpcomingCompetitionsSection() {
                 <Link to={ROUTES.COMPETITIONS}>Đăng ký ngay</Link>
               </Button>
             </div>
-          </div>
+          </FadeIn>
         ))}
       </div>
     </section>

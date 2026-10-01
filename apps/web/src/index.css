@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500&family=Noto+Serif:wght@400&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -7,10 +8,13 @@
 :root {
   --card: #ffffff;
   --ring: #00387b;
-  --input: #e2e8f0;
-  --muted: #f1f5f9;
-  --accent: #e8f1fb;
-  --border: #e2e8f0;
+  --input: #cddce3;
+  --muted: #e8f0f4;
+  --accent: #deedf4;
+  --border: #cddce3;
+  --action: rgb(8 56 80 / 9%);
+  --action-hover: rgb(8 56 80 / 15%);
+  --action-foreground: #143f55;
   --radius: 0.75rem;
   --chart-1: #3b82f6;
   --chart-2: #2563eb;
@@ -19,20 +23,20 @@
   --chart-5: #1e3a8a;
   --popover: #ffffff;
   --primary: #00387b;
-  --sidebar: #f8fafc;
+  --sidebar: #edf4f7;
   --font-mono: JetBrains Mono, monospace;
   --font-sans: "Be Vietnam Pro", "Geist", ui-sans-serif, system-ui, sans-serif;
-  --secondary: #f1f5f9;
-  --background: #f8fafc;
+  --secondary: #e8f0f4;
+  --background: #f0f6f8;
   --font-serif: "Noto Serif", Georgia, serif;
-  --foreground: #0f172a;
-  --destructive: #ef4444;
+  --foreground: #102d42;
+  --destructive: #c53737;
   --sidebar-ring: #3b82f6;
   --sidebar-accent: #e0f2fe;
-  --sidebar-border: #e5e7eb;
-  --card-foreground: #333333;
+  --sidebar-border: #cddce3;
+  --card-foreground: #102d42;
   --sidebar-primary: #00387b;
-  --muted-foreground: #64748b;
+  --muted-foreground: #526b7a;
   --accent-foreground: #00387b;
   --popover-foreground: #0f172a;
   --primary-foreground: #ffffff;
@@ -44,38 +48,41 @@
 }
 
 .dark {
-  --card: #1e293b;
-  --ring: #6fa8dc;
-  --input: #334155;
-  --muted: #172337;
-  --accent: #173b64;
-  --border: #334155;
+  --action: rgb(207 236 251 / 10%);
+  --action-hover: rgb(207 236 251 / 18%);
+  --action-foreground: #e6f5ff;
+  --card: #11364a;
+  --ring: #97cde6;
+  --input: #3c6073;
+  --muted: #153e53;
+  --accent: #204c62;
+  --border: #35586b;
   --chart-1: #60a5fa;
   --chart-2: #3b82f6;
   --chart-3: #2563eb;
   --chart-4: #1d4ed8;
   --chart-5: #1e40af;
-  --popover: #1e293b;
-  --primary: #6fa8dc;
-  --sidebar: #0f172a;
-  --secondary: #1e293b;
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --destructive: #ef4444;
-  --sidebar-ring: #3b82f6;
-  --sidebar-accent: #1e3a8a;
-  --sidebar-border: #334155;
-  --card-foreground: #f8fafc;
-  --sidebar-primary: #6fa8dc;
-  --muted-foreground: #cbd5e1;
-  --accent-foreground: #bfdbfe;
-  --popover-foreground: #f8fafc;
-  --primary-foreground: #ffffff;
-  --sidebar-foreground: #f8fafc;
-  --secondary-foreground: #e2e8f0;
-  --destructive-foreground: #ffffff;
-  --sidebar-accent-foreground: #bfdbfe;
-  --sidebar-primary-foreground: #ffffff;
+  --popover: #103246;
+  --primary: #97cde6;
+  --sidebar: #072e43;
+  --secondary: #153e53;
+  --background: #002b42;
+  --foreground: #f1f7fa;
+  --destructive: #ff9393;
+  --sidebar-ring: #97cde6;
+  --sidebar-accent: #204c62;
+  --sidebar-border: #35586b;
+  --card-foreground: #f1f7fa;
+  --sidebar-primary: #97cde6;
+  --muted-foreground: #adc3cf;
+  --accent-foreground: #e0f2fa;
+  --popover-foreground: #f1f7fa;
+  --primary-foreground: #002b42;
+  --sidebar-foreground: #f1f7fa;
+  --secondary-foreground: #e0f2fa;
+  --destructive-foreground: #002b42;
+  --sidebar-accent-foreground: #e0f2fa;
+  --sidebar-primary-foreground: #002b42;
 }
 
 @theme inline {
@@ -85,6 +92,9 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-border: var(--border);
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-action-foreground: var(--action-foreground);
   --color-radius: var(--radius);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -129,6 +139,62 @@
   html {
     @apply font-sans;
   }
+}
+
+/* Keep cinematic copy readable against the matching day/night sky. */
+.cinematic-theme {
+  --font-display: "Instrument Serif", serif;
+  --font-body: "Inter", sans-serif;
+  --foreground: #13354b;
+  --muted-foreground: #35576b;
+  font-family: var(--font-body);
+  color: var(--foreground);
+}
+
+.dark .cinematic-theme {
+  --action: rgb(255 255 255 / 10%);
+  --action-hover: rgb(255 255 255 / 18%);
+  --action-foreground: #ffffff;
+  --background: hsl(201 100% 13%);
+  --foreground: hsl(0 0% 100%);
+  --muted-foreground: #bbd1df;
+  --primary: hsl(0 0% 100%);
+  --primary-foreground: hsl(0 0% 4%);
+  --secondary: hsl(0 0% 10%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(0 0% 10%);
+  --accent: hsl(0 0% 10%);
+  --accent-foreground: hsl(0 0% 100%);
+  --border: hsl(0 0% 18%);
+  --input: hsl(0 0% 18%);
+  --ring: hsl(0 0% 100%);
+}
+
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.15) 20%,
+    rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.15) 80%, rgba(255, 255, 255, 0.45) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 /* Tiptap placeholder remains visible before the first keystroke. */

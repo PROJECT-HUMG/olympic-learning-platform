@@ -1,0 +1,4 @@
+/* Resolve the page surface here so the video fades into either theme. */
+.home-public-layout {
+  --hero-surface: var(--background);
+}

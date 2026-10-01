@@ -1,6 +1,6 @@
 # API
 
-Backend của Olympic Learning Platform: Spring Boot 4.0.7, Java 25 và Maven. REST API ở `/api/v1`; dữ liệu lưu trong PostgreSQL, migration qua Flyway, Redis hỗ trợ các luồng nền. Các module hiện có: auth/user/admin, document, post, topic/question, assessment import và storage.
+Backend của Olympic Learning Platform: Spring Boot 4.0.7, Java 25 và Maven. REST API ở `/api/v1`; dữ liệu lưu trong PostgreSQL, migration qua Flyway, Redis hỗ trợ các luồng nền. Các module hiện có: auth/user/admin, document, post, topic/question, assessment import, storage và studyroom.
 
 ## Chạy local
 
@@ -29,3 +29,9 @@ API mặc định ở `http://localhost:8080`. Profile mặc định là `dev`; 
 ```
 
 Mã Java ở `src/main/java/me/nghlong3004/olympic`, test ở `src/test/java`, migrations ở `src/main/resources/db/migration`. Đọc [AGENTS.md](AGENTS.md) và skill backend được chỉ định trước khi sửa Java. Test tích hợp dùng Testcontainers có thể cần Docker. Contract API thay đổi cần cập nhật types và services ở web.
+
+Phòng học chung dùng `/api/v1/study-rooms`, yêu cầu JWT và tài khoản đang hoạt động. Flyway `V10` tạo ba bảng phòng/thành viên/hàng đợi; không cần thêm biến môi trường hay YouTube API key. Xem [contract, polling và vận hành](../../docs/architecture/study-rooms.md). Kiểm tra module (Docker cần chạy cho PostgreSQL integration):
+
+```bash
+./mvnw -Dtest=StudyRoomRulesTest,StudyRoomIntegrationTest,StudyRoomControllerTest test
+```

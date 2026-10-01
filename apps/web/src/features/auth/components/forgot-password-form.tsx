@@ -9,7 +9,7 @@ import { ROUTES } from "@/router/route-constants";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { toast } from "sonner";
-import { MailCheckIcon } from "lucide-react";
+import { KeyRound, MailCheckIcon } from "lucide-react";
 
 const forgotPasswordSchema = z.object({
   email: z.email("Vui lòng nhập địa chỉ email hợp lệ"),
@@ -43,26 +43,27 @@ export function ForgotPasswordForm() {
 
   if (isSubmitted) {
     return (
-      <div className="space-y-4 text-center">
-        <MailCheckIcon className="mx-auto size-14 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Kiểm tra Email của bạn</h1>
-        <p className="text-sm text-muted-foreground">
+      <div className="auth-status" role="status">
+        <MailCheckIcon className="auth-status__icon" />
+        <h1 className="auth-heading">Kiểm tra hộp thư nhé.</h1>
+        <p className="auth-status__message">
           Chúng tôi đã gửi đường link khôi phục mật khẩu đến{" "}
           <span className="font-semibold text-foreground">{submittedEmail}</span>.
         </p>
-        <Button asChild variant="outline" className="w-full">
-          <Link to={ROUTES.LOGIN}>Quay lại Đăng nhập</Link>
+        <Button asChild variant="outline" className="h-11 rounded-full px-6">
+          <Link to={ROUTES.LOGIN}>Về đăng nhập</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold text-foreground">Quên Mật Khẩu?</h1>
-        <p className="text-sm text-muted-foreground text-balance">
-          Nhập email của bạn để nhận liên kết khôi phục mật khẩu
+    <div className="auth-form">
+      <KeyRound className="auth-status__icon" />
+      <div>
+        <h1 className="auth-heading">Quên mật khẩu?</h1>
+        <p className="auth-description">
+          Nhập email đã đăng ký. Chúng mình sẽ gửi bạn liên kết để đặt lại mật khẩu.
         </p>
       </div>
 
@@ -78,17 +79,8 @@ export function ForgotPasswordForm() {
         />
 
         <Button type="submit" className="w-full" loading={isSubmitting}>
-          Gửi Liên kết Khôi Phục
+          Gửi liên kết khôi phục
         </Button>
-
-        <div className="text-center text-sm">
-          <Link
-            to={ROUTES.LOGIN}
-            className="text-muted-foreground hover:text-foreground underline underline-offset-4"
-          >
-            Quay lại Đăng nhập
-          </Link>
-        </div>
       </form>
     </div>
   );

@@ -1,3 +1,4 @@
+import { FadeIn } from "@/components/ui/fade-in";
 import { Link } from "react-router-dom";
 import { ChevronRight, ArrowRight } from "lucide-react";
 import { FEATURED_SUBJECTS } from "../data/home-mock-data";
@@ -6,7 +7,7 @@ import { ROUTES } from "@/router/route-constants";
 export function HomeFeaturedSubjectsSection() {
   return (
     <section className="space-y-6">
-      <div className="flex items-end justify-between gap-4 border-b border-border pb-4">
+      <FadeIn className="flex items-end justify-between gap-4 border-b border-border pb-4">
         <div className="flex-1">
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Môn Học Nổi Bật</h2>
           <p className="text-sm text-muted-foreground mt-1">
@@ -19,12 +20,13 @@ export function HomeFeaturedSubjectsSection() {
         >
           Xem tất cả <ChevronRight className="ml-1 size-4" />
         </Link>
-      </div>
+      </FadeIn>
 
       <div className="grid gap-6 md:grid-cols-3">
-        {FEATURED_SUBJECTS.map((sub) => (
-          <div
+        {FEATURED_SUBJECTS.map((sub, index) => (
+          <FadeIn
             key={sub.id}
+            delay={index * 0.08}
             className="group flex flex-col justify-between rounded-2xl border border-border/80 bg-card p-6 shadow-xs hover:border-primary/50 transition-all hover:shadow-md"
           >
             <div className="space-y-3">
@@ -51,7 +53,7 @@ export function HomeFeaturedSubjectsSection() {
                 Học ngay <ArrowRight className="ml-1 size-3" />
               </Link>
             </div>
-          </div>
+          </FadeIn>
         ))}
       </div>
     </section>

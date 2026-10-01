@@ -1,8 +1,9 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { ROUTES, getDashboardRoute } from "@/router/route-constants";
+import { ROUTES, getPostLoginRoute } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSpinDelay } from "@/hooks/use-spin-delay";
+import { AuthCardLayout } from "@/layouts/auth-card-layout";
 
 export function GuestRoute() {
   const { data: user, isLoading } = useCurrentUser();
@@ -20,95 +21,90 @@ export function GuestRoute() {
     const isVerifyEmail = location.pathname === ROUTES.VERIFY_EMAIL;
 
     return (
-      <div
-        className="relative flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-background p-4 sm:p-6 lg:p-8"
-        aria-busy="true"
-      >
-        <div className="relative z-10 w-full max-w-md">
-          <div className="rounded-2xl border border-border/80 bg-card/90 p-6 shadow-xl backdrop-blur-md sm:p-8 space-y-6">
-            {isVerifyEmail ? (
-              <div className="space-y-4 text-center">
-                <Skeleton className="mx-auto size-14 rounded-full" />
-                <Skeleton className="mx-auto h-7 w-60 rounded-md" />
-                <Skeleton className="mx-auto h-4 w-72 rounded-md" />
-                <Skeleton className="h-10 w-full rounded-lg" />
+      <AuthCardLayout>
+        <div className="space-y-6" aria-busy="true" aria-label="Đang tải tài khoản">
+          {isVerifyEmail ? (
+            <div className="space-y-4 text-left">
+              <Skeleton className="size-14 rounded-full" />
+              <Skeleton className="h-7 w-60 max-w-full rounded-md" />
+              <Skeleton className="h-4 w-72 max-w-full rounded-md" />
+              <Skeleton className="h-10 w-full rounded-lg" />
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2 text-left">
+                <Skeleton className="h-8 w-36 rounded-md" />
+                <Skeleton className="h-4 w-60 max-w-full rounded-md" />
               </div>
-            ) : (
-              <>
-                <div className="space-y-2 text-center">
-                  <Skeleton className="mx-auto h-8 w-36 rounded-md" />
-                  <Skeleton className="mx-auto h-4 w-60 rounded-md" />
+
+              {!isRegister && !isForgotPassword && !isResetPassword && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <Skeleton className="h-10 w-full rounded-lg" />
+                    <Skeleton className="h-10 w-full rounded-lg" />
+                    <Skeleton className="h-10 w-full rounded-lg" />
+                  </div>
+                  <div className="relative flex items-center justify-center">
+                    <Skeleton className="h-3 w-32 rounded-md" />
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-16 rounded-md" />
+                  <Skeleton className="h-10 w-full rounded-lg" />
                 </div>
 
-                {!isRegister && !isForgotPassword && !isResetPassword && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-2.5">
-                      <Skeleton className="h-10 w-full rounded-lg" />
-                      <Skeleton className="h-10 w-full rounded-lg" />
+                {isRegister && (
+                  <>
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-24 rounded-md" />
                       <Skeleton className="h-10 w-full rounded-lg" />
                     </div>
-                    <div className="relative flex items-center justify-center">
-                      <Skeleton className="h-3 w-32 rounded-md" />
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-20 rounded-md" />
+                      <Skeleton className="h-10 w-full rounded-lg" />
                     </div>
+                  </>
+                )}
+
+                {!isForgotPassword && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-4 w-16 rounded-md" />
+                      {!isRegister && !isResetPassword && (
+                        <Skeleton className="h-3 w-24 rounded-md" />
+                      )}
+                    </div>
+                    <Skeleton className="h-10 w-full rounded-lg" />
                   </div>
                 )}
 
-                <div className="space-y-4">
+                {(isRegister || isResetPassword) && (
                   <div className="space-y-1.5">
-                    <Skeleton className="h-4 w-16 rounded-md" />
+                    <Skeleton className="h-4 w-32 rounded-md" />
                     <Skeleton className="h-10 w-full rounded-lg" />
                   </div>
+                )}
 
-                  {isRegister && (
-                    <>
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-24 rounded-md" />
-                        <Skeleton className="h-10 w-full rounded-lg" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-20 rounded-md" />
-                        <Skeleton className="h-10 w-full rounded-lg" />
-                      </div>
-                    </>
-                  )}
+                <Skeleton className="h-10 w-full rounded-lg" />
 
-                  {!isForgotPassword && (
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Skeleton className="h-4 w-16 rounded-md" />
-                        {!isRegister && !isResetPassword && (
-                          <Skeleton className="h-3 w-24 rounded-md" />
-                        )}
-                      </div>
-                      <Skeleton className="h-10 w-full rounded-lg" />
-                    </div>
-                  )}
-
-                  {(isRegister || isResetPassword) && (
-                    <div className="space-y-1.5">
-                      <Skeleton className="h-4 w-32 rounded-md" />
-                      <Skeleton className="h-10 w-full rounded-lg" />
-                    </div>
-                  )}
-
-                  <Skeleton className="h-10 w-full rounded-lg" />
-
-                  {!isResetPassword && (
-                    <div className="pt-2 text-center">
-                      <Skeleton className="mx-auto h-4 w-44 rounded-md" />
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
+                {!isResetPassword && (
+                  <div className="pt-2 text-left">
+                    <Skeleton className="h-4 w-44 rounded-md" />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
-      </div>
+      </AuthCardLayout>
     );
   }
 
   if (user) {
-    return <Navigate to={getDashboardRoute(user.role)} replace />;
+    return <Navigate to={getPostLoginRoute(user.role, location.state?.from)} replace />;
   }
 
   return <Outlet />;

@@ -7,10 +7,29 @@ import type { PostSummaryResponse } from "../types/post.types";
 import { PostBadge } from "./post-badge";
 import { PostThumbnail } from "./post-thumbnail";
 
-export function PostListItem({ post, priority = false }: { post: PostSummaryResponse; priority?: boolean }) {
+export function PostListItem({ post, priority = false, variant = "card" }: { post: PostSummaryResponse; priority?: boolean; variant?: "card" | "board" }) {
   const deadline = post.expiredAt ? new Date(post.expiredAt) : null;
   const daysLeft = deadline ? deadline.getTime() - Date.now() : null;
   const isUrgent = daysLeft !== null && daysLeft <= 3 * 24 * 60 * 60 * 1000;
+
+  if (variant === "board") return (
+    <article className={`school-news-post${priority ? " school-news-post--pinned" : ""}${post.thumbnailUrl && !priority ? " school-news-post--illustrated" : ""}`}>
+      {post.thumbnailUrl && !priority && (
+        <Link to={`${ROUTES.NEWS}/${post.slug}`} className="school-news-post__image" aria-label={`Đọc: ${post.title}`} tabIndex={-1}>
+          <PostThumbnail src={post.thumbnailUrl} alt="" />
+        </Link>
+      )}
+      <div className="school-news-post__body">
+        <div className="school-news-post__meta">
+          <PostBadge type={post.type} />
+          {post.pinned && !priority && <span className="school-news-post__pinned-label"><Pin aria-hidden="true" /> Được ghim</span>}
+          {post.publishedAt && <time dateTime={post.publishedAt}>{format(new Date(post.publishedAt), "dd/MM/yyyy", { locale: vi })}</time>}
+        </div>
+        <h3><Link to={`${ROUTES.NEWS}/${post.slug}`}>{post.title}</Link></h3>
+        {post.summary && <p>{post.summary}</p>}
+      </div>
+    </article>
+  );
 
   return (
     <article className="group grid gap-4 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 hover:bg-muted/20 sm:grid-cols-[10.5rem_1fr] sm:p-4">

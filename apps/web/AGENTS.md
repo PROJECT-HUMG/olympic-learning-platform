@@ -3,7 +3,7 @@
 ## Current state
 
 - React 19, TypeScript, Vite 8, and Tailwind CSS 4. UI primitives live in `src/components/ui`, feature code in `src/features`, pages in `src/pages`, and shells in `src/layouts`.
-- Routes and guards live in `src/router`. `PublicLayout`, `AuthCardLayout`, and `DashboardLayout` separate the main surfaces. TanStack Query owns server state; `src/lib/axios.ts` is the shared API client; Zustand holds client state such as auth, theme, season, and UI preferences.
+- Routes and guards live in `src/router`. `PublicLayout`, `AuthCardLayout`, and `DashboardLayout` separate the main surfaces. TanStack Query owns server state; `src/lib/axios.ts` is the shared API client; Zustand holds client state such as auth, theme, and UI preferences.
 - Theme tokens live in `src/index.css`, with light and dark modes. Some home-page sections use sample data from `src/features/home/data/home-mock-data.ts`; the latest-news section fetches posts from the API.
 - Available commands are `pnpm dev`, `pnpm build`, `pnpm lint`, and `pnpm preview`. Vite serves on port 3000 and proxies `/api` to port 8080.
 

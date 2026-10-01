@@ -25,6 +25,7 @@ const NewsDetailPage = lazy(() => import("@/pages/news-detail-page"));
 const CompetitionsPage = lazy(() => import("@/pages/competitions-page"));
 const AboutPage = lazy(() => import("@/pages/about-page"));
 const ToolkitPage = lazy(() => import("@/pages/toolkit-page"));
+const StudyRoomPage = lazy(() => import("@/pages/study-room-page"));
 
 // Lazy load authenticated private workspace pages
 const DashboardPage = lazy(() => import("@/pages/dashboard-page"));
@@ -120,6 +121,14 @@ export const router = createBrowserRouter([
             <ToolkitPage />
           </Suspense>
         ),
+      },
+      {
+        path: ROUTES.STUDY_ROOMS,
+        element: <Navigate to={`${ROUTES.TOOLKIT}?tool=rooms`} replace />,
+      },
+      {
+        path: `${ROUTES.STUDY_ROOMS}/:roomId`,
+        element: <Suspense fallback={null}><StudyRoomPage /></Suspense>,
       },
     ],
   },

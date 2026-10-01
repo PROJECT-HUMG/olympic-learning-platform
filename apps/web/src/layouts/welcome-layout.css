@@ -1,0 +1,369 @@
+html:has(.welcome-layout) {
+  scrollbar-gutter: stable;
+}
+
+.welcome-layout {
+  --auth-button: #2e5366;
+  --auth-button-hover: #22485b;
+  --auth-button-foreground: #f1f8fc;
+  --auth-slide: 640ms cubic-bezier(.22, 1, .36, 1);
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.dark .welcome-layout {
+  --auth-button: #9fbfd0;
+  --auth-button-hover: #bdd6e3;
+  --auth-button-foreground: #15374a;
+}
+
+.welcome-layout__scene {
+  container-type: inline-size;
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.welcome-layout__scene > .cinematic-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.welcome-layout__scene .cinematic-scene__layer > :is(img, video) {
+  transition: object-position var(--auth-slide), opacity 400ms ease;
+}
+
+.welcome-layout__scene [data-scene="day"] > :is(img, video) { object-position: right center; }
+.welcome-layout__scene [data-scene="night"] > :is(img, video) { object-position: left center; }
+
+/* This reading surface travels with the form instead of fading out beneath it. */
+.welcome-layout__scene::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: calc(max(2rem, 50% - 38rem) - 36rem);
+  width: 99rem;
+  height: 100%;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--background) 32%, transparent) 12rem,
+    color-mix(in srgb, var(--background) 92%, transparent) 24rem,
+    color-mix(in srgb, var(--background) 98%, transparent) 30rem,
+    var(--background) 36rem,
+    var(--background) 63rem,
+    color-mix(in srgb, var(--background) 98%, transparent) 69rem,
+    color-mix(in srgb, var(--background) 92%, transparent) 75rem,
+    color-mix(in srgb, var(--background) 32%, transparent) 87rem,
+    transparent);
+  transition: transform var(--auth-slide);
+}
+
+.welcome-layout__header,
+.welcome-layout__main {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 2rem;
+}
+
+.welcome-layout__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 5rem;
+}
+
+.welcome-layout__brand {
+  display: inline-flex;
+  align-items: center;
+}
+
+.welcome-layout__main {
+  container-type: inline-size;
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  padding-block: 1.25rem 3rem;
+}
+
+.welcome-layout__content {
+  width: min(100%, 27rem);
+  min-width: 0;
+  transition: transform var(--auth-slide);
+}
+
+.auth-route-content {
+  animation: auth-page-enter .18s ease-out both;
+}
+
+@keyframes auth-page-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-route-content { animation: none; }
+
+  .welcome-layout__content,
+  .welcome-layout__scene .cinematic-scene__layer > :is(img, video),
+  .welcome-layout__scene::after {
+    transition: none;
+  }
+}
+
+.auth-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: 2rem;
+  color: var(--muted-foreground);
+  font-size: .875rem;
+}
+
+.auth-back-link:hover {
+  color: var(--foreground);
+}
+
+.welcome-layout a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 5px;
+  border-radius: 3px;
+}
+
+.auth-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(2.25rem, 4vw, 3.25rem);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+
+.auth-description {
+  margin-top: 1rem;
+  max-width: 38ch;
+  font-size: .875rem;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+}
+
+.auth-heading--greeting {
+  font-size: clamp(1.5rem, 7vw, 2.5rem);
+}
+
+.auth-form,
+.auth-status {
+  display: grid;
+  gap: 1.75rem;
+}
+
+.auth-status {
+  justify-items: start;
+  overflow-wrap: anywhere;
+}
+
+.auth-status__icon {
+  width: 3rem;
+  height: 3rem;
+  stroke-width: 1.25;
+  color: var(--primary);
+}
+
+.auth-status__message {
+  border-left: 2px solid var(--action);
+  padding-left: 1rem;
+  font-size: .875rem;
+  line-height: 1.75;
+  color: var(--muted-foreground);
+}
+
+.welcome-layout__content .lbi-box {
+  background: color-mix(in srgb, var(--background) 45%, transparent);
+}
+
+.welcome-layout__content [data-slot="button"][type="submit"] {
+  min-height: 3rem;
+  border-radius: .875rem;
+  border-color: color-mix(in srgb, var(--auth-button-foreground) 18%, transparent);
+  background-color: var(--auth-button);
+  /* Keep the video from changing the button's color or creating bright patches. */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: var(--auth-button-foreground);
+  font-size: .9375rem;
+  box-shadow: 0 4px 10px -6px rgb(0 25 40 / 25%);
+}
+
+.welcome-layout__content [data-slot="button"][type="submit"]:hover {
+  background-color: var(--auth-button-hover);
+}
+
+.welcome-layout__content [data-slot="button"][type="submit"]:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 4px;
+}
+
+.auth-social {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-social__label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: .75rem;
+  color: var(--muted-foreground);
+}
+
+.auth-social__label::before,
+.auth-social__label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.welcome-layout__content .auth-social button {
+  height: 2.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background) 50%, transparent);
+}
+
+.welcome-layout__content .auth-social button:hover {
+  background: var(--accent);
+}
+
+.not-found-code {
+  font-family: var(--font-serif);
+  font-size: clamp(7rem, 15vw, 13rem);
+  line-height: 1;
+  letter-spacing: -.08em;
+}
+
+@media (min-width: 1024px) {
+  .welcome-layout[data-content-side="right"] .welcome-layout__content {
+    /* Move only the form, keeping its bounds inside the main content area. */
+    transform: translateX(calc(100cqw - 100%));
+  }
+
+  .welcome-layout[data-content-side="right"] .welcome-layout__scene::after {
+    /* The scene spans the viewport; the form's rail is capped at 80rem. */
+    transform: translateX(calc(min(100cqw, 80rem) - 4rem - 27rem));
+  }
+
+  .welcome-layout[data-content-side="right"] .welcome-layout__scene [data-scene="day"] > :is(img, video) {
+    object-position: left center;
+  }
+
+  .welcome-layout[data-content-side="right"] .welcome-layout__scene [data-scene="night"] > :is(img, video) {
+    object-position: right center;
+  }
+}
+
+@media (max-width: 1023px) {
+  .welcome-layout {
+    --auth-paper: #f9fcfd;
+    --auth-paper-edge: #d8e4e9;
+    --auth-bookmark: #bed3dc;
+  }
+
+  .dark .welcome-layout {
+    --auth-paper: #0d3447;
+    --auth-paper-edge: #274b5e;
+    --auth-bookmark: #436b7d;
+  }
+
+  .welcome-layout__header,
+  .welcome-layout__main {
+    max-width: 31rem;
+    padding-inline: 1rem;
+  }
+
+  .welcome-layout__header {
+    min-height: 4.5rem;
+    padding-inline: 1.5rem;
+  }
+
+  .welcome-layout__header > button {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .welcome-layout__header > button:hover {
+    background: var(--action);
+  }
+
+  .welcome-layout__main {
+    align-items: flex-start;
+    justify-content: center;
+    padding-block: .5rem 1.5rem;
+  }
+
+  .welcome-layout__content {
+    position: relative;
+    width: 100%;
+    padding: 1.75rem 1.25rem 1.25rem;
+    border: 1px solid var(--auth-paper-edge);
+    border-radius: .375rem 1.5rem 1.5rem .375rem;
+    background: var(--auth-paper);
+    box-shadow: 0 4px 0 -2px var(--auth-paper), 0 4px 0 -1px var(--auth-paper-edge);
+    transition: none;
+  }
+
+  /* A small ribbon and a quiet spine suggest a notebook without crowding the form. */
+  .welcome-layout__content::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: 1.5rem;
+    width: 1rem;
+    height: 1.125rem;
+    background: var(--auth-bookmark);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
+  }
+
+  .welcome-layout__content::after {
+    content: "";
+    position: absolute;
+    top: 1.5rem;
+    bottom: 1.5rem;
+    left: .375rem;
+    width: 1px;
+    background: var(--auth-paper-edge);
+    pointer-events: none;
+  }
+
+  .auth-form,
+  .auth-status { gap: 1.25rem; }
+  .auth-heading { font-size: clamp(1.8rem, 7.5vw, 2.4rem); }
+  .auth-heading--greeting { font-size: clamp(1.4rem, 6.4vw, 2rem); }
+  .auth-description { margin-top: .65rem; font-size: .8125rem; }
+  .auth-back-link { min-height: 2.75rem; margin-block: -.75rem 1rem; }
+
+  .welcome-layout__content .lbi-box { background: var(--auth-paper); }
+  .welcome-layout__content .lbi-field { font-size: 1rem; }
+  .welcome-layout__content .lbi-eye { right: 4px; width: 2.75rem; height: 2.75rem; margin-top: -1.375rem; }
+  .welcome-layout__content .lbi-label-right { position: static; justify-self: end; transform: none; }
+  .welcome-layout__content .lbi-label-right a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+  .welcome-layout__content .auth-form > p:last-child a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+  .welcome-layout__content .auth-social button { min-width: 0; height: 3.5rem; flex-direction: column; gap: .3rem; padding-inline: .25rem; border-radius: .75rem; background: var(--auth-paper); font-size: .6875rem; }
+  .welcome-layout__content .auth-social button:hover { background: var(--action); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .welcome-layout *, .welcome-layout *::before, .welcome-layout *::after { animation: none !important; transition: none !important; }
+  }
+}

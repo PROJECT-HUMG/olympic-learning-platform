@@ -1,23 +1,21 @@
-import { Outlet } from "react-router-dom";
-import { SeasonalBackground } from "@/components/ui/seasonal-background";
+import { Outlet, useLocation } from "react-router-dom";
 import { AiChatbotWidget } from "@/features/ai/components/ai-chatbot-widget";
 import { PublicHeader } from "./components/public-header";
 import { PublicFooter } from "./components/public-footer";
+import { ROUTES } from "@/router/route-constants";
+import { cn } from "@/lib/utils";
+import "./public-layout.css";
 
 export function PublicLayout() {
+  const isHome = useLocation().pathname === ROUTES.HOME;
+
   return (
-    <div className="flex min-h-screen flex-col bg-background/50 text-foreground relative selection:bg-primary/30">
-      <SeasonalBackground />
-
-
-      {/* Ambient Soft Center Glow */}
-      <div
-        className="fixed left-1/2 top-1/2 -z-10 size-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/5 blur-[120px] pointer-events-none dark:bg-primary/10"
-        aria-hidden="true"
-      />
-
+    <div className={cn(
+      "flex min-h-screen flex-col bg-background text-foreground relative selection:bg-primary/30",
+      isHome && "home-public-layout"
+    )}>
       {/* Top Navigation Bar */}
-      <PublicHeader />
+      <PublicHeader cinematic={isHome} />
 
       {/* Main Content Area */}
       <main className="flex-1 relative z-10">

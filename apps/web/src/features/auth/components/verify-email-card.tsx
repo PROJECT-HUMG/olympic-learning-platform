@@ -44,36 +44,36 @@ export function VerifyEmailCard() {
   }, [token]);
 
   return (
-    <div className="space-y-6 text-center" aria-busy={status === "loading"}>
+    <div aria-busy={status === "loading"}>
       {status === "loading" && (
-        <div className="space-y-4 text-center" role="status" aria-label="Đang xác thực email">
-          <Skeleton className="mx-auto size-14 rounded-full" />
-          <Skeleton className="mx-auto h-7 w-60 rounded-md" />
-          <Skeleton className="mx-auto h-4 w-72 rounded-md" />
+        <div className="auth-status" role="status" aria-label="Đang xác thực email">
+          <Skeleton className="size-12 rounded-full" />
+          <Skeleton className="h-12 w-60 max-w-full rounded-md" />
+          <Skeleton className="h-4 w-72 max-w-full rounded-md" />
           <Skeleton className="h-10 w-full rounded-lg" />
         </div>
       )}
 
       {status === "success" && (
-        <div className="space-y-4">
-          <CheckCircle2Icon className="mx-auto size-14 text-green-500" />
-          <h1 className="text-2xl font-bold text-foreground">Xác Thực Email Thành Công!</h1>
-          <p className="text-sm text-muted-foreground">
+        <div className="auth-status" role="status">
+          <CheckCircle2Icon className="auth-status__icon" />
+          <h1 className="auth-heading">Sẵn sàng<br />khám phá.</h1>
+          <p className="auth-status__message">
             Tài khoản của bạn đã được kích hoạt thành công. Bạn có thể đăng nhập ngay bây giờ.
           </p>
-          <Button asChild className="w-full">
-            <Link to={ROUTES.LOGIN}>Đăng Nhập Ngay</Link>
+          <Button asChild className="h-11 rounded-full px-6">
+            <Link to={ROUTES.LOGIN}>Đăng nhập ngay</Link>
           </Button>
         </div>
       )}
 
       {status === "error" && (
-        <div className="space-y-4">
-          <XCircleIcon className="mx-auto size-14 text-destructive" />
-          <h1 className="text-2xl font-bold text-foreground">Xác Thực Thất Bại</h1>
-          <p className="text-sm text-muted-foreground">{errorMessage}</p>
-          <Button asChild variant="outline" className="w-full">
-            <Link to={ROUTES.LOGIN}>Quay lại Đăng nhập</Link>
+        <div className="auth-status" role="alert">
+          <XCircleIcon className="size-12 text-destructive" strokeWidth={1.25} />
+          <h1 className="auth-heading">Chưa thể xác thực.</h1>
+          <p className="auth-status__message">{errorMessage}</p>
+          <Button asChild variant="outline" className="h-11 rounded-full px-6">
+            <Link to={ROUTES.LOGIN}>Về đăng nhập</Link>
           </Button>
         </div>
       )}

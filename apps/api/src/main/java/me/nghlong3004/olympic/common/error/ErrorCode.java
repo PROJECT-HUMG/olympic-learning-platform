@@ -35,6 +35,12 @@ public enum ErrorCode {
   DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "Resource already exists", "error.resource.duplicate"),
   RESOURCE_STATE_CONFLICT(
       HttpStatus.CONFLICT, "Resource state conflict", "error.resource.stateConflict"),
+  STUDY_ROOM_CONFLICT(
+      HttpStatus.CONFLICT, "Study room state conflict", "error.studyRoom.conflict"),
+  STUDY_ROOM_FORBIDDEN(
+      HttpStatus.FORBIDDEN, "Study room action is not allowed", "error.studyRoom.forbidden"),
+  STUDY_ROOM_INVALID_REQUEST(
+      HttpStatus.BAD_REQUEST, "Study room request is invalid", "error.studyRoom.invalidRequest"),
   INVALID_RESOURCE_NAME(
       HttpStatus.BAD_REQUEST, "Resource name is invalid", "error.resource.invalidName"),
   INVALID_CURRENT_PASSWORD(

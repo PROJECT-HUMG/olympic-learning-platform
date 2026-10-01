@@ -1,39 +1,158 @@
-import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
-import { PublicPageHeader } from "@/components/ui/public-page-header";
+import type { FormEvent } from "react";
+import { ArrowUpRight, Bell, Newspaper, Pin, RefreshCw, Search } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppPagination } from "@/components/ui/app-pagination";
-import { useDebounce } from "@/hooks/use-debounce";
 import { usePosts } from "@/features/post/hooks/use-posts";
 import { NewsList } from "./news-list";
 import { PostListItem } from "./post-list-item";
+import "./public-news-feature.css";
+
+const categories = [
+  { value: "ALL", label: "Tất cả" },
+  { value: "ANNOUNCEMENT", label: "Thông báo" },
+  { value: "NEWS", label: "Tin tức" },
+  { value: "BLOG", label: "Blog" },
+];
 
 export function PublicNewsFeature() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [keyword, setKeyword] = useState(searchParams.get("q") || "");
-  const keywordQuery = useDebounce(keyword, 350);
-  const type = searchParams.get("type") || "ALL";
-  const currentPage = Number(searchParams.get("page") || "1");
-  const isDefaultFeed = type === "ALL" && !keywordQuery && currentPage === 1;
-  const params = { page: Math.max(0, currentPage - 1), size: 9, type: type === "ALL" ? undefined : type, keyword: keywordQuery || undefined, pinned: isDefaultFeed ? false : undefined, sort: "publishedAt,desc" };
-  const feed = usePosts(params);
-  const priority = usePosts({ page: 0, size: 3, pinned: true, sort: "publishedAt,desc" }, { enabled: isDefaultFeed });
+  const keyword = searchParams.get("q")?.trim() || "";
+  const requestedType = searchParams.get("type");
+  const type = categories.some((category) => category.value === requestedType) ? requestedType! : "ALL";
+  const requestedPage = Number(searchParams.get("page") || "1");
+  const currentPage = Number.isInteger(requestedPage) && requestedPage > 0 && requestedPage <= 2147483647 ? requestedPage : 1;
+  const hasFilters = type !== "ALL" || Boolean(keyword);
+  const showPriority = !hasFilters && currentPage === 1;
 
-  useEffect(() => { setSearchParams((current) => { const next = new URLSearchParams(current); keywordQuery ? next.set("q", keywordQuery) : next.delete("q"); next.set("page", "1"); return next; }, { replace: true }); }, [keywordQuery, setSearchParams]);
+  // Keep the same collection on every page. Pinned posts remain in the full
+  // feed as well as the spotlight, so none disappear beyond its three slots.
+  const feed = usePosts({
+    page: currentPage - 1,
+    size: 9,
+    type: type === "ALL" ? undefined : type,
+    keyword: keyword || undefined,
+    sort: "publishedAt,desc",
+  });
+  const priority = usePosts(
+    { page: 0, size: 3, pinned: true, sort: "publishedAt,desc" },
+    { enabled: showPriority },
+  );
 
-  const update = (changes: Record<string, string | undefined>) => setSearchParams((current) => { const next = new URLSearchParams(current); Object.entries(changes).forEach(([key, value]) => value ? next.set(key, value) : next.delete(key)); return next; });
-  const reset = () => { setKeyword(""); setSearchParams({}); };
+  const changedParams = (changes: Record<string, string | undefined>) => {
+    const next = new URLSearchParams(searchParams);
+    Object.entries(changes).forEach(([key, value]) => value ? next.set(key, value) : next.delete(key));
+    return next;
+  };
+  const search = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = String(new FormData(event.currentTarget).get("q") || "").trim();
+    setSearchParams(changedParams({ q: value || undefined, page: undefined }));
+  };
+  const reset = () => setSearchParams({});
+  const pageOutOfRange = Boolean(feed.data && currentPage > Math.max(1, feed.data.totalPages));
 
-  return <main className="mx-auto min-h-[80vh] max-w-5xl px-4 py-10 sm:px-6 lg:py-14">
-    <PublicPageHeader title="Tin tức và thông báo" />
-    <div className="mt-8 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
-      <div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="Tìm thông báo, lịch thi, hướng dẫn..." className="h-11 pl-10" /></div>
-      <Tabs value={type} onValueChange={(value) => update({ type: value === "ALL" ? undefined : value, page: "1" })}><TabsList className="h-11 w-full justify-start overflow-x-auto sm:w-auto"><TabsTrigger value="ALL">Tất cả</TabsTrigger><TabsTrigger value="ANNOUNCEMENT">Thông báo</TabsTrigger><TabsTrigger value="NEWS">Tin tức</TabsTrigger><TabsTrigger value="BLOG">Blog</TabsTrigger></TabsList></Tabs>
+  return (
+    <div className="school-news">
+      <header className="school-news__header">
+        <div>
+          <h1>Bảng tin học đường</h1>
+          <p>Thông báo cần nhớ, chuyện trong trường và những điều đáng đọc.</p>
+        </div>
+        <a href="#school-news-feed" className="school-news__jump">
+          <Newspaper aria-hidden="true" /> Xem bài viết <ArrowUpRight aria-hidden="true" />
+        </a>
+      </header>
+
+      {showPriority && (priority.isLoading || priority.isError || Boolean(priority.data?.content.length)) && (
+        <section className="school-news__pinned" aria-labelledby="school-news-pinned-title" aria-busy={priority.isFetching}>
+          <div className="school-news__pinned-heading">
+            <span className="school-news__pin"><Pin aria-hidden="true" /></span>
+            <div>
+              <h2 id="school-news-pinned-title">Được ghim</h2>
+              <p>Đọc trước để không bỏ lỡ.</p>
+            </div>
+          </div>
+          {priority.isLoading ? (
+            <div className="school-news__pinned-loading" role="status">Đang tải bài viết được ghim…</div>
+          ) : priority.isError ? (
+            <div className="school-news__pinned-error" role="alert">
+              <p>Chưa tải được bài viết được ghim.</p>
+              <Button type="button" variant="outline" onClick={() => void priority.refetch()} disabled={priority.isFetching}>
+                <RefreshCw aria-hidden="true" /> Thử lại phần được ghim
+              </Button>
+            </div>
+          ) : (
+            <div className="school-news__pinned-posts">
+              {priority.data?.content.map((post) => <PostListItem key={post.id} post={post} priority variant="board" />)}
+            </div>
+          )}
+        </section>
+      )}
+
+      <section className="school-news__feed" id="school-news-feed" aria-labelledby="school-news-feed-title">
+        <div className="school-news__feed-header">
+          <div>
+            <h2 id="school-news-feed-title">{hasFilters ? "Tìm trong bảng tin" : "Tất cả bài viết"}</h2>
+            <p aria-live="polite">
+              {keyword ? <>Từ khóa “{keyword}”{feed.data ? ` · ${feed.data.totalElements} bài viết` : ""}</> : "Theo dõi những cập nhật mới nhất."}
+            </p>
+          </div>
+          <form key={searchParams.toString()} role="search" onSubmit={search} className="school-news__search">
+            <label className="sr-only" htmlFor="school-news-search">Tìm bài viết</label>
+            <Search className="school-news__search-icon" aria-hidden="true" />
+            <Input id="school-news-search" type="search" name="q" defaultValue={keyword} placeholder="Tìm trong bảng tin…" />
+            <Button type="submit" variant="secondary">Tìm</Button>
+          </form>
+        </div>
+
+        <nav className="school-news__categories" aria-label="Loại bài viết">
+          {categories.map((category) => (
+            <Link
+              key={category.value}
+              to={{ search: changedParams({ type: category.value === "ALL" ? undefined : category.value, page: undefined }).toString() }}
+              aria-current={type === category.value ? "page" : undefined}
+            >
+              {category.value === "ANNOUNCEMENT" && <Bell aria-hidden="true" />}
+              {category.label}
+            </Link>
+          ))}
+        </nav>
+
+        {hasFilters && (
+          <div className="school-news__filter-summary">
+            <span>{feed.isError ? "Chưa tải được kết quả" : feed.data ? `${feed.data.totalElements} bài viết phù hợp` : "Đang tìm bài viết…"}</span>
+            <Button type="button" variant="ghost" onClick={reset}>Xóa bộ lọc</Button>
+          </div>
+        )}
+
+        {pageOutOfRange && !feed.isError ? (
+          <div className="school-news__state" role="status">
+            <h3>Trang này chưa có bài viết.</h3>
+            <p>Quay về trang đầu để xem các bài đang có.</p>
+            <Button type="button" variant="outline" onClick={() => setSearchParams(changedParams({ page: undefined }))}>Về trang đầu</Button>
+          </div>
+        ) : (
+          <NewsList
+            posts={feed.data?.content}
+            isLoading={feed.isLoading}
+            isError={feed.isError}
+            isEmpty={!feed.data?.content.length}
+            isRetrying={feed.isFetching}
+            hasFilters={hasFilters}
+            onRetry={() => void feed.refetch()}
+            onReset={reset}
+          />
+        )}
+
+        {!feed.isError && !pageOutOfRange && feed.data && feed.data.totalPages > 1 && (
+          <div className="school-news__pagination">
+            <p>Trang {currentPage} / {feed.data.totalPages}</p>
+            <AppPagination currentPage={currentPage} totalPages={feed.data.totalPages} siblingCount={0} onPageChange={(page) => setSearchParams(changedParams({ page: page === 1 ? undefined : String(page) }))} />
+          </div>
+        )}
+      </section>
     </div>
-    {isDefaultFeed && priority.data?.content.length ? <section className="mt-10"><div className="mb-4"><h2 className="text-xl font-bold tracking-tight">Thông tin quan trọng</h2><p className="mt-1 text-sm text-muted-foreground">Những nội dung cần được ưu tiên xem trước.</p></div><div className="grid gap-4 md:grid-cols-2">{priority.data.content.map((post) => <PostListItem key={post.id} post={post} priority />)}</div></section> : null}
-    <section className="mt-10"><div className="mb-4 flex items-baseline justify-between"><h2 className="text-xl font-bold tracking-tight">{isDefaultFeed ? "Mới nhất" : "Kết quả"}</h2>{feed.data && <span className="text-sm text-muted-foreground">{feed.data.totalElements} bài viết</span>}</div><NewsList posts={feed.data?.content} isLoading={feed.isLoading} isError={feed.isError} isEmpty={!feed.data || feed.data.content.length === 0} onReset={reset} /></section>
-    {feed.data && feed.data.totalPages > 1 ? <div className="mt-10 border-t border-border pt-6"><AppPagination currentPage={currentPage} totalPages={feed.data.totalPages} onPageChange={(page) => update({ page: String(page) })} /></div> : null}
-  </main>;
+  );
 }

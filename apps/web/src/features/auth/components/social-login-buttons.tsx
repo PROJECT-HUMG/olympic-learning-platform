@@ -54,7 +54,8 @@ export function SocialLoginButtons() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="auth-social">
+      <p className="auth-social__label">Hoặc tiếp tục với</p>
       <div className="grid grid-cols-3 gap-2.5">
         <Button
           type="button"
@@ -87,14 +88,6 @@ export function SocialLoginButtons() {
         </Button>
       </div>
 
-      <div className="relative flex items-center justify-center">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border" />
-        </div>
-        <div className="relative bg-card px-3 text-[11px] text-muted-foreground uppercase tracking-wider">
-          Hoặc đăng nhập với
-        </div>
-      </div>
     </div>
   );
 }

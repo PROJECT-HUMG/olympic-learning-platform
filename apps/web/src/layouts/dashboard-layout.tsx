@@ -2,8 +2,6 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useScrolled } from "@/hooks/use-scrolled";
-import { SeasonalBackground } from "@/components/ui/seasonal-background";
-import { SeasonToggle } from "@/components/ui/season-toggle";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Logo } from "@/components/ui/logo";
 import { Sidebar, DesktopSidebar, SidebarLink } from "@/components/ui/sidebar";
@@ -58,7 +56,6 @@ export function DashboardLayout() {
 
   return (
     <div className="flex min-h-screen bg-background/50 text-foreground relative selection:bg-primary/30">
-      <SeasonalBackground />
       
       {/* Fixed Sticky Animated Sidebar (Desktop) */}
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen}>
@@ -109,7 +106,6 @@ export function DashboardLayout() {
           </div>
 
           <div className="flex items-center gap-2">
-            <SeasonToggle />
             <ThemeToggle />
             {/* User Profile Dropdown (Mobile Only) */}
             <div className="lg:hidden ml-1">

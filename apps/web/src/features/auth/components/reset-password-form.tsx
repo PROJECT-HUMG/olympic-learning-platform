@@ -8,6 +8,7 @@ import { ROUTES } from "@/router/route-constants";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { toast } from "sonner";
+import { LockKeyhole } from "lucide-react";
 
 const resetPasswordSchema = z
   .object({
@@ -58,24 +59,26 @@ export function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div className="space-y-4 text-center">
-        <h1 className="text-2xl font-bold text-foreground">Liên Kết Không Hợp Lệ</h1>
-        <p className="text-sm text-muted-foreground">
+      <div className="auth-status">
+        <LockKeyhole className="auth-status__icon" />
+        <h1 className="auth-heading">Liên kết chưa hợp lệ.</h1>
+        <p className="auth-status__message">
           Đường dẫn đặt lại mật khẩu thiếu mã xác thực hợp lệ.
         </p>
-        <Button asChild variant="outline" className="w-full">
-          <Link to={ROUTES.LOGIN}>Quay lại Đăng nhập</Link>
+        <Button asChild className="h-11 rounded-full px-6">
+          <Link to={ROUTES.FORGOT_PASSWORD}>Lấy liên kết mới</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold text-foreground">Đặt Lại Mật Khẩu</h1>
-        <p className="text-sm text-muted-foreground">
-          Nhập mật khẩu mới của bạn bên dưới.
+    <div className="auth-form">
+      <LockKeyhole className="auth-status__icon" />
+      <div>
+        <h1 className="auth-heading">Mật khẩu mới,<br />sẵn sàng trở lại.</h1>
+        <p className="auth-description">
+          Dùng từ 8 đến 128 ký tự để bảo vệ tài khoản của bạn.
         </p>
       </div>
 
@@ -101,7 +104,7 @@ export function ResetPasswordForm() {
         />
 
         <Button type="submit" className="w-full" loading={isSubmitting}>
-          Cập Nhật Mật Khẩu
+          Lưu mật khẩu mới
         </Button>
       </form>
     </div>

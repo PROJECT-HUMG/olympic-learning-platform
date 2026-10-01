@@ -7,6 +7,7 @@ export const ROUTES = {
   COMPETITIONS: "/competitions",
   ABOUT: "/about",
   TOOLKIT: "/toolkit",
+  STUDY_ROOMS: "/study-rooms",
 
   // Auth pages (Guest only)
   LOGIN: "/login",
@@ -34,4 +35,15 @@ export function getDashboardRoute(role?: string): string {
   if (role === "ADMIN") return ROUTES.ADMIN;
   if (role === "LECTURER") return ROUTES.LECTURER;
   return ROUTES.DASHBOARD;
+}
+
+export function getPostLoginRoute(role: string | undefined, from: unknown): string {
+  // Reject whitespace/control characters before passing a local path to the router.
+  // eslint-disable-next-line no-control-regex
+  if (typeof from === "string" && /^\/(?!\/)[^\u0000-\u0020\\]*$/.test(from)) {
+    const path = from.split(/[?#]/)[0].replace(/\/+$/, "").toLowerCase();
+    const authPaths: string[] = [ROUTES.LOGIN, ROUTES.REGISTER, ROUTES.FORGOT_PASSWORD, ROUTES.RESET_PASSWORD, ROUTES.VERIFY_EMAIL];
+    if (!authPaths.includes(path)) return from;
+  }
+  return getDashboardRoute(role);
 }

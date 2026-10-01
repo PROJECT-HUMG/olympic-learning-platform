@@ -1,3 +1,4 @@
+import { FadeIn } from "@/components/ui/fade-in";
 import { Link } from "react-router-dom";
 import { ChevronRight, Download } from "lucide-react";
 import { FEATURED_DOCUMENTS } from "../data/home-mock-data";
@@ -6,7 +7,7 @@ import { ROUTES } from "@/router/route-constants";
 export function HomeFeaturedDocumentsSection() {
   return (
     <section className="space-y-6">
-      <div className="flex items-end justify-between border-b border-border pb-4">
+      <FadeIn className="flex items-end justify-between border-b border-border pb-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Tài Liệu Ôn Luyện Nổi Bật</h2>
           <p className="text-sm text-muted-foreground mt-1">Đề thi mẫu, sách chuyên khảo và bài giải chi tiết</p>
@@ -17,12 +18,13 @@ export function HomeFeaturedDocumentsSection() {
         >
           Kho tài liệu <ChevronRight className="ml-1 size-4" />
         </Link>
-      </div>
+      </FadeIn>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        {FEATURED_DOCUMENTS.map((doc) => (
-          <div
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {FEATURED_DOCUMENTS.map((doc, index) => (
+          <FadeIn
             key={doc.id}
+            delay={index * 0.08}
             className="flex items-start gap-4 rounded-2xl border border-border/80 bg-card p-4 shadow-xs transition-colors hover:bg-accent/40"
           >
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 font-bold text-xs">
@@ -39,7 +41,7 @@ export function HomeFeaturedDocumentsSection() {
                 </span>
               </div>
             </div>
-          </div>
+          </FadeIn>
         ))}
       </div>
     </section>

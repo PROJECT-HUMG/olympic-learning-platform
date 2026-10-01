@@ -1,12 +1,13 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { authService } from "@/features/auth/services/auth.service";
-import { ROUTES, getDashboardRoute } from "@/router/route-constants";
+import { ROUTES, getPostLoginRoute } from "@/router/route-constants";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEY_CURRENT_USER } from "./use-current-user";
 
 export function useAuth() {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const { setAccessToken, clearAuth } = useAuthStore();
 
@@ -19,7 +20,7 @@ export function useAuth() {
     // Pre-populate user cache from login response
     queryClient.setQueryData(QUERY_KEY_CURRENT_USER, response.data.user);
     
-    navigate(getDashboardRoute(response.data.user.role), { replace: true });
+    navigate(getPostLoginRoute(response.data.user.role, location.state?.from), { replace: true });
   }
 
   async function logout() {

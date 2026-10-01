@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useThemeStore } from "@/stores/use-theme-store";
+import { useResolvedTheme } from "@/hooks/use-resolved-theme";
 import { toast } from "sonner";
 import { Moon, Send, Sun, MapPin, Mail, Phone } from "lucide-react";
 
@@ -36,12 +37,13 @@ const DISCOVERY_LINKS = [
   { label: "Môn học", href: ROUTES.SUBJECTS },
   { label: "Kỳ thi", href: ROUTES.COMPETITIONS },
   { label: "Tài liệu ôn thi", href: ROUTES.DOCUMENTS },
-  { label: "Tin tức & Sự kiện", href: ROUTES.NEWS },
+  { label: "Bảng tin học đường", href: ROUTES.NEWS },
 ];
 
 export function PublicFooter() {
   const [email, setEmail] = useState("");
-  const { theme, setTheme } = useThemeStore();
+  const setTheme = useThemeStore((state) => state.setTheme);
+  const theme = useResolvedTheme();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +81,7 @@ export function PublicFooter() {
                     <Button
                       type="submit"
                       size="icon"
-                      className="size-8 rounded-full bg-primary text-primary-foreground transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer shadow-xs shrink-0 flex items-center justify-center"
+                      className="size-8 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer shadow-xs shrink-0 flex items-center justify-center"
                     >
                       <Send className="size-3.5 -translate-x-px" />
                       <span className="sr-only">Đăng ký nhận tin</span>

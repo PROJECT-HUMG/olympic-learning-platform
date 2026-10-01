@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { parseApiError } from "@/lib/api-error";
 import { ROUTES } from "@/router/route-constants";
@@ -19,6 +19,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const { login } = useAuth();
+  const location = useLocation();
 
   const {
     register,
@@ -39,15 +40,13 @@ export function LoginForm() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold text-foreground">Đăng Nhập</h1>
-        <p className="text-sm text-muted-foreground text-balance">
-          Nhập thông tin tài khoản của bạn để tiếp tục
+    <div className="auth-form">
+      <div>
+        <h1 className="auth-heading auth-heading--greeting">Chào bạn trở lại.</h1>
+        <p className="auth-description">
+          Đăng nhập để tiếp tục việc học của bạn.
         </p>
       </div>
-
-      <SocialLoginButtons />
 
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <FormField
@@ -79,19 +78,22 @@ export function LoginForm() {
         />
 
         <Button type="submit" className="w-full" loading={isSubmitting}>
-          Đăng Nhập
+          Đăng nhập
         </Button>
-
-        <div className="text-center text-sm text-muted-foreground">
-          Chưa có tài khoản?{" "}
-          <Link
-            to={ROUTES.REGISTER}
-            className="font-medium text-primary hover:underline underline-offset-4"
-          >
-            Đăng ký ngay
-          </Link>
-        </div>
       </form>
+
+      <SocialLoginButtons />
+
+      <p className="text-center text-sm text-muted-foreground">
+        Chưa có tài khoản?{" "}
+        <Link
+          to={ROUTES.REGISTER}
+          state={location.state}
+          className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
+        >
+          Tạo tài khoản
+        </Link>
+      </p>
     </div>
   );
 }

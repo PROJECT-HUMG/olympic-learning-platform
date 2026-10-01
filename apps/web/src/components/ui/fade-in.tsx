@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface FadeInProps {
   children: ReactNode;
@@ -15,8 +16,9 @@ export function FadeIn({
   className,
   delay = 0,
   direction = "up",
-  duration = 0.5,
+  duration = 0.7,
 }: FadeInProps) {
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const directionOffsets = {
     up: 40,
     down: -40,
@@ -28,21 +30,22 @@ export function FadeIn({
 
   return (
     <motion.div
-      initial={{
+      initial={reducedMotion ? false : {
         opacity: 0,
         [axis]: directionOffsets[direction],
       }}
+      animate={reducedMotion ? { opacity: 1, [axis]: 0 } : undefined}
       whileInView={{
         opacity: 1,
         [axis]: 0,
       }}
-      viewport={{ once: true, margin: "-100px" }}
+      viewport={{ once: true, margin: "0px 0px -48px 0px" }}
       transition={{
-        duration: duration,
-        delay: delay,
-        ease: "easeOut",
+        duration: reducedMotion ? 0 : duration,
+        delay: reducedMotion ? 0 : delay,
+        ease: [0.22, 1, 0.36, 1],
       }}
-      className={cn(className)}
+      className={cn("focus-within:opacity-100! focus-within:transform-none! motion-reduce:opacity-100! motion-reduce:transform-none!", className)}
     >
       {children}
     </motion.div>
