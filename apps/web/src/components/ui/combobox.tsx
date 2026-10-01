@@ -15,6 +15,7 @@ interface ComboboxProps {
   emptyText?: string;
   className?: string;
   disabled?: boolean;
+  "aria-label"?: string;
 }
 
 export function Combobox({
@@ -25,6 +26,7 @@ export function Combobox({
   emptyText = "No results found.",
   className,
   disabled = false,
+  "aria-label": ariaLabel,
 }: ComboboxProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
@@ -148,6 +150,7 @@ export function Combobox({
           ref={inputRef}
           type="text"
           role="combobox"
+          aria-label={ariaLabel}
           aria-expanded={isOpen}
           aria-controls={isOpen ? listboxId : undefined}
           aria-activedescendant={isOpen ? activeDescendantId : undefined}
@@ -159,29 +162,31 @@ export function Combobox({
           onFocus={() => !disabled && setIsOpen(true)}
           placeholder={placeholder}
           className={cn(
-            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-8",
+            "flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-12",
             isOpen && "rounded-b-none border-b-0"
           )}
         />
         {value && !isOpen ? (
           <button
             type="button"
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+            disabled={disabled}
             onClick={(e) => {
               e.stopPropagation();
               onChange?.("");
               setInputValue("");
             }}
-            aria-label="Clear selection"
+            aria-label={`Bỏ chọn ${ariaLabel ?? placeholder}`}
           >
             <X className="h-4 w-4" />
           </button>
         ) : (
           <button
             type="button"
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+            disabled={disabled}
             onClick={() => !disabled && setIsOpen(!isOpen)}
-            aria-label="Toggle popup"
+            aria-label={`Mở danh sách ${ariaLabel ?? placeholder}`}
             tabIndex={-1}
           >
             <ChevronDown className="h-4 w-4" />
@@ -190,7 +195,7 @@ export function Combobox({
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 z-50 w-full rounded-b-md border border-input bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95">
+        <div className="absolute top-full left-0 z-50 w-full rounded-b-md border border-input bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 motion-reduce:animate-none">
           <ul
             ref={listboxRef}
             id={listboxId}
@@ -214,7 +219,7 @@ export function Combobox({
                     onClick={() => handleOptionClick(option.value)}
                     onMouseEnter={() => setActiveIndex(index)}
                     className={cn(
-                      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none transition-colors",
+                      "relative flex min-h-11 w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none transition-colors",
                       isActive && "bg-accent text-accent-foreground",
                       isSelected && "font-medium text-primary"
                     )}

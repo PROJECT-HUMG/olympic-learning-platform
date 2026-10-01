@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
 import { cn } from "@/lib/utils";
+import { isStartupPending, trackStartupTask } from "@/app/startup-preloader";
+import { CINEMATIC_VIDEO_SOURCES, getPreparedVideoSource, preloadCinematicVideo } from "./cinematic-media";
 import "./cinematic-scene.css";
 
 export function CinematicScene({ className, animated = true }: { className?: string; animated?: boolean }) {
@@ -27,10 +29,34 @@ export function CinematicScene({ className, animated = true }: { className?: str
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let inView = false;
     let disposed = false;
+    const preparing = new Set<HTMLVideoElement>();
+    const startupTasks: Array<ReturnType<typeof trackStartupTask>> = [];
 
     const selected = () => themeRef.current === "dark" ? night : day;
     const canPlay = (video: HTMLVideoElement) =>
       !disposed && animated && !motion.matches && inView && !document.hidden && video === selected() && !failed.has(video);
+
+    const sourceFor = (video: HTMLVideoElement) => CINEMATIC_VIDEO_SOURCES[video === day ? "light" : "dark"];
+    const prepare = (video: HTMLVideoElement) => {
+      if (preparing.has(video) || failed.has(video)) return;
+      preparing.add(video);
+      const task = trackStartupTask();
+      startupTasks.push(task);
+      const poster = root.querySelector<HTMLImageElement>(`[data-scene="${video === day ? "day" : "night"}"] img`);
+      void Promise.all([
+        preloadCinematicVideo(sourceFor(video), (progress) => task.update(progress * 0.9)),
+        poster?.decode().catch(() => undefined),
+      ]).then(([source]) => {
+        if (!disposed) video.src = source;
+      }).catch(() => {
+        // A failed download keeps the decoded poster; a slow one stays pending.
+        failed.add(video);
+      }).finally(() => {
+        preparing.delete(video);
+        task.finish();
+        if (!disposed) sync();
+      });
+    };
 
     const sync = () => {
       root.dataset.playing = "false";
@@ -42,7 +68,11 @@ export function CinematicScene({ className, animated = true }: { className?: str
           continue;
         }
         if (!video.hasAttribute("src")) {
-          video.src = video === day ? "/videos/anime-day.mp4" : "/videos/anime-night.mp4";
+          if (preparing.has(video) || isStartupPending()) {
+            prepare(video);
+            continue;
+          }
+          video.src = getPreparedVideoSource(sourceFor(video));
         }
         if (video.paused) {
           void video.play().catch(() => {
@@ -89,10 +119,12 @@ export function CinematicScene({ className, animated = true }: { className?: str
     motion.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     syncRef.current = sync;
+    if (animated && !motion.matches && isStartupPending()) prepare(selected());
     sync();
 
     return () => {
       disposed = true;
+      for (const task of startupTasks) task.finish();
       syncRef.current = null;
       observer.disconnect();
       motion.removeEventListener("change", sync);

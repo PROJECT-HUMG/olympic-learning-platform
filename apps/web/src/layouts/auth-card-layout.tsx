@@ -5,14 +5,14 @@ import { ROUTES } from "@/router/route-constants";
 import { WelcomeLayout } from "./welcome-layout";
 
 export function AuthCardLayout({ children }: { children?: ReactNode }) {
-  const { pathname } = useLocation();
+  const { pathname, state } = useLocation();
   const isRegister = pathname === ROUTES.REGISTER;
   const showBackLink = pathname !== ROUTES.LOGIN && !isRegister;
 
   return (
     <WelcomeLayout animated contentSide={isRegister ? "right" : "left"}>
       {showBackLink && (
-        <Link to={ROUTES.LOGIN} className="auth-back-link">
+        <Link to={ROUTES.LOGIN} state={state} className="auth-back-link">
           <ArrowLeft className="size-4" />
           Về đăng nhập
         </Link>

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState, createContext, useContext } from "react";
 import { Link, type LinkProps } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -88,11 +88,12 @@ export const DesktopSidebar = ({
 }) => {
   const sidebar = useSidebar();
   const open = sidebar?.open ?? true;
-  const setOpen = sidebar?.setOpen ?? (() => {});
   const animate = sidebar?.animate ?? true;
+  const reducedMotion = useReducedMotion();
 
   return (
     <motion.aside
+      initial={false}
       className={cn(
         "h-screen sticky top-0 hidden lg:flex lg:flex-col border-r border-sidebar-border bg-sidebar shrink-0 z-30 select-none overflow-hidden",
         className
@@ -101,11 +102,9 @@ export const DesktopSidebar = ({
         width: animate ? (open ? width : collapsedWidth) : width,
       }}
       transition={{
-        duration: 0.25,
+        duration: reducedMotion ? 0 : 0.25,
         ease: "easeInOut",
       }}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
       {...props}
     >
       {children}
@@ -176,13 +175,14 @@ export const SidebarLink = ({
   isActive?: boolean;
   props?: Omit<LinkProps, "to">;
 }) => {
+  const reducedMotion = useReducedMotion();
   const sidebar = useSidebar();
   const open = sidebar?.open ?? true;
   const animate = sidebar?.animate ?? true;
   const isExternal = link.href.startsWith("http");
 
   const commonClass = cn(
-    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer group/sidebar relative overflow-hidden",
+    "flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer group/sidebar relative overflow-hidden focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-[-2px]",
     isActive
       ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"
       : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
@@ -199,7 +199,7 @@ export const SidebarLink = ({
           display: animate ? (open ? "inline-block" : "none") : "inline-block",
           opacity: animate ? (open ? 1 : 0) : 1,
         }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: reducedMotion ? 0 : 0.2 }}
         className="text-sm whitespace-nowrap overflow-hidden text-ellipsis !p-0 !m-0"
       >
         {link.label}
@@ -221,7 +221,7 @@ export const SidebarLink = ({
   }
 
   return (
-    <Link to={link.href} className={commonClass} {...props}>
+    <Link to={link.href} className={commonClass} aria-label={link.label} title={!open ? link.label : undefined} aria-current={isActive ? "page" : undefined} {...props}>
       {content}
     </Link>
   );

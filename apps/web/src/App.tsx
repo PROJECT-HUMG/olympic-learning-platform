@@ -5,8 +5,12 @@ import { Toaster } from "@/components/ui/sonner";
 import { queryClient } from "@/lib/query-client";
 import { router } from "@/router/routes";
 import { ThemeProvider } from "@/app/theme-provider";
+import { useEffect } from "react";
+import { startStartupPreloader } from "@/app/startup-preloader";
 
 function App() {
+  useEffect(() => startStartupPreloader(queryClient), []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>

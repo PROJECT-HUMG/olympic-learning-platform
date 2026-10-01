@@ -21,11 +21,16 @@ export function useGrantPermission() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ userId, permission }: { userId: string; permission: string }) =>
-      adminUsersService.grantPermission(userId, permission),
+    mutationFn: ({
+      userId,
+      permission,
+    }: {
+      userId: string;
+      permission: string;
+    }) => adminUsersService.grantPermission(userId, permission),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY_ADMIN_USERS });
       toast.success("Đã cấp quyền thành công");
+      return queryClient.invalidateQueries({ queryKey: QUERY_KEY_ADMIN_USERS });
     },
     onError: () => {
       toast.error("Không thể cấp quyền");
@@ -37,11 +42,16 @@ export function useRevokePermission() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ userId, permission }: { userId: string; permission: string }) =>
-      adminUsersService.revokePermission(userId, permission),
+    mutationFn: ({
+      userId,
+      permission,
+    }: {
+      userId: string;
+      permission: string;
+    }) => adminUsersService.revokePermission(userId, permission),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY_ADMIN_USERS });
       toast.success("Đã thu hồi quyền thành công");
+      return queryClient.invalidateQueries({ queryKey: QUERY_KEY_ADMIN_USERS });
     },
     onError: () => {
       toast.error("Không thể thu hồi quyền");

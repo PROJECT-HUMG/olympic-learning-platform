@@ -1,9 +1,6 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/router/route-constants";
 import { Logo } from "@/components/ui/logo";
-import { Button } from "@/components/ui/button";
-import { FormField } from "@/components/ui/form-field";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -14,8 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useThemeStore } from "@/stores/use-theme-store";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
-import { toast } from "sonner";
-import { Moon, Send, Sun, MapPin, Mail, Phone } from "lucide-react";
+import { Moon, Sun, MapPin, Mail, Phone } from "lucide-react";
 
 const FaviconIcon = ({ src, domain, className }: { src: string; domain: string; className?: string }) => (
   <img
@@ -28,29 +24,20 @@ const FaviconIcon = ({ src, domain, className }: { src: string; domain: string; 
 
 const SOCIAL_LINKS = [
   { name: "Facebook", href: "https://www.facebook.com/people/Olympic-HUMG/61586595247041/#", domain: "facebook.com", iconSrc: "/social-icons/facebook.png" },
-  { name: "YouTube", href: "https://youtube.com", domain: "youtube.com", iconSrc: "/social-icons/youtube.png" },
   { name: "Zalo", href: "https://zalo.me/g/qogcgc751", domain: "zalo.me", iconSrc: "/social-icons/zalo.png" },
   { name: "GitHub", href: "https://github.com/PROJECT-HUMG/olympic-learning-platform", domain: "github.com", iconSrc: "/social-icons/github.png" },
 ];
 
 const DISCOVERY_LINKS = [
   { label: "Môn học", href: ROUTES.SUBJECTS },
-  { label: "Kỳ thi", href: ROUTES.COMPETITIONS },
+  { label: "Phòng học chung", href: `${ROUTES.TOOLKIT}?tool=rooms` },
   { label: "Tài liệu ôn thi", href: ROUTES.DOCUMENTS },
   { label: "Bảng tin học đường", href: ROUTES.NEWS },
 ];
 
 export function PublicFooter() {
-  const [email, setEmail] = useState("");
   const setTheme = useThemeStore((state) => state.setTheme);
   const theme = useResolvedTheme();
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) return;
-    toast.success("Cảm ơn bạn đã đăng ký nhận bản tin Olympic!");
-    setEmail("");
-  };
 
   const isDark = theme === "dark";
 
@@ -58,39 +45,12 @@ export function PublicFooter() {
     <footer className="relative z-10 border-t border-border/60 bg-card/60 backdrop-blur-xl text-foreground transition-colors duration-300 pt-16 pb-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4 lg:gap-8 mb-12">
-          {/* Cột 1: Brand & Newsletter */}
+          {/* Cột 1: Brand */}
           <div className="relative space-y-4">
             <Logo />
             <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
-              Nền tảng ôn luyện và thi thử Olympic trực tuyến chất lượng cao dành cho sinh viên và học sinh đam mê học thuật.
+              Tài liệu, thông báo và không gian học cùng bạn bè dành cho sinh viên HUMG.
             </p>
-            <div className="pt-1">
-              <h3 className="mb-1 text-xs font-semibold uppercase tracking-wider text-foreground">
-                Nhận tin mới nhất
-              </h3>
-              <form onSubmit={handleSubscribe} className="relative max-w-sm">
-                <FormField
-                  id="footer-newsletter-email"
-                  type="email"
-                  label="Nhập email của bạn..."
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  corner={16}
-                  endAdornment={
-                    <Button
-                      type="submit"
-                      size="icon"
-                      className="size-8 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer shadow-xs shrink-0 flex items-center justify-center"
-                    >
-                      <Send className="size-3.5 -translate-x-px" />
-                      <span className="sr-only">Đăng ký nhận tin</span>
-                    </Button>
-                  }
-                />
-              </form>
-            </div>
-            <div className="pointer-events-none absolute -right-4 top-0 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
           </div>
 
           {/* Cột 2: Khám phá */}
@@ -103,7 +63,7 @@ export function PublicFooter() {
                 <Link
                   key={link.label}
                   to={link.href}
-                  className="block text-muted-foreground transition-all hover:text-primary hover:translate-x-1"
+                  className="flex min-h-11 items-center text-muted-foreground transition-all hover:text-primary hover:translate-x-1"
                 >
                   {link.label}
                 </Link>
@@ -149,7 +109,7 @@ export function PublicFooter() {
                           href={social.href}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex size-9 items-center justify-center rounded-full border border-border bg-background/80 hover:bg-accent hover:border-primary/50 transition-all duration-200 hover:scale-105 shadow-2xs"
+                          className="flex size-11 items-center justify-center rounded-full border border-border bg-background/80 hover:bg-accent hover:border-primary/50 transition-all duration-200 hover:scale-105 shadow-2xs"
                         >
                           <FaviconIcon
                             src={social.iconSrc}
@@ -194,17 +154,7 @@ export function PublicFooter() {
           <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} Olympic Learning Platform (HUMG). All rights reserved.
           </p>
-          <nav className="flex flex-wrap gap-5 text-xs text-muted-foreground">
-            <a href="#" className="transition-colors hover:text-primary">
-              Điều khoản sử dụng
-            </a>
-            <a href="#" className="transition-colors hover:text-primary">
-              Chính sách bảo mật
-            </a>
-            <a href="#" className="transition-colors hover:text-primary">
-              Cài đặt Cookie
-            </a>
-          </nav>
+          <Link to={ROUTES.ABOUT} className="text-xs text-muted-foreground hover:text-primary">Về Olympic HUMG</Link>
         </div>
       </div>
     </footer>

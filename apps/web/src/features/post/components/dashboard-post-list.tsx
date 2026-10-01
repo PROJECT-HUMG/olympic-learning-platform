@@ -17,7 +17,7 @@ interface DashboardPostListProps {
 export function DashboardPostList({ data, onDeleteClick, onEditClick }: DashboardPostListProps) {
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-16 border border-dashed border-border/60 rounded-2xl bg-card/30 text-center">
+      <div className="flex flex-col items-center justify-center px-4 py-12 border border-dashed border-border/60 rounded-2xl bg-card/30 text-center">
         <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-5 ring-8 ring-primary/5">
           <Newspaper className="size-10 text-primary/40" />
         </div>
@@ -51,14 +51,11 @@ export function DashboardPostList({ data, onDeleteClick, onEditClick }: Dashboar
                 )}
               </div>
               <div className="flex flex-col gap-1 min-w-0 flex-1">
-                <Link 
-                  to={`${ROUTES.NEWS}/${post.slug}`} 
-                  target="_blank"
-                  className="font-medium text-[15px] text-foreground hover:text-primary transition-colors line-clamp-1"
-                  title={post.title}
-                >
-                  {post.title}
-                </Link>
+                {post.status === "PUBLISHED" && displayStatus !== "EXPIRED" ? (
+                  <Link to={`${ROUTES.NEWS}/${post.slug}`} target="_blank" rel="noreferrer" className="font-medium text-[15px] text-foreground hover:text-primary line-clamp-2" title={post.title}>
+                    {post.title}
+                  </Link>
+                ) : <span className="font-medium text-[15px] text-foreground line-clamp-2">{post.title}</span>}
                 {post.summary && (
                   <p className="text-sm text-muted-foreground line-clamp-1">
                     {post.summary}
@@ -107,7 +104,7 @@ export function DashboardPostList({ data, onDeleteClick, onEditClick }: Dashboar
                 variant="outline" 
                 size="sm"
                 onClick={() => onEditClick(post)}
-                className="h-8 text-xs"
+                className="min-h-11 text-xs"
               >
                 <Pencil className="w-3.5 h-3.5 mr-1.5" />
                 Sửa
@@ -116,7 +113,7 @@ export function DashboardPostList({ data, onDeleteClick, onEditClick }: Dashboar
                 variant="outline" 
                 size="sm"
                 onClick={() => onDeleteClick(post)}
-                className="h-8 text-xs text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30"
+                className="min-h-11 text-xs text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30"
               >
                 <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                 Xóa

@@ -1,10 +1,11 @@
+import { getPageNumber } from "@/lib/list-navigation";
 import { DocumentFilters } from "@/features/documents/components/document-filters";
 import { DocumentList } from "@/features/documents/components/document-list";
 import { useSearchDocuments } from "@/features/documents/hooks/use-documents";
 import { useSearchParams } from "react-router-dom";
 import type { DocumentSearchRequest } from "@/features/documents/types/documents.types";
 import { AppPagination } from "@/components/ui/app-pagination";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, List as ListIcon } from "lucide-react";
 import { useDocumentDownloadModal } from "@/features/documents/hooks/use-document-download-modal";
@@ -12,10 +13,21 @@ import { DocumentDownloadModal } from "@/features/documents/components/document-
 
 export default function DocumentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const { selectedDocument, openDownloadModal, closeDownloadModal } = useDocumentDownloadModal();
-  
-  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const viewMode = searchParams.get("view") === "list" ? "list" : "grid";
+  const setViewMode = (view: "grid" | "list") =>
+    setSearchParams(
+      (previous) => {
+        const next = new URLSearchParams(previous);
+        if (view === "list") next.set("view", view);
+        else next.delete("view");
+        return next;
+      },
+      { replace: true },
+    );
+  const { selectedDocument, openDownloadModal, closeDownloadModal } =
+    useDocumentDownloadModal();
+
+  const currentPage = getPageNumber(searchParams.get("page"));
   const keyword = searchParams.get("keyword") || undefined;
   const categoryId = searchParams.get("categoryId") || undefined;
   const subjectId = searchParams.get("subjectId") || undefined;
@@ -32,53 +44,65 @@ export default function DocumentsPage() {
     size: 12, // More items for public grid
   };
 
-  const { data, isLoading, isError } = useSearchDocuments(filters);
+  const { data, isLoading, isError, refetch, isFetching } =
+    useSearchDocuments(filters);
+
+  const totalPages = data?.totalPages;
 
   // Clamp current page if total pages shrink
   useEffect(() => {
-    if (data && data.totalPages > 0) {
-      if (currentPage > data.totalPages) {
-        setSearchParams((prev) => {
-          prev.set("page", data.totalPages.toString());
-          return prev;
-        }, { replace: true });
+    if (totalPages && totalPages > 0) {
+      if (currentPage > totalPages) {
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            next.set("page", totalPages.toString());
+            return next;
+          },
+          { replace: true },
+        );
       }
     }
-  }, [data?.totalPages, currentPage, setSearchParams]);
+  }, [totalPages, currentPage, setSearchParams]);
 
   const handlePageChange = (newPage: number) => {
     setSearchParams((prev) => {
-      prev.set("page", newPage.toString());
-      return prev;
+      const next = new URLSearchParams(prev);
+      next.set("page", newPage.toString());
+      return next;
     });
   };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 min-h-[80vh]">
       {/* Kho Tài Liệu title removed as requested */}
-      
+
       <DocumentFilters />
-      
+
       <hr className="mb-4 border-t border-border/40" />
 
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-sm font-medium text-muted-foreground">
-          {data ? `Được đề xuất • ${data.totalElements} tệp` : "Đang tìm kiếm..."}
+          {data
+            ? `${data.totalElements} tài liệu`
+            : isError
+              ? "Chưa tải được tài liệu"
+              : "Đang tìm kiếm…"}
         </h2>
         <div className="flex items-center gap-1">
-          <Button 
-            variant={viewMode === "list" ? "secondary" : "ghost"} 
-            size="icon" 
-            className={`h-9 w-9 rounded-full ${viewMode === "list" ? "bg-accent/80 text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
+          <Button
+            variant={viewMode === "list" ? "secondary" : "ghost"}
+            size="icon"
+            className={`h-11 w-11 rounded-full ${viewMode === "list" ? "bg-accent/80 text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
             onClick={() => setViewMode("list")}
             aria-label="Xem dạng danh sách"
           >
             <ListIcon className="w-5 h-5" />
           </Button>
-          <Button 
-            variant={viewMode === "grid" ? "secondary" : "ghost"} 
-            size="icon" 
-            className={`h-9 w-9 rounded-full ${viewMode === "grid" ? "bg-accent/80 text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
+          <Button
+            variant={viewMode === "grid" ? "secondary" : "ghost"}
+            size="icon"
+            className={`h-11 w-11 rounded-full ${viewMode === "grid" ? "bg-accent/80 text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
             onClick={() => setViewMode("grid")}
             aria-label="Xem dạng lưới"
           >
@@ -86,30 +110,32 @@ export default function DocumentsPage() {
           </Button>
         </div>
       </div>
-      
+
       <div className="flex-1 flex flex-col">
-        <DocumentList 
-          documents={data?.content} 
-          isLoading={isLoading} 
-          isError={isError} 
-          isEmpty={!data?.content || data.content.length === 0} 
+        <DocumentList
+          documents={data?.content}
+          isLoading={isLoading}
+          isError={isError}
+          onRetry={() => void refetch()}
+          retrying={isFetching}
+          isEmpty={!data?.content || data.content.length === 0}
           viewMode={viewMode}
           onDownload={openDownloadModal}
         />
-        
+
         {data && data.totalPages > 1 && (
-        <div className="mt-10 flex justify-center pb-8">
-          <AppPagination
-            currentPage={currentPage}
-            totalPages={data.totalPages}
+          <div className="mt-10 flex justify-center pb-8">
+            <AppPagination
+              currentPage={currentPage}
+              totalPages={data.totalPages}
               onPageChange={handlePageChange}
             />
           </div>
         )}
       </div>
-      <DocumentDownloadModal 
-        document={selectedDocument} 
-        onClose={closeDownloadModal} 
+      <DocumentDownloadModal
+        document={selectedDocument}
+        onClose={closeDownloadModal}
       />
     </div>
   );

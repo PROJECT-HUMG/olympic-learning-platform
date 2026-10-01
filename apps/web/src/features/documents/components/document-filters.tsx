@@ -1,225 +1,178 @@
 import { Search, X, SlidersHorizontal } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useDebounce } from "@/hooks/use-debounce";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
 import { useDocumentMetadata } from "../hooks/use-documents";
-import { Badge } from "@/components/ui/badge";
 
-export function DocumentFilters() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const initialKeyword = searchParams.get("keyword") || "";
-  
-  const [keyword, setKeyword] = useState(initialKeyword);
-  const debouncedKeyword = useDebounce(keyword, 500);
-
-  useEffect(() => {
-    if (debouncedKeyword !== (searchParams.get("keyword") || "")) {
-      if (debouncedKeyword) {
-        searchParams.set("keyword", debouncedKeyword);
-      } else {
-        searchParams.delete("keyword");
-      }
-      // Reset page to 0 when search changes
-      searchParams.delete("page");
-      setSearchParams(searchParams);
-    }
-  }, [debouncedKeyword, searchParams, setSearchParams]);
-
-  const { data: metadata, isLoading } = useDocumentMetadata();
-
-  const subjectOptions =
-    metadata?.subjects.map((sub) => ({
-      value: sub.id,
-      label: sub.name,
-    })) || [];
-
-  const categoryOptions =
-    metadata?.categories.map((cat) => ({
-      value: cat.id,
-      label: cat.name,
-    })) || [];
-
-  const tagOptions =
-    metadata?.tags.map((t) => ({
-      value: t.id,
-      label: t.name,
-    })) || [];
-
-  const currentSubjectId = searchParams.get("subjectId") || "";
-  const currentCategoryId = searchParams.get("categoryId") || "";
-  const currentTagId = searchParams.get("tagId") || "";
-
-  const handleSubjectChange = (val: string) => {
-    if (val) {
-      searchParams.set("subjectId", val);
-    } else {
-      searchParams.delete("subjectId");
-    }
-    searchParams.delete("page");
-    setSearchParams(searchParams);
-  };
-
-  const handleCategoryChange = (val: string) => {
-    if (val) {
-      searchParams.set("categoryId", val);
-    } else {
-      searchParams.delete("categoryId");
-    }
-    searchParams.delete("page");
-    setSearchParams(searchParams);
-  };
-
-  const handleTagChange = (val: string) => {
-    if (val) {
-      searchParams.set("tagId", val);
-    } else {
-      searchParams.delete("tagId");
-    }
-    searchParams.delete("page");
-    setSearchParams(searchParams);
-  };
-
-  const currentSubject = metadata?.subjects.find((s) => s.id === currentSubjectId);
-  const currentCategory = metadata?.categories.find((c) => c.id === currentCategoryId);
-  const currentTag = metadata?.tags.find((t) => t.id === currentTagId);
-
+function KeywordSearch({
+  keyword,
+  onApply,
+}: {
+  keyword: string;
+  onApply: (value: string) => void;
+}) {
+  const [draft, setDraft] = useState(keyword);
   return (
-    <div className="flex flex-col gap-4 max-w-4xl mx-auto w-full mb-6">
-      {/* Search Bar - Google Drive Style */}
-      <div className="relative w-full max-w-3xl mx-auto">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-muted-foreground" />
-        </div>
-        <Input
-          placeholder="Tìm trong Kho Tài Liệu"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          className="pl-11 pr-11 h-14 bg-accent/50 border-transparent hover:bg-accent hover:shadow-sm focus-visible:bg-background focus-visible:shadow-md focus-visible:ring-0 focus-visible:border-transparent rounded-full text-base transition-all"
+    <form
+      role="search"
+      className="flex w-full items-center gap-2"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onApply(draft.trim());
+      }}
+    >
+      <div className="relative min-w-0 flex-1">
+        <Search
+          aria-hidden="true"
+          className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
         />
-        {keyword && (
+        <Input
+          aria-label="Tìm trong kho tài liệu"
+          placeholder="Tìm trong kho tài liệu"
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          className="h-12 rounded-full bg-accent/50 pl-11 pr-12"
+        />
+        {draft && (
           <button
-            onClick={() => setKeyword("")}
-            className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground"
+            type="button"
             aria-label="Xóa từ khóa tìm kiếm"
+            className="absolute right-1 top-1 size-10 rounded-full text-muted-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
+            onClick={() => {
+              setDraft("");
+              onApply("");
+            }}
           >
-            <X className="h-5 w-5" />
+            <X aria-hidden="true" className="mx-auto size-4" />
           </button>
         )}
       </div>
+      <Button
+        type="submit"
+        variant="secondary"
+        className="h-12 rounded-full px-4"
+      >
+        Tìm
+      </Button>
+    </form>
+  );
+}
 
-      {/* Filter Chips Container */}
-      <div className="flex flex-wrap items-center gap-2 max-w-3xl mx-auto w-full justify-center sm:justify-start">
-        <div className="flex items-center text-sm font-medium text-muted-foreground mr-2 hidden sm:flex">
-          <SlidersHorizontal className="w-4 h-4 mr-1" />
-          Bộ lọc:
-        </div>
-        
-        <div className="min-w-[140px]">
-          <Combobox
-            options={subjectOptions}
-            value={currentSubjectId}
-            onChange={handleSubjectChange}
-            placeholder={isLoading ? "Đang tải..." : "Môn học"}
-            emptyText="Không tìm thấy môn học"
-            disabled={isLoading}
-            className="w-full bg-background border-border/60 hover:bg-accent rounded-full h-9 text-sm"
-          />
-        </div>
-        
-        <div className="min-w-[140px]">
-          <Combobox
-            options={categoryOptions}
-            value={currentCategoryId}
-            onChange={handleCategoryChange}
-            placeholder={isLoading ? "Đang tải..." : "Loại tài liệu"}
-            emptyText="Không tìm thấy loại tài liệu"
-            disabled={isLoading}
-            className="w-full bg-background border-border/60 hover:bg-accent rounded-full h-9 text-sm"
-          />
-        </div>
-
-        <div className="min-w-[140px]">
-          <Combobox
-            options={tagOptions}
-            value={currentTagId}
-            onChange={handleTagChange}
-            placeholder={isLoading ? "Đang tải..." : "Thẻ (Tags)"}
-            emptyText="Không tìm thấy thẻ"
-            disabled={isLoading}
-            className="w-full bg-background border-border/60 hover:bg-accent rounded-full h-9 text-sm"
-          />
-        </div>
+export function DocumentFilters() {
+  const [params, setParams] = useSearchParams();
+  const metadata = useDocumentMetadata();
+  const keyword = params.get("keyword") ?? "";
+  const updateFilter = (key: string, value: string) =>
+    setParams((previous) => {
+      const next = new URLSearchParams(previous);
+      if (value) next.set(key, value);
+      else next.delete(key);
+      next.delete("page");
+      return next;
+    });
+  const filters = [
+    {
+      key: "subjectId",
+      label: "Môn học",
+      options: metadata.data?.subjects ?? [],
+    },
+    {
+      key: "categoryId",
+      label: "Loại tài liệu",
+      options: metadata.data?.categories ?? [],
+    },
+    { key: "tagId", label: "Thẻ", options: metadata.data?.tags ?? [] },
+  ];
+  const hasFilters = keyword || filters.some(({ key }) => params.has(key));
+  return (
+    <div className="mx-auto mb-6 flex w-full max-w-3xl flex-col gap-3">
+      <KeywordSearch
+        key={keyword}
+        keyword={keyword}
+        onApply={(value) => updateFilter("keyword", value)}
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="hidden items-center gap-1 text-sm text-muted-foreground sm:flex">
+          <SlidersHorizontal aria-hidden="true" className="size-4" />
+          Bộ lọc
+        </span>
+        {filters.map(({ key, label, options }) => (
+          <div key={key} className="min-w-0 flex-[1_1_140px]">
+            <Combobox
+              aria-label={label}
+              options={options.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
+              value={params.get(key) ?? ""}
+              onChange={(value) => updateFilter(key, value)}
+              placeholder={metadata.isLoading ? "Đang tải…" : label}
+              emptyText={`Không tìm thấy ${label.toLowerCase()}`}
+              disabled={metadata.isLoading || metadata.isError}
+              className="h-11 w-full rounded-full"
+            />
+          </div>
+        ))}
       </div>
-
-      {/* Active Filters Summary (Optional, but good for UX) */}
-      {(currentSubject || currentCategory || currentTag || debouncedKeyword) && (
-        <div className="flex flex-wrap items-center gap-2 max-w-3xl mx-auto w-full justify-center sm:justify-start">
-          {debouncedKeyword && (
-            <Badge variant="secondary" className="pl-3 pr-1 py-1 h-7 rounded-full flex items-center gap-1 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium">
-              <span className="max-w-[150px] truncate text-xs">Từ khóa: {debouncedKeyword}</span>
-              <button
-                type="button"
-                className="ml-1 rounded-full p-0.5 hover:bg-background/20"
-                onClick={() => setKeyword("")}
-              >
-                <X className="size-3" />
-              </button>
-            </Badge>
+      {metadata.isError && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
+        >
+          Chưa tải được bộ lọc.
+          <Button
+            variant="ghost"
+            disabled={metadata.isFetching}
+            onClick={() => void metadata.refetch()}
+          >
+            Thử lại bộ lọc
+          </Button>
+        </div>
+      )}
+      {hasFilters && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          {keyword && (
+            <span className="break-all text-muted-foreground">
+              Từ khóa: {keyword}
+            </span>
           )}
-
-          {currentSubject && (
-            <Badge variant="secondary" className="pl-3 pr-1 py-1 h-7 rounded-full flex items-center gap-1 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium">
-              <span className="max-w-[150px] truncate text-xs">{currentSubject.name}</span>
-              <button
-                type="button"
-                className="ml-1 rounded-full p-0.5 hover:bg-background/20"
-                onClick={() => handleSubjectChange("")}
+          {filters
+            .filter(({ key }) => params.has(key))
+            .map(({ key, label, options }) => (
+              <Button
+                key={key}
+                variant="secondary"
+                className="h-11 rounded-full"
+                aria-label={`Bỏ lọc ${label.toLowerCase()}`}
+                onClick={() => updateFilter(key, "")}
               >
-                <X className="size-3" />
-              </button>
-            </Badge>
-          )}
-
-          {currentCategory && (
-            <Badge variant="secondary" className="pl-3 pr-1 py-1 h-7 rounded-full flex items-center gap-1 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium">
-              <span className="max-w-[150px] truncate text-xs">{currentCategory.name}</span>
-              <button
-                type="button"
-                className="ml-1 rounded-full p-0.5 hover:bg-background/20"
-                onClick={() => handleCategoryChange("")}
-              >
-                <X className="size-3" />
-              </button>
-            </Badge>
-          )}
-
-          {currentTag && (
-            <Badge variant="secondary" className="pl-3 pr-1 py-1 h-7 rounded-full flex items-center gap-1 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium">
-              <span className="max-w-[150px] truncate text-xs">{currentTag.name}</span>
-              <button
-                type="button"
-                className="ml-1 rounded-full p-0.5 hover:bg-background/20"
-                onClick={() => handleTagChange("")}
-              >
-                <X className="size-3" />
-              </button>
-            </Badge>
-          )}
-          
-          <button
-            type="button"
-            className="text-xs font-medium text-primary hover:underline ml-2"
-            onClick={() => {
-              setKeyword("");
-              handleSubjectChange("");
-              handleCategoryChange("");
-              handleTagChange("");
-            }}
+                {options.find((item) => item.id === params.get(key))?.name ??
+                  label}
+                <X aria-hidden="true" className="size-3.5" />
+              </Button>
+            ))}
+          <Button
+            variant="ghost"
+            className="h-11"
+            onClick={() =>
+              setParams((previous) => {
+                const next = new URLSearchParams(previous);
+                for (const key of [
+                  "keyword",
+                  "subjectId",
+                  "categoryId",
+                  "tagId",
+                  "page",
+                ])
+                  next.delete(key);
+                return next;
+              })
+            }
           >
             Xóa tất cả
-          </button>
+          </Button>
         </div>
       )}
     </div>

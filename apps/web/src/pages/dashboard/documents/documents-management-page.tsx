@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
-import { useSearchDocuments, useDeleteDocument, useCreateDocument, useUpdateDocument } from "@/features/documents/hooks/use-documents";
+import {
+  useSearchDocuments,
+  useDeleteDocument,
+  useCreateDocument,
+  useUpdateDocument,
+} from "@/features/documents/hooks/use-documents";
 import { DashboardDocumentList } from "@/features/documents/components/dashboard-document-list";
 import { DocumentForm } from "@/features/documents/components/document-form";
 import { toast } from "sonner";
@@ -37,27 +42,38 @@ export default function DocumentsManagementPage() {
   // Convert 1-based visible page to 0-based offset for the API in exactly one place
   const apiPageOffset = currentPage - 1;
 
-  const { data: pageData } = useSearchDocuments({
+  const {
+    data: pageData,
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useSearchDocuments({
     keyword: debouncedKeyword,
     page: apiPageOffset,
     size: 10,
     ownerId: user?.role === "LECTURER" ? user.id : undefined,
   });
 
+  const totalPages = pageData?.totalPages;
+
   // Clamp current page if it exceeds total pages when deleting/filtering
   useEffect(() => {
-    if (pageData && pageData.totalPages > 0) {
-      if (currentPage > pageData.totalPages) {
-        setCurrentPage(pageData.totalPages);
+    if (totalPages && totalPages > 0) {
+      if (currentPage > totalPages) {
+        setCurrentPage(totalPages);
       }
     }
-  }, [pageData?.totalPages, currentPage]);
+  }, [totalPages, currentPage]);
 
   const deleteDocument = useDeleteDocument();
-  const [documentToDelete, setDocumentToDelete] = useState<DocumentResponse | null>(null);
-  
+  const [documentToDelete, setDocumentToDelete] =
+    useState<DocumentResponse | null>(null);
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [documentToEdit, setDocumentToEdit] = useState<DocumentResponse | null>(null);
+  const [documentToEdit, setDocumentToEdit] = useState<DocumentResponse | null>(
+    null,
+  );
 
   const createDocument = useCreateDocument();
   const updateDocument = useUpdateDocument();
@@ -72,7 +88,7 @@ export default function DocumentsManagementPage() {
             setDocumentToEdit(null);
           },
           onError: () => toast.error("Có lỗi xảy ra khi cập nhật tài liệu"),
-        }
+        },
       );
     } else {
       createDocument.mutate(data, {
@@ -90,7 +106,9 @@ export default function DocumentsManagementPage() {
       deleteDocument.mutate(documentToDelete.id, {
         onSuccess: () => {
           setDocumentToDelete(null);
+          toast.success("Đã xóa tài liệu");
         },
+        onError: () => toast.error("Không thể xóa tài liệu. Hãy thử lại."),
       });
     }
   };
@@ -100,12 +118,17 @@ export default function DocumentsManagementPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Quản lý tài liệu</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Quản lý tài liệu
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Quản lý, thêm mới và cập nhật các tài liệu trên hệ thống.
           </p>
         </div>
-        <Button className="shrink-0 gap-2" onClick={() => setIsCreateModalOpen(true)}>
+        <Button
+          className="shrink-0 gap-2"
+          onClick={() => setIsCreateModalOpen(true)}
+        >
           <Plus className="size-4" />
           Thêm tài liệu mới
         </Button>
@@ -128,21 +151,56 @@ export default function DocumentsManagementPage() {
       </div>
 
       {/* Content */}
-      <DashboardDocumentList
-        data={pageData?.content || []}
-        onDeleteClick={setDocumentToDelete}
-        onEditClick={setDocumentToEdit}
-      />
+      {isLoading ? (
+        <div
+          role="status"
+          className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground"
+        >
+          <Loader2 aria-hidden="true" className="size-5 animate-spin" />
+          Đang tải tài liệu…
+        </div>
+      ) : isError ? (
+        <div
+          role="alert"
+          className="space-y-3 rounded-xl border border-border p-6 text-center"
+        >
+          <p className="text-sm text-muted-foreground">
+            Không thể tải danh sách tài liệu.
+          </p>
+          <Button
+            variant="outline"
+            disabled={isFetching}
+            onClick={() => void refetch()}
+          >
+            Thử lại
+          </Button>
+        </div>
+      ) : (
+        <DashboardDocumentList
+          data={pageData?.content || []}
+          onDeleteClick={setDocumentToDelete}
+          onEditClick={setDocumentToEdit}
+        />
+      )}
 
       {/* Pagination */}
       {pageData && pageData.totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
-          <p className="text-sm text-muted-foreground whitespace-nowrap">
-            Hiển thị <span className="font-medium">{(apiPageOffset * pageData.size) + 1}</span> đến{" "}
+          <p className="text-sm text-muted-foreground">
+            Hiển thị{" "}
             <span className="font-medium">
-              {Math.min((apiPageOffset + 1) * pageData.size, pageData.totalElements)}
+              {apiPageOffset * pageData.size + 1}
             </span>{" "}
-            trong tổng số <span className="font-medium">{pageData.totalElements}</span> tài liệu
+            đến{" "}
+            <span className="font-medium">
+              {Math.min(
+                (apiPageOffset + 1) * pageData.size,
+                pageData.totalElements,
+              )}
+            </span>{" "}
+            trong tổng số{" "}
+            <span className="font-medium">{pageData.totalElements}</span> tài
+            liệu
           </p>
           <div className="overflow-x-auto max-w-full">
             <AppPagination
@@ -155,18 +213,25 @@ export default function DocumentsManagementPage() {
       )}
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!documentToDelete} onOpenChange={(open) => !open && setDocumentToDelete(null)}>
+      <AlertDialog
+        open={!!documentToDelete}
+        onOpenChange={(open) => !open && setDocumentToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa tài liệu</AlertDialogTitle>
             <AlertDialogDescription>
               Bạn có chắc chắn muốn xóa tài liệu{" "}
-              <span className="font-medium text-foreground">"{documentToDelete?.title}"</span> không?
-              Hành động này không thể hoàn tác.
+              <span className="font-medium text-foreground">
+                "{documentToDelete?.title}"
+              </span>{" "}
+              không? Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteDocument.isPending}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteDocument.isPending}>
+              Hủy
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -182,8 +247,8 @@ export default function DocumentsManagementPage() {
       </AlertDialog>
 
       {/* Create/Edit Modal */}
-      <Dialog 
-        open={isCreateModalOpen || !!documentToEdit} 
+      <Dialog
+        open={isCreateModalOpen || !!documentToEdit}
         onOpenChange={(open) => {
           if (!open) {
             setIsCreateModalOpen(false);
@@ -197,14 +262,14 @@ export default function DocumentsManagementPage() {
               {documentToEdit ? "Chỉnh sửa tài liệu" : "Thêm tài liệu mới"}
             </DialogTitle>
             <DialogDescription>
-              {documentToEdit 
-                ? `Đang chỉnh sửa tài liệu: ${documentToEdit.title}` 
+              {documentToEdit
+                ? `Đang chỉnh sửa tài liệu: ${documentToEdit.title}`
                 : "Điền thông tin bên dưới để thêm tài liệu mới vào hệ thống."}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <DocumentForm
-              key={documentToEdit?.id || 'new'}
+              key={documentToEdit?.id || "new"}
               initialData={documentToEdit || undefined}
               onSubmit={handleFormSubmit}
               onCancel={() => {

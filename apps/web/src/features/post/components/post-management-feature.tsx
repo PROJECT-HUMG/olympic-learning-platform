@@ -3,7 +3,10 @@ import { Plus, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppPagination } from "@/components/ui/app-pagination";
-import { useManagementPosts, useManagementPostStatusCounts } from "@/features/post/hooks/use-posts";
+import {
+  useManagementPosts,
+  useManagementPostStatusCounts,
+} from "@/features/post/hooks/use-posts";
 import { useCreatePost } from "@/features/post/hooks/use-create-post";
 import { useUpdatePost } from "@/features/post/hooks/use-update-post";
 import { useDeletePost } from "@/features/post/hooks/use-delete-post";
@@ -38,7 +41,13 @@ export function PostManagementFeature() {
 
   const apiPageOffset = Math.max(0, currentPage - 1);
 
-  const { data: pageData, isLoading } = useManagementPosts({
+  const {
+    data: pageData,
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useManagementPosts({
     keyword: debouncedKeyword,
     page: apiPageOffset,
     size: 10,
@@ -46,22 +55,33 @@ export function PostManagementFeature() {
   });
   const { data: counts } = useManagementPostStatusCounts();
 
+  const totalPages = pageData?.totalPages;
+
   useEffect(() => {
-    if (pageData && pageData.totalPages > 0) {
-      if (currentPage > pageData.totalPages) {
-        setCurrentPage(pageData.totalPages);
+    if (totalPages && totalPages > 0) {
+      if (currentPage > totalPages) {
+        setCurrentPage(totalPages);
       }
     }
-  }, [pageData?.totalPages, currentPage]);
+  }, [totalPages, currentPage]);
 
   const deletePost = useDeletePost();
-  const [postToDelete, setPostToDelete] = useState<PostSummaryResponse | null>(null);
-  
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [postToEdit, setPostToEdit] = useState<PostSummaryResponse | null>(null);
+  const [postToDelete, setPostToDelete] = useState<PostSummaryResponse | null>(
+    null,
+  );
 
-  const { data: postDetails } = usePost(postToEdit?.id || "", false);
-  const isFetchingDetails = !!postToEdit && !postDetails;
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [postToEdit, setPostToEdit] = useState<PostSummaryResponse | null>(
+    null,
+  );
+
+  const {
+    data: postDetails,
+    isError: detailsError,
+    refetch: refetchDetails,
+    isFetching: fetchingDetails,
+  } = usePost(postToEdit?.id || "", false);
+  const isFetchingDetails = !!postToEdit && !postDetails && !detailsError;
 
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
@@ -76,7 +96,7 @@ export function PostManagementFeature() {
             setPostToEdit(null);
           },
           onError: () => toast.error("Có lỗi xảy ra khi cập nhật bài viết"),
-        }
+        },
       );
     } else {
       createPost.mutate(data, {
@@ -102,23 +122,43 @@ export function PostManagementFeature() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto p-4 md:p-8">
+    <div className="space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Quản lý bài viết</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Quản lý bài viết
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Quản lý, thêm mới và cập nhật các bài viết tin tức, thông báo, blog.
           </p>
         </div>
-        <Button className="shrink-0 gap-2" onClick={() => setIsCreateModalOpen(true)}>
+        <Button
+          className="shrink-0 gap-2"
+          onClick={() => setIsCreateModalOpen(true)}
+        >
           <Plus className="size-4" />
           Tạo bài viết mới
         </Button>
       </div>
 
-      {counts && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[['Bản nháp', counts.draft], ['Đã xuất bản', counts.published], ['Hết hiệu lực', counts.expired], ['Lưu trữ', counts.archived]].map(([label, count]) => <div key={String(label)} className="rounded-xl border border-border/60 bg-card px-4 py-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-xl font-bold">{count}</p></div>)}
-      </div>}
+      {counts && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            ["Bản nháp", counts.draft],
+            ["Đã xuất bản", counts.published],
+            ["Hết hiệu lực", counts.expired],
+            ["Lưu trữ", counts.archived],
+          ].map(([label, count]) => (
+            <div
+              key={String(label)}
+              className="rounded-xl border border-border/60 bg-card px-4 py-3"
+            >
+              <p className="text-xs text-muted-foreground">{label}</p>
+              <p className="mt-1 text-xl font-bold">{count}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm">
         <div className="relative max-w-sm w-full">
@@ -139,7 +179,25 @@ export function PostManagementFeature() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center p-16 border border-dashed border-border/60 rounded-2xl bg-card/30 text-center">
             <Loader2 className="w-8 h-8 animate-spin text-primary/40 mb-4" />
-            <span className="text-muted-foreground text-sm">Đang tải dữ liệu...</span>
+            <span className="text-muted-foreground text-sm">
+              Đang tải dữ liệu...
+            </span>
+          </div>
+        ) : isError ? (
+          <div
+            role="alert"
+            className="space-y-3 rounded-xl border border-border p-6 text-center"
+          >
+            <p className="text-sm text-muted-foreground">
+              Không thể tải danh sách bài viết.
+            </p>
+            <Button
+              variant="outline"
+              disabled={isFetching}
+              onClick={() => void refetch()}
+            >
+              Thử lại
+            </Button>
           </div>
         ) : (
           <DashboardPostList
@@ -152,15 +210,24 @@ export function PostManagementFeature() {
 
       {pageData && pageData.totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
-          <p className="text-sm text-muted-foreground whitespace-nowrap">
-            Hiển thị <span className="font-medium">{(apiPageOffset * pageData.size) + 1}</span> đến{" "}
+          <p className="text-sm text-muted-foreground">
+            Hiển thị{" "}
             <span className="font-medium">
-              {Math.min((apiPageOffset + 1) * pageData.size, pageData.totalElements)}
+              {apiPageOffset * pageData.size + 1}
             </span>{" "}
-            trong tổng số <span className="font-medium">{pageData.totalElements}</span> bài viết
+            đến{" "}
+            <span className="font-medium">
+              {Math.min(
+                (apiPageOffset + 1) * pageData.size,
+                pageData.totalElements,
+              )}
+            </span>{" "}
+            trong tổng số{" "}
+            <span className="font-medium">{pageData.totalElements}</span> bài
+            viết
           </p>
           <div className="overflow-x-auto max-w-full">
-            <AppPagination 
+            <AppPagination
               currentPage={currentPage}
               totalPages={pageData.totalPages}
               onPageChange={setCurrentPage}
@@ -169,18 +236,25 @@ export function PostManagementFeature() {
         </div>
       )}
 
-      <AlertDialog open={!!postToDelete} onOpenChange={(open) => !open && setPostToDelete(null)}>
+      <AlertDialog
+        open={!!postToDelete}
+        onOpenChange={(open) => !open && setPostToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa bài viết</AlertDialogTitle>
             <AlertDialogDescription>
               Bạn có chắc chắn muốn xóa bài viết{" "}
-              <span className="font-medium text-foreground">"{postToDelete?.title}"</span> không?
-              Hành động này không thể hoàn tác.
+              <span className="font-medium text-foreground">
+                "{postToDelete?.title}"
+              </span>{" "}
+              không? Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deletePost.isPending}>Hủy</AlertDialogCancel>
+            <AlertDialogCancel disabled={deletePost.isPending}>
+              Hủy
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -195,8 +269,8 @@ export function PostManagementFeature() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog 
-        open={isCreateModalOpen || !!postToEdit} 
+      <Dialog
+        open={isCreateModalOpen || !!postToEdit}
         onOpenChange={(open) => {
           if (!open) {
             setIsCreateModalOpen(false);
@@ -210,20 +284,35 @@ export function PostManagementFeature() {
               {postToEdit ? "Chỉnh sửa bài viết" : "Tạo bài viết mới"}
             </DialogTitle>
             <DialogDescription>
-              {postToEdit 
-                ? `Đang chỉnh sửa bài viết: ${postToEdit.title}` 
+              {postToEdit
+                ? `Đang chỉnh sửa bài viết: ${postToEdit.title}`
                 : "Điền thông tin bên dưới để tạo bài viết mới."}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            {isFetchingDetails ? (
+            {postToEdit && detailsError ? (
+              <div role="alert" className="space-y-3 py-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Không thể tải nội dung bài viết để chỉnh sửa.
+                </p>
+                <Button
+                  variant="outline"
+                  disabled={fetchingDetails}
+                  onClick={() => void refetchDetails()}
+                >
+                  Thử lại
+                </Button>
+              </div>
+            ) : isFetchingDetails ? (
               <div className="flex flex-col items-center justify-center py-10 gap-2">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Đang tải thông tin bài viết...</p>
+                <p className="text-sm text-muted-foreground">
+                  Đang tải thông tin bài viết...
+                </p>
               </div>
             ) : (
               <PostForm
-                key={postToEdit?.id || 'new'}
+                key={postToEdit?.id || "new"}
                 initialData={postToEdit ? postDetails : undefined}
                 onSubmit={handleFormSubmit}
                 onCancel={() => {

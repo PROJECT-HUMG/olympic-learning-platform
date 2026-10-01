@@ -1,13 +1,47 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>web</title>
+    <title>Olympic HUMG</title>
+    <script>
+      // Match the persisted theme before the app bundle arrives.
+      let theme = "system";
+      try {
+        theme = JSON.parse(localStorage.getItem("olympic-theme"))?.state?.theme ?? "system";
+      } catch { /* Storage can be unavailable in private browsing. */ }
+      const dark = theme === "dark" || (theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+      document.documentElement.style.colorScheme = dark ? "dark" : "light";
+    </script>
+    <link rel="stylesheet" href="/src/app/loading-screen.css" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="startup-loader" class="loading-screen loading-screen--startup" role="status" aria-live="polite" aria-label="Đang mở Olympic HUMG">
+      <div class="loading-screen__curtain loading-screen__curtain--left" aria-hidden="true"></div>
+      <div class="loading-screen__curtain loading-screen__curtain--right" aria-hidden="true"></div>
+      <div class="loading-screen__content">
+        <div class="loading-screen__logo">
+          <img src="/icons.svg" alt="Logo trường HUMG" width="1095" height="1095" fetchpriority="high" />
+        </div>
+        <p class="loading-screen__brand">Olympic HUMG</p>
+        <p class="loading-screen__message">Đang mở góc học tập…</p>
+        <div class="loading-screen__writing" role="progressbar" aria-label="Tiến độ chuẩn bị" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+        <p class="loading-screen__percent" aria-hidden="true">0%</p>
+        <p class="loading-screen__help">Mất lâu hơn dự kiến. <a href="">Tải lại trang</a></p>
+        <noscript>
+          <style>
+            .loading-screen__message, .loading-screen__writing, .loading-screen__percent, .loading-screen__help { display: none; }
+          </style>
+          <p class="loading-screen__message--static">Bật JavaScript trong trình duyệt để mở website.</p>
+        </noscript>
+      </div>
+    </div>
+    <script>
+      document.getElementById("startup-loader").dataset.startedAt = String(performance.now());
+    </script>
+    <div id="root" inert></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

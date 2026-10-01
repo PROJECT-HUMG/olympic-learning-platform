@@ -1,0 +1,111 @@
+# Rà soát luồng sử dụng và điều hướng
+
+Ngày: 01/10/2026. Phạm vi: các màn hiện có, điều hướng theo quyền, tài khoản, kho tài liệu, quản lý bài viết/câu hỏi/người dùng. Không bổ sung hệ thống thi hoặc luyện tập trong đợt này.
+
+Checkpoint trước khi sửa UX: `ecbfb14` — `feat: add study rooms and refresh student UI`. Các thay đổi bên dưới nằm sau checkpoint này.
+
+## Các lỗi đã xử lý
+
+| Luồng | Vấn đề trước đây | Hành vi sau sửa |
+| --- | --- | --- |
+| Mobile → điều hướng | Toàn bộ sidebar được đẩy xuống đáy, đặc biệt nhiều mục ở tài khoản admin | Bỏ thanh dưới; mở menu trên header, chia nhóm và cuộn riêng trong menu |
+| Điều hướng theo quyền | Thiếu quản lý người dùng; chọn sai mục khi vào chi tiết/nhập câu hỏi | Menu chung có học tập, thông tin, cá nhân và nhóm quản lý theo quyền; ưu tiên đường dẫn khớp cụ thể nhất |
+| Header tài khoản | Tên dài làm chật header; các nút giao diện/AI bị lặp | Header dùng avatar gọn; một nút đổi giao diện; gỡ trợ lý AI chưa hoạt động |
+| Sidebar desktop | Rê chuột tự đổi chiều rộng; khởi tạo từ chiều rộng tự động gây nhảy bố cục | Thu/mở bằng nút; đặt chiều rộng ngay khi render; mục thu gọn có nhãn truy cập và tooltip |
+| Menu → đổi trang/kích thước | Trạng thái menu có thể mở lại khi quay về URL cũ | Đóng khi chuyển route, dùng history hoặc đổi breakpoint; hỗ trợ Escape, focus trap và trả focus |
+| Trang riêng → đăng nhập | Mất URL đang cần mở | Giữ pathname, query và hash qua đăng nhập, đăng ký, quên mật khẩu và liên kết quay lại |
+| Kiểm tra phiên đăng nhập | Mất kết nối dễ bị hiểu thành chưa đăng nhập | Lỗi kết nối có màn thử lại tại URL hiện tại; tài khoản sai quyền về dashboard đúng vai trò |
+| Tổng quan | Sinh viên có số liệu/hoạt động mẫu; giảng viên/admin chỉ có placeholder | Tổng quan dẫn tới những chức năng đang dùng được, theo vai trò; bỏ tiến độ và lịch sử giả |
+| Trang chủ/footer | Các khối môn học/tài liệu/kỳ thi dùng mẫu; newsletter báo thành công dù không gửi | Trang chủ giữ bàn học và tin tức dùng API; gỡ các khối mẫu, newsletter giả, liên kết `#` và OAuth chưa hoàn chỉnh |
+| Tài liệu → tìm/lọc | Debounce ghi đè URL khi Back; xóa tất cả bằng nhiều cập nhật rời rạc | Tìm bằng Enter/nút Tìm; URL giữ bộ lọc; xóa tất cả trong một cập nhật, giữ cách xem |
+| Tài liệu → chi tiết → danh sách | Mất từ khóa, bộ lọc, trang và chế độ xem | Giữ URL danh sách; mở trực tiếp chi tiết vẫn có đường về kho tài liệu |
+| Tải tài liệu trên mobile | Nút chỉ hiện khi hover và nằm trong liên kết chi tiết | Nút tải luôn hiện khi có hành động, vùng chạm 44px, độc lập với liên kết chi tiết |
+| Xem trước tài liệu | Gọi endpoint tải xuống, làm tăng lượt tải chỉ vì mở chi tiết | Dùng `downloadUrl` sẵn có trong response chi tiết; chỉ hành động tải mới gọi endpoint tải xuống |
+| Sửa tài liệu | Cache chi tiết dùng slug nhưng bị invalidation bằng ID | Làm mới nhóm query chi tiết và danh sách sau cập nhật |
+| Ngân hàng câu hỏi | Chỉ thấy 20 câu; mất tìm kiếm khi quay lại; lỗi mutation có promise rejection | Phân trang thực; tìm kiếm/trang trong URL; quay lại danh sách ổn định; xử lý thành công/thất bại bằng toast |
+| Quản lý tài liệu/bài viết | Loading/lỗi trông như danh sách trống; lỗi tải bài viết sửa khiến spinner chạy mãi | Phân biệt loading, empty, error; thử lại danh sách và nội dung chỉnh sửa |
+| Bài viết nháp/lưu trữ | Tên bài mở trang công khai dù chưa được công bố | Chỉ bài đang công bố có liên kết công khai; bản nháp/lưu trữ chỉnh sửa trong màn quản lý |
+| Người dùng → phân trang | UI nhận page 0 nhưng component phân trang cần page 1 | Chuyển đổi offset tại ranh giới UI/API |
+| Người dùng → cấp/thu hồi quyền | Dialog giữ bản chụp người dùng cũ, dễ tiếp tục thao tác với trạng thái cũ | Dialog lấy người dùng theo ID từ query hiện tại; mutation chờ query cập nhật xong; quyền tải lỗi có thử lại |
+| Phân trang/bộ lọc trên mobile | Nhiều nút nhỏ và dãy trang dài | Mobile dùng Trước, trang hiện tại/tổng, Sau; bộ lọc có nhãn và vùng chạm phù hợp |
+| Luyện tập/lịch sử/kỳ thi | Màn khung dễ khiến người dùng tưởng đã có chức năng | Giữ route nhưng thông báo chưa mở, kèm liên kết đến tài liệu, bảng tin và phòng học |
+
+## Những phần vẫn cần hoàn thiện
+
+1. **Luyện tập, thi và lịch sử:** API câu hỏi/nhập đề có sẵn nhưng chưa có toàn bộ luồng đề thi → lượt làm bài → chấm điểm → lưu kết quả. Đây là ưu tiên chức năng tiếp theo sau khi thống nhất UX.
+2. **OAuth:** đã gỡ nút khỏi màn đăng nhập vì luồng callback/đăng nhập chưa hoàn chỉnh. Cần triển khai và kiểm tra backend trước khi mở lại.
+3. **Chính sách và newsletter:** cần nội dung, endpoint và quy trình thực tế trước khi thêm lại các hành động này.
+4. **Bảng tin chi tiết:** tiếp tục rà soát việc giữ bộ lọc/trang qua breadcrumb và cách xem trước bài chưa xuất bản. Đợt này chỉ chặn liên kết công khai sai từ màn quản lý.
+5. **Import PDF, phân loại và form hồ sơ:** cần kiểm tra sâu hơn với dữ liệu/file thực, quyền thực và lỗi upload/worker. Kiểm tra bố cục hoặc menu không chứng minh toàn bộ nghiệp vụ của các màn này.
+6. **Dịch vụ ngoài:** xác thực email/SMTP, file trên storage, YouTube và dữ liệu production cần kiểm tra trong môi trường triển khai. Browser mock chỉ chứng minh hành vi giao diện và hợp đồng request.
+7. **Bundle:** Vite vẫn cảnh báo chunk chính lớn hơn 500 kB. Cần tối ưu tải thư viện theo route trong một đợt hiệu năng riêng.
+
+## Kiểm chứng
+
+- `cd apps/web` rồi `rtk pnpm build`, `rtk pnpm lint`.
+- `rtk proxy node --test tests/*.test.ts`: 17 kiểm tra cho URL sau đăng nhập, phân trang/đường về danh sách và GPA.
+- Trình duyệt Chromium/Playwright với API mock: guest/student/lecturer/admin; viewport 320, 390, 768 và 1440px; sáng/tối; tên người dùng dài; focus, Escape, đóng menu theo route/history/resize, sidebar và giảm chuyển động.
+- Luồng tài liệu: tìm/lọc/Back/reset, cách xem, phân trang không hợp lệ, tải riêng khỏi liên kết chi tiết; xem trước không gọi endpoint tải.
+- Luồng quản lý: phân trang/tìm/chi tiết câu hỏi, lỗi thao tác, loading/lỗi/thử lại tài liệu và bài viết, chỉnh sửa bài viết sau lỗi, phân trang và cấp/thu hồi quyền người dùng.
+- Kiểm tra hồi quy phòng học: yêu cầu đăng nhập, tạo/tham gia, đề xuất/duyệt nhạc, polling, lỗi kết nối, đóng phòng; tài khoản mobile không tải video, desktop giữ cảnh khi đổi form, reduced motion.
+
+Các kiểm tra trình duyệt dùng mock cho server và YouTube; không thay thế việc chạy thử với backend và các dịch vụ bên ngoài. Không sửa Java, migration hoặc hợp đồng API trong đợt UX này.
+
+## Rà soát bổ sung: mạng chậm, video và luồng phục hồi
+
+Ngày 01/10/2026, sau các thay đổi điều hướng ở trên. Đợt này chỉ rà soát và ghi nhận; chưa sửa các lỗi bên dưới. Dùng lại kết quả build/lint và các kiểm tra hồi quy đã chạy; bổ sung tình huống chưa được kiểm chứng thay vì chạy lại toàn bộ.
+
+### Các vấn đề còn tồn tại
+
+P1: ưu tiên xử lý trước khi coi luồng hoàn chỉnh. P2: cần sửa để trải nghiệm ổn định và có đường phục hồi.
+
+| Ưu tiên | Luồng và bằng chứng | Vị trí sở hữu | Hướng xử lý |
+| --- | --- | --- | --- |
+| P1 | **Phiên hết hạn:** `/documents` trả 401, refresh trả 401; header vẫn hiện tài khoản cũ. Đi tới `/login` trong cùng SPA bị chuyển về `/admin/dashboard` thay vì cho đăng nhập lại. Đã tái hiện bằng browser mock. Backend vẫn kiểm tra quyền; đây là lỗi trạng thái phiên/UI, không phải bằng chứng vượt quyền. | `src/lib/axios.ts:82`, `features/auth/hooks/use-current-user.ts:14`, `router/guards/guest-route.tsx` | Khi phiên thực sự hết hạn, đồng bộ token và cache người dùng ở luồng xác thực; cho đăng nhập lại và giữ URL cần quay về. Phân biệt refresh 401 với lỗi mạng tạm thời. |
+| P1 | **Upload PDF:** UI nhận và ghi tối đa 25 MB; nginx chặn request trên 10 MB, dev multipart cũng 10 MB. File 10–25 MB không đi qua được cấu hình này. Xác nhận từ cấu hình, chưa chạy upload thực qua nginx. | `pages/assessment-import-page.tsx:26`, `nginx.conf:12`, `apps/api/src/main/resources/application-dev.yaml:16` | Thống nhất giới hạn giữa UI, proxy, multipart và import service; request limit cần dư cho multipart overhead. Có thông báo 413 rõ ràng. |
+| P1 | **Nhập đề mất đường phục hồi:** tạo job thành công rồi status trả 503; sau ba lần request, màn chỉ còn tiêu đề/mô tả, không có lỗi hay nút thử lại. Reload quay về form upload vì `importId` chỉ nằm trong state. Không có bằng chứng job backend bị mất; UI mất đường mở lại job. Đã tái hiện. | `pages/assessment-import-page.tsx:13`, `features/assessment/hooks/use-assessment-import.ts` | Giữ job ID trong URL, có trạng thái lỗi/thử lại cho status và drafts, cho tiếp tục đợt nhập sau reload. |
+| P2 | **Tải tài liệu bị treo:** giữ request file chưa trả về; Escape không đóng dialog, nút Hủy bị vô hiệu hóa. File fetch dùng Axios độc lập, không có timeout hay AbortSignal. Đã tái hiện. | `features/documents/components/document-download-modal.tsx:87`, `features/documents/services/documents.service.ts:27` | Cho hủy request và đóng dialog, timeout phù hợp, có thử lại; dọn timer reset/autoclose để không tác động tài liệu mở sau đó. |
+| P2 | **Bảng tin:** từ danh sách có `q/type/page` → bài viết → breadcrumb quay về `/news`, có một document reload và mất toàn bộ bộ lọc. Status 503 của chi tiết lại báo bài viết không tồn tại/đã xóa, không có retry. Đã tái hiện. | `features/post/components/post-list-item.tsx`, `features/post/components/news-detail-feature.tsx:177`, `:223` | Giữ đường về danh sách và dùng React Router Link; tách 404 khỏi lỗi mạng/server, cho thử lại. |
+| P2 | **Loading khi tải mã trang:** chặn chunk toolkit khi mở trực tiếp `/toolkit?tool=gpa`: header/footer xuất hiện nhưng `main` rỗng, không có `aria-busy`. Khi chuyển trong SPA, trang trước được giữ lại trong lúc chờ nhưng URL đã đổi và không có chỉ báo tải. Đã tái hiện cả hai. | `router/routes.tsx` (`Suspense fallback={null}`) | Loading nhẹ theo route, giữ shell; có chỉ báo pending khi giữ nội dung cũ. Skeleton đăng nhập cần bỏ phần OAuth đã gỡ khỏi form thật. |
+| P2 | **Nhãn form có dữ liệu sẵn:** ở hồ sơ, giá trị họ tên có ngay nhưng nhãn vẫn nằm trong input, đè lên chữ. `FormField` khởi tạo `hasValue=false`, chỉ cập nhật khi change/blur; ref không đồng bộ trạng thái có dữ liệu. Xác nhận bằng screenshot mobile và code. | `components/ui/form-field.tsx:65`, `:67`, `:95` | Sửa tại primitive dùng chung để nhận đúng giá trị khởi tạo, controlled value và cập nhật bằng form reset; kiểm tra cả autofill. |
+| P2 | **Hồ sơ mobile và lưu dữ liệu:** tại 320px, username 48 ký tự và email dài làm các ô thông tin vượt card, bị cắt bởi layout. Lưu họ tên thành công vẫn để nút Lưu hoạt động vì dirty state không reset. Đã tái hiện. | `features/user/components/profile-form.tsx:29`, `:89`, `:138`, `features/user/hooks/use-update-profile.ts:14` | Cho grid/text co và xuống dòng; reset form theo dữ liệu server sau khi lưu thành công. |
+
+Các animation trong chi tiết bảng tin còn dùng Framer Motion mà chưa có xử lý giảm chuyển động tại component. Đây là phần cần kiểm tra tiếp khi sửa màn bảng tin, không phải kết quả đo hiệu năng thiết bị thật.
+
+### Video: không cần chặn cả trang để preload
+
+- Hai file cộng lại 5.004.792 byte: sáng 3.467.139 byte, tối 1.537.653 byte. Mỗi lượt vào chỉ chọn video theo theme, không tải cả hai ngay.
+- Poster WebP sáng/tối lần lượt 55.144 và 89.838 byte. Browser mock xác nhận nội dung và menu dùng được khi video chưa trả về, và poster vẫn giữ khi video tải lỗi. Mobile auth không mount cảnh video và không request video.
+- Cả hai MP4 có `moov` ở offset 32, trước `mdat`; có thể stream, không cần đợi tải hết file mới phát. Component chỉ hiện video sau sự kiện `playing`.
+- Luồng nên giữ: **hiện shell/nội dung + ảnh poster → video tải nền → fade sang video khi phát được**. Lỗi/autoplay bị chặn/giảm chuyển động thì tiếp tục dùng poster. Không đặt màn phần trăm đợi video trước khi vào website.
+- Tối ưu tiếp: cache media có cơ chế version khi đổi file (nginx hiện chỉ đặt cache lâu cho `/assets/`); ưu tiên poster đang dùng; hỗ trợ chế độ tiết kiệm dữ liệu; giảm dung lượng chunk chính. Loading thật thuộc route và request dữ liệu, không thuộc việc tải xong cảnh nền.
+
+### Giới hạn kiểm chứng và thứ tự tiếp theo
+
+Browser Chromium dùng bản preview tại `127.0.0.1:4173`, API được mock để ép 401/503 và request bị treo. Backend tại `localhost:8080` không chạy ở thời điểm review; chưa xác nhận lại SMTP/storage/YouTube và nghiệp vụ end-to-end thực tế trong lượt này. Các kiểm tra trước đó vẫn có giá trị trong phạm vi đã ghi, nhưng không đủ để tuyên bố mọi tính năng sẵn sàng production.
+
+Thứ tự đề xuất: sửa P1 → phục hồi tải/chuyển trang/bảng tin → primitive form và hồ sơ mobile → kiểm tra với backend thật. Luyện tập, kỳ thi và lịch sử vẫn chưa có toàn bộ luồng làm bài/chấm/lưu kết quả.
+
+Sau khi ổn định, ưu tiên một luồng học tập có ích: **lưu tài liệu + góc tài liệu đã lưu**, sau đó **luyện nhanh theo chủ đề → giải thích → ôn câu sai → lịch sử**, rồi **theo dõi môn học/thông báo mới**. Luyện tập cần API lượt làm bài và chấm điểm bảo vệ đáp án; không đưa thẳng API ngân hàng câu hỏi quản trị cho sinh viên.
+
+## Cập nhật: màn chờ với logo trường
+
+Đã xử lý phần loading mã trang trong bảng rà soát bổ sung; các lỗi phiên đăng nhập, nhập PDF, tải tài liệu, bảng tin và form vẫn chưa được sửa trong đợt này.
+
+- `index.html` hiển thị logo trường, nét bút và tiến độ chuẩn bị. Theo yêu cầu mới, màn chờ giữ tối thiểu 1,5 giây, đợi route đầu, các query đang tải lần đầu, font và video đang dùng trước khi lên 100%; mạng chậm tiếp tục chờ, không có deadline tự bỏ qua. Tiến độ là các bước chuẩn bị, không phải phần trăm byte của toàn website.
+- Khi lên 100%, giữ 250ms rồi dùng GSAP: logo/chữ lùi nhẹ, hai lớp nền kéo sang hai bên trong khoảng một giây để mở trang. Chỉ mở tương tác sau khi hiệu ứng kết thúc. Giảm chuyển động dùng fade 120ms. Không phát lại màn mở website toàn màn hình khi đổi route trong SPA.
+- Theme được đọc trước khi React tải từ cùng khóa `olympic-theme` của store; mặc định theo thiết bị. Giữ font và assets hiện có. Thêm `gsap` theo yêu cầu; chunk chính hiện khoảng 846 kB, gzip 274 kB (GSAP tăng khoảng 27 kB gzip so với trước hiệu ứng).
+- Logo nguồn `public/icons.svg` có canvas 1095 × 1095 nhưng phần hình đo bằng SVG `getBBox()` là x105, y188, khoảng 862 × 686. Chỉ căn bỏ khoảng trắng tại màn chờ, không sửa file gốc hoặc logo navigation. Phần hình hiển thị mobile 120 × 96px, desktop tối đa 148 × 118px; màn chờ route 96 × 76px. Theo yêu cầu mới, bỏ nền giấy sáng ở mode tối: logo nằm trực tiếp trên nền navy, tăng độ sáng nhẹ bằng CSS để còn rõ; giữ nguyên tỉ lệ và file nguồn.
+- Các route lazy dùng chung `RouteSuspense` và `PageLoading`. Fallback tham gia trạng thái chuẩn bị của startup cho đến khi trang đầu được render. Chuyển pathname hiển thị trạng thái chờ của trang mới; thay query/filter giữ nguyên state trang.
+- Chỉ video theme hiện tại được tải đầy đủ một lần, đo byte qua stream và dùng lại Blob URL khi phát hoặc mount lại cảnh. Video tải chậm giữ tiến độ dưới 100%; video tải lỗi dùng poster dự phòng và cho vào trang. Mobile auth và chế độ giảm chuyển động vẫn không tải video.
+- Có chỉ dẫn tải lại sau 12 giây nếu chờ lâu; liên kết giữ nguyên URL/query, không tự nhảy qua loader. JavaScript bị tắt có hướng dẫn rõ.
+- Build và lint qua (các cảnh báo cũ về Fast Refresh/hooks và chunk lớn vẫn còn). Browser production preview kiểm chứng 320/390/1440px, sáng/tối: 100% chỉ sau tối thiểu 1,5 giây; root còn khóa tại 100% và trong lúc GSAP mở nền, sau đó được mở tương tác. Ép video, chunk trang và query đầu chậm đều giữ loader; video dùng lại bản đã tải, không request lần hai; poster hoạt động khi video lỗi. Kiểm tra giảm chuyển động, mobile auth và development StrictMode qua; không có lỗi runtime trong các tình huống hoàn tất. Các kiểm tra bootstrap/bundle lỗi/JavaScript tắt ở lượt trước vẫn áp dụng cho markup ban đầu.
+
+## Cập nhật: icon tài khoản và nav desktop
+
+- Đăng nhập/đăng ký vốn không có icon trang trí trước tiêu đề. Đã bỏ icon chìa khóa ở form quên mật khẩu và icon ổ khóa ở form đặt lại mật khẩu để bốn form cùng cách trình bày. Giữ icon ở thông báo đã gửi email, xác thực thành công/lỗi và liên kết đặt lại không hợp lệ vì chúng biểu thị trạng thái.
+- Browser với API mock kiểm chứng 320/390/1440px, sáng/tối: đi qua các form, không có icon trang trí trước tiêu đề, gửi khôi phục vẫn tới trạng thái kiểm tra hộp thư có icon, không tràn ngang. Logo preload tối không còn pseudo-element tạo nền sáng. Build/lint qua, không có lỗi runtime trong kiểm tra này.
+- Đã áp dụng nav nổi trên các trang công khai ở desktop từ 1280px: tối đa 1200px, cách mép trên 16px, cao 60px và thu nhẹ còn 56px khi cuộn. Ba cột giữ menu ở đúng tâm viewport, độc lập với độ rộng nhóm thao tác tài khoản. Dùng màu theme hiện có, nền kính nhẹ và logo trường được căn bỏ khoảng trắng ở riêng header; giữ font và nguồn logo.
+- Menu gồm Môn học/Tài liệu/Bảng tin/Tiện ích; logo dẫn về trang chủ. Vạch chọn trượt theo route, nhận cả trang chi tiết và phòng học; trang không thuộc bốn nhóm thì ẩn vạch. Giảm chuyển động tắt hiệu ứng. CTA duy nhất “Vào góc học tập” mở đăng nhập và giữ đường quay lại gồm query/hash; người đã đăng nhập mở dashboard theo vai trò, giảng viên/admin dùng nhãn “Không gian quản lý” và vẫn có menu avatar.
+- Các trang công khai ngoài trang chủ chừa khoảng phía trên cho nav cố định; hero đã có khoảng chừa riêng. Dưới 1280px giữ header/menu nhóm và hai nút đăng nhập/đăng ký trong sheet như trước.
+- Kiểm chứng bằng Chromium trên production preview, API mock: guest 1280/1440/1920px và student/lecturer/admin 1440px đều qua ở sáng/tối; đo tâm menu, kích thước nav, khoảng chừa nội dung và không chồng nhóm thao tác. Kiểm tra cuộn, route chi tiết/alias phòng học, history, CTA theo vai trò, đường quay lại có query/hash, keyboard và giảm chuyển động đều qua. Mobile/tablet 320/390/1024/1279px qua menu nhóm, focus/Escape, chuyển route, đổi breakpoint và không tràn ngang. Không có lỗi runtime; build/lint qua với các cảnh báo cũ về chunk lớn, Fast Refresh và dependency hook. Chưa kiểm chứng backend thật trong lượt này.

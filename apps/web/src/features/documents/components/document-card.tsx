@@ -1,9 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { FileText, Download } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
 import { UserHoverCard } from "@/features/user/components/user-hover-card";
-import type { DocumentResponse } from "@/features/documents/types/documents.types";
+import type { DocumentResponse } from "../types/documents.types";
 
 interface DocumentCardProps {
   document: DocumentResponse;
@@ -11,96 +12,71 @@ interface DocumentCardProps {
 }
 
 export function DocumentCard({ document, onDownload }: DocumentCardProps) {
+  const location = useLocation();
   const formattedDate = formatDistanceToNow(new Date(document.createdAt), {
     addSuffix: true,
     locale: vi,
   });
-
-  // Since only PDF is supported currently, we default to red icon for PDF
-  const isPdf = true; // In the future, this can be derived from document.extension or category
-
   return (
-    <div className="group flex flex-col h-[320px] overflow-hidden transition-colors duration-200 hover:bg-accent/40 bg-card border border-border/50 rounded-xl">
-      <Link to={`/documents/${document.slug}`} className="flex-1 flex flex-col h-full">
-        {/* Preview Section - Gray Background */}
-        <div className="relative h-[160px] w-full overflow-hidden bg-muted/60 border-b border-border/50 flex items-center justify-center p-4">
+    <article className="group flex min-w-0 flex-col overflow-hidden rounded-xl border border-border/50 bg-card">
+      <Link
+        to={`/documents/${encodeURIComponent(document.slug)}`}
+        state={{ from: location.pathname + location.search }}
+        className="flex flex-1 flex-col focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+      >
+        <div className="flex h-40 items-center justify-center overflow-hidden border-b border-border/50 bg-muted/60 p-4">
           {document.thumbnailUrl ? (
             <img
               src={document.thumbnailUrl}
-              alt={document.title}
-              className="max-w-full max-h-full object-contain shadow-sm border border-border/20 bg-white"
+              alt=""
+              loading="lazy"
+              className="max-h-full max-w-full object-contain"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <FileText 
-                className={`w-20 h-20 ${isPdf ? 'text-red-500' : 'text-primary/40'}`} 
-                strokeWidth={1.5}
-              />
-            </div>
+            <FileText
+              aria-hidden="true"
+              className="size-16 text-primary/50"
+              strokeWidth={1.5}
+            />
           )}
         </div>
-
-        {/* Info Section - White Background */}
-        <div className="p-3 flex gap-3 flex-1 bg-card">
-          <div className="shrink-0 mt-0.5">
-             <FileText className={`w-5 h-5 ${isPdf ? 'text-red-500' : 'text-primary/60'}`} />
-          </div>
-          
-          <div className="flex-1 min-w-0 flex flex-col">
-            <h3 className="text-[14px] font-medium text-foreground leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
-              {document.title}
-            </h3>
-            {document.description && (
-              <p className="text-[12px] text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
-                {document.description}
-              </p>
-            )}
-            
-            <div className="mt-auto pt-1">
-              <div className="flex items-center text-[12px] text-muted-foreground gap-1.5 truncate">
-                <UserHoverCard user={document.owner}>
-                  <div className="flex items-center gap-1.5 hover:bg-muted/50 p-1 -ml-1 rounded-md transition-colors cursor-pointer" onClick={(e) => e.preventDefault()}>
-                    <div className="w-5 h-5 rounded-full overflow-hidden bg-primary/10 shrink-0 border border-border/50">
-                      {document.owner.avatarUrl ? (
-                        <img
-                          src={document.owner.avatarUrl}
-                          alt={document.owner.fullName || "User"}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-primary">
-                          {(document.owner.fullName || "U")[0]}
-                        </div>
-                      )}
-                    </div>
-                    <span className="hover:underline truncate max-w-[100px] inline-block">
-                      {document.owner.fullName || document.owner.username}
-                    </span>
-                  </div>
-                </UserHoverCard>
-                <span>•</span>
-                <span className="truncate">{formattedDate}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="shrink-0 flex items-start">
-            <button 
-              className="p-1.5 -mr-1 rounded-full text-muted-foreground hover:bg-accent/80 hover:text-primary opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
-              onClick={(e) => {
-                e.preventDefault();
-                if (onDownload) {
-                  onDownload(document);
-                }
-              }}
-              title="Tải xuống"
-              aria-label="Tải xuống"
-            >
-              <Download className="w-4 h-4" />
-            </button>
-          </div>
+        <div className="flex-1 space-y-2 p-4">
+          <h3 className="line-clamp-2 text-sm font-medium leading-5 group-hover:text-primary">
+            {document.title}
+          </h3>
+          {document.description && (
+            <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">
+              {document.description}
+            </p>
+          )}
         </div>
       </Link>
-    </div>
+      <div className="flex min-w-0 items-center justify-between gap-2 border-t border-border/40 px-3 py-1">
+        <div className="min-w-0 text-xs text-muted-foreground">
+          <UserHoverCard user={document.owner}>
+            <button
+              type="button"
+              className="block min-h-11 max-w-full truncate rounded-md px-1 text-left hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+              aria-label={`Thông tin ${document.owner.fullName || document.owner.username}`}
+            >
+              {document.owner.fullName || document.owner.username}
+            </button>
+          </UserHoverCard>
+          <p className="truncate px-1 pb-2">{formattedDate}</p>
+        </div>
+        {onDownload && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-11 shrink-0 rounded-full"
+            aria-label={`Tải xuống ${document.title}`}
+            onClick={() => onDownload(document)}
+          >
+            <Download aria-hidden="true" className="size-4" />
+          </Button>
+        )}
+      </div>
+    </article>
   );
 }

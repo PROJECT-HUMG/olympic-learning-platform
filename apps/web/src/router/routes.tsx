@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy } from "react";
+import { RouteSuspense } from "./route-suspense";
 import { ROUTES } from "@/router/route-constants";
 import { GuestRoute } from "@/router/guards/guest-route";
 import { RoleGuard } from "@/router/guards/role-guard";
@@ -53,73 +54,73 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.HOME,
         element: (
-          <Suspense fallback={null}>
+          <RouteSuspense>
             <HomePage />
-          </Suspense>
+          </RouteSuspense>
         ),
       },
       {
         path: ROUTES.SUBJECTS,
         element: (
-          <Suspense fallback={null}>
+          <RouteSuspense>
             <SubjectsPage />
-          </Suspense>
+          </RouteSuspense>
         ),
       },
       {
         path: ROUTES.DOCUMENTS,
         element: (
-          <Suspense fallback={null}>
+          <RouteSuspense>
             <DocumentsPage />
-          </Suspense>
+          </RouteSuspense>
         ),
       },
       {
         path: `${ROUTES.DOCUMENTS}/:slug`,
         element: (
-          <Suspense fallback={null}>
+          <RouteSuspense>
             <DocumentDetailPage />
-          </Suspense>
+          </RouteSuspense>
         ),
       },
       {
         path: ROUTES.NEWS,
         element: (
-          <Suspense fallback={null}>
+          <RouteSuspense>
             <NewsPage />
-          </Suspense>
+          </RouteSuspense>
         ),
       },
       {
         path: `${ROUTES.NEWS}/:slug`,
         element: (
-          <Suspense fallback={null}>
+          <RouteSuspense>
             <NewsDetailPage />
-          </Suspense>
+          </RouteSuspense>
         ),
       },
       {
         path: ROUTES.COMPETITIONS,
         element: (
-          <Suspense fallback={null}>
+          <RouteSuspense>
             <CompetitionsPage />
-          </Suspense>
+          </RouteSuspense>
         ),
       },
       {
         path: ROUTES.ABOUT,
         element: (
-          <Suspense fallback={null}>
+          <RouteSuspense>
             <AboutPage />
-          </Suspense>
+          </RouteSuspense>
         ),
       },
       {
         path: ROUTES.TOOLKIT,
         element: (
-          <Suspense fallback={null}>
+          <RouteSuspense>
             <ToolkitPage />
-          </Suspense>
+          </RouteSuspense>
         ),
       },
       {
@@ -128,7 +129,7 @@ export const router = createBrowserRouter([
       },
       {
         path: `${ROUTES.STUDY_ROOMS}/:roomId`,
-        element: <Suspense fallback={null}><StudyRoomPage /></Suspense>,
+        element: <RouteSuspense><StudyRoomPage /></RouteSuspense>,
       },
     ],
   },
@@ -175,25 +176,25 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.PROFILE,
             element: (
-              <Suspense fallback={null}>
+              <RouteSuspense>
                 <ProfilePage />
-              </Suspense>
+              </RouteSuspense>
             ),
           },
           {
             path: ROUTES.PRACTICE,
             element: (
-              <Suspense fallback={null}>
+              <RouteSuspense>
                 <PracticePage />
-              </Suspense>
+              </RouteSuspense>
             ),
           },
           {
             path: ROUTES.HISTORY,
             element: (
-              <Suspense fallback={null}>
+              <RouteSuspense>
                 <HistoryPage />
-              </Suspense>
+              </RouteSuspense>
             ),
           },
         ],
@@ -211,9 +212,9 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.DASHBOARD,
             element: (
-              <Suspense fallback={null}>
+              <RouteSuspense>
                 <DashboardPage />
-              </Suspense>
+              </RouteSuspense>
             ),
           },
         ],
@@ -233,35 +234,35 @@ export const router = createBrowserRouter([
             element: <Navigate to="/lecturer/dashboard" replace />,
           },
           {
-            path: "/lecturer/dashboard", // Placeholder
-            element: <div className="p-8">Lecturer Dashboard Coming Soon</div>,
+            path: "/lecturer/dashboard",
+            element: <RouteSuspense><DashboardPage /></RouteSuspense>,
           },
           {
             path: "/lecturer/documents",
             element: (
-              <Suspense fallback={null}>
+              <RouteSuspense>
                 <DocumentsManagementPage />
-              </Suspense>
+              </RouteSuspense>
             ),
           },
           {
             path: "/lecturer/posts",
             element: (
-              <Suspense fallback={null}>
+              <RouteSuspense>
                 <PostManagementPage />
-              </Suspense>
+              </RouteSuspense>
             ),
           },
           {
             path: "/lecturer/questions/import",
             element: (
-              <Suspense fallback={<div className="p-6"><div className="h-8 w-64 animate-pulse rounded-lg bg-muted" /></div>}>
+              <RouteSuspense>
                 <AssessmentImportPage />
-              </Suspense>
+              </RouteSuspense>
             ),
           },
-          { path: "/lecturer/questions", element: <Suspense fallback={null}><QuestionBankPage /></Suspense> },
-          { path: "/lecturer/questions/:id", element: <Suspense fallback={null}><QuestionDetailPage /></Suspense> },
+          { path: "/lecturer/questions", element: <RouteSuspense><QuestionBankPage /></RouteSuspense> },
+          { path: "/lecturer/questions/:id", element: <RouteSuspense><QuestionDetailPage /></RouteSuspense> },
         ],
       },
     ],
@@ -279,51 +280,51 @@ export const router = createBrowserRouter([
             element: <Navigate to="/admin/dashboard" replace />,
           },
           {
-            path: "/admin/dashboard", // Placeholder Dashboard
-            element: <div className="p-8">Admin Dashboard Coming Soon</div>,
+            path: "/admin/dashboard",
+            element: <RouteSuspense><DashboardPage /></RouteSuspense>,
           },
           {
             path: "/admin/documents",
             element: (
-              <Suspense fallback={null}>
+              <RouteSuspense>
                 <DocumentsManagementPage />
-              </Suspense>
+              </RouteSuspense>
             ),
           },
           {
             path: "/admin/users",
             element: (
-              <Suspense fallback={null}>
+              <RouteSuspense>
                 <AdminUsersPage />
-              </Suspense>
+              </RouteSuspense>
             ),
           },
           {
             path: "/admin/categories",
             element: (
-              <Suspense fallback={null}>
+              <RouteSuspense>
                 <AdminCategoriesPage />
-              </Suspense>
+              </RouteSuspense>
             ),
           },
           {
             path: "/admin/posts",
             element: (
-              <Suspense fallback={null}>
+              <RouteSuspense>
                 <PostManagementPage />
-              </Suspense>
+              </RouteSuspense>
             ),
           },
           {
             path: "/admin/questions/import",
             element: (
-              <Suspense fallback={<div className="p-6"><div className="h-8 w-64 animate-pulse rounded-lg bg-muted" /></div>}>
+              <RouteSuspense>
                 <AssessmentImportPage />
-              </Suspense>
+              </RouteSuspense>
             ),
           },
-          { path: "/admin/questions", element: <Suspense fallback={null}><QuestionBankPage /></Suspense> },
-          { path: "/admin/questions/:id", element: <Suspense fallback={null}><QuestionDetailPage /></Suspense> },
+          { path: "/admin/questions", element: <RouteSuspense><QuestionBankPage /></RouteSuspense> },
+          { path: "/admin/questions/:id", element: <RouteSuspense><QuestionDetailPage /></RouteSuspense> },
         ],
       },
     ],
@@ -333,9 +334,9 @@ export const router = createBrowserRouter([
   {
     path: "*",
     element: (
-      <Suspense fallback={null}>
+      <RouteSuspense>
         <NotFoundPage />
-      </Suspense>
+      </RouteSuspense>
     ),
   },
 ]);

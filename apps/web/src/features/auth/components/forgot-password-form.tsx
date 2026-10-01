@@ -2,14 +2,14 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { authService } from "@/features/auth/services/auth.service";
 import { parseApiError } from "@/lib/api-error";
 import { ROUTES } from "@/router/route-constants";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { toast } from "sonner";
-import { KeyRound, MailCheckIcon } from "lucide-react";
+import { MailCheckIcon } from "lucide-react";
 
 const forgotPasswordSchema = z.object({
   email: z.email("Vui lòng nhập địa chỉ email hợp lệ"),
@@ -18,6 +18,7 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordForm() {
+  const location = useLocation();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
 
@@ -34,7 +35,7 @@ export function ForgotPasswordForm() {
       await authService.forgotPassword(data);
       setSubmittedEmail(data.email);
       setIsSubmitted(true);
-      toast.success("Đã gửi hướng dẫn khôi phục mật khẩu vào email của bạn!");
+      toast.success("Đã nhận yêu cầu khôi phục mật khẩu.");
     } catch (err) {
       const apiError = parseApiError(err);
       toast.error(apiError.detail || "Gửi yêu cầu khôi phục thất bại.");
@@ -47,11 +48,11 @@ export function ForgotPasswordForm() {
         <MailCheckIcon className="auth-status__icon" />
         <h1 className="auth-heading">Kiểm tra hộp thư nhé.</h1>
         <p className="auth-status__message">
-          Chúng tôi đã gửi đường link khôi phục mật khẩu đến{" "}
-          <span className="font-semibold text-foreground">{submittedEmail}</span>.
+          Nếu có tài khoản sử dụng email{" "}
+          <span className="font-semibold text-foreground">{submittedEmail}</span>, bạn sẽ nhận được hướng dẫn khôi phục mật khẩu. Hãy kiểm tra cả thư mục spam.
         </p>
         <Button asChild variant="outline" className="h-11 rounded-full px-6">
-          <Link to={ROUTES.LOGIN}>Về đăng nhập</Link>
+          <Link to={ROUTES.LOGIN} state={location.state}>Về đăng nhập</Link>
         </Button>
       </div>
     );
@@ -59,7 +60,6 @@ export function ForgotPasswordForm() {
 
   return (
     <div className="auth-form">
-      <KeyRound className="auth-status__icon" />
       <div>
         <h1 className="auth-heading">Quên mật khẩu?</h1>
         <p className="auth-description">

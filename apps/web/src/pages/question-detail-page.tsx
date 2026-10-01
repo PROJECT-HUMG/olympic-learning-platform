@@ -1,5 +1,6 @@
+import { getListReturnPath } from "@/lib/list-navigation";
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -117,14 +118,19 @@ function QuestionAssets({ question }: { question: Question }) {
       <CardContent>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {question.assets.map((asset) => (
-            <div key={asset.id} className="group relative overflow-hidden rounded-xl border border-border bg-muted/20">
+            <div
+              key={asset.id}
+              className="group relative overflow-hidden rounded-xl border border-border bg-muted/20"
+            >
               <img
                 src={asset.url}
                 alt={asset.altText || `Hình ${asset.role}`}
                 className="aspect-square w-full object-contain p-2 transition-transform group-hover:scale-105"
               />
               <div className="border-t border-border bg-card px-2 py-1.5">
-                <span className="text-xs text-muted-foreground">{asset.role}</span>
+                <span className="text-xs text-muted-foreground">
+                  {asset.role}
+                </span>
               </div>
             </div>
           ))}
@@ -144,21 +150,34 @@ function QuestionViewMode({ question }: { question: Question }) {
         <CardContent>
           <dl className="grid gap-4 sm:grid-cols-2">
             <div>
-              <dt className="text-xs font-medium text-muted-foreground">Môn học</dt>
-              <dd className="mt-1 text-sm font-medium">{question.subjectName}</dd>
+              <dt className="text-xs font-medium text-muted-foreground">
+                Môn học
+              </dt>
+              <dd className="mt-1 text-sm font-medium">
+                {question.subjectName}
+              </dd>
             </div>
             <div>
-              <dt className="text-xs font-medium text-muted-foreground">Chủ đề</dt>
+              <dt className="text-xs font-medium text-muted-foreground">
+                Chủ đề
+              </dt>
               <dd className="mt-1 text-sm font-medium">{question.topicName}</dd>
             </div>
             <div>
-              <dt className="text-xs font-medium text-muted-foreground">Loại câu hỏi</dt>
+              <dt className="text-xs font-medium text-muted-foreground">
+                Loại câu hỏi
+              </dt>
               <dd className="mt-1 text-sm">{question.type}</dd>
             </div>
             <div>
-              <dt className="text-xs font-medium text-muted-foreground">Độ khó</dt>
+              <dt className="text-xs font-medium text-muted-foreground">
+                Độ khó
+              </dt>
               <dd className="mt-1 text-sm">
-                {DIFFICULTY_OPTIONS.find((d) => d.value === question.difficulty)?.label ?? question.difficulty ?? "Chưa đặt"}
+                {DIFFICULTY_OPTIONS.find((d) => d.value === question.difficulty)
+                  ?.label ??
+                  question.difficulty ??
+                  "Chưa đặt"}
               </dd>
             </div>
           </dl>
@@ -187,18 +206,20 @@ function QuestionViewMode({ question }: { question: Question }) {
         </CardContent>
       </Card>
 
-      {question.explanation != null && Object.keys(question.explanation as Record<string, unknown>).length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Lời giải</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="whitespace-pre-wrap rounded-lg bg-blue-50/50 p-4 text-sm leading-7 font-mono dark:bg-blue-950/20">
-              {extractText(question.explanation)}
-            </pre>
-          </CardContent>
-        </Card>
-      )}
+      {question.explanation != null &&
+        Object.keys(question.explanation as Record<string, unknown>).length >
+          0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Lời giải</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <pre className="whitespace-pre-wrap rounded-lg bg-blue-50/50 p-4 text-sm leading-7 font-mono dark:bg-blue-950/20">
+                {extractText(question.explanation)}
+              </pre>
+            </CardContent>
+          </Card>
+        )}
 
       <QuestionAssets question={question} />
     </div>
@@ -238,7 +259,8 @@ function QuestionEditForm({
   });
 
   const selectedSubjectId = watch("subjectId");
-  const { data: topics, isLoading: isTopicsLoading } = useTopics(selectedSubjectId);
+  const { data: topics, isLoading: isTopicsLoading } =
+    useTopics(selectedSubjectId);
 
   async function onSubmit(data: UpdateFormValues) {
     try {
@@ -295,7 +317,9 @@ function QuestionEditForm({
                 </SelectContent>
               </Select>
               {errors.subjectId && (
-                <p className="text-xs text-destructive">{errors.subjectId.message}</p>
+                <p className="text-xs text-destructive">
+                  {errors.subjectId.message}
+                </p>
               )}
             </div>
 
@@ -326,7 +350,9 @@ function QuestionEditForm({
                 </SelectContent>
               </Select>
               {errors.topicId && (
-                <p className="text-xs text-destructive">{errors.topicId.message}</p>
+                <p className="text-xs text-destructive">
+                  {errors.topicId.message}
+                </p>
               )}
             </div>
           </div>
@@ -380,7 +406,9 @@ function QuestionEditForm({
             {...register("contentText")}
           />
           {errors.contentText && (
-            <p className="mt-1 text-xs text-destructive">{errors.contentText.message}</p>
+            <p className="mt-1 text-xs text-destructive">
+              {errors.contentText.message}
+            </p>
           )}
         </CardContent>
       </Card>
@@ -398,7 +426,9 @@ function QuestionEditForm({
             {...register("answerText")}
           />
           {errors.answerText && (
-            <p className="mt-1 text-xs text-destructive">{errors.answerText.message}</p>
+            <p className="mt-1 text-xs text-destructive">
+              {errors.answerText.message}
+            </p>
           )}
         </CardContent>
       </Card>
@@ -436,9 +466,20 @@ function QuestionEditForm({
 export default function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const listPath = location.pathname.startsWith("/admin/")
+    ? "/admin/questions"
+    : "/lecturer/questions";
+  const backPath = getListReturnPath(location.state?.from, listPath);
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data: question, isLoading, isError } = useQuestion(id);
+  const {
+    data: question,
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useQuestion(id);
   const publishQuestion = usePublishQuestion();
   const archiveQuestion = useArchiveQuestion();
   const restoreQuestion = useRestoreQuestion();
@@ -449,13 +490,22 @@ export default function QuestionDetailPage() {
   if (isError || !question) {
     return (
       <div className="mx-auto max-w-4xl space-y-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+        <Button variant="ghost" size="sm" onClick={() => navigate(backPath)}>
           <ArrowLeft className="size-4" />
           Quay lại
         </Button>
         <Card>
           <CardContent className="p-8 text-center text-sm text-muted-foreground">
-            Không tìm thấy câu hỏi hoặc đã xảy ra lỗi.
+            Không thể tải câu hỏi. Hãy thử lại hoặc quay về ngân hàng câu hỏi.
+            <div className="mt-4">
+              <Button
+                variant="outline"
+                disabled={isFetching}
+                onClick={() => void refetch()}
+              >
+                Thử lại
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -486,7 +536,7 @@ export default function QuestionDetailPage() {
             variant="ghost"
             size="sm"
             className="-ml-2"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(backPath)}
           >
             <ArrowLeft className="size-4" />
             Quay lại

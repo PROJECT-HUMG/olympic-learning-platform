@@ -6,7 +6,7 @@
 - The API is organized into business modules under `me.nghlong3004.olympic`: auth, user, admin, document, post, topic, question, assessment, storage, and common. PostgreSQL is the primary data store, Flyway owns schema changes, and Redis supports token-related flows and the assessment import queue.
 - The web app is a React Router SPA. TanStack Query owns server state, Zustand holds selected client state, and `src/lib/axios.ts` is the shared API client. It has public, auth, and role-specific dashboard areas.
 - `compose.dev.yml` runs PostgreSQL, Redis, and Mailpit; `compose.yml` also runs the API and web app. `docs/architecture` contains design documents that may be older than the implementation. Verify behavior against the current code and configuration.
-- Parts of the home page use sample content in `apps/web/src/features/home/data/home-mock-data.ts`. Do not present it as live platform data.
+- The mounted home page reads documents and posts from the API. Legacy home components still reference `apps/web/src/features/home/data/home-mock-data.ts` but are not mounted by `HomePage`; do not present those samples as live platform data.
 
 ## Working practices
 

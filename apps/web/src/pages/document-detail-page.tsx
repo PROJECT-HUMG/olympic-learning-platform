@@ -1,7 +1,18 @@
-import { useParams, Link } from "react-router-dom";
-import { useDocumentBySlug, useIncrementViewCount, useDocumentUrl } from "@/features/documents/hooks/use-documents";
+import { getListReturnPath } from "@/lib/list-navigation";
+import { useParams, Link, useLocation } from "react-router-dom";
+import {
+  useDocumentBySlug,
+  useIncrementViewCount,
+} from "@/features/documents/hooks/use-documents";
 import { useEffect, useState } from "react";
-import { FileText, Download, Eye, Calendar, ArrowLeft, Loader2, Edit } from "lucide-react";
+import {
+  FileText,
+  Download,
+  Eye,
+  Calendar,
+  ArrowLeft,
+  Edit,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -13,16 +24,32 @@ import { useDocumentDownloadModal } from "@/features/documents/hooks/use-documen
 import { DocumentDownloadModal } from "@/features/documents/components/document-download-modal";
 import { DocumentForm } from "@/features/documents/components/document-form";
 import { useUpdateDocument } from "@/features/documents/hooks/use-documents";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 export default function DocumentDetailPage() {
+  const location = useLocation();
+  const backPath = getListReturnPath(location.state?.from, "/documents");
   const { slug } = useParams<{ slug: string }>();
-  const { data: document, isLoading, isError } = useDocumentBySlug(slug || "");
-  const { data: documentUrl, isLoading: isUrlLoading } = useDocumentUrl(slug || "");
+  const {
+    data: document,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useDocumentBySlug(slug || "");
+  const documentUrl = document?.downloadUrl;
   const { data: currentUser } = useCurrentUser();
-  
+
   const incrementViewCount = useIncrementViewCount();
-  const { selectedDocument, openDownloadModal, closeDownloadModal } = useDocumentDownloadModal();
+  const { selectedDocument, openDownloadModal, closeDownloadModal } =
+    useDocumentDownloadModal();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const updateDocument = useUpdateDocument();
@@ -36,7 +63,7 @@ export default function DocumentDetailPage() {
           setIsEditModalOpen(false);
         },
         onError: () => toast.error("Có lỗi xảy ra khi cập nhật tài liệu"),
-      }
+      },
     );
   };
 
@@ -50,10 +77,26 @@ export default function DocumentDetailPage() {
   if (isError) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-16 text-center text-destructive">
-        <h2 className="text-2xl font-semibold mb-2">Không tìm thấy tài liệu</h2>
-        <p className="opacity-80 mb-6">Tài liệu này không tồn tại hoặc đã bị xóa.</p>
+        <h2 className="text-2xl font-semibold mb-2">
+          {(error as { status?: number })?.status === 404
+            ? "Không tìm thấy tài liệu"
+            : "Không thể tải tài liệu"}
+        </h2>
+        <p className="opacity-80 mb-6">
+          {(error as { status?: number })?.status === 404
+            ? "Tài liệu này không tồn tại hoặc đã bị xóa."
+            : "Hãy kiểm tra kết nối và thử lại."}
+        </p>
+        <Button
+          variant="outline"
+          className="mr-2"
+          disabled={isFetching}
+          onClick={() => void refetch()}
+        >
+          Thử lại
+        </Button>
         <Button asChild variant="outline">
-          <Link to="/documents">
+          <Link to={backPath}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại
           </Link>
         </Button>
@@ -82,7 +125,7 @@ export default function DocumentDetailPage() {
                   <Skeleton className="h-10 w-full" />
                   <Skeleton className="h-10 w-3/4" />
                 </div>
-                
+
                 <div className="flex items-center flex-wrap gap-4">
                   <div className="flex items-center gap-2">
                     <Skeleton className="w-8 h-8 rounded-full" />
@@ -99,9 +142,9 @@ export default function DocumentDetailPage() {
                   <Skeleton className="w-24 h-4" />
                 </div>
               </div>
-              
+
               <div className="flex flex-col items-start lg:items-end gap-3 shrink-0">
-                <div className="flex gap-2 w-full lg:w-auto">
+                <div className="flex flex-wrap gap-2 w-full lg:w-auto">
                   <Skeleton className="h-12 w-[120px] rounded-md" />
                   <Skeleton className="h-12 w-[200px] rounded-md" />
                 </div>
@@ -113,14 +156,17 @@ export default function DocumentDetailPage() {
             <div className="px-6 py-4 border-b border-border/40 bg-muted/20">
               <Skeleton className="w-40 h-6" />
             </div>
-            <div className="w-full bg-muted/10 relative" style={{ height: "75vh", minHeight: "600px" }}>
+            <div
+              className="w-full bg-muted/10 relative"
+              style={{ height: "75vh", minHeight: "600px" }}
+            >
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
                 <Skeleton className="w-12 h-12 rounded-full" />
                 <Skeleton className="w-48 h-5" />
               </div>
             </div>
           </div>
-          
+
           <div className="rounded-2xl border border-border/40 bg-card/60 p-6 md:p-8 backdrop-blur-md shadow-sm space-y-4">
             <Skeleton className="w-32 h-6 mb-4" />
             <Skeleton className="w-full h-4" />
@@ -136,8 +182,12 @@ export default function DocumentDetailPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-6">
       <div>
-        <Button asChild variant="link" className="px-0 text-muted-foreground hover:text-primary transition-colors">
-          <Link to="/documents">
+        <Button
+          asChild
+          variant="link"
+          className="px-0 text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Link to={backPath}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại danh sách
           </Link>
         </Button>
@@ -152,24 +202,37 @@ export default function DocumentDetailPage() {
                 <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-semibold">
                   {document.category.name}
                 </Badge>
-                <Badge variant="outline" className="border-border/60 text-muted-foreground bg-transparent">
+                <Badge
+                  variant="outline"
+                  className="border-border/60 text-muted-foreground bg-transparent"
+                >
                   {document.subject.name}
                 </Badge>
-                {document.tags.map(tag => (
-                  <Badge key={tag.id} variant="secondary" className="bg-muted text-muted-foreground font-normal">
+                {document.tags.map((tag) => (
+                  <Badge
+                    key={tag.id}
+                    variant="secondary"
+                    className="bg-muted text-muted-foreground font-normal"
+                  >
                     {tag.name}
                   </Badge>
                 ))}
               </div>
 
-              <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-6 text-foreground/90">{document.title}</h1>
-              
+              <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-6 text-foreground/90">
+                {document.title}
+              </h1>
+
               <div className="flex items-center flex-wrap gap-4 text-sm text-muted-foreground">
                 <UserHoverCard user={document.owner}>
                   <div className="flex items-center gap-2 cursor-pointer hover:bg-muted/60 p-1.5 -ml-1.5 rounded-lg transition-colors">
                     <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 border border-border/50">
                       {document.owner.avatarUrl ? (
-                        <img src={document.owner.avatarUrl} alt={document.owner.fullName || "User"} className="w-full h-full object-cover" />
+                        <img
+                          src={document.owner.avatarUrl}
+                          alt={document.owner.fullName || "User"}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center font-bold text-primary text-xs">
                           {(document.owner.fullName || "U")[0]}
@@ -181,7 +244,11 @@ export default function DocumentDetailPage() {
                         {document.owner.fullName || document.owner.username}
                       </span>
                       <span className="text-[11px] text-muted-foreground leading-none">
-                        {document.owner.role === "ADMIN" ? "Quản trị viên" : document.owner.role === "LECTURER" ? "Giảng viên" : "Sinh viên"}
+                        {document.owner.role === "ADMIN"
+                          ? "Quản trị viên"
+                          : document.owner.role === "LECTURER"
+                            ? "Giảng viên"
+                            : "Sinh viên"}
                       </span>
                     </div>
                   </div>
@@ -189,7 +256,11 @@ export default function DocumentDetailPage() {
                 <div className="w-1 h-1 rounded-full bg-border" />
                 <div className="flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-primary/60" />
-                  <span>{format(new Date(document.createdAt), "dd/MM/yyyy", { locale: vi })}</span>
+                  <span>
+                    {format(new Date(document.createdAt), "dd/MM/yyyy", {
+                      locale: vi,
+                    })}
+                  </span>
                 </div>
                 <div className="w-1 h-1 rounded-full bg-border" />
                 <div className="flex items-center gap-1.5" title="Lượt xem">
@@ -203,13 +274,14 @@ export default function DocumentDetailPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-col items-start lg:items-end gap-3 shrink-0">
-              <div className="flex gap-2 w-full lg:w-auto">
-                {(currentUser?.id === document.owner.id || currentUser?.role === "ADMIN") && (
-                  <Button 
+              <div className="flex flex-wrap gap-2 w-full lg:w-auto">
+                {(currentUser?.id === document.owner.id ||
+                  currentUser?.role === "ADMIN") && (
+                  <Button
                     variant="outline"
-                    size="lg" 
+                    size="lg"
                     className="flex-1 lg:flex-none shadow-sm transition-all"
                     onClick={() => setIsEditModalOpen(true)}
                   >
@@ -217,9 +289,9 @@ export default function DocumentDetailPage() {
                     Chỉnh sửa
                   </Button>
                 )}
-                <Button 
-                  size="lg" 
-                  className="flex-1 lg:flex-none min-w-[200px] shadow-md hover:shadow-lg transition-all"
+                <Button
+                  size="lg"
+                  className="flex-1 lg:flex-none min-w-0 shadow-md hover:shadow-lg transition-all"
                   onClick={() => openDownloadModal(document)}
                 >
                   <Download className="w-5 h-5 mr-2" />
@@ -234,18 +306,16 @@ export default function DocumentDetailPage() {
         <div className="rounded-2xl border border-border/40 bg-card/60 overflow-hidden shadow-sm flex flex-col ring-1 ring-black/5">
           <div className="px-6 py-4 border-b border-border/40 flex justify-between items-center bg-muted/20">
             <h3 className="font-semibold flex items-center gap-2 text-foreground/80">
-              <FileText className="size-5 text-primary/60" /> 
+              <FileText className="size-5 text-primary/60" />
               Nội dung tài liệu
             </h3>
           </div>
-          <div className="w-full bg-muted/10 relative" style={{ height: "75vh", minHeight: "600px" }}>
-            {isUrlLoading ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-muted-foreground">
-                <Loader2 className="size-8 animate-spin text-primary/60" />
-                <p className="text-sm font-medium">Đang tải tài liệu...</p>
-              </div>
-            ) : documentUrl ? (
-              <iframe 
+          <div
+            className="w-full bg-muted/10 relative"
+            style={{ height: "75vh", minHeight: "600px" }}
+          >
+            {documentUrl ? (
+              <iframe
                 src={`https://docs.google.com/viewer?url=${encodeURIComponent(documentUrl)}&embedded=true`}
                 className="w-full h-full border-0"
                 title={document.title}
@@ -260,11 +330,13 @@ export default function DocumentDetailPage() {
             )}
           </div>
         </div>
-        
+
         {/* Description */}
         {document.description && (
           <div className="rounded-2xl border border-border/40 bg-card/60 p-6 md:p-8 backdrop-blur-md shadow-sm">
-            <h3 className="font-semibold mb-4 text-foreground/80">Mô tả tài liệu</h3>
+            <h3 className="font-semibold mb-4 text-foreground/80">
+              Mô tả tài liệu
+            </h3>
             <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-muted-foreground whitespace-pre-wrap">
               {document.description}
             </div>
@@ -272,7 +344,7 @@ export default function DocumentDetailPage() {
         )}
       </div>
 
-      <DocumentDownloadModal 
+      <DocumentDownloadModal
         document={selectedDocument}
         onClose={closeDownloadModal}
       />

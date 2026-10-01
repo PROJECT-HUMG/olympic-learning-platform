@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/ui/fade-in";
 import { Link } from "react-router-dom";
 import { ChevronRight, Newspaper, ArrowRight, Loader2 } from "lucide-react";
@@ -9,14 +10,14 @@ import { PostBadge } from "@/features/post/components/post-badge";
 import { PostThumbnail } from "@/features/post/components/post-thumbnail";
 
 export function HomeLatestNewsSection() {
-  const { data, isLoading, isError } = usePosts({
+  const { data, isLoading, isError, refetch, isFetching } = usePosts({
     size: 3,
     status: "PUBLISHED",
   });
 
   return (
     <section className="space-y-6">
-      <FadeIn className="flex items-end justify-between border-b border-border pb-4">
+      <FadeIn className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Tin Tức & Thông Báo</h2>
           <p className="text-sm text-muted-foreground mt-1">Tin tức mới nhất về các phong trào thi Olympic</p>
@@ -33,7 +34,12 @@ export function HomeLatestNewsSection() {
         <div className="flex justify-center items-center py-12">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
-      ) : isError || !data || data.content.length === 0 ? (
+      ) : isError ? (
+        <div role="alert" className="space-y-3 rounded-xl border border-border p-6 text-center">
+          <p className="text-sm text-muted-foreground">Không thể tải tin tức. Hãy thử kết nối lại.</p>
+          <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>Thử lại</Button>
+        </div>
+      ) : !data || data.content.length === 0 ? (
         <FadeIn className="flex justify-center items-center py-12 border border-dashed rounded-xl bg-muted/20">
           <p className="text-sm text-muted-foreground">Chưa có tin tức nào mới.</p>
         </FadeIn>

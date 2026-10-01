@@ -7,7 +7,6 @@ import { parseApiError } from "@/lib/api-error";
 import { ROUTES } from "@/router/route-constants";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
-import { SocialLoginButtons } from "@/features/auth/components/social-login-buttons";
 import { toast } from "sonner";
 
 const loginSchema = z.object({
@@ -66,6 +65,7 @@ export function LoginForm() {
           labelRight={
             <Link
               to={ROUTES.FORGOT_PASSWORD}
+              state={location.state}
               className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
             >
               Quên mật khẩu?
@@ -81,8 +81,6 @@ export function LoginForm() {
           Đăng nhập
         </Button>
       </form>
-
-      <SocialLoginButtons />
 
       <p className="text-center text-sm text-muted-foreground">
         Chưa có tài khoản?{" "}

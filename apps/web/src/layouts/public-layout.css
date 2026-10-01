@@ -2,3 +2,9 @@
 .home-public-layout {
   --hero-surface: var(--background);
 }
+
+@media (min-width: 1280px) {
+  /* Reserve the floating header's space; the home hero already has its own inset. */
+  .public-layout:not(.home-public-layout) { padding-top: 5.75rem; }
+  .public-layout > main { scroll-margin-top: 6rem; }
+}

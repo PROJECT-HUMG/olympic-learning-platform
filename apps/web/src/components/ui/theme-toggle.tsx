@@ -22,7 +22,7 @@ export function ThemeToggle() {
       aria-label="Đổi giao diện"
       aria-pressed={theme === "dark"}
       title={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"}
-      className="rounded-full relative overflow-hidden group border-border/80 shadow-xs"
+      className="size-11 rounded-full relative overflow-hidden group border-border/80 shadow-xs"
     >
       <Icon 
         key={theme} 

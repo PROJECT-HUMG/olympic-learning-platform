@@ -43,14 +43,6 @@ export const useDownloadDocument = () => {
   });
 };
 
-export const useDocumentUrl = (slug: string) => {
-  return useQuery({
-    queryKey: [...documentKeys.details(), slug, "url"],
-    queryFn: () => documentsService.getDownloadUrlString(slug),
-    enabled: !!slug,
-  });
-};
-
 // --- ADMIN HOOKS ---
 
 export const useCreateDocument = () => {
@@ -68,9 +60,9 @@ export const useUpdateDocument = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateDocumentRequest }) =>
       documentsService.update(id, data),
-    onSuccess: (_, { id }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: documentKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: documentKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: documentKeys.details() });
     },
   });
 };

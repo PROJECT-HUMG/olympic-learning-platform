@@ -1,4 +1,4 @@
-import { ArrowUpRight, Bell, BookOpen, Calculator, FileText, GraduationCap, PencilRuler, RefreshCw, Users } from "lucide-react";
+import { ArrowUpRight, Bell, BookOpen, Calculator, FileText, PencilRuler, RefreshCw, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -187,9 +187,6 @@ export function HomeStudyNotebook() {
         <TabsTrigger value="announcements" className="study-notebook__tab">
           <Bell aria-hidden="true" /> Thông báo
         </TabsTrigger>
-        <TabsTrigger value="practice" className="study-notebook__tab">
-          <GraduationCap aria-hidden="true" /> Luyện tập
-        </TabsTrigger>
         <TabsTrigger value="toolkit" className="study-notebook__tab">
           <PencilRuler aria-hidden="true" /> Toolkit
         </TabsTrigger>
@@ -200,16 +197,6 @@ export function HomeStudyNotebook() {
       </TabsContent>
       <TabsContent value="announcements" className="study-notebook__page">
         <NotebookAnnouncements />
-      </TabsContent>
-      <TabsContent value="practice" className="study-notebook__page">
-        <div className="study-notebook__planned">
-          <GraduationCap className="study-notebook__planned-icon" aria-hidden="true" />
-          <div>
-            <p className="study-notebook__eyebrow">Đang phát triển</p>
-            <h2>Luyện tập theo chủ đề</h2>
-            <p>Luyện tập theo chủ đề, làm bài và xem lại lời giải. Góc học này đang được chuẩn bị.</p>
-          </div>
-        </div>
       </TabsContent>
       <TabsContent value="toolkit" className="study-notebook__page">
         <div className="study-notebook__heading">

@@ -1,11 +1,30 @@
 import { useState } from "react";
-import { useAdminUsers, useGrantPermission, useRevokePermission, useAvailablePermissions } from "@/features/admin/hooks/use-admin-users";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  useAdminUsers,
+  useGrantPermission,
+  useRevokePermission,
+  useAvailablePermissions,
+} from "@/features/admin/hooks/use-admin-users";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Shield, ShieldAlert, Loader2, Search } from "lucide-react";
@@ -16,29 +35,35 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
   const [page, setPage] = useState(0);
-  
-  const { data, isLoading } = useAdminUsers({
+
+  const { data, isLoading, isError, refetch, isFetching } = useAdminUsers({
     search: debouncedSearch,
     page,
     size: 10,
   });
 
-  const [selectedUser, setSelectedUser] = useState<AdminUserResponse | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const selectedUser =
+    data?.content.find((user) => user.id === selectedUserId) ?? null;
 
   return (
-    <div className="p-6 md:p-8 flex flex-col gap-6 w-full max-w-7xl mx-auto">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quản lý người dùng</h1>
-          <p className="text-muted-foreground mt-1">Quản lý tài khoản và phân quyền hệ thống</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Quản lý người dùng
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Quản lý tài khoản và phân quyền hệ thống
+          </p>
         </div>
       </div>
 
       <div className="flex items-center gap-4 bg-card p-4 rounded-xl border shadow-sm">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
-            placeholder="Tìm theo email, tên..." 
+          <Input
+            placeholder="Tìm theo email, tên..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -70,54 +95,101 @@ export default function AdminUsersPage() {
                   </div>
                 </TableCell>
               </TableRow>
+            ) : isError ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-64 text-center">
+                  <div role="alert" className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Không thể tải danh sách người dùng.
+                    </p>
+                    <Button
+                      variant="outline"
+                      disabled={isFetching}
+                      onClick={() => void refetch()}
+                    >
+                      Thử lại
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
             ) : !data || data.content.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-64 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={5}
+                  className="h-64 text-center text-muted-foreground"
+                >
                   Không tìm thấy người dùng nào.
                 </TableCell>
               </TableRow>
             ) : (
               data.content.map((user) => (
-                <TableRow key={user.id} className="hover:bg-muted/30 transition-colors">
+                <TableRow
+                  key={user.id}
+                  className="hover:bg-muted/30 transition-colors"
+                >
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary border shrink-0">
                         {user.avatarUrl ? (
-                          <img src={user.avatarUrl} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                          <img
+                            src={user.avatarUrl}
+                            alt="Avatar"
+                            className="w-full h-full rounded-full object-cover"
+                          />
                         ) : (
-                          (user.fullName || user.username || "U")[0].toUpperCase()
+                          (user.fullName ||
+                            user.username ||
+                            "U")[0].toUpperCase()
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-medium text-foreground">{user.fullName || user.username}</span>
-                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                        <span className="font-medium text-foreground">
+                          {user.fullName || user.username}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {user.email}
+                        </span>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>
+                    <Badge
+                      variant={user.role === "ADMIN" ? "default" : "secondary"}
+                    >
                       {user.role}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {user.permissions.length === 0 ? (
-                        <span className="text-xs text-muted-foreground italic">Không có</span>
+                        <span className="text-xs text-muted-foreground italic">
+                          Không có
+                        </span>
                       ) : (
-                        user.permissions.map(p => (
-                          <Badge key={p} variant="outline" className="text-[10px] py-0">{p}</Badge>
+                        user.permissions.map((p) => (
+                          <Badge
+                            key={p}
+                            variant="outline"
+                            className="text-[10px] py-0"
+                          >
+                            {p}
+                          </Badge>
                         ))
                       )}
                     </div>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {format(new Date(user.createdAt), "dd/MM/yyyy", { locale: vi })}
+                    {format(new Date(user.createdAt), "dd/MM/yyyy", {
+                      locale: vi,
+                    })}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
-                      onClick={() => setSelectedUser(user)}
+                      onClick={() => setSelectedUserId(user.id)}
+                      disabled={isFetching}
+                      className="min-h-11"
                     >
                       Sửa quyền
                     </Button>
@@ -127,35 +199,52 @@ export default function AdminUsersPage() {
             )}
           </TableBody>
         </Table>
-        
+
         {data && data.totalPages > 1 && (
           <div className="p-4 border-t mt-auto">
-            <AppPagination 
-              currentPage={page}
+            <AppPagination
+              currentPage={page + 1}
               totalPages={data.totalPages}
-              onPageChange={setPage}
+              onPageChange={(nextPage) => setPage(nextPage - 1)}
             />
           </div>
         )}
       </div>
 
-      <PermissionDialog 
-        user={selectedUser} 
-        open={!!selectedUser} 
-        onOpenChange={(open) => !open && setSelectedUser(null)} 
+      <PermissionDialog
+        user={selectedUser}
+        open={!!selectedUser}
+        onOpenChange={(open) => !open && setSelectedUserId(null)}
       />
     </div>
   );
 }
 
-function PermissionDialog({ user, open, onOpenChange }: { user: AdminUserResponse | null, open: boolean, onOpenChange: (open: boolean) => void }) {
-  const { data: availablePermissions = [] } = useAvailablePermissions();
+function PermissionDialog({
+  user,
+  open,
+  onOpenChange,
+}: {
+  user: AdminUserResponse | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const {
+    data: availablePermissions = [],
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useAvailablePermissions();
   const grantMutation = useGrantPermission();
   const revokeMutation = useRevokePermission();
 
   if (!user) return null;
 
-  const handleTogglePermission = (permissionId: string, hasPermission: boolean) => {
+  const handleTogglePermission = (
+    permissionId: string,
+    hasPermission: boolean,
+  ) => {
     if (hasPermission) {
       revokeMutation.mutate({ userId: user.id, permission: permissionId });
     } else {
@@ -165,55 +254,98 @@ function PermissionDialog({ user, open, onOpenChange }: { user: AdminUserRespons
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[85dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Quản lý phân quyền</DialogTitle>
           <DialogDescription>
-            Tài khoản: <span className="font-semibold text-foreground">{user.email}</span>
+            Tài khoản:{" "}
+            <span className="font-semibold text-foreground">{user.email}</span>
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 flex flex-col gap-3">
-          {availablePermissions.length === 0 && (
+          {isLoading && (
+            <p
+              role="status"
+              className="py-4 text-center text-sm text-muted-foreground"
+            >
+              Đang tải quyền hạn…
+            </p>
+          )}
+          {isError && (
+            <div role="alert" className="space-y-3 py-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Không thể tải danh sách quyền.
+              </p>
+              <Button
+                variant="outline"
+                disabled={isFetching}
+                onClick={() => void refetch()}
+              >
+                Thử lại
+              </Button>
+            </div>
+          )}
+          {!isLoading && !isError && availablePermissions.length === 0 && (
             <div className="text-center text-sm text-muted-foreground italic py-4">
               Không có quyền hạn nào được định nghĩa
             </div>
           )}
-          {availablePermissions.map((permission) => {
-            const hasPermission = user.permissions.includes(permission.id);
-            return (
-              <div key={permission.id} className="flex items-center justify-between p-4 border rounded-lg bg-muted/20">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-full text-primary">
-                    {hasPermission ? <Shield className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-medium text-sm">{permission.id}</span>
-                    <span className="text-xs text-muted-foreground">{permission.description}</span>
-                  </div>
-                </div>
-                
-                <Button 
-                  size="sm"
-                  variant={hasPermission ? "destructive" : "default"}
-                  onClick={() => handleTogglePermission(permission.id, hasPermission)}
-                  disabled={grantMutation.isPending || revokeMutation.isPending}
+          {!isLoading &&
+            !isError &&
+            availablePermissions.map((permission) => {
+              const hasPermission = user.permissions.includes(permission.id);
+              return (
+                <div
+                  key={permission.id}
+                  className="flex flex-wrap items-center justify-between gap-3 p-4 border rounded-lg bg-muted/20"
                 >
-                  {grantMutation.isPending || revokeMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : hasPermission ? (
-                    "Thu hồi"
-                  ) : (
-                    "Cấp quyền"
-                  )}
-                </Button>
-              </div>
-            );
-          })}
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-full text-primary">
+                      {hasPermission ? (
+                        <Shield className="w-5 h-5" />
+                      ) : (
+                        <ShieldAlert className="w-5 h-5" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex flex-col">
+                      <span className="break-all font-medium text-sm">
+                        {permission.id}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {permission.description}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button
+                    size="sm"
+                    className="min-h-11"
+                    variant={hasPermission ? "destructive" : "default"}
+                    onClick={() =>
+                      handleTogglePermission(permission.id, hasPermission)
+                    }
+                    disabled={
+                      grantMutation.isPending || revokeMutation.isPending
+                    }
+                  >
+                    {grantMutation.isPending || revokeMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : hasPermission ? (
+                      "Thu hồi"
+                    ) : (
+                      "Cấp quyền"
+                    )}
+                  </Button>
+                </div>
+              );
+            })}
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Đóng</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Đóng
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

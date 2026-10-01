@@ -1,5 +1,4 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { AiChatbotWidget } from "@/features/ai/components/ai-chatbot-widget";
 import { PublicHeader } from "./components/public-header";
 import { PublicFooter } from "./components/public-footer";
 import { ROUTES } from "@/router/route-constants";
@@ -11,7 +10,7 @@ export function PublicLayout() {
 
   return (
     <div className={cn(
-      "flex min-h-screen flex-col bg-background text-foreground relative selection:bg-primary/30",
+      "public-layout flex min-h-screen flex-col bg-background text-foreground relative selection:bg-primary/30",
       isHome && "home-public-layout"
     )}>
       {/* Top Navigation Bar */}
@@ -25,7 +24,6 @@ export function PublicLayout() {
       {/* Footer */}
       <PublicFooter />
 
-      <AiChatbotWidget />
     </div>
   );
 }

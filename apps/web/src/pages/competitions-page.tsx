@@ -1,15 +1,22 @@
-import { PublicPageHeader } from "@/components/ui/public-page-header";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/router/route-constants";
 
-export default function CompetitionsPage() {
+export default function Page() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="rounded-2xl border border-border/50 bg-card/40 p-6 sm:p-10 backdrop-blur-md shadow-sm min-h-[60vh] flex flex-col gap-6">
-        <PublicPageHeader title="Kỳ Thi Olympic" description="Danh sách các kỳ thi đang diễn ra và sắp mở đăng ký." />
-        
-        {/* Content goes here */}
-        <div className="flex-1 rounded-xl border border-dashed border-border/60 flex items-center justify-center text-muted-foreground">
-          Đang cập nhật danh sách kỳ thi...
-        </div>
+    <div className="mx-auto max-w-3xl space-y-5 px-4 py-12 sm:px-6">
+      <h1 className="text-2xl font-semibold tracking-tight">Kỳ thi Olympic</h1>
+      <p className="max-w-xl text-sm leading-6 text-muted-foreground">
+        Lịch thi và đăng ký dự thi chưa được mở trên nền tảng. Hãy theo dõi
+        thông báo đã công bố trong bảng tin.
+      </p>
+      <div className="flex flex-wrap gap-3">
+        <Button asChild>
+          <Link to={ROUTES.NEWS}>Xem bảng tin</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to={`${ROUTES.TOOLKIT}?tool=rooms`}>Phòng học chung</Link>
+        </Button>
       </div>
     </div>
   );

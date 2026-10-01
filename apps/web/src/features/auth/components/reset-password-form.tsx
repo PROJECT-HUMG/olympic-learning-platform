@@ -74,7 +74,6 @@ export function ResetPasswordForm() {
 
   return (
     <div className="auth-form">
-      <LockKeyhole className="auth-status__icon" />
       <div>
         <h1 className="auth-heading">Mật khẩu mới,<br />sẵn sàng trở lại.</h1>
         <p className="auth-description">
