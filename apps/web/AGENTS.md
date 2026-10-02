@@ -6,7 +6,7 @@
 - Routes and guards live in `src/router`. `PublicLayout`, `AuthCardLayout`, and `DashboardLayout` separate the main surfaces. TanStack Query owns server state; `src/lib/axios.ts` is the shared API client; Zustand holds client state such as auth, theme, and UI preferences.
 - Theme tokens live in `src/index.css`, with light and dark modes. The mounted home page fetches documents and posts from the API; legacy sample sections referencing `home-mock-data.ts` are not mounted.
 - `src/layouts/navigation.ts` owns navigation groups, role-specific items and active-route matching. Public desktop navigation floats from 1280px; smaller screens use a grouped header sheet. Dashboard sidebar behavior belongs to `dashboard-layout.tsx` and `navigation.css`.
-- The initial logo loader starts in `index.html`; `src/app/startup-preloader.ts` waits for initial route tasks, pending initial queries, fonts and the selected video before GSAP reveals the app. Later lazy routes use `RouteSuspense` and `PageLoading`. Video downloads are shared by `cinematic-media.ts`; mobile auth and reduced motion skip video.
+- The initial logo loader starts in `index.html`; `src/app/startup-preloader.ts` waits for initial route tasks, pending initial queries, fonts and the selected video before GSAP reveals the app. Later lazy routes use `RouteSuspense` and `PageLoading`. Video downloads are shared by `cinematic-media.ts`; mobile auth skips video. Cinematic scenes respect reduced motion by default; home explicitly uses the remembered manual motion preference instead.
 - Available commands are `pnpm dev`, `pnpm build`, `pnpm lint`, and `pnpm preview`. Vite serves on port 3000 and proxies `/api` to port 8080.
 
 ## Working practices

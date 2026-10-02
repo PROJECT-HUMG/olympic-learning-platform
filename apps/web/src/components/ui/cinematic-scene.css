@@ -35,10 +35,10 @@
 .cinematic-scene[data-animated="false"] video { opacity: 0; }
 
 @media (prefers-reduced-motion: reduce) {
-  .cinematic-scene__layer[data-scene="night"] { transition: none; }
-  .cinematic-scene__layer > video {
+  .cinematic-scene:not([data-respect-reduced-motion="false"]) .cinematic-scene__layer[data-scene="night"] { transition: none; }
+  .cinematic-scene:not([data-respect-reduced-motion="false"]) .cinematic-scene__layer > video {
     opacity: 0;
     transition: none;
   }
-  .cinematic-scene__layer > video[data-ready="true"] { opacity: 0; }
+  .cinematic-scene:not([data-respect-reduced-motion="false"]) .cinematic-scene__layer > video[data-ready="true"] { opacity: 0; }
 }

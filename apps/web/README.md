@@ -28,9 +28,9 @@ Mở `http://localhost:3000`. Vite proxy request `/api` tới `http://localhost:
 | `src/components/ui/cinematic-media.ts` | Tải và dùng lại video theo theme |
 | `src/lib/list-navigation.ts` | Kiểm tra số trang và giữ đường quay lại danh sách |
 
-Trang chủ có tìm tài liệu, liên kết trực tiếp phòng học/GPA và bàn học với các tab Tài liệu/Thông báo/Tiện ích. Bảng tin mới nhất ghép NEWS và BLOG theo ngày đăng, lấy tối đa ba bài; thông báo nằm riêng trong bàn học. Nội dung lấy từ API, bài không có ảnh dùng hàng văn bản gọn. Footer public mở đủ nhóm trên desktop, thu/mở từng nhóm trên mobile.
+Trang chủ chia ba vùng: tìm tài liệu/cảnh anime; Bàn học của bạn có nền, tiêu đề và các tab Tài liệu/Thông báo/Tiện ích riêng; Bảng tin mới nhất. Liên kết phòng học/GPA nằm trực tiếp dưới tìm kiếm. Bảng tin mới nhất ghép NEWS và BLOG theo ngày đăng, lấy tối đa ba bài; thông báo nằm riêng trong bàn học. Nội dung lấy từ API, bài không có ảnh dùng hàng văn bản gọn. Footer public mở đủ nhóm trên desktop, thu/mở từng nhóm trên mobile.
 
-Nền động trang chủ mặc định bật trên mọi kích thước, gồm iPhone. Nút “Nền động” cạnh nút giao diện nhớ lựa chọn qua localStorage; khi lưu bị chặn vẫn đổi được trong phiên hiện tại. Ánh sáng trôi nhẹ chỉ ở hero; video tắt tiếng, phát trong trang và dừng khi ra khỏi màn hình/tab ẩn. Tắt nền động hoặc bật Giảm chuyển động dùng ảnh tĩnh; lần vào với nền tắt không tải video. Autoplay bị chặn hoặc video lỗi giữ poster. Các component cũ còn tham chiếu `src/features/home/data/home-mock-data.ts` nhưng không được mount trong `HomePage`; không dùng các mẫu đó làm thông tin công bố chính thức.
+Nền động trang chủ mặc định bật trên mọi kích thước, gồm iPhone. Desktop có nút “Nền động” cạnh nút giao diện; mobile gom hai tùy chọn trong “Tùy chọn hiển thị”. Nền động nhớ lựa chọn qua localStorage; khi lưu bị chặn vẫn đổi được trong phiên hiện tại. Ánh sáng trôi nhẹ chỉ ở hero; video tắt tiếng, phát trong trang và dừng khi ra khỏi màn hình/tab ẩn. Trang chủ chỉ dùng nút bật/tắt thủ công, không tự tắt theo Giảm chuyển động của thiết bị. Tắt nền động dùng ảnh tĩnh; lần vào với nền tắt không tải video. Các cảnh khác giữ quy tắc giảm chuyển động. Autoplay bị chặn hoặc video lỗi giữ poster. Các component cũ còn tham chiếu `src/features/home/data/home-mock-data.ts` nhưng không được mount trong `HomePage`; không dùng các mẫu đó làm thông tin công bố chính thức.
 
 Các màn học tập công khai:
 
@@ -57,13 +57,13 @@ Các route luyện tập, kỳ thi và lịch sử hiện hiển thị hướng 
 
 ## Điều hướng và loading
 
-- Từ 1280px, nav công khai nổi cách mép trên 16px, rộng tối đa 1200px, cao 60px và thu còn 56px khi cuộn. Logo trường dẫn về trang chủ; bốn mục Môn học/Tài liệu/Bảng tin/Tiện ích nằm giữa. Vạch chọn nhận cả route chi tiết và phòng học. Một CTA mở đăng nhập hoặc dashboard theo vai trò; menu avatar giữ các thao tác tài khoản.
-- Dưới 1280px, điều hướng nằm trong menu nhóm trên header, không có thanh dưới. Dashboard có sidebar theo vai trò, thu/mở bằng nút; không tự đổi kích thước khi hover.
+- Từ 1280px, nav công khai nổi cách mép trên 16px, rộng tối đa 1200px, cao 60px, giữ kích thước khi cuộn để tránh dịch các nút. Logo trường dẫn về trang chủ; năm mục Trang chủ/Môn học/Tài liệu/Bảng tin/Tiện ích nằm giữa. Mục đang mở có nền accent, nhận cả route chi tiết và phòng học. CTA Đăng nhập/Góc học tập/Quản lý mở route theo trạng thái và vai trò; menu avatar giữ các thao tác tài khoản.
+- Dưới 1280px, điều hướng nằm trong menu nhóm trên header; nút Tùy chọn hiển thị gom sáng/tối và nền động trang chủ, không có thanh dưới. Dashboard có sidebar theo vai trò, thu/mở bằng nút; không tự đổi kích thước khi hover.
 - Bộ lọc, số trang và kiểu xem tài liệu được giữ trong URL; mở chi tiết rồi quay lại giữ đường về danh sách. Đăng nhập giữ đích quay lại qua các màn tài khoản. Lỗi kiểm tra phiên trên server có trạng thái thử lại tại route đang mở.
 - Refresh dùng chung một request có timeout 15 giây. Refresh trả 401/403 sẽ xóa token, cache dữ liệu và cập nhật người dùng về null để mở lại màn đăng nhập; lỗi mạng/timeout/server giữ phiên cho lần thử sau. Kết quả refresh cũ không ghi đè lần đăng nhập/đăng xuất mới hơn.
 - Lần vào đầu hiển thị logo trường và tiến độ, giữ tối thiểu 1,5 giây. Loader đợi route đầu, các query lần đầu đang pending, font và video theme hiện tại rồi mới lên 100%; đây là tiến độ các bước chuẩn bị, không phải phần trăm byte của toàn website. Mạng chậm tiếp tục chờ và có hướng dẫn tải lại sau 12 giây. Request thất bại có fallback/trạng thái lỗi riêng.
 - Khi đạt 100%, giữ 250ms rồi GSAP kéo hai lớp nền sang hai bên; mở tương tác sau khi hiệu ứng xong. Giảm chuyển động dùng fade ngắn. Chuyển route trong SPA dùng loading gọn theo trang, không phát lại startup loader; thay query/filter giữ trạng thái trang.
-- Video theme đang dùng được tải một lần và dùng lại Blob URL trong vòng đời trang. Video lỗi hoặc autoplay bị chặn thì giữ poster; mobile auth và giảm chuyển động không tải video. Logo loader dùng cùng nguồn `public/icons.svg`, căn bỏ khoảng trắng và không có nền sáng ở theme tối.
+- Video theme đang dùng được tải một lần và dùng lại Blob URL trong vòng đời trang. Video lỗi hoặc autoplay bị chặn thì giữ poster; mobile auth không tải video; các cảnh ngoài trang chủ bỏ video khi giảm chuyển động. Logo loader dùng cùng nguồn `public/icons.svg`, căn bỏ khoảng trắng và không có nền sáng ở theme tối.
 
 Kết quả và các luồng còn cần sửa được ghi trong [rà soát UI/UX](../../docs/reviews/ux-flow-audit.md). Các kiểm tra trình duyệt được ghi ở đó có dùng API mock; không thay thế kiểm chứng backend, email, storage và YouTube thực tế.
 

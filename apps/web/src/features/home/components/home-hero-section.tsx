@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CinematicScene } from "@/components/ui/cinematic-scene";
 import { ROUTES } from "@/router/route-constants";
-import { HomeStudyNotebook } from "./home-study-notebook";
 import { useHomeMotion } from "../hooks/use-home-motion";
 import "./home-hero-section.css";
 
@@ -42,7 +41,7 @@ export function HomeHeroSection() {
       <div ref={introRef} className="home-hero__intro">
         <div className="home-hero__ambient" aria-hidden="true" />
         <div className="home-hero__window">
-          <CinematicScene animated={enabled} />
+          <CinematicScene animated={enabled} respectReducedMotion={false} />
         </div>
 
         <div className="home-hero__content">
@@ -74,9 +73,6 @@ export function HomeHeroSection() {
         </div>
       </div>
 
-      <div id="study-notebook" className="home-hero__notebook">
-        <HomeStudyNotebook />
-      </div>
     </section>
   );
 }

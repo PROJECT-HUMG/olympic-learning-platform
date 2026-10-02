@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
@@ -17,7 +17,6 @@ import { UserDropdown } from "@/features/auth/components/user-dropdown";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useScrolled } from "@/hooks/use-scrolled";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { cn } from "@/lib/utils";
 import { ROUTES, getDashboardRoute } from "@/router/route-constants";
 import {
   getActiveNavigationItem,
@@ -25,13 +24,9 @@ import {
   PUBLIC_PRIMARY_NAVIGATION,
 } from "../navigation";
 import { NavigationGroups } from "./navigation-groups";
+import { PublicAppearanceMenu } from "./public-appearance-menu";
 import "../navigation.css";
 import "./public-header.css";
-
-// The logo is the desktop home link; keep the grouped mobile menu unchanged.
-const desktopNavigation = PUBLIC_PRIMARY_NAVIGATION.filter(
-  (item) => item.href !== ROUTES.HOME,
-);
 
 export function PublicHeader({ cinematic = false }: { cinematic?: boolean }) {
   const location = useLocation();
@@ -48,58 +43,37 @@ export function PublicHeader({ cinematic = false }: { cinematic?: boolean }) {
   );
   const loginState =
     location.pathname === ROUTES.HOME ? undefined : { from: routeKey };
-  const activeIndex = desktopNavigation.findIndex(
-    (item) => item.href === active?.href,
-  );
   return (
     <header
       data-scrolled={isScrolled}
-      className={cn(
-        "public-header top-0 z-40 transition-colors duration-300 motion-reduce:transition-none",
-        cinematic
-          ? cn("fixed inset-x-0", !isScrolled && !isDesktop && "cinematic-theme")
-          : "sticky",
-        isScrolled
-          ? "border-b border-border bg-background/90 backdrop-blur-xl shadow-sm"
-          : "border-b border-transparent bg-transparent",
-      )}
+      data-home={cinematic}
+      className="public-header"
     >
-      <div
-        className={cn(
-          "public-header__inner mx-auto flex max-w-7xl items-center justify-between gap-3 transition-[height] duration-300 motion-reduce:transition-none",
-          cinematic
-            ? cn("px-5 sm:px-8", isScrolled ? "h-14" : "h-16")
-            : "h-14 px-4 sm:px-6 lg:px-8",
-        )}
-      >
+      <div className="public-header__inner">
         <Logo
           className="public-header__logo shrink-0 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
           imageClassName="h-12"
         />
         <nav
           aria-label="Điều hướng chính"
-          className="public-header__nav hidden items-center gap-1 xl:flex"
-          style={{ "--active-index": Math.max(0, activeIndex) } as CSSProperties}
+          className="public-header__nav"
         >
-          {desktopNavigation.map((item) => (
+          {PUBLIC_PRIMARY_NAVIGATION.map((item) => (
             <Link
               key={item.href}
               to={item.href}
               aria-current={active?.href === item.href ? "page" : undefined}
-              className="public-header__link rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground aria-[current=page]:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+              className="public-header__link"
             >
               {item.label}
             </Link>
           ))}
-          <span
-            aria-hidden="true"
-            className="public-header__indicator"
-            data-visible={activeIndex >= 0}
-          />
         </nav>
         <div className="public-header__actions flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <ThemeToggle />
-          {cinematic && <HomeMotionToggle />}
+          {isDesktop ? <>
+            <ThemeToggle />
+            {cinematic && <HomeMotionToggle />}
+          </> : <PublicAppearanceMenu home={cinematic} />}
           <Button
             asChild
             variant="ghost"
@@ -110,9 +84,7 @@ export function PublicHeader({ cinematic = false }: { cinematic?: boolean }) {
               to={user ? getDashboardRoute(user.role) : ROUTES.LOGIN}
               state={user ? undefined : loginState}
             >
-              {user && user.role !== "STUDENT"
-                ? "Không gian quản lý"
-                : "Vào góc học tập"}
+              {user ? user.role === "STUDENT" ? "Góc học tập" : "Quản lý" : "Đăng nhập"}
             </Link>
           </Button>
           {user && <UserDropdown direction="down" compact />}
@@ -122,10 +94,7 @@ export function PublicHeader({ cinematic = false }: { cinematic?: boolean }) {
                 variant="ghost"
                 size="icon"
                 aria-label="Mở menu điều hướng"
-                className={cn(
-                  "size-11 xl:hidden",
-                  cinematic && "liquid-glass rounded-full",
-                )}
+                className="public-header__icon xl:hidden"
               >
                 <Menu aria-hidden="true" size={20} />
               </Button>

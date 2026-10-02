@@ -5,7 +5,11 @@ import { isStartupPending, trackStartupTask } from "@/app/startup-preloader";
 import { CINEMATIC_VIDEO_SOURCES, getPreparedVideoSource, preloadCinematicVideo } from "./cinematic-media";
 import "./cinematic-scene.css";
 
-export function CinematicScene({ className, animated = true }: { className?: string; animated?: boolean }) {
+export function CinematicScene({ className, animated = true, respectReducedMotion = true }: {
+  className?: string;
+  animated?: boolean;
+  respectReducedMotion?: boolean;
+}) {
   const theme = useResolvedTheme();
   const rootRef = useRef<HTMLDivElement>(null);
   const dayRef = useRef<HTMLVideoElement>(null);
@@ -27,6 +31,7 @@ export function CinematicScene({ className, animated = true }: { className?: str
     const videos = [day, night];
     const failed = new Set<HTMLVideoElement>();
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const reduced = () => respectReducedMotion && motion.matches;
     let inView = false;
     let disposed = false;
     const preparing = new Set<HTMLVideoElement>();
@@ -34,7 +39,7 @@ export function CinematicScene({ className, animated = true }: { className?: str
 
     const selected = () => themeRef.current === "dark" ? night : day;
     const canPlay = (video: HTMLVideoElement) =>
-      !disposed && animated && !motion.matches && inView && !document.hidden && video === selected() && !failed.has(video);
+      !disposed && animated && !reduced() && inView && !document.hidden && video === selected() && !failed.has(video);
 
     const sourceFor = (video: HTMLVideoElement) => CINEMATIC_VIDEO_SOURCES[video === day ? "light" : "dark"];
     const prepare = (video: HTMLVideoElement) => {
@@ -64,7 +69,7 @@ export function CinematicScene({ className, animated = true }: { className?: str
         if (!canPlay(video)) {
           video.pause();
           // Keep the outgoing frame during a theme fade; static modes show posters.
-          if (!animated || motion.matches) video.dataset.ready = "false";
+          if (!animated || reduced()) video.dataset.ready = "false";
           continue;
         }
         if (!video.hasAttribute("src")) {
@@ -83,7 +88,7 @@ export function CinematicScene({ className, animated = true }: { className?: str
           root.dataset.playing = "true";
         }
       }
-      root.dataset.ready = String(selected().dataset.ready === "true" && animated && !motion.matches);
+      root.dataset.ready = String(selected().dataset.ready === "true" && animated && !reduced());
     };
 
     const onPlaying = (event: Event) => {
@@ -119,7 +124,7 @@ export function CinematicScene({ className, animated = true }: { className?: str
     motion.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     syncRef.current = sync;
-    if (animated && !motion.matches && isStartupPending()) prepare(selected());
+    if (animated && !reduced() && isStartupPending()) prepare(selected());
     sync();
 
     return () => {
@@ -135,10 +140,10 @@ export function CinematicScene({ className, animated = true }: { className?: str
         video.removeEventListener("error", onError);
       }
     };
-  }, [animated]);
+  }, [animated, respectReducedMotion]);
 
   return (
-    <div ref={rootRef} className={cn("cinematic-scene", className)} data-theme={theme} data-animated={animated} aria-hidden="true">
+    <div ref={rootRef} className={cn("cinematic-scene", className)} data-theme={theme} data-animated={animated} data-respect-reduced-motion={respectReducedMotion} aria-hidden="true">
       <div className="cinematic-scene__layer" data-scene="day">
         <img src="/images/anime-day.webp" alt="" decoding="async" />
         <video ref={dayRef} loop muted playsInline preload="none" poster="/images/anime-day.webp" tabIndex={-1} disablePictureInPicture disableRemotePlayback />

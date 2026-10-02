@@ -62,7 +62,7 @@ function NotebookDocuments() {
   return (
     <>
       <div className="study-notebook__heading">
-        <h2 className="study-notebook__eyebrow">Trong thư viện</h2>
+        <h3 className="study-notebook__eyebrow">Trong thư viện</h3>
         <Link to={ROUTES.DOCUMENTS} className="study-notebook__browse">
           Mở kho tài liệu <ArrowUpRight aria-hidden="true" />
         </Link>
@@ -124,7 +124,7 @@ function NotebookAnnouncements() {
   return (
     <>
       <div className="study-notebook__heading">
-        <h2 className="study-notebook__eyebrow">Bảng thông báo</h2>
+        <h3 className="study-notebook__eyebrow">Bảng thông báo</h3>
         <Link to={`${ROUTES.NEWS}?type=ANNOUNCEMENT`} className="study-notebook__browse">
           Xem tất cả <ArrowUpRight aria-hidden="true" />
         </Link>
@@ -200,7 +200,7 @@ export function HomeStudyNotebook() {
       </TabsContent>
       <TabsContent value="toolkit" className="study-notebook__page">
         <div className="study-notebook__heading">
-          <h2 className="study-notebook__eyebrow">Tiện ích học tập</h2>
+          <h3 className="study-notebook__eyebrow">Tiện ích học tập</h3>
           <Link to={ROUTES.TOOLKIT} className="study-notebook__browse">Mở tiện ích <ArrowUpRight aria-hidden="true" /></Link>
         </div>
         <ul className="study-notebook__items">
