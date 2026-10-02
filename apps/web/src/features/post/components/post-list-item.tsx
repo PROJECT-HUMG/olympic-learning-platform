@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { CalendarDays, Clock3, Pin } from "lucide-react";
 import { formatDistanceToNowStrict, format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -11,6 +12,8 @@ import { PostThumbnail } from "./post-thumbnail";
 
 export function PostListItem({ post, priority = false, variant = "card" }: { post: PostSummaryResponse; priority?: boolean; variant?: "card" | "board" }) {
   const location = useLocation();
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
+  const illustrated = Boolean(post.thumbnailUrl) && !priority && post.thumbnailUrl !== failedImageUrl;
   const from = getListReturnPath(location.pathname + location.search + location.hash, ROUTES.NEWS);
   const deadlineState = getPostDeadline(post.expiredAt);
   const deadline = deadlineState ? new Date(post.expiredAt!) : null;
@@ -19,22 +22,22 @@ export function PostListItem({ post, priority = false, variant = "card" }: { pos
     : deadline ? `Hạn ${format(deadline, "dd/MM/yyyy", { locale: vi })}` : null;
 
   if (variant === "board") return (
-    <article className={`school-news-post${priority ? " school-news-post--pinned" : ""}${post.thumbnailUrl && !priority ? " school-news-post--illustrated" : ""}`}>
-      {post.thumbnailUrl && !priority && (
-        <Link to={`${ROUTES.NEWS}/${post.slug}`} state={{ from }} className="school-news-post__image" aria-label={`Đọc: ${post.title}`} tabIndex={-1}>
-          <PostThumbnail src={post.thumbnailUrl} alt="" />
-        </Link>
-      )}
-      <div className="school-news-post__body">
-        <div className="school-news-post__meta">
-          <PostBadge type={post.type} />
-          {post.pinned && !priority && <span className="school-news-post__pinned-label"><Pin aria-hidden="true" /> Được ghim</span>}
-          {post.publishedAt && <time dateTime={post.publishedAt}>{format(new Date(post.publishedAt), "dd/MM/yyyy", { locale: vi })}</time>}
+    <article className={"school-news-post" + (priority ? " school-news-post--pinned" : "") + (illustrated ? " school-news-post--illustrated" : "")}>
+      <Link to={ROUTES.NEWS + "/" + encodeURIComponent(post.slug)} state={{ from }} className="school-news-post__link">
+        <div className="school-news-post__body">
+          <div className="school-news-post__meta">
+            <PostBadge type={post.type} />
+            {post.pinned && !priority && <span className="school-news-post__pinned-label"><Pin aria-hidden="true" /> Được ghim</span>}
+            {post.publishedAt && <time dateTime={post.publishedAt}>{format(new Date(post.publishedAt), "dd/MM/yyyy", { locale: vi })}</time>}
+          </div>
+          <h3>{post.title}</h3>
+          {deadlineLabel && <p className="text-xs text-muted-foreground">{deadlineLabel}</p>}
+          {post.summary && <p>{post.summary}</p>}
+          <span className="school-news-post__read" aria-hidden="true">Đọc bài viết</span>
         </div>
-        <h3><Link to={`${ROUTES.NEWS}/${post.slug}`} state={{ from }}>{post.title}</Link></h3>
-        {deadlineLabel && <p className="text-xs text-muted-foreground">{deadlineLabel}</p>}
-        {post.summary && <p>{post.summary}</p>}
-      </div>
+        {illustrated && <img src={post.thumbnailUrl!} className="school-news-post__image" alt="" loading="lazy"
+          onError={() => setFailedImageUrl(post.thumbnailUrl!)} />}
+      </Link>
     </article>
   );
 

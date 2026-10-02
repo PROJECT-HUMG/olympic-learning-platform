@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import {
   Globe,
   LayoutDashboard,
@@ -24,12 +25,14 @@ interface UserDropdownProps {
   direction?: "up" | "down";
   className?: string;
   compact?: boolean;
+  avatarClassName?: string;
 }
 
 export function UserDropdown({
   direction = "up",
   className = "",
   compact = false,
+  avatarClassName,
 }: UserDropdownProps) {
   const { data: user } = useCurrentUser();
   const { logout } = useAuth();
@@ -42,10 +45,10 @@ export function UserDropdown({
         <button
           type="button"
           aria-label="Mở menu tài khoản"
-          className={`flex min-h-11 items-center gap-3 rounded-xl p-1.5 hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring ${collapsed ? "justify-center" : "w-full justify-between"} ${className}`}
+          className={cn("flex min-h-11 items-center gap-3 rounded-xl p-1.5 hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring", collapsed ? "justify-center" : "w-full justify-between", className)}
         >
           <span className="flex min-w-0 items-center gap-3">
-            <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-semibold">
+            <span className={cn("flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-semibold", avatarClassName)}>
               {user.avatarUrl ? (
                 <img
                   src={user.avatarUrl}

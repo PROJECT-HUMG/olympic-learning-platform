@@ -316,7 +316,7 @@
 }
 
 @media (max-width: 639px) {
-  .home-hero { padding: 5.25rem 1.25rem 2rem; }
+  .home-hero { padding: calc(5.25rem + env(safe-area-inset-top)) 1.25rem 2rem; }
   .home-hero__window { padding: 0; border: 0; border-radius: .75rem; box-shadow: none; }
   .home-hero__window .cinematic-scene { border-radius: .75rem; }
   .home-hero__links { gap: .15rem 1.1rem; font-size: .75rem; }
@@ -339,10 +339,36 @@
 }
 
 
-.home-hero__ambient { position: absolute; inset: -1.5rem -1rem; z-index: -1; overflow: hidden; border-radius: 3rem; pointer-events: none; opacity: 0; transition: opacity .4s ease; }
-.home-hero__ambient::before { content: ""; position: absolute; top: -20%; left: -15%; width: 85%; height: 130%; background: radial-gradient(ellipse, color-mix(in srgb, var(--primary) 10%, transparent), transparent 70%); animation: home-light-drift 32s ease-in-out infinite alternate; animation-play-state: paused; }
+.home-hero__ambient {
+  position: absolute;
+  inset: -2rem -1rem;
+  z-index: -1;
+  overflow: hidden;
+  mask-image: radial-gradient(ellipse, #000 42%, transparent 76%);
+  -webkit-mask-image: radial-gradient(ellipse, #000 42%, transparent 76%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+.home-hero__ambient::before,
+.home-hero__ambient::after {
+  content: "";
+  position: absolute;
+  width: 90%;
+  height: 135%;
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--primary) 17%, transparent), transparent 68%);
+  animation: home-light-drift 24s ease-in-out infinite alternate;
+  animation-play-state: paused;
+}
+.home-hero__ambient::before { top: -25%; left: -20%; }
+.home-hero__ambient::after { right: -25%; bottom: -35%; opacity: .7; animation-name: home-light-return; animation-duration: 30s; }
+.home-hero__ambient svg { position: absolute; inset: -5%; width: 110%; height: 110%; fill: none; stroke: var(--primary); stroke-width: 1; opacity: .14; animation: home-line-drift 26s ease-in-out infinite alternate; animation-play-state: paused; }
 .home-hero[data-motion="true"] .home-hero__ambient { opacity: 1; }
-.home-hero[data-playing="true"] .home-hero__ambient::before { animation-play-state: running; }
+.home-hero[data-playing="true"] .home-hero__ambient::before,
+.home-hero[data-playing="true"] .home-hero__ambient::after,
+.home-hero[data-playing="true"] .home-hero__ambient svg { animation-play-state: running; }
 .home-motion-toggle { border: 1px solid var(--border); color: var(--muted-foreground); }
 .home-motion-toggle[aria-pressed="true"] { background: var(--accent); color: var(--primary); }
-@keyframes home-light-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(24%, 5%, 0); } }
+@keyframes home-light-drift { from { transform: translate3d(-4%, -2%, 0); } to { transform: translate3d(24%, 8%, 0); } }
+@keyframes home-light-return { from { transform: translate3d(8%, 4%, 0); } to { transform: translate3d(-18%, -8%, 0); } }
+@keyframes home-line-drift { from { transform: translate3d(-2%, 2%, 0); } to { transform: translate3d(3%, -3%, 0); } }

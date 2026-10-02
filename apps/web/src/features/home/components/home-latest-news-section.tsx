@@ -8,24 +8,26 @@ import { ROUTES } from "@/router/route-constants";
 import { useHomeNews } from "../hooks/use-home-news";
 
 function HomeNewsItem({ post }: { post: PostSummaryResponse }) {
-  const [failedImage, setFailedImage] = useState(false);
-  const illustrated = Boolean(post.thumbnailUrl) && !failedImage;
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
+  const illustrated = Boolean(post.thumbnailUrl) && post.thumbnailUrl !== failedImageUrl;
   return (
     <article className="home-news__item">
       <Link to={ROUTES.NEWS + "/" + encodeURIComponent(post.slug)}
         className="home-news__article" data-illustrated={illustrated}>
-        <div className="home-news__body">
-          <div className="home-news__meta">
-            <PostBadge type={post.type} />
-            {post.publishedAt && <time dateTime={post.publishedAt}>
-              {new Date(post.publishedAt).toLocaleDateString("vi-VN")}
-            </time>}
-          </div>
-          <h3>{post.title}</h3>
-          {post.summary && <p>{post.summary}</p>}
+        <div className="home-news__meta">
+          <PostBadge type={post.type} />
+          {post.publishedAt && <time dateTime={post.publishedAt}>
+            {new Date(post.publishedAt).toLocaleDateString("vi-VN")}
+          </time>}
         </div>
-        {illustrated && <img src={post.thumbnailUrl!} alt="" loading="lazy" onError={() => setFailedImage(true)} />}
-        <ArrowUpRight aria-hidden="true" className="home-news__arrow" />
+        <div className="home-news__content">
+          <div className="home-news__body">
+            <h3>{post.title}</h3>
+            {post.summary && <p>{post.summary}</p>}
+          </div>
+          {illustrated && <img src={post.thumbnailUrl!} alt="" loading="lazy" onError={() => setFailedImageUrl(post.thumbnailUrl!)} />}
+        </div>
+        <span className="home-news__read" aria-hidden="true">Đọc bài viết <ArrowUpRight className="home-news__arrow" /></span>
       </Link>
     </article>
   );

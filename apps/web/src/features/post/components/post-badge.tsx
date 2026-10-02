@@ -6,16 +6,6 @@ interface PostBadgeProps {
 }
 
 export function PostBadge({ type, className }: PostBadgeProps) {
-  const getBadgeTone = (type: string) => {
-    switch (type) {
-      case "ANNOUNCEMENT": return "text-amber-700 dark:text-amber-300";
-      case "NEWS": return "text-primary";
-      case "BLOG": return "text-teal-700 dark:text-teal-300";
-      default:
-        return "text-muted-foreground";
-    }
-  };
-
   const getLabel = (type: string) => {
     switch (type) {
       case "BLOG":
@@ -29,8 +19,7 @@ export function PostBadge({ type, className }: PostBadgeProps) {
     }
   };
 
-  return <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${getBadgeTone(type)} ${className || ""}`}>
-    <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
+  return <span className={`post-type-label inline-flex items-center rounded-full border border-border bg-muted/60 px-2 py-0.5 text-xs font-medium text-muted-foreground ${className || ""}`}>
     {getLabel(type)}
   </span>;
 }

@@ -1,12 +1,14 @@
 .public-header {
   position: sticky;
-  top: 0;
+  top: calc(.5rem + env(safe-area-inset-top));
   z-index: 40;
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--background) 97%, transparent);
+  margin: calc(.5rem + env(safe-area-inset-top)) .75rem 0;
+  border: 1px solid var(--border);
+  border-radius: 1.125rem;
+  background: var(--card);
 }
 
-.public-header[data-home="true"] { position: fixed; inset-inline: 0; }
+.public-header[data-home="true"] { position: fixed; inset-inline: .75rem; margin: 0; }
 .public-header__inner {
   display: flex;
   align-items: center;
@@ -16,7 +18,7 @@
   max-width: 80rem;
   height: 3.5rem;
   margin-inline: auto;
-  padding-inline: 1rem;
+  padding-inline: .75rem;
 }
 
 .public-header__logo {
@@ -38,8 +40,14 @@
 
 .dark .public-header__logo img { filter: brightness(1.25); }
 .public-header__nav { display: none; }
-.public-header__icon { width: 2.75rem; height: 2.75rem; border: 1px solid var(--border); border-radius: .75rem; color: var(--muted-foreground); }
-.public-header :is(a, button):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.public-header__menu-trigger { width: auto; height: 2.75rem; gap: .4rem; padding-inline: .875rem; border-radius: 999px; background: var(--action); color: var(--action-foreground); font-size: .8125rem; font-weight: 500; }
+.public-menu-sheet { width: 100%; max-width: 42rem; height: min(85svh, 44rem); max-height: calc(100svh - env(safe-area-inset-top) - 1rem); margin-inline: auto; border-radius: 1.25rem 1.25rem 0 0; }
+.public-display-settings { padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.public-display-settings h2 { color: var(--muted-foreground); font-size: .75rem; font-weight: 500; }
+.public-display-settings__options { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin-top: .25rem; }
+.public-display-settings__options label { display: flex; align-items: center; justify-content: space-between; flex: 1 1 8rem; min-height: 2.75rem; gap: .5rem; font-size: .8125rem; font-weight: 400; cursor: pointer; }
+
+.public-header :is(a, button):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; box-shadow: none; }
 .public-header__actions { min-width: 0; }
 
 @media (min-width: 640px) { .public-header__inner { padding-inline: 1.5rem; } }
@@ -48,6 +56,7 @@
     position: fixed;
     inset: 1rem max(1.5rem, calc((100% - 75rem) / 2)) auto;
     height: 3.75rem;
+    margin: 0;
     border: 1px solid var(--border);
     border-radius: 1rem;
     background: color-mix(in srgb, var(--background) 96%, transparent);

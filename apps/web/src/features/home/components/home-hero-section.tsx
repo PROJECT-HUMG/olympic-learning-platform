@@ -39,7 +39,13 @@ export function HomeHeroSection() {
   return (
     <section className="home-hero" aria-labelledby="home-hero-title" data-motion={enabled} data-playing={enabled && visible && tabVisible}>
       <div ref={introRef} className="home-hero__intro">
-        <div className="home-hero__ambient" aria-hidden="true" />
+        <div className="home-hero__ambient" aria-hidden="true">
+          <svg viewBox="0 0 1000 600" preserveAspectRatio="none">
+            <path d="M-120 470C150 100 440 620 1120 130" />
+            <path d="M-120 520C240 210 500 710 1120 240" />
+            <path d="M-120 280C230-90 600 470 1120-40" />
+          </svg>
+        </div>
         <div className="home-hero__window">
           <CinematicScene animated={enabled} respectReducedMotion={false} />
         </div>

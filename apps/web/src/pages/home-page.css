@@ -9,26 +9,30 @@
 .home-news__heading p { max-width: 60ch; margin-top: .5rem; color: var(--muted-foreground); font-size: .875rem; line-height: 1.8; }
 .home-news__heading > a { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.75rem; color: var(--primary); font-size: .8125rem; }
 .home-news__heading > a svg { width: 1rem; height: 1rem; }
-.home-news__article { display: grid; grid-template-columns: minmax(0, 1fr) 1.25rem; align-items: center; gap: 1.5rem; padding-block: 1.5rem; border-bottom: 1px solid var(--border); }
-.home-news__article[data-illustrated="true"] { grid-template-columns: minmax(0, 1fr) 9rem 1.25rem; }
+.home-news__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.home-news__item { min-width: 0; }
+.home-news__article { display: flex; flex-direction: column; gap: 1rem; height: 100%; min-height: 14rem; padding: 1.25rem; border: 1px solid var(--border); border-radius: .875rem; background: var(--card); }
+.home-news__content { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 1rem; }
+.home-news__article[data-illustrated="true"] .home-news__content { grid-template-columns: minmax(0, 1fr) 4.5rem; }
 .home-news__body { min-width: 0; }
-.home-news__meta { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem; color: var(--muted-foreground); font-size: .75rem; }
-.home-news__body h3 { max-width: 65ch; margin-top: .65rem; overflow-wrap: anywhere; font-size: 1rem; font-weight: 600; line-height: 1.7; }
+.home-news__meta { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: .5rem; color: var(--muted-foreground); font-size: .75rem; }
+.home-news__body h3 { overflow-wrap: anywhere; font-size: 1rem; font-weight: 600; line-height: 1.7; }
 .home-news__body > p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-width: 65ch; margin-top: .4rem; overflow-wrap: anywhere; color: var(--muted-foreground); font-size: .8125rem; line-height: 1.8; }
-.home-news__article > img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border: 1px solid var(--border); border-radius: .5rem; }
-.home-news__arrow { width: 1rem; height: 1rem; color: var(--muted-foreground); }
+.home-news__content > img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid var(--border); border-radius: .5rem; }
+.home-news__read { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 1.5rem; margin-top: auto; color: var(--muted-foreground); font-size: .75rem; }
+.home-news__arrow { width: 1rem; height: 1rem; }
 .home-news__feedback { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem 1rem; padding-block: 1.5rem; color: var(--muted-foreground); font-size: .875rem; line-height: 1.8; }
 .home-news a:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; border-radius: .25rem; }
 @media (hover: hover) and (pointer: fine) { .home-news__article:hover h3 { color: var(--primary); } }
 @media (max-width: 1023px) { .home-page__sections, .home-page__container { padding-inline: 1.5rem; } }
+@media (min-width: 640px) and (max-width: 1023px) { .home-news__list { grid-template-columns: minmax(0, 1fr); } .home-news__article { min-height: 0; } }
 @media (max-width: 639px) {
   .home-page__container { padding: 2rem 1.25rem; }
   .home-study__heading h2 { font-size: 1.25rem; }
   .home-study__heading { margin-bottom: 1rem; }
   .home-page__sections { padding: 2rem 1.25rem 2.5rem; }
   .home-news__heading h2 { font-size: 1.25rem; }
-  .home-news__article { gap: .75rem; padding-block: 1.25rem; }
-  .home-news__article[data-illustrated="true"] { grid-template-columns: minmax(0, 1fr) 4.5rem; }
-  .home-news__article[data-illustrated="true"] > img { aspect-ratio: 1; }
-  .home-news__article[data-illustrated="true"] .home-news__arrow { display: none; }
+  .home-news__list { grid-template-columns: minmax(0, 1fr); }
+  .home-news__article { min-height: 0; gap: .875rem; }
+  .home-news__content { min-height: 4.5rem; }
 }

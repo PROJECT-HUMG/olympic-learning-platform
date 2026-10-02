@@ -24,7 +24,7 @@ import {
   PUBLIC_PRIMARY_NAVIGATION,
 } from "../navigation";
 import { NavigationGroups } from "./navigation-groups";
-import { PublicAppearanceMenu } from "./public-appearance-menu";
+import { PublicDisplaySettings } from "./public-display-settings";
 import "../navigation.css";
 import "./public-header.css";
 
@@ -73,7 +73,7 @@ export function PublicHeader({ cinematic = false }: { cinematic?: boolean }) {
           {isDesktop ? <>
             <ThemeToggle />
             {cinematic && <HomeMotionToggle />}
-          </> : <PublicAppearanceMenu home={cinematic} />}
+          </> : null}
           <Button
             asChild
             variant="ghost"
@@ -87,36 +87,38 @@ export function PublicHeader({ cinematic = false }: { cinematic?: boolean }) {
               {user ? user.role === "STUDENT" ? "Góc học tập" : "Quản lý" : "Đăng nhập"}
             </Link>
           </Button>
-          {user && <UserDropdown direction="down" compact />}
+          {user && <UserDropdown direction="down" compact className="size-11 rounded-full p-0" avatarClassName="size-11" />}
           <Sheet open={menuOpen && !isDesktop} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
                 aria-label="Mở menu điều hướng"
-                className="public-header__icon xl:hidden"
+                className="public-header__menu-trigger xl:hidden"
               >
-                <Menu aria-hidden="true" size={20} />
+                <Menu aria-hidden="true" size={18} />
+                <span>Menu</span>
               </Button>
             </SheetTrigger>
             <SheetContent
-              side="right"
-              className="w-[min(90vw,24rem)] gap-0 p-0"
+              side="bottom"
+              className="public-menu-sheet gap-0 p-0"
             >
-              <SheetHeader className="border-b border-border p-5 pr-14">
+              <SheetHeader className="shrink-0 border-b border-border p-5 pr-14">
                 <SheetTitle>Khám phá Olympic HUMG</SheetTitle>
                 <SheetDescription>
                   Học tập, thông tin và các tiện ích của bạn.
                 </SheetDescription>
               </SheetHeader>
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <PublicDisplaySettings home={cinematic} />
                 <NavigationGroups
                   groups={getNavigationGroups(user?.role)}
                   onNavigate={() => setMenuOpen(false)}
                 />
               </div>
               {!user && (
-                <div className="grid grid-cols-2 gap-2 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                   <Button asChild variant="outline" className="min-h-11">
                     <Link
                       to={ROUTES.LOGIN}

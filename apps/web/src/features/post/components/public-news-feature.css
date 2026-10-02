@@ -78,24 +78,20 @@
 .school-news__categories svg { width: .95rem; height: .95rem; }
 .school-news__filter-summary { display: flex; justify-content: space-between; align-items: center; gap: .75rem; margin-top: 1rem; color: var(--muted-foreground); font-size: .8rem; }
 
-.school-news-post {
-  display: grid;
-  gap: 1.5rem;
-  padding-block: 1.75rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.school-news-post--illustrated { grid-template-columns: minmax(0, 1fr) 12rem; align-items: center; }
-.school-news-post__image { grid-column: 2; grid-row: 1; overflow: hidden; aspect-ratio: 16/10; border: 1px solid var(--border); border-radius: .6rem; }
+.school-news-post { margin-top: 1rem; padding: 0; border: 1px solid var(--border); border-radius: .875rem; background: var(--card); }
+.school-news-post__link { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; padding: 1.25rem; border-radius: inherit; }
+.school-news-post--illustrated .school-news-post__link { grid-template-columns: minmax(0, 1fr) 10rem; align-items: center; }
+.school-news-post__image { grid-column: 2; grid-row: 1; width: 100%; object-fit: cover; aspect-ratio: 16 / 10; border: 1px solid var(--border); border-radius: .6rem; }
+.school-news-post__read { display: inline-flex; margin-top: 1rem; color: var(--muted-foreground); font-size: .75rem; }
 .school-news-post__body { min-width: 0; grid-row: 1; }
 .school-news-post__meta { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem; color: var(--muted-foreground); font-size: .75rem; }
 .school-news-post__pinned-label { display: inline-flex; align-items: center; gap: .3rem; }
 .school-news-post__pinned-label svg { width: .75rem; height: .75rem; }
 .school-news-post h3 { max-width: 48rem; margin-top: .65rem; font-size: 1.125rem; line-height: 1.6; font-weight: 600; overflow-wrap: anywhere; }
-.school-news-post h3 a:hover { color: var(--primary); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+@media (hover: hover) and (pointer: fine) { .school-news-post__link:hover h3 { color: var(--primary); } }
 .school-news-post__body > p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-width: 48rem; margin-top: .5rem; color: var(--muted-foreground); font-size: .875rem; line-height: 1.85; overflow-wrap: anywhere; }
 
-.school-news-post--pinned { padding: 1.25rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--card); }
+.school-news-post--pinned { margin-top: 0; }
 .school-news-post--pinned h3 { font-size: 1rem; }
 .school-news-post--pinned .school-news-post__meta { gap: .5rem; justify-content: space-between; }
 .school-news-post--pinned .school-news-post__body > p { font-size: .8rem; }
@@ -123,7 +119,7 @@
   .school-news__feed-header { align-items: stretch; flex-direction: column; }
   .school-news__search { flex-basis: auto; }
   .school-news__search input { font-size: 1rem; }
-  .school-news-post--illustrated { grid-template-columns: minmax(0, 1fr) 6rem; gap: 1rem; }
+  .school-news-post--illustrated .school-news-post__link { grid-template-columns: minmax(0, 1fr) 5rem; gap: 1rem; }
   .school-news-post__image { aspect-ratio: 1; }
   .school-news-post h3 { font-size: 1rem; }
   .school-news-post__body > p { font-size: .8rem; }
@@ -134,7 +130,7 @@
 
 @media (max-width: 379px) {
 
-  .school-news-post--illustrated { grid-template-columns: minmax(0, 1fr); }
+  .school-news-post--illustrated .school-news-post__link { grid-template-columns: minmax(0, 1fr); }
   .school-news-post__image { grid-column: 1; grid-row: 1; width: 100%; max-height: 10rem; aspect-ratio: 16/9; }
   .school-news-post--illustrated .school-news-post__body { grid-row: 2; }
 }
