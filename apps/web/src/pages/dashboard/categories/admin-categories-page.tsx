@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui/page-header";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FolderTree, Book, Tags, Plus, Loader2 } from "lucide-react";
@@ -183,15 +184,8 @@ export default function AdminCategoriesPage() {
   const isDeletePending = deleteCategory.isPending || deleteSubject.isPending || deleteTag.isPending;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Danh mục hệ thống</h2>
-          <p className="text-muted-foreground text-sm">
-            Quản lý phân loại tài liệu, môn học, và thẻ (tags) của hệ thống.
-          </p>
-        </div>
-      </div>
+    <div className="page-shell">
+      <PageHeader title="Danh mục hệ thống" description="Quản lý phân loại tài liệu, môn học và thẻ." />
 
       <Tabs 
         value={activeTab} 
@@ -203,21 +197,21 @@ export default function AdminCategoriesPage() {
             <TabsList className="inline-flex h-12 items-stretch justify-start rounded-xl bg-muted p-1 text-muted-foreground border">
               <TabsTrigger 
                 value="categories" 
-                className="gap-2 border-none px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all font-medium"
+                className="gap-2 border-none px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none transition-all font-medium"
               >
                 <FolderTree className="h-4 w-4" />
                 Phân loại tài liệu
               </TabsTrigger>
               <TabsTrigger 
                 value="subjects" 
-                className="gap-2 border-none px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all font-medium"
+                className="gap-2 border-none px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none transition-all font-medium"
               >
                 <Book className="h-4 w-4" />
                 Môn học
               </TabsTrigger>
               <TabsTrigger 
                 value="tags" 
-                className="gap-2 border-none px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all font-medium"
+                className="gap-2 border-none px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none transition-all font-medium"
               >
                 <Tags className="h-4 w-4" />
                 Thẻ phân loại

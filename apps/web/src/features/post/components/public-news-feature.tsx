@@ -1,5 +1,6 @@
+import { PageHeader } from "@/components/ui/page-header";
 import type { FormEvent } from "react";
-import { ArrowUpRight, Bell, Newspaper, Pin, RefreshCw, Search } from "lucide-react";
+import { Bell, Newspaper, Pin, RefreshCw, Search } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,16 +55,9 @@ export function PublicNewsFeature() {
   const pageOutOfRange = Boolean(feed.data && currentPage > Math.max(1, feed.data.totalPages));
 
   return (
-    <div className="school-news">
-      <header className="school-news__header">
-        <div>
-          <h1>Bảng tin học đường</h1>
-          <p>Thông báo cần nhớ, chuyện trong trường và những điều đáng đọc.</p>
-        </div>
-        <a href="#school-news-feed" className="school-news__jump">
-          <Newspaper aria-hidden="true" /> Xem bài viết <ArrowUpRight aria-hidden="true" />
-        </a>
-      </header>
+    <div className="page-shell page-shell--public school-news">
+      <PageHeader title="Bảng tin học đường" description="Thông báo cần nhớ, chuyện trong trường và những điều đáng đọc."
+        actions={<Button asChild variant="outline"><a href="#school-news-feed"><Newspaper aria-hidden="true" />Xem bài viết</a></Button>} />
 
       {showPriority && (priority.isLoading || priority.isError || Boolean(priority.data?.content.length)) && (
         <section className="school-news__pinned" aria-labelledby="school-news-pinned-title" aria-busy={priority.isFetching}>

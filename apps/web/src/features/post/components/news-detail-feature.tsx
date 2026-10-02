@@ -249,7 +249,7 @@ export function NewsDetailFeature() {
       >
         <div className={`grid gap-8 ${post.thumbnailUrl ? "lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start" : ""}`}>
           <div>
-            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-[2.75rem]">
+            <h1 className="page-heading__title">
               {post.title}
             </h1>
 

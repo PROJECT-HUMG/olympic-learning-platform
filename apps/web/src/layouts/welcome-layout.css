@@ -3,9 +3,9 @@ html:has(.welcome-layout) {
 }
 
 .welcome-layout {
-  --auth-button: #2e5366;
-  --auth-button-hover: #22485b;
-  --auth-button-foreground: #f1f8fc;
+  --auth-button: var(--primary);
+  --auth-button-hover: color-mix(in srgb, var(--primary) 90%, var(--background));
+  --auth-button-foreground: var(--primary-foreground);
   --auth-slide: 640ms cubic-bezier(.22, 1, .36, 1);
   position: relative;
   isolation: isolate;
@@ -14,12 +14,6 @@ html:has(.welcome-layout) {
   flex-direction: column;
   background: var(--background);
   color: var(--foreground);
-}
-
-.dark .welcome-layout {
-  --auth-button: #9fbfd0;
-  --auth-button-hover: #bdd6e3;
-  --auth-button-foreground: #15374a;
 }
 
 .welcome-layout__scene {
@@ -141,11 +135,11 @@ html:has(.welcome-layout) {
 }
 
 .auth-heading {
-  font-family: var(--font-serif);
-  font-size: clamp(2.25rem, 4vw, 3.25rem);
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: -.045em;
+  font-family: var(--font-sans);
+  font-size: var(--page-title-size);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -.025em;
   text-wrap: balance;
 }
 
@@ -158,7 +152,7 @@ html:has(.welcome-layout) {
 }
 
 .auth-heading--greeting {
-  font-size: clamp(1.5rem, 7vw, 2.5rem);
+  font-size: var(--page-title-size);
 }
 
 .auth-form,
@@ -201,7 +195,7 @@ html:has(.welcome-layout) {
   backdrop-filter: none;
   color: var(--auth-button-foreground);
   font-size: .9375rem;
-  box-shadow: 0 4px 10px -6px rgb(0 25 40 / 25%);
+  box-shadow: none;
 }
 
 .welcome-layout__content [data-slot="button"][type="submit"]:hover {
@@ -349,8 +343,7 @@ html:has(.welcome-layout) {
 
   .auth-form,
   .auth-status { gap: 1.25rem; }
-  .auth-heading { font-size: clamp(1.8rem, 7.5vw, 2.4rem); }
-  .auth-heading--greeting { font-size: clamp(1.4rem, 6.4vw, 2rem); }
+
   .auth-description { margin-top: .65rem; font-size: .8125rem; }
   .auth-back-link { min-height: 2.75rem; margin-block: -.75rem 1rem; }
 

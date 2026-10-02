@@ -49,6 +49,8 @@ Tải tài liệu có thể hủy bằng nút Hủy tải, Escape hoặc đóng 
 
 Nhãn `FormField` dùng trạng thái giá trị native của input để tránh đè dữ liệu sẵn, giá trị đặt bằng code/reset hoặc tự điền. Hồ sơ cho email/username dài xuống dòng trên mobile; lưu thành công reset form theo tên server trả về và vô hiệu hóa nút Lưu cho tới lần chỉnh sửa tiếp theo. Lưu lỗi giữ nội dung để thử lại.
 
+Giao diện chức năng dùng chung `PageHeader`, `PageSection` và `.page-shell`: tiêu đề, chiều rộng, khoảng cách, màu, nút và input thống nhất giữa public và workspace. Hồ sơ có khối avatar/tên/vai trò, vùng thông tin và bảo mật; mobile thu gọn nhận diện và xếp một cột. Avatar lỗi dùng chữ cái tên. Đóng hộp thoại đổi mật khẩu xóa nội dung đã nhập và trả focus về nút mở. Dashboard hiển thị các lối vào theo vai trò. Bảng tin, môn học, toolkit, màn quản lý và trang chi tiết dùng cùng chuẩn chữ; trang chủ và cảnh phòng giữ phần hình ảnh riêng. Xem [quy chuẩn giao diện](../../docs/architecture/web-ui.md).
+
 Các route luyện tập, kỳ thi và lịch sử hiện hiển thị hướng dẫn đến những tính năng có sẵn; chưa có toàn bộ luồng làm bài, chấm điểm và lưu kết quả.
 
 ## Điều hướng và loading

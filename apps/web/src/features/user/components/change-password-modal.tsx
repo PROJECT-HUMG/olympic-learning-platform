@@ -1,7 +1,8 @@
+import type { RefObject } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Lock, KeyRound } from "lucide-react";
+import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import {
@@ -34,11 +35,12 @@ const changePasswordSchema = z
 type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 interface ChangePasswordModalProps {
+  returnFocusRef?: RefObject<HTMLButtonElement | null>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function ChangePasswordModal({ open, onOpenChange }: ChangePasswordModalProps) {
+export function ChangePasswordModal({ open, onOpenChange, returnFocusRef }: ChangePasswordModalProps) {
   const changePasswordMutation = useChangePassword();
 
   const {
@@ -70,13 +72,11 @@ export function ChangePasswordModal({ open, onOpenChange }: ChangePasswordModalP
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) reset(); onOpenChange(nextOpen); }}>
+      <DialogContent className="account-password-dialog sm:max-w-md"
+        onCloseAutoFocus={(event) => { if (returnFocusRef?.current) { event.preventDefault(); returnFocusRef.current.focus(); } }}>
         <DialogHeader>
-          <div className="flex items-center gap-2 text-primary">
-            <KeyRound className="size-5" />
-            <DialogTitle>Đổi Mật Khẩu</DialogTitle>
-          </div>
+          <DialogTitle>Đổi mật khẩu</DialogTitle>
           <DialogDescription>
             Nhập mật khẩu hiện tại và mật khẩu mới của bạn để hoàn tất thay đổi.
           </DialogDescription>
@@ -85,6 +85,8 @@ export function ChangePasswordModal({ open, onOpenChange }: ChangePasswordModalP
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
           <FormField
             id="modal-current-password"
+            autoComplete="current-password"
+            disabled={changePasswordMutation.isPending}
             type="password"
             label="Mật khẩu hiện tại"
             required
@@ -95,6 +97,8 @@ export function ChangePasswordModal({ open, onOpenChange }: ChangePasswordModalP
 
           <FormField
             id="modal-new-password"
+            autoComplete="new-password"
+            disabled={changePasswordMutation.isPending}
             type="password"
             label="Mật khẩu mới"
             required
@@ -105,6 +109,8 @@ export function ChangePasswordModal({ open, onOpenChange }: ChangePasswordModalP
 
           <FormField
             id="modal-confirm-password"
+            autoComplete="new-password"
+            disabled={changePasswordMutation.isPending}
             type="password"
             label="Xác nhận mật khẩu mới"
             required

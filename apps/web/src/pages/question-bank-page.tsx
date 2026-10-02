@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui/page-header";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Archive, Copy, Eye, RotateCcw, Search } from "lucide-react";
@@ -101,15 +102,8 @@ export default function QuestionBankPage() {
     ARCHIVED: "Lưu trữ",
   };
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          Ngân hàng câu hỏi
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Tìm, sao chép hoặc lưu trữ câu hỏi đã được kiểm duyệt.
-        </p>
-      </header>
+    <div className="page-shell">
+      <PageHeader title="Ngân hàng câu hỏi" description="Tìm, sao chép hoặc lưu trữ câu hỏi đã được kiểm duyệt." />
       <QuestionSearch
         key={search}
         value={search}

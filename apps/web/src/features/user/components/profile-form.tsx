@@ -1,11 +1,10 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Save, User as UserIcon, Mail, Shield, Activity, Calendar } from "lucide-react";
+import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { PageSection } from "@/components/ui/page-section";
 import { useUpdateProfile } from "../hooks/use-update-profile";
 import type { UserProfile } from "../types/user.types";
 
@@ -43,111 +42,26 @@ export function ProfileForm({ user }: ProfileFormProps) {
     });
   }
 
-  const roleLabelMap: Record<string, { label: string; variant: string }> = {
-    STUDENT: { label: "Sinh viên", variant: "info" },
-    LECTURER: { label: "Giảng viên", variant: "purple" },
-    ADMIN: { label: "Quản trị viên", variant: "warning" },
-  };
-
-  const statusLabelMap: Record<string, { label: string; variant: string }> = {
-    ACTIVE: { label: "Hoạt động", variant: "success" },
-    PENDING: { label: "Chờ xác thực", variant: "warning" },
-    DISABLED: { label: "Đã khóa", variant: "destructive" },
-  };
-
-  const roleInfo = roleLabelMap[user.role] || { label: user.role, variant: "default" };
-  const statusInfo = statusLabelMap[user.status] || { label: user.status, variant: "default" };
-
   return (
-    <Card className="min-w-0 p-2 sm:p-4">
-      <CardHeader className="border-b border-border pb-4 mb-6">
-        <CardTitle>Thông Tin Cá Nhân</CardTitle>
-        <CardDescription>Quản lý thông tin hiển thị và chi tiết tài khoản của bạn.</CardDescription>
-      </CardHeader>
-
-      <CardContent className="min-w-0 px-4 sm:px-6">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Full Name field */}
-          <div className="space-y-2">
-            <FormField
-              id="profile-fullname"
-              type="text"
-              label="Họ và tên"
-              placeholder="Nhập họ và tên của bạn"
-              error={errors.fullName?.message}
-              disabled={updateProfileMutation.isPending}
-              {...register("fullName")}
-            />
-          </div>
-
-          {/* Readonly info grid */}
-          <div className="grid min-w-0 grid-cols-1 gap-6 sm:grid-cols-2">
-            {/* Email */}
-            <div className="min-w-0 space-y-1 rounded-xl border border-border/60 bg-muted/40 p-4">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <Mail className="size-3.5" />
-                <span>Địa chỉ Email</span>
-              </div>
-              <p className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{user.email}</p>
-            </div>
-
-            {/* Username */}
-            <div className="min-w-0 space-y-1 rounded-xl border border-border/60 bg-muted/40 p-4">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <UserIcon className="size-3.5" />
-                <span>Tên đăng nhập</span>
-              </div>
-              <p className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">@{user.username}</p>
-            </div>
-
-            {/* Role */}
-            <div className="space-y-1 rounded-xl border border-border/60 bg-muted/40 p-4">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <Shield className="size-3.5" />
-                <span>Vai trò hệ thống</span>
-              </div>
-              <div>
-                <Badge variant={roleInfo.variant as any}>{roleInfo.label}</Badge>
-              </div>
-            </div>
-
-            {/* Status */}
-            <div className="space-y-1 rounded-xl border border-border/60 bg-muted/40 p-4">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <Activity className="size-3.5" />
-                <span>Trạng thái tài khoản</span>
-              </div>
-              <div>
-                <Badge variant={statusInfo.variant as any}>{statusInfo.label}</Badge>
-              </div>
-            </div>
-          </div>
-
-          {/* Last Login */}
-          {user.lastLoginAt && (
-            <div className="flex min-w-0 items-start gap-2 text-xs text-muted-foreground">
-              <Calendar className="size-3.5 shrink-0" />
-              <span>
-                Đăng nhập gần nhất:{" "}
-                <strong className="font-medium text-foreground">
-                  {new Date(user.lastLoginAt).toLocaleString("vi-VN")}
-                </strong>
-              </span>
-            </div>
-          )}
-
-          <div className="flex justify-end pt-2">
-            <Button
-              type="submit"
-              disabled={!isDirty || updateProfileMutation.isPending}
-              loading={updateProfileMutation.isPending}
-            >
-              <Save className="mr-2 size-4" />
-              Lưu thay đổi
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+    <PageSection title="Thông tin cá nhân" description="Tên và thông tin dùng để nhận diện tài khoản của bạn.">
+      <form onSubmit={handleSubmit(onSubmit)} className="profile-details">
+        <div className="profile-details__name">
+          <FormField id="profile-fullname" type="text" label="Họ và tên" autoComplete="name"
+            error={errors.fullName?.message} disabled={updateProfileMutation.isPending} {...register("fullName")} />
+          <p className="profile-details__hint">Tên này xuất hiện trong phòng học và những nội dung bạn chia sẻ.</p>
+        </div>
+        <dl className="profile-facts">
+          <div><dt>Địa chỉ email</dt><dd>{user.email}</dd></div>
+          <div><dt>Tên đăng nhập</dt><dd>@{user.username}</dd></div>
+          {user.lastLoginAt && <div><dt>Đăng nhập gần nhất</dt><dd>{new Date(user.lastLoginAt).toLocaleString("vi-VN")}</dd></div>}
+        </dl>
+        <div className="profile-details__footer">
+          <p role="status">{isDirty ? "Bạn có thay đổi chưa lưu." : "Thông tin đã được đồng bộ."}</p>
+          <Button type="submit" disabled={!isDirty || updateProfileMutation.isPending} loading={updateProfileMutation.isPending}>
+            <Save aria-hidden="true" />Lưu thay đổi
+          </Button>
+        </div>
+      </form>
+    </PageSection>
   );
 }

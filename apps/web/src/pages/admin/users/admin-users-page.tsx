@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui/page-header";
 import { useState } from "react";
 import {
   useAdminUsers,
@@ -47,19 +48,10 @@ export default function AdminUsersPage() {
     data?.content.find((user) => user.id === selectedUserId) ?? null;
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Quản lý người dùng
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Quản lý tài khoản và phân quyền hệ thống
-          </p>
-        </div>
-      </div>
+    <div className="page-shell">
+      <PageHeader title="Quản lý người dùng" description="Quản lý tài khoản và phân quyền hệ thống." />
 
-      <div className="flex items-center gap-4 bg-card p-4 rounded-xl border shadow-sm">
+      <div className="page-toolbar">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -74,7 +66,7 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      <div className="bg-card rounded-xl border shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+      <div className="page-table flex flex-col min-h-[400px]">
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>

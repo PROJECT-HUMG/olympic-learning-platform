@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui/page-header";
 import { useState, useEffect } from "react";
 import { Plus, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -122,24 +123,9 @@ export function PostManagementFeature() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Quản lý bài viết
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Quản lý, thêm mới và cập nhật các bài viết tin tức, thông báo, blog.
-          </p>
-        </div>
-        <Button
-          className="shrink-0 gap-2"
-          onClick={() => setIsCreateModalOpen(true)}
-        >
-          <Plus className="size-4" />
-          Tạo bài viết mới
-        </Button>
-      </div>
+    <div className="page-shell">
+      <PageHeader title="Quản lý bài viết" description="Soạn và cập nhật tin tức, thông báo và bài viết."
+        actions={<Button onClick={() => setIsCreateModalOpen(true)}><Plus aria-hidden="true" className="size-4" />Tạo bài viết mới</Button>} />
 
       {counts && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -160,12 +146,12 @@ export function PostManagementFeature() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm">
+      <div className="page-toolbar">
         <div className="relative max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Tìm kiếm bài viết..."
-            className="pl-9 h-10 bg-background"
+            className="pl-9 h-11 bg-background"
             value={keyword}
             onChange={(e) => {
               setKeyword(e.target.value);

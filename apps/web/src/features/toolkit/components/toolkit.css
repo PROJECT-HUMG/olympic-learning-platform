@@ -1,19 +1,9 @@
-.toolkit-page {
-  max-width: 64rem;
-  min-height: 65vh;
-  margin-inline: auto;
-  padding: 3rem 2rem 5rem;
-}
-
-.toolkit-page__heading { margin-bottom: 2rem; }
-.toolkit-page__heading h1 { font-family: var(--font-serif); font-size: clamp(2rem, 3vw, 2.75rem); font-weight: 400; letter-spacing: -.035em; line-height: 1.3; }
-.toolkit-page__heading p { margin-top: .75rem; color: var(--muted-foreground); font-size: .9375rem; line-height: 1.75; }
 .toolkit-workspace { border: 1px solid var(--border); border-radius: 1rem; background: var(--card); }
 .toolkit-workspace__tabs { display: flex; width: 100%; height: auto; padding: 0; border-bottom: 1px solid var(--border); border-radius: 1rem 1rem 0 0; background: transparent; }
 .toolkit-workspace__tabs [role="tab"] { min-height: 3.5rem; padding: .75rem 1rem; border: 0; border-bottom: 2px solid transparent; border-radius: 0; gap: .6rem; box-shadow: none; }
 .toolkit-workspace__tabs [role="tab"][data-state="active"] { border-bottom-color: var(--primary); background: transparent; color: var(--primary); box-shadow: none; }
 .toolkit-workspace [role="tabpanel"] { padding: 2rem; }
-.toolkit-panel-heading h2 { font-size: 1.25rem; font-weight: 500; line-height: 1.5; }
+.toolkit-panel-heading h2 { font-size: 1rem; font-weight: 600; line-height: 1.5; }
 .toolkit-panel-heading p { margin-top: .5rem; color: var(--muted-foreground); line-height: 1.75; }
 .toolkit-storage-note { margin-top: 1.5rem; color: var(--muted-foreground); font-size: .8125rem; line-height: 1.7; }
 .toolkit-page :is(button, a, select, input):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
@@ -49,8 +39,8 @@
 
 @media (max-width: 639px) {
   .toolkit-gpa-goal__fields { grid-template-columns: minmax(0, 1fr); }
-  .toolkit-page { padding: 2rem 1.25rem 3rem; }
-  .toolkit-page__heading { margin-bottom: 1.5rem; }
+
+
   .toolkit-workspace [role="tabpanel"] { padding: 1.25rem; }
   .toolkit-gpa__row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.75rem; gap: .75rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
   .toolkit-gpa__name { grid-column: 1 / -1; }

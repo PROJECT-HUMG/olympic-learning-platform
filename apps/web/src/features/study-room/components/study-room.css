@@ -1,9 +1,8 @@
-.study-room-page { max-width: 76rem; min-height: 65vh; margin-inline: auto; padding: 2.5rem 2rem 4rem; }
-.study-room-page h1 { font-family: var(--font-serif); font-size: clamp(1.8rem, 3vw, 2.75rem); font-weight: 400; line-height: 1.4; overflow-wrap: anywhere; }
-:is(.study-room-page, .study-rooms-lobby) h2 { font-size: 1.15rem; font-weight: 500; line-height: 1.6; }
+.study-room-page { max-width: var(--page-width); min-height: 65vh; margin-inline: auto; padding: 2.5rem 2rem 4rem; }
+:is(.study-room-page, .study-rooms-lobby) h2 { font-size: 1rem; font-weight: 600; line-height: 1.6; }
 :is(.study-room-page, .study-rooms-lobby) h3 { font-size: 1rem; font-weight: 500; line-height: 1.6; }
 :is(.study-room-page, .study-rooms-lobby, .study-room-access) button { min-height: 2.75rem; }
-:is(.study-room-page, .study-rooms-lobby) :is(input, select) { display: block; width: 100%; min-height: 2.875rem; padding: .6rem .8rem; border: 1px solid var(--input); border-radius: .5rem; background: var(--background); color: var(--foreground); font-size: .9375rem; }
+:is(.study-room-page, .study-rooms-lobby) :is(input, select) { display: block; width: 100%; min-height: 2.75rem; padding: .6rem .8rem; border: 1px solid var(--input); border-radius: .5rem; background: var(--background); color: var(--foreground); font-size: .9375rem; }
 :is(.study-room-page, .study-rooms-lobby) label { display: block; font-size: .8125rem; font-weight: 500; line-height: 1.6; }
 :is(.study-room-page, .study-rooms-lobby) label + :is(input, select) { margin-top: .5rem; }
 :is(.study-room-page, .study-rooms-lobby) :is(button, a, input, select, summary):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
@@ -16,9 +15,9 @@
 .study-room-access > svg { width: 2rem; height: 2rem; margin: 0 auto 1rem; color: var(--primary); stroke-width: 1.4; }
 .study-room-access h2 { font-family: var(--font-serif); font-size: 1.75rem; font-weight: 400; line-height: 1.5; }
 .study-room-access p { margin: .75rem auto 1.5rem; max-width: 36ch; color: var(--muted-foreground); line-height: 1.8; }
-.study-room-access a { min-height: 2.875rem; padding-inline: 1rem; }
+.study-room-access a { min-height: 2.75rem; padding-inline: 1rem; }
 .study-rooms-lobby__heading { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
-.study-rooms-lobby__heading h2 { font-family: var(--font-serif); font-size: 1.75rem; font-weight: 400; }
+.study-rooms-lobby__heading h2 { font-size: 1rem; font-weight: 600; }
 .study-rooms-lobby__heading p { margin-top: .5rem; max-width: 40ch; color: var(--muted-foreground); line-height: 1.8; }
 .study-rooms-lobby__list-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-block: 2rem 1rem; }
 .study-rooms-lobby__list-heading span { color: var(--muted-foreground); font-size: .75rem; }
@@ -43,12 +42,6 @@
 .study-room-policy > p { margin-top: .75rem; color: var(--muted-foreground); font-size: .8125rem; line-height: 1.8; }
 .study-room-back { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; margin-bottom: .75rem; color: var(--muted-foreground); font-size: .875rem; }
 .study-room-back svg { width: 1rem; height: 1rem; }
-.study-room-header { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
-.study-room-header > div { min-width: 0; }
-.study-room-header p { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .75rem; color: var(--muted-foreground); font-size: .8125rem; }
-.study-room-header p svg { width: .9rem; height: .9rem; }
-.study-room-header p span { display: inline-flex; align-items: center; gap: .5rem; margin-left: .75rem; }
-.study-room-header__actions { display: flex; flex-shrink: 0; gap: .5rem; }
 .study-room-copy { margin-bottom: 1rem; }
 .study-room-copy input { margin-top: .5rem; }
 .study-room-layout { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(16rem, 1fr); gap: 2rem; }
@@ -106,8 +99,6 @@
 
 @media (max-width: 767px) {
   .study-room-page { padding: 1.5rem 1rem 3rem; }
-  .study-room-header { display: block; }
-  .study-room-header__actions { margin-top: 1rem; }
   .study-room-layout { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
   .study-room-clock { padding: 1.25rem; }
   .study-room-request, .study-room-presence, .study-room-queue { padding: 1.25rem; }
@@ -176,3 +167,8 @@
 @media (prefers-reduced-motion: reduce) {
   .room-rhythm-dialog { animation: none !important; transition: none !important; }
 }
+
+.study-room-header { margin-bottom: 2rem; }
+.study-room-header__meta { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
+.study-room-header__meta > span { display: inline-flex; align-items: center; gap: .5rem; }
+.study-room-header__meta svg { width: .9rem; height: .9rem; }

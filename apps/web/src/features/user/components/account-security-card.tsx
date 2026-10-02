@@ -1,74 +1,31 @@
-import { useState } from "react";
-import { KeyRound, CheckCircle2, ShieldAlert } from "lucide-react";
+import { useRef, useState } from "react";
+import { CheckCircle2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageSection } from "@/components/ui/page-section";
 import { ChangePasswordModal } from "./change-password-modal";
 import type { UserProfile } from "../types/user.types";
 
-interface AccountSecurityCardProps {
-  user: UserProfile;
-}
-
-export function AccountSecurityCard({ user }: AccountSecurityCardProps) {
+export function AccountSecurityCard({ user }: { user: UserProfile }) {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const passwordTriggerRef = useRef<HTMLButtonElement>(null);
   const isEmailVerified = user.status === "ACTIVE";
-
-  return (
-    <>
-      <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm sm:p-8 space-y-6">
-        <div className="border-b border-border pb-4">
-          <h3 className="text-lg font-semibold text-foreground">
-            Bảo Mật & Tài Khoản
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Trạng thái xác thực email và quản lý bảo mật mật khẩu.
-          </p>
+  return <>
+    <PageSection title="Bảo mật tài khoản" description="Kiểm tra xác thực email và quản lý mật khẩu đăng nhập.">
+      <div className="profile-security">
+        <div className="profile-security__row">
+          <div className="profile-security__copy">
+            <h3>{isEmailVerified ? "Email đã được xác thực" : "Chưa xác thực email"}</h3>
+            <p>{isEmailVerified ? "Tài khoản của bạn đã được xác minh." : "Kiểm tra hộp thư để hoàn tất kích hoạt tài khoản."}</p>
+          </div>
+          {isEmailVerified ? <CheckCircle2 aria-label="Đã xác thực" className="size-5 shrink-0 text-primary" />
+            : <ShieldAlert aria-label="Cần xác thực" className="size-5 shrink-0 text-destructive" />}
         </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          {/* Email Verification status */}
-          <div className="flex items-start gap-3 rounded-xl border border-border/60 bg-muted/30 p-4">
-            {isEmailVerified ? (
-              <CheckCircle2 className="size-5 text-emerald-500 shrink-0 mt-0.5" />
-            ) : (
-              <ShieldAlert className="size-5 text-amber-500 shrink-0 mt-0.5" />
-            )}
-            <div className="space-y-1">
-              <h4 className="text-sm font-medium text-foreground">
-                {isEmailVerified ? "Email đã được xác thực" : "Chưa xác thực email"}
-              </h4>
-              <p className="text-xs text-muted-foreground">
-                {isEmailVerified
-                  ? "Tài khoản của bạn đã được xác minh."
-                  : "Vui lòng kiểm tra hộp thư để hoàn tất kích hoạt tài khoản."}
-              </p>
-            </div>
-          </div>
-
-          {/* Password Reset option */}
-          <div className="flex items-start gap-3 rounded-xl border border-border/60 bg-muted/30 p-4">
-            <KeyRound className="size-5 text-primary shrink-0 mt-0.5" />
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-foreground">Mật khẩu đăng nhập</h4>
-              <p className="text-xs text-muted-foreground">
-                Đổi mật khẩu định kỳ nếu bạn nghi ngờ tài khoản bị lộ thông tin.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-1"
-                onClick={() => setIsPasswordModalOpen(true)}
-              >
-                Đổi mật khẩu
-              </Button>
-            </div>
-          </div>
+        <div className="profile-security__row">
+          <div className="profile-security__copy"><h3>Mật khẩu đăng nhập</h3><p>Đổi mật khẩu nếu bạn nghi ngờ tài khoản bị lộ thông tin.</p></div>
+          <Button ref={passwordTriggerRef} variant="outline" onClick={() => setIsPasswordModalOpen(true)}>Đổi mật khẩu</Button>
         </div>
       </div>
-
-      <ChangePasswordModal
-        open={isPasswordModalOpen}
-        onOpenChange={setIsPasswordModalOpen}
-      />
-    </>
-  );
+    </PageSection>
+    <ChangePasswordModal open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen} returnFocusRef={passwordTriggerRef} />
+  </>;
 }

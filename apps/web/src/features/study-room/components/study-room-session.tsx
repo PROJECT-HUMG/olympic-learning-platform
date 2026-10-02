@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui/page-header";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Bell, BellOff, Check, Copy, Crown, Headphones, LogOut, SkipForward, Users, X } from "lucide-react";
@@ -109,13 +110,12 @@ export function StudyRoomSession({ id }: { id: string }) {
   return (
     <div className="study-room-page">
       <Link className="study-room-back" to={lobby}><ArrowLeft aria-hidden="true" /> Phòng học chung</Link>
-      <header className="study-room-header">
-        <div><h1>{room.name}</h1><p><Crown aria-hidden="true" /> {room.ownerName}<span><Users aria-hidden="true" /> {room.activeMembers} đang có mặt</span></p></div>
-        <div className="study-room-header__actions">
-          <Button variant="outline" onClick={() => void copyInvite()}><Copy aria-hidden="true" /> Mời bạn</Button>
-          {joined && <Button variant="ghost" disabled={busy} onClick={leave}><LogOut aria-hidden="true" /> Rời phòng</Button>}
-        </div>
-      </header>
+      <PageHeader title={room.name} className="study-room-header"
+        description={<span className="study-room-header__meta"><span><Crown aria-hidden="true" />{room.ownerName}</span><span><Users aria-hidden="true" />{room.activeMembers} đang có mặt</span></span>}
+        actions={<>
+          <Button variant="outline" onClick={() => void copyInvite()}><Copy aria-hidden="true" />Mời bạn</Button>
+          {joined && <Button variant="ghost" disabled={busy} onClick={leave}><LogOut aria-hidden="true" />Rời phòng</Button>}
+        </>} />
       {copyFailed && <label className="study-room-copy">Sao chép đường dẫn này để mời bạn<input readOnly value={window.location.href} onFocus={(event) => event.target.select()} /></label>}
       {!synchronized && <div className="study-room-feedback" role={recovering ? "status" : "alert"} aria-busy={recovering}>
         <p>{!online ? "Thiết bị đang mất mạng. Phòng sẽ được đồng bộ khi có kết nối trở lại." : recovering ? "Đang đồng bộ lại phòng học…" : "Trạng thái phòng chưa được cập nhật. Hãy kết nối lại trước khi tiếp tục thao tác."}</p>

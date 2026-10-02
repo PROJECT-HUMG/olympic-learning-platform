@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui/page-header";
 import { getListReturnPath } from "@/lib/list-navigation";
 import { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
@@ -528,34 +529,14 @@ export default function QuestionDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2"
-            onClick={() => navigate(backPath)}
-          >
-            <ArrowLeft className="size-4" />
-            Quay lại
-          </Button>
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Câu hỏi #{question.id.slice(0, 8)}
-            </h1>
-            <Badge variant={STATUS_VARIANT[question.status] ?? "secondary"}>
-              {STATUS_LABEL[question.status] ?? question.status}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {question.subjectName} · {question.topicName}
-          </p>
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex flex-wrap items-center gap-2">
+    <div className="page-shell">
+      <div><Button variant="ghost" size="sm" className="-ml-2" onClick={() => navigate(backPath)}>
+        <ArrowLeft aria-hidden="true" className="size-4" />Quay lại
+      </Button></div>
+      <PageHeader title={"Câu hỏi #" + question.id.slice(0, 8)}
+        description={<><span>{question.subjectName} · {question.topicName}</span>{" "}
+          <Badge variant={STATUS_VARIANT[question.status] ?? "secondary"}>{STATUS_LABEL[question.status] ?? question.status}</Badge></>}
+        actions={<div className="flex flex-wrap items-center gap-2">
           {isDraft && !isEditing && (
             <Button
               variant="outline"
@@ -625,8 +606,7 @@ export default function QuestionDetailPage() {
               Khôi phục
             </Button>
           )}
-        </div>
-      </div>
+        </div>} />
 
       {/* Content */}
       {isEditing && isDraft ? (

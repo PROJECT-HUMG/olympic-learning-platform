@@ -1,8 +1,8 @@
+import { PageHeader } from "@/components/ui/page-header";
 import { useState } from "react";
 import { FileUp, RefreshCw, UploadCloud, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { AssessmentDraftList } from "@/features/assessment/components/assessment-draft-list";
 import { AssessmentImportProgress } from "@/features/assessment/components/assessment-import-progress";
 import { AssessmentImportSkeleton } from "@/features/assessment/components/assessment-import-skeleton";
@@ -54,21 +54,17 @@ export default function AssessmentImportPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <header className="space-y-2">
-        <p className="text-sm font-medium text-primary">Ngân hàng câu hỏi · Toán</p>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Nhập đề từ PDF</h1>
-        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">Hệ thống sẽ đọc từng trang, nhận diện câu hỏi và giữ lại hình minh họa. Bạn luôn kiểm duyệt trước khi sử dụng.</p>
-      </header>
+    <div className="page-shell">
+      <PageHeader title="Nhập đề từ PDF" description="Nhập đề Toán vào ngân hàng câu hỏi. Hệ thống đọc từng trang và giữ lại hình minh họa; bạn kiểm duyệt trước khi sử dụng." />
 
       {!importId && <Card>
         <CardHeader><CardTitle className="flex items-center gap-2 text-base"><UploadCloud className="size-5 text-primary" />Chọn đề cần phân tích</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <label htmlFor="assessment-pdf" className="flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/20 px-5 text-center transition-colors hover:border-primary/50 hover:bg-primary/5">
+          <label htmlFor="assessment-pdf" className="relative flex min-h-40 cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/20 px-5 text-center transition-colors hover:border-primary/50 hover:bg-primary/5">
             <FileUp className="mb-3 size-8 text-primary" />
             <span className="text-sm font-medium">Chọn file PDF</span>
             <span className="mt-1 text-xs text-muted-foreground">Tối đa 25 MB · hỗ trợ đề có công thức và hình</span>
-            <Input id="assessment-pdf" type="file" accept="application/pdf,.pdf" className="sr-only" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+            <input id="assessment-pdf" type="file" accept="application/pdf,.pdf" className="sr-only" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
           </label>
           {file && <div className="rounded-lg border border-border bg-card px-3 py-2 text-sm">{file.name}<span className="ml-2 text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(1)} MB</span></div>}
           {error && <p role="alert" className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}

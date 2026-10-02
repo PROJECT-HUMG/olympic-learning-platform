@@ -12,7 +12,7 @@
 ## Working practices
 
 1. Trace the flow from `route → page → feature component/hook → service → apiClient`. Keep fetching and mutations in the owning feature, and invalidate affected queries after server data changes.
-2. Reuse existing tokens and UI primitives where they fit. Preserve routes, navigation labels, focus and keyboard behavior, dark mode, and responsive layouts. Never present sample content as live data.
+2. Reuse existing tokens and UI primitives where they fit. Functional screens share `PageHeader`, `PageSection` and `.page-shell`; see `docs/architecture/web-ui.md` from the repository root before defining page-specific typography or colors. Preserve routes, navigation labels, focus and keyboard behavior, dark mode, and responsive layouts. Never present sample content as live data.
 3. Motion should support the content, respect `prefers-reduced-motion`, and leave content visible when animation or JavaScript is limited. Prefer CSS over page-wide listeners or unnecessary continuous animation.
 4. Keep the access-token and refresh flow in the existing client/store. Avoid separate Axios calls that bypass it without a concrete reason. Do not hardcode production secrets or backend URLs.
 5. Run `pnpm build` and `pnpm lint` for frontend changes. When changing UI, inspect light/dark mode, mobile layout, keyboard navigation, and reduced motion where possible.

@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/ui/page-header";
+import { PageSection } from "@/components/ui/page-section";
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
@@ -13,27 +15,18 @@ export default function DashboardPage() {
       : group.label === "Học tập",
   );
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
-      <header className="space-y-3 border-b border-border pb-6">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          {staff ? "Không gian quản lý" : "Góc học tập"}
-        </h1>
-        <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
-          Chào {user?.fullName || user?.username}.{" "}
-          {staff
-            ? "Chọn nội dung bạn muốn cập nhật hoặc kiểm duyệt."
-            : "Mở tài liệu, tìm môn học hoặc vào một phòng học cùng bạn bè."}
-        </p>
-      </header>
+    <div className="page-shell">
+      <PageHeader title={staff ? "Không gian quản lý" : "Góc học tập"}
+        description={<>Chào {user?.fullName || user?.username}.{" "}
+          {staff ? "Chọn nội dung bạn muốn cập nhật hoặc kiểm duyệt." : "Mở tài liệu, tìm môn học hoặc vào một phòng học cùng bạn bè."}</>} />
       {groups.map((group) => (
-        <section key={group.label} className="space-y-3">
-          <h2 className="text-base font-medium">{group.label}</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
+        <PageSection key={group.label} title={group.label}>
+          <div className="dashboard-shortcuts">
             {group.items.map((item) => (
               <Link
                 key={item.href}
                 to={item.href}
-                className="flex min-h-20 items-center gap-4 rounded-xl border border-border bg-card p-4 hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
+                className="dashboard-shortcut"
               >
                 <item.icon
                   aria-hidden="true"
@@ -51,9 +44,9 @@ export default function DashboardPage() {
               </Link>
             ))}
           </div>
-        </section>
+        </PageSection>
       ))}
-      <p className="text-sm leading-relaxed text-muted-foreground">
+      <p className="page-note">
         Luyện tập và lịch sử làm bài đang được chuẩn bị.{" "}
         {staff
           ? "Bạn có thể tiếp tục xây dựng ngân hàng câu hỏi."

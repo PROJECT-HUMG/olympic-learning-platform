@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui/page-header";
 import { useState } from "react";
 import { ArrowUpRight, BookOpen, RefreshCw, Search } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -22,16 +23,10 @@ export function SubjectDirectory() {
     .sort((first, second) => first.name.localeCompare(second.name, "vi-VN"));
 
   return (
-    <section className="subject-directory" aria-labelledby="subjects-title">
-      <header className="subject-directory__intro">
-        <div>
-          <h1 id="subjects-title">Môn học</h1>
-          <p>Chọn môn bạn đang học để tìm tài liệu, giáo trình và đề ôn tập.</p>
-        </div>
-        <Link to={ROUTES.DOCUMENTS} className="subject-directory__browse">
-          <BookOpen aria-hidden="true" /> Toàn bộ tài liệu
-        </Link>
-      </header>
+    <section className="page-shell page-shell--public subject-directory" aria-labelledby="subjects-title">
+      <PageHeader titleId="subjects-title" title="Môn học"
+        description="Chọn môn bạn đang học để tìm tài liệu, giáo trình và đề ôn tập."
+        actions={<Button asChild variant="outline"><Link to={ROUTES.DOCUMENTS}><BookOpen aria-hidden="true" />Toàn bộ tài liệu</Link></Button>} />
 
       <div className="subject-directory__catalogue">
         <div className="subject-directory__toolbar">

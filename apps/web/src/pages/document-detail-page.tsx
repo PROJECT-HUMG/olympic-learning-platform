@@ -106,13 +106,13 @@ export default function DocumentDetailPage() {
 
   if (isLoading || !document) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-6">
+      <div className="page-shell page-shell--public">
         <div>
           <Skeleton className="w-32 h-6" />
         </div>
 
         <div className="flex flex-col gap-6">
-          <div className="rounded-2xl border border-border/40 bg-card/60 p-6 md:p-8 backdrop-blur-md shadow-sm">
+          <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
             <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
               <div className="flex-1 min-w-0">
                 <div className="flex gap-2 flex-wrap mb-4">
@@ -167,7 +167,7 @@ export default function DocumentDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border/40 bg-card/60 p-6 md:p-8 backdrop-blur-md shadow-sm space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-4">
             <Skeleton className="w-32 h-6 mb-4" />
             <Skeleton className="w-full h-4" />
             <Skeleton className="w-full h-4" />
@@ -180,7 +180,7 @@ export default function DocumentDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-6">
+    <div className="page-shell page-shell--public">
       <div>
         <Button
           asChild
@@ -195,7 +195,7 @@ export default function DocumentDetailPage() {
 
       <div className="flex flex-col gap-6">
         {/* Header Metadata */}
-        <div className="rounded-2xl border border-border/40 bg-card/60 p-6 md:p-8 backdrop-blur-md shadow-sm">
+        <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
             <div className="flex-1 min-w-0">
               <div className="flex gap-2 flex-wrap mb-4">
@@ -219,7 +219,7 @@ export default function DocumentDetailPage() {
                 ))}
               </div>
 
-              <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-6 text-foreground/90">
+              <h1 className="page-heading__title mb-6">
                 {document.title}
               </h1>
 
@@ -333,7 +333,7 @@ export default function DocumentDetailPage() {
 
         {/* Description */}
         {document.description && (
-          <div className="rounded-2xl border border-border/40 bg-card/60 p-6 md:p-8 backdrop-blur-md shadow-sm">
+          <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
             <h3 className="font-semibold mb-4 text-foreground/80">
               Mô tả tài liệu
             </h3>

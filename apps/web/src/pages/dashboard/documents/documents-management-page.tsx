@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui/page-header";
 import { useState, useEffect } from "react";
 import { Plus, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -114,33 +115,17 @@ export default function DocumentsManagementPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Quản lý tài liệu
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Quản lý, thêm mới và cập nhật các tài liệu trên hệ thống.
-          </p>
-        </div>
-        <Button
-          className="shrink-0 gap-2"
-          onClick={() => setIsCreateModalOpen(true)}
-        >
-          <Plus className="size-4" />
-          Thêm tài liệu mới
-        </Button>
-      </div>
+    <div className="page-shell">
+      <PageHeader title="Quản lý tài liệu" description="Thêm và cập nhật tài liệu trong kho học tập."
+        actions={<Button onClick={() => setIsCreateModalOpen(true)}><Plus aria-hidden="true" className="size-4" />Thêm tài liệu mới</Button>} />
 
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="page-toolbar">
         <div className="relative max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Tìm kiếm tài liệu..."
-            className="pl-9 h-10"
+            className="pl-9 h-11"
             value={keyword}
             onChange={(e) => {
               setKeyword(e.target.value);

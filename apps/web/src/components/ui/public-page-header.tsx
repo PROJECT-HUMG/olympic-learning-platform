@@ -1,3 +1,5 @@
+import { PageHeader } from "./page-header";
+
 interface PublicPageHeaderProps {
   title: string;
   description?: string;
@@ -5,14 +7,5 @@ interface PublicPageHeaderProps {
 }
 
 export function PublicPageHeader({ title, description, className = "" }: PublicPageHeaderProps) {
-  return (
-    <div className={`space-y-4 ${className}`}>
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">
-        {title}
-      </h1>
-      {description && (
-        <p className="text-muted-foreground">{description}</p>
-      )}
-    </div>
-  );
+  return <PageHeader title={title} description={description} className={className} />;
 }

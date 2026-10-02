@@ -1,45 +1,3 @@
-.school-news {
-  max-width: 76rem;
-  min-height: 75vh;
-  margin-inline: auto;
-  padding: clamp(2rem, 5vw, 4.5rem) 1.5rem 5rem;
-}
-
-.school-news__header {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 2rem;
-  margin-bottom: 2.5rem;
-}
-
-.school-news__header h1 {
-  font-family: var(--font-serif);
-  font-size: clamp(1.8rem, 4vw, 3.2rem);
-  line-height: 1.25;
-  letter-spacing: -.045em;
-}
-
-.school-news__header p {
-  max-width: 37rem;
-  margin-top: 1rem;
-  color: var(--muted-foreground);
-  font-size: .95rem;
-  line-height: 1.8;
-}
-
-.school-news__jump {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: .5rem;
-  min-height: 2.75rem;
-  color: var(--primary);
-  font-size: .85rem;
-}
-
-.school-news__jump svg { width: 1rem; height: 1rem; }
-
 .school-news a:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 4px;
@@ -48,7 +6,6 @@
 
 .school-news__pinned {
   padding: 1.5rem;
-  margin-bottom: 3.25rem;
   border: 1px solid var(--border);
   border-radius: 1rem;
   background: var(--muted);
@@ -157,10 +114,10 @@
 .school-news__pagination [data-slot="pagination-content"] { flex-wrap: wrap; justify-content: center; }
 
 @media (max-width: 767px) {
-  .school-news { padding-inline: 1.25rem; }
-  .school-news__header { margin-bottom: 2rem; }
-  .school-news__jump { display: none; }
-  .school-news__pinned { padding: 1rem; margin-bottom: 2rem; }
+
+
+
+  .school-news__pinned { padding: 1rem; }
   .school-news__pinned-posts { grid-template-columns: minmax(0, 1fr); }
   .school-news__pinned-heading { margin-bottom: 1rem; }
   .school-news__feed-header { align-items: stretch; flex-direction: column; }
@@ -176,7 +133,7 @@
 }
 
 @media (max-width: 379px) {
-  .school-news { padding-inline: 1rem; }
+
   .school-news-post--illustrated { grid-template-columns: minmax(0, 1fr); }
   .school-news-post__image { grid-column: 1; grid-row: 1; width: 100%; max-height: 10rem; aspect-ratio: 16/9; }
   .school-news-post--illustrated .school-news-post__body { grid-row: 2; }
