@@ -188,7 +188,7 @@ export function HomeStudyNotebook() {
           <Bell aria-hidden="true" /> Thông báo
         </TabsTrigger>
         <TabsTrigger value="toolkit" className="study-notebook__tab">
-          <PencilRuler aria-hidden="true" /> Toolkit
+          <PencilRuler aria-hidden="true" /> Tiện ích
         </TabsTrigger>
       </TabsList>
 
@@ -201,7 +201,7 @@ export function HomeStudyNotebook() {
       <TabsContent value="toolkit" className="study-notebook__page">
         <div className="study-notebook__heading">
           <h2 className="study-notebook__eyebrow">Tiện ích học tập</h2>
-          <Link to={ROUTES.TOOLKIT} className="study-notebook__browse">Mở toolkit <ArrowUpRight aria-hidden="true" /></Link>
+          <Link to={ROUTES.TOOLKIT} className="study-notebook__browse">Mở tiện ích <ArrowUpRight aria-hidden="true" /></Link>
         </div>
         <ul className="study-notebook__items">
           <li>

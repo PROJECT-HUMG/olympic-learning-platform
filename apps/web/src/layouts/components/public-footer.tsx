@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import type { ReactNode } from "react";
 import { ROUTES } from "@/router/route-constants";
 import { Logo } from "@/components/ui/logo";
 import { Label } from "@/components/ui/label";
@@ -11,7 +12,18 @@ import {
 } from "@/components/ui/tooltip";
 import { useThemeStore } from "@/stores/use-theme-store";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
-import { Moon, Sun, MapPin, Mail, Phone } from "lucide-react";
+import { ChevronDown, Moon, Sun, MapPin, Mail, Phone } from "lucide-react";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import "./public-footer.css";
+
+function FooterGroup({ title, wide, children }: { title: string; wide: boolean; children: ReactNode }) {
+  return <details className="public-footer__group" open={wide}>
+    <summary onClick={(event) => { if (wide) event.preventDefault(); }}>
+      <h3>{title}</h3><ChevronDown aria-hidden="true" />
+    </summary>
+    <div className="public-footer__group-content">{children}</div>
+  </details>;
+}
 
 const FaviconIcon = ({ src, domain, className }: { src: string; domain: string; className?: string }) => (
   <img
@@ -38,13 +50,14 @@ const DISCOVERY_LINKS = [
 export function PublicFooter() {
   const setTheme = useThemeStore((state) => state.setTheme);
   const theme = useResolvedTheme();
+  const wide = useMediaQuery("(min-width: 768px)");
 
   const isDark = theme === "dark";
 
   return (
-    <footer className="relative z-10 border-t border-border/60 bg-card/60 backdrop-blur-xl text-foreground transition-colors duration-300 pt-16 pb-8">
+    <footer className="public-footer relative z-10 border-t border-border/60 bg-card/60 text-foreground">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4 lg:gap-8 mb-12">
+        <div className="public-footer__columns grid md:grid-cols-2 lg:grid-cols-4">
           {/* Cột 1: Brand */}
           <div className="relative space-y-4">
             <Logo />
@@ -54,10 +67,7 @@ export function PublicFooter() {
           </div>
 
           {/* Cột 2: Khám phá */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
-              Khám phá
-            </h3>
+          <FooterGroup title="Khám phá" wide={wide}>
             <nav className="space-y-2.5 text-sm">
               {DISCOVERY_LINKS.map((link) => (
                 <Link
@@ -69,13 +79,10 @@ export function PublicFooter() {
                 </Link>
               ))}
             </nav>
-          </div>
+          </FooterGroup>
 
           {/* Cột 3: Liên hệ */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
-              Liên hệ
-            </h3>
+          <FooterGroup title="Liên hệ" wide={wide}>
             <address className="space-y-2.5 text-sm not-italic text-muted-foreground">
               <p className="flex items-start gap-2">
                 <MapPin className="size-4 shrink-0 text-primary mt-0.5" />
@@ -92,14 +99,11 @@ export function PublicFooter() {
                 </a>
               </p>
             </address>
-          </div>
+          </FooterGroup>
 
           {/* Cột 4: Theo dõi & Giao diện */}
-          <div className="relative space-y-6">
+          <FooterGroup title="Theo dõi & giao diện" wide={wide}>
             <div>
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-foreground">
-                Theo dõi chúng tôi
-              </h3>
               <div className="flex items-center space-x-3">
                 {SOCIAL_LINKS.map((social) => (
                   <TooltipProvider key={social.name}>
@@ -130,7 +134,7 @@ export function PublicFooter() {
 
             {/* Switch Dark/Light Mode */}
             <div className="pt-2">
-              <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <h4 className="mb-3 text-xs font-medium text-muted-foreground">
                 Giao diện hiển thị
               </h4>
               <div className="flex items-center space-x-2.5">
@@ -146,11 +150,11 @@ export function PublicFooter() {
                 </Label>
               </div>
             </div>
-          </div>
+          </FooterGroup>
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border/50 pt-8 text-center md:flex-row">
+        <div className="public-footer__bottom flex flex-col items-center justify-between gap-4 border-t border-border/50 text-center md:flex-row">
           <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} Olympic Learning Platform (HUMG). All rights reserved.
           </p>

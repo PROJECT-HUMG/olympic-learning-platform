@@ -28,7 +28,9 @@ Mở `http://localhost:3000`. Vite proxy request `/api` tới `http://localhost:
 | `src/components/ui/cinematic-media.ts` | Tải và dùng lại video theo theme |
 | `src/lib/list-navigation.ts` | Kiểm tra số trang và giữ đường quay lại danh sách |
 
-Trang chủ hiện có hero tìm tài liệu, bàn học với các tab tài liệu/thông báo/toolkit và tin tức mới nhất. Tài liệu, thông báo và tin tức lấy từ API. Các component cũ còn tham chiếu `src/features/home/data/home-mock-data.ts` nhưng không được mount trong `HomePage`; không dùng các mẫu đó làm thông tin công bố chính thức.
+Trang chủ có tìm tài liệu, liên kết trực tiếp phòng học/GPA và bàn học với các tab Tài liệu/Thông báo/Tiện ích. Bảng tin mới nhất ghép NEWS và BLOG theo ngày đăng, lấy tối đa ba bài; thông báo nằm riêng trong bàn học. Nội dung lấy từ API, bài không có ảnh dùng hàng văn bản gọn. Footer public mở đủ nhóm trên desktop, thu/mở từng nhóm trên mobile.
+
+Nền động trang chủ mặc định bật trên mọi kích thước, gồm iPhone. Nút “Nền động” cạnh nút giao diện nhớ lựa chọn qua localStorage; khi lưu bị chặn vẫn đổi được trong phiên hiện tại. Ánh sáng trôi nhẹ chỉ ở hero; video tắt tiếng, phát trong trang và dừng khi ra khỏi màn hình/tab ẩn. Tắt nền động hoặc bật Giảm chuyển động dùng ảnh tĩnh; lần vào với nền tắt không tải video. Autoplay bị chặn hoặc video lỗi giữ poster. Các component cũ còn tham chiếu `src/features/home/data/home-mock-data.ts` nhưng không được mount trong `HomePage`; không dùng các mẫu đó làm thông tin công bố chính thức.
 
 Các màn học tập công khai:
 

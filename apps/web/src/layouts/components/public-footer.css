@@ -1,0 +1,23 @@
+.public-footer { padding-block: 3rem 1.5rem; }
+.public-footer__columns { gap: 2rem; }
+.public-footer__group { min-width: 0; }
+.public-footer__group > summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; list-style: none; }
+.public-footer__group > summary::-webkit-details-marker { display: none; }
+.public-footer__group > summary h3 { font-size: .875rem; font-weight: 600; line-height: 1.6; }
+.public-footer__group > summary > svg { display: none; width: 1rem; height: 1rem; }
+.public-footer__group-content { margin-top: 1rem; }
+.public-footer__group-content > div + div { margin-top: 1.5rem; }
+.public-footer__bottom { margin-top: 2rem; padding-top: 1.5rem; }
+.public-footer :is(summary, a):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; border-radius: .25rem; }
+@media (min-width: 768px) { .public-footer__group > summary { cursor: default; } }
+@media (max-width: 767px) {
+  .public-footer { padding-block: 1.5rem; }
+  .public-footer__columns { gap: 0; }
+  .public-footer__columns > div:first-child { padding-bottom: 1.25rem; }
+  .public-footer__group { border-top: 1px solid var(--border); }
+  .public-footer__group > summary { min-height: 3rem; cursor: pointer; }
+  .public-footer__group > summary > svg { display: block; }
+  .public-footer__group[open] > summary > svg { transform: rotate(180deg); }
+  .public-footer__group-content { margin-top: .25rem; padding-bottom: 1rem; }
+  .public-footer__bottom { margin-top: 1rem; padding-top: 1rem; }
+}

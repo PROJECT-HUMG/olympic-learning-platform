@@ -4,6 +4,7 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { HomeMotionToggle } from "@/features/home/components/home-motion-toggle";
 import {
   Sheet,
   SheetContent,
@@ -98,6 +99,7 @@ export function PublicHeader({ cinematic = false }: { cinematic?: boolean }) {
         </nav>
         <div className="public-header__actions flex shrink-0 items-center gap-1.5 sm:gap-2">
           <ThemeToggle />
+          {cinematic && <HomeMotionToggle />}
           <Button
             asChild
             variant="ghost"

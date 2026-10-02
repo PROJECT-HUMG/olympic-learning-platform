@@ -1,15 +1,33 @@
-import type { FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowDown, BookOpen, Search } from "lucide-react";
+import { Calculator, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CinematicScene } from "@/components/ui/cinematic-scene";
 import { ROUTES } from "@/router/route-constants";
 import { HomeStudyNotebook } from "./home-study-notebook";
+import { useHomeMotion } from "../hooks/use-home-motion";
 import "./home-hero-section.css";
 
 export function HomeHeroSection() {
   const navigate = useNavigate();
+  const { enabled } = useHomeMotion();
+  const introRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  const [tabVisible, setTabVisible] = useState(() => !document.hidden);
+
+  useEffect(() => {
+    const intro = introRef.current;
+    if (!intro) return;
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
+    const syncVisibility = () => setTabVisible(!document.hidden);
+    observer.observe(intro);
+    document.addEventListener("visibilitychange", syncVisibility);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", syncVisibility);
+    };
+  }, []);
 
   function searchDocuments(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -20,10 +38,11 @@ export function HomeHeroSection() {
   }
 
   return (
-    <section className="home-hero" aria-labelledby="home-hero-title">
-      <div className="home-hero__intro">
+    <section className="home-hero" aria-labelledby="home-hero-title" data-motion={enabled} data-playing={enabled && visible && tabVisible}>
+      <div ref={introRef} className="home-hero__intro">
+        <div className="home-hero__ambient" aria-hidden="true" />
         <div className="home-hero__window">
-          <CinematicScene />
+          <CinematicScene animated={enabled} />
         </div>
 
         <div className="home-hero__content">
@@ -44,14 +63,13 @@ export function HomeHeroSection() {
           </form>
 
           <div className="home-hero__links">
-            <Link to={ROUTES.DOCUMENTS}>
-              <BookOpen aria-hidden="true" size={16} />
-              Mở kho tài liệu
+            <Link to={`${ROUTES.TOOLKIT}?tool=rooms`}>
+              <Users aria-hidden="true" size={16} />
+              Phòng học chung
             </Link>
-            <a href="#study-notebook">
-              Khám phá bàn học
-              <ArrowDown aria-hidden="true" size={15} />
-            </a>
+            <Link to={`${ROUTES.TOOLKIT}?tool=gpa`}>
+              <Calculator aria-hidden="true" size={16} />Tính GPA
+            </Link>
           </div>
         </div>
       </div>
