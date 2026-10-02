@@ -28,6 +28,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isDirty },
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -37,7 +38,9 @@ export function ProfileForm({ user }: ProfileFormProps) {
   });
 
   function onSubmit(data: ProfileFormValues) {
-    updateProfileMutation.mutate(data);
+    updateProfileMutation.mutate(data, {
+      onSuccess: (response) => reset({ fullName: response.data.fullName || "" }),
+    });
   }
 
   const roleLabelMap: Record<string, { label: string; variant: string }> = {
@@ -56,13 +59,13 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const statusInfo = statusLabelMap[user.status] || { label: user.status, variant: "default" };
 
   return (
-    <Card className="p-2 sm:p-4">
+    <Card className="min-w-0 p-2 sm:p-4">
       <CardHeader className="border-b border-border pb-4 mb-6">
         <CardTitle>Thông Tin Cá Nhân</CardTitle>
         <CardDescription>Quản lý thông tin hiển thị và chi tiết tài khoản của bạn.</CardDescription>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="min-w-0 px-4 sm:px-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Full Name field */}
           <div className="space-y-2">
@@ -72,28 +75,29 @@ export function ProfileForm({ user }: ProfileFormProps) {
               label="Họ và tên"
               placeholder="Nhập họ và tên của bạn"
               error={errors.fullName?.message}
+              disabled={updateProfileMutation.isPending}
               {...register("fullName")}
             />
           </div>
 
           {/* Readonly info grid */}
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid min-w-0 grid-cols-1 gap-6 sm:grid-cols-2">
             {/* Email */}
-            <div className="space-y-1 rounded-xl border border-border/60 bg-muted/40 p-4">
+            <div className="min-w-0 space-y-1 rounded-xl border border-border/60 bg-muted/40 p-4">
               <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                 <Mail className="size-3.5" />
                 <span>Địa chỉ Email</span>
               </div>
-              <p className="text-sm font-medium text-foreground">{user.email}</p>
+              <p className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{user.email}</p>
             </div>
 
             {/* Username */}
-            <div className="space-y-1 rounded-xl border border-border/60 bg-muted/40 p-4">
+            <div className="min-w-0 space-y-1 rounded-xl border border-border/60 bg-muted/40 p-4">
               <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                 <UserIcon className="size-3.5" />
                 <span>Tên đăng nhập</span>
               </div>
-              <p className="text-sm font-medium text-foreground">@{user.username}</p>
+              <p className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">@{user.username}</p>
             </div>
 
             {/* Role */}
@@ -121,8 +125,8 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
           {/* Last Login */}
           {user.lastLoginAt && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Calendar className="size-3.5" />
+            <div className="flex min-w-0 items-start gap-2 text-xs text-muted-foreground">
+              <Calendar className="size-3.5 shrink-0" />
               <span>
                 Đăng nhập gần nhất:{" "}
                 <strong className="font-medium text-foreground">

@@ -45,6 +45,10 @@ Chủ phòng bấm “Chỉnh giờ” để chọn phút học/nghỉ ngắn/ng
 
 Các màn tài khoản dùng video trên desktop. Dưới 1024px, giao diện dùng tông giấy/vở sáng hoặc tối, không mount video hay tải ảnh nền anime.
 
+Tải tài liệu có thể hủy bằng nút Hủy tải, Escape hoặc đóng hộp thoại, kể cả khi đang lấy đường dẫn từ API. Request link dùng timeout API 15 giây; request file từ storage dùng timeout 2 phút và không gửi token/cookie. Lỗi có thử lại; hủy hoặc đổi tài liệu dọn request/timer cũ, không tự tải hay đóng tài liệu mở sau. Tiến độ chưa biết dung lượng không hiển thị phần trăm giả.
+
+Nhãn `FormField` dùng trạng thái giá trị native của input để tránh đè dữ liệu sẵn, giá trị đặt bằng code/reset hoặc tự điền. Hồ sơ cho email/username dài xuống dòng trên mobile; lưu thành công reset form theo tên server trả về và vô hiệu hóa nút Lưu cho tới lần chỉnh sửa tiếp theo. Lưu lỗi giữ nội dung để thử lại.
+
 Các route luyện tập, kỳ thi và lịch sử hiện hiển thị hướng dẫn đến những tính năng có sẵn; chưa có toàn bộ luồng làm bài, chấm điểm và lưu kết quả.
 
 ## Điều hướng và loading

@@ -42,7 +42,6 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
       type,
       corner = 14,
       endAdornment,
-      onChange,
       onFocus,
       onBlur,
       value: controlledValue,
@@ -57,18 +56,6 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
     const [focus, setFocus] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [flip, setFlip] = useState(0);
-
-    /* Track whether the field has a value for the "up" state.
-       We read the actual DOM value so it works with both
-       controlled (RHF) and uncontrolled usage. */
-    const innerRef = useRef<HTMLInputElement | null>(null);
-    const [hasValue, setHasValue] = useState(false);
-
-    const syncRef = (el: HTMLInputElement | null) => {
-      innerRef.current = el;
-      if (typeof ref === "function") ref(el);
-      else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = el;
-    };
 
     /* the notch is the label's own width, so it is measured */
     const lab = useRef<HTMLLabelElement | null>(null);
@@ -91,8 +78,6 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
       setBoxW(boxRef.current.offsetWidth);
       return () => observer.disconnect();
     }, []);
-
-    const up = focus || hasValue;
 
     const inputType = isPassword
       ? showPassword
@@ -133,13 +118,7 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
       setFocus(false);
-      setHasValue(Boolean(e.target.value));
       onBlur?.(e);
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setHasValue(Boolean(e.target.value));
-      onChange?.(e);
     };
 
     const reveal = () => {
@@ -151,9 +130,7 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
       <div className="space-y-1.5 relative">
         <div
           className="lbi"
-          data-up={up}
           data-focus={focus}
-          data-filled={hasValue}
           data-invalid={Boolean(error)}
         >
           {labelRight && <div className="lbi-label-right">{labelRight}</div>}
@@ -202,7 +179,7 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
             )}
 
             <input
-              ref={syncRef}
+              ref={ref}
               id={id}
               className={cn("lbi-field", className)}
               data-flip={flip % 2}
@@ -212,10 +189,10 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
               aria-describedby={describedBy}
               value={controlledValue}
               defaultValue={defaultValue}
-              onChange={handleChange}
               onFocus={handleFocus}
               onBlur={handleBlur}
               autoComplete="off"
+              placeholder={label ? " " : _placeholder}
               spellCheck={false}
               style={{ paddingRight: isPassword ? 48 : endAdornment ? 52 : lx }}
               {...props}

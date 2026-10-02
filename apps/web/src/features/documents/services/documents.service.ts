@@ -19,17 +19,21 @@ export const documentsService = {
     return apiClient.get<DocumentResponse>(`/documents/${slug}`);
   },
 
-  getDownloadUri(slug: string, onDownloadProgress?: (progressEvent: AxiosProgressEvent) => void) {
-    return apiClient.get<{ url: string }>(`/documents/${slug}/download`).then((res) => {
+  getDownloadUri(slug: string, onDownloadProgress?: (progressEvent: AxiosProgressEvent) => void, signal?: AbortSignal) {
+    return apiClient.get<{ url: string }>(`/documents/${slug}/download`, { signal }).then((res) => {
+      signal?.throwIfAborted();
       const downloadUrl = res.data.url;
       
       // Fetch the actual file without credentials to avoid CORS issues with Cloudinary
       return axios.get(downloadUrl, {
         responseType: "blob",
         onDownloadProgress,
-        withCredentials: false
+        withCredentials: false,
+        signal,
+        timeout: 120_000,
       }).then((fileRes) => {
-        const url = window.URL.createObjectURL(new Blob([fileRes.data]));
+        signal?.throwIfAborted();
+        const url = window.URL.createObjectURL(fileRes.data);
         const link = document.createElement("a");
         link.href = url;
         

@@ -38,8 +38,8 @@ export const useIncrementViewCount = () => {
 
 export const useDownloadDocument = () => {
   return useMutation({
-    mutationFn: ({ slug, onDownloadProgress }: { slug: string; onDownloadProgress?: (progressEvent: AxiosProgressEvent) => void }) => 
-      documentsService.getDownloadUri(slug, onDownloadProgress),
+    mutationFn: ({ slug, onDownloadProgress, signal }: { slug: string; onDownloadProgress?: (progressEvent: AxiosProgressEvent) => void; signal?: AbortSignal }) =>
+      documentsService.getDownloadUri(slug, onDownloadProgress, signal),
   });
 };
 

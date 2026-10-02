@@ -47,7 +47,8 @@
   stroke-width: 1.5;
 }
 
-.lbi[data-filled="true"]:not([data-focus="true"]) .lbi-ring path {
+/* Native value state also follows form reset, programmatic values and autofill. */
+.lbi:has(.lbi-field:not(:placeholder-shown)):not([data-focus="true"]):not([data-invalid="true"]) .lbi-ring path {
   stroke: var(--muted-foreground);
 }
 
@@ -66,7 +67,8 @@
     stroke-dashoffset 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.lbi[data-up="true"] .lbi-gap {
+.lbi[data-focus="true"] .lbi-gap,
+.lbi:has(.lbi-field:not(:placeholder-shown)) .lbi-gap {
   stroke-dashoffset: -1;
 }
 
@@ -92,9 +94,9 @@
   pointer-events: none;
 }
 
-.lbi[data-up="true"] .lbi-label {
+.lbi[data-focus="true"] .lbi-label,
+.lbi:has(.lbi-field:not(:placeholder-shown)) .lbi-label {
   transform: translateY(-50%) translateY(-26px) scale(0.78);
-  color: var(--muted-foreground);
 }
 
 .lbi[data-focus="true"] .lbi-label {
