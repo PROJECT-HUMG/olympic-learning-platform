@@ -12,7 +12,9 @@ import me.nghlong3004.olympic.auth.request.*;
 import me.nghlong3004.olympic.auth.response.*;
 import me.nghlong3004.olympic.auth.service.AuthService;
 import me.nghlong3004.olympic.auth.service.RefreshTokenService;
+import me.nghlong3004.olympic.auth.service.RegistrationVerificationService;
 import me.nghlong3004.olympic.common.properties.SecurityProperties;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +36,7 @@ public class AuthController {
   private static final String REFRESH_COOKIE = "olympic_refresh_token";
 
   private final AuthService authService;
+  private final RegistrationVerificationService registrationVerificationService;
   private final RefreshTokenService refreshTokenService;
   private final SecurityProperties securityProperties;
 
@@ -44,10 +47,55 @@ public class AuthController {
       description = "Registration accepted and verification email sent")
   @ApiResponse(responseCode = "403", description = "Self-registration is disabled")
   @ApiResponse(responseCode = "409", description = "Email already exists")
-  public RegisterResponse register(
+  public ResponseEntity<RegisterResponse> register(
       @Valid @RequestBody RegisterRequest request, HttpServletRequest servletRequest) {
-    return authService.register(
-        request, servletRequest.getRemoteAddr(), servletRequest.getHeader(HttpHeaders.USER_AGENT));
+    return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(authService.register(
+        request, servletRequest.getRemoteAddr(), servletRequest.getHeader(HttpHeaders.USER_AGENT)));
+  }
+
+  @PostMapping("/registration/verify")
+  @Operation(summary = "Verify a registration email using a six digit OTP")
+  @ApiResponse(responseCode = "200", description = "Email verified, including repeated success")
+  @ApiResponse(responseCode = "400", description = "Invalid session or incorrect/expired code")
+  @ApiResponse(responseCode = "429", description = "Attempt or rate limit reached")
+  public AuthMessageResponse verifyRegistration(@Valid @RequestBody VerifyRegistrationRequest request,
+      HttpServletRequest servletRequest) {
+    return registrationVerificationService.verify(request, servletRequest.getRemoteAddr());
+  }
+
+  @PostMapping("/registration/resend")
+  @Operation(summary = "Resend a registration OTP using its scoped session")
+  @ApiResponse(responseCode = "200", description = "New code queued; old code invalidated")
+  @ApiResponse(responseCode = "400", description = "Invalid or expired registration session")
+  @ApiResponse(responseCode = "429", description = "Cooldown or rate limit reached")
+  public ResponseEntity<RegistrationChallengeResponse> resendRegistration(@Valid @RequestBody RegistrationSessionRequest request,
+      HttpServletRequest servletRequest) {
+    return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(
+        registrationVerificationService.resend(request, servletRequest.getRemoteAddr()));
+  }
+
+  @PostMapping("/registration/email")
+  @Operation(summary = "Correct a pending registration email and send a new OTP")
+  @ApiResponse(responseCode = "200", description = "Email corrected; old codes and links revoked")
+  @ApiResponse(responseCode = "400", description = "Invalid registration session or email")
+  @ApiResponse(responseCode = "409", description = "Email taken or account already active")
+  @ApiResponse(responseCode = "429", description = "Rate limit reached")
+  public ResponseEntity<RegistrationChallengeResponse> changeRegistrationEmail(@Valid @RequestBody ChangeRegistrationEmailRequest request,
+      HttpServletRequest servletRequest) {
+    return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(
+        registrationVerificationService.changeEmail(request, servletRequest.getRemoteAddr()));
+  }
+
+  @PostMapping("/registration/resume")
+  @Operation(summary = "Resume pending verification with email/username and password")
+  @ApiResponse(responseCode = "200", description = "New registration session and OTP issued")
+  @ApiResponse(responseCode = "401", description = "Invalid credentials")
+  @ApiResponse(responseCode = "409", description = "Account already verified")
+  @ApiResponse(responseCode = "429", description = "Cooldown or rate limit reached")
+  public ResponseEntity<RegistrationChallengeResponse> resumeRegistration(@Valid @RequestBody LoginRequest request,
+      HttpServletRequest servletRequest) {
+    return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(
+        registrationVerificationService.resume(request, servletRequest.getRemoteAddr()));
   }
 
   @PostMapping("/login")

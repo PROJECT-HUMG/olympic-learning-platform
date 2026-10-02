@@ -78,9 +78,15 @@ public class AuthEmailTokenServiceImpl implements AuthEmailTokenService {
       throw ErrorCode.EMAIL_TOKEN_MISSING.throwIt();
     }
     var now = OffsetDateTime.now(clock);
+    var tokenHash = hash(rawToken);
+    var userId = repository.findUserIdByTokenHashAndStatus(tokenHash, AuthEmailTokenStatus.ACTIVE)
+        .orElseThrow(ErrorCode.EMAIL_TOKEN_INVALID::throwIt);
+    // Lock user before token, matching issuance and registration OTP/email changes.
+    var user = userRepository.findForUpdateById(userId)
+        .orElseThrow(ErrorCode.EMAIL_TOKEN_INVALID::throwIt);
     var token =
         repository
-            .findForUpdateByTokenHashAndStatus(hash(rawToken), AuthEmailTokenStatus.ACTIVE)
+            .findForUpdateByTokenHashAndStatus(tokenHash, AuthEmailTokenStatus.ACTIVE)
             .orElseThrow(ErrorCode.EMAIL_TOKEN_INVALID::throwIt);
     if (!allowedPurposes.contains(token.getPurpose())) {
       throw ErrorCode.EMAIL_TOKEN_INVALID.throwIt();
@@ -91,10 +97,6 @@ public class AuthEmailTokenServiceImpl implements AuthEmailTokenService {
     }
     token.setStatus(AuthEmailTokenStatus.USED);
     token.setUsedAt(now);
-    var user =
-        userRepository
-            .findByIdAndDeletedAtIsNull(token.getUserId())
-            .orElseThrow(ErrorCode.EMAIL_TOKEN_INVALID::throwIt);
     return new AuthEmailTokenConsumption(user, token.getPurpose());
   }
 

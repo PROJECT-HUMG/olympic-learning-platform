@@ -11,6 +11,10 @@ public class SecurityEndpoints {
 
   protected static final String[] PUBLIC_POST_ENDPOINTS = {
     "/api/v1/auth/register",
+    "/api/v1/auth/registration/verify",
+    "/api/v1/auth/registration/resend",
+    "/api/v1/auth/registration/email",
+    "/api/v1/auth/registration/resume",
     "/api/v1/auth/login",
     "/api/v1/auth/refresh",
     "/api/v1/auth/logout",

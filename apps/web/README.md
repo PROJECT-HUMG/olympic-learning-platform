@@ -82,3 +82,7 @@ Kiểm thử GPA/mục tiêu, refresh phiên, thời hạn bài viết, đườn
 ```bash
 node --test --test-isolation=none tests/*.test.ts
 ```
+
+## OTP đăng ký
+
+Màn đăng ký nhập OTP 6 số, có sửa email/gửi lại/đếm ngược và phục hồi bằng email hoặc username cùng mật khẩu khi mất phiên. Challenge lưu trong sessionStorage để tải lại cùng tab; không lưu OTP/mật khẩu. Đăng nhập tài khoản PENDING dẫn tới bước tiếp tục xác thực. Cần API cùng phiên bản và migration V13. Xem [contract OTP](../../docs/architecture/registration-otp.md).

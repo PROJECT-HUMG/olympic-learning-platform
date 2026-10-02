@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/axios";
 import type {
+  RegistrationChallenge,
   LoginRequest,
   LoginResponse,
   RegisterRequest,
@@ -20,6 +21,22 @@ export const authService = {
 
   register(data: RegisterRequest) {
     return apiClient.post<RegisterResponse>("/auth/register", data);
+  },
+
+  verifyRegistration(data: { verificationSession: string; code: string }) {
+    return apiClient.post<AuthMessageResponse>("/auth/registration/verify", data);
+  },
+
+  resendRegistration(data: { verificationSession: string }) {
+    return apiClient.post<RegistrationChallenge>("/auth/registration/resend", data);
+  },
+
+  changeRegistrationEmail(data: { verificationSession: string; email: string }) {
+    return apiClient.post<RegistrationChallenge>("/auth/registration/email", data);
+  },
+
+  resumeRegistration(data: LoginRequest) {
+    return apiClient.post<RegistrationChallenge>("/auth/registration/resume", data);
   },
 
   refresh() {

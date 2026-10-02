@@ -17,11 +17,11 @@ public interface AuthService {
 
   /**
    * Registers a local user when self-registration is enabled. The created account remains pending
-   * until the verification email token is consumed.
+   * until the verification OTP is accepted.
    *
    * @param request validated registration payload
-   * @param ip client IP address for email-token audit metadata
-   * @param userAgent client user-agent for email-token audit metadata
+   * @param ip client IP address for registration rate limits
+   * @param userAgent client user-agent retained for API compatibility
    * @return pending account response
    */
   RegisterResponse register(RegisterRequest request, String ip, String userAgent);

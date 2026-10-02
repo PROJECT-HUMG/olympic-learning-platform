@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -19,6 +20,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const { login } = useAuth();
   const location = useLocation();
+  const [pendingIdentifier, setPendingIdentifier] = useState("");
 
   const {
     register,
@@ -29,11 +31,13 @@ export function LoginForm() {
   });
 
   async function onSubmit(data: LoginFormValues) {
+    setPendingIdentifier("");
     try {
       await login(data.identifier, data.password);
       toast.success("Đăng nhập thành công! Chào mừng bạn quay trở lại.");
     } catch (err) {
       const apiError = parseApiError(err);
+      if (apiError.messageKey === "error.auth.emailNotVerified") setPendingIdentifier(data.identifier);
       toast.error(apiError.detail || "Email, Tên đăng nhập hoặc mật khẩu không chính xác.");
     }
   }
@@ -82,6 +86,11 @@ export function LoginForm() {
         </Button>
       </form>
 
+      {pendingIdentifier && <p role="status" className="text-sm text-muted-foreground">
+        Email chưa được xác thực.{" "}
+        <Link to={ROUTES.REGISTER + "?resume=1"} state={{ ...location.state, registrationIdentifier: pendingIdentifier }}
+          className="font-medium text-foreground underline underline-offset-4">Nhận mã xác thực mới</Link>
+      </p>}
       <p className="text-center text-sm text-muted-foreground">
         Chưa có tài khoản?{" "}
         <Link

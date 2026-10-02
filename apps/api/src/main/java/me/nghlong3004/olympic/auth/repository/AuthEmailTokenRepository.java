@@ -35,6 +35,9 @@ public interface AuthEmailTokenRepository extends JpaRepository<AuthEmailToken, 
   Optional<AuthEmailToken> findForUpdateByTokenHashAndStatus(
       @Param("tokenHash") String tokenHash, @Param("status") AuthEmailTokenStatus status);
 
+  @Query("select token.userId from AuthEmailToken token where token.tokenHash = :hash and token.status = :status")
+  Optional<UUID> findUserIdByTokenHashAndStatus(@Param("hash") String hash, @Param("status") AuthEmailTokenStatus status);
+
   List<AuthEmailToken> findByUserIdAndStatus(UUID userId, AuthEmailTokenStatus status);
 
   @Modifying

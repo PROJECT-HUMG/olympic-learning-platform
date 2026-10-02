@@ -9,12 +9,15 @@ import { ROUTES } from "@/router/route-constants";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { toast } from "sonner";
-import { MailCheckIcon } from "lucide-react";
+import { RegistrationVerification } from "./registration-verification";
+import { ResumeRegistrationForm } from "./resume-registration-form";
+import { readRegistrationSession, storeRegistrationSession } from "../lib/registration-session";
+import type { RegistrationChallenge } from "../types/auth.types";
 
 const registerSchema = z
   .object({
-    email: z.email("Vui lòng nhập địa chỉ email hợp lệ"),
-    username: z.string().min(3, "Tên đăng nhập phải có ít nhất 3 ký tự"),
+    email: z.email("Vui lòng nhập địa chỉ email hợp lệ").max(100, "Email tối đa 100 ký tự"),
+    username: z.string().min(3, "Tên đăng nhập phải có ít nhất 3 ký tự").max(100, "Tên đăng nhập tối đa 100 ký tự"),
     fullName: z
       .string()
       .min(1, "Vui lòng nhập họ và tên")
@@ -34,14 +37,20 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
   const location = useLocation();
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [challenge, setChallenge] = useState<RegistrationChallenge | null>(readRegistrationSession);
+  const [showVerification, setShowVerification] = useState(() => challenge !== null);
+  const [resuming, setResuming] = useState(() => new URLSearchParams(location.search).get("resume") === "1");
+  function updateChallenge(value: RegistrationChallenge | null) {
+    setChallenge(value);
+    storeRegistrationSession(value);
+  }
   const [isUsernameTouched, setIsUsernameTouched] = useState(false);
 
   const {
     register,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -68,37 +77,32 @@ export function RegisterForm() {
 
   async function onSubmit(data: RegisterFormValues) {
     try {
-      await authService.register({
+      const response = await authService.register({
         email: data.email,
         username: data.username,
         fullName: data.fullName,
         password: data.password,
       });
-      setRegisteredEmail(data.email);
-      setIsRegistered(true);
-      toast.success("Đăng ký tài khoản thành công!");
+      reset();
+      setIsUsernameTouched(false);
+      updateChallenge(response.data.verification);
+      setShowVerification(true);
+      toast.success("Đã tạo tài khoản. Nhập mã trong email để hoàn tất.");
     } catch (err) {
       const apiError = parseApiError(err);
       toast.error(apiError.detail || "Đăng ký thất bại. Vui lòng thử lại.");
     }
   }
 
-  if (isRegistered) {
-    return (
-      <div className="auth-status" role="status">
-        <MailCheckIcon className="auth-status__icon" />
-        <h1 className="auth-heading">Còn một bước nữa.</h1>
-        <p className="auth-status__message">
-          Chúng tôi đã gửi đường link xác thực đến email{" "}
-          <span className="font-semibold text-foreground">{registeredEmail}</span>.
-          Vui lòng kiểm tra hộp thư để kích hoạt tài khoản.
-        </p>
-        <Button asChild variant="outline" className="h-11 rounded-full px-6">
-          <Link to={ROUTES.LOGIN} state={location.state}>Về đăng nhập</Link>
-        </Button>
-      </div>
-    );
-  }
+  if (resuming) return <ResumeRegistrationForm
+    onComplete={(value) => { updateChallenge(value); setShowVerification(true); setResuming(false); }}
+    onBack={() => { updateChallenge(null); setShowVerification(false); setResuming(false); }}
+  />;
+
+  if (showVerification && challenge) return <RegistrationVerification challenge={challenge}
+    onUpdate={(value) => { if (value) updateChallenge(value); else storeRegistrationSession(null); }}
+    onResume={() => { updateChallenge(null); setShowVerification(false); setResuming(true); }}
+  />;
 
   return (
     <div className="auth-form">
@@ -167,6 +171,9 @@ export function RegisterForm() {
         </Button>
       </form>
 
+      <Button type="button" variant="ghost" className="w-full" disabled={isSubmitting} onClick={() => setResuming(true)}>
+        Đã đăng ký nhưng chưa xác thực?
+      </Button>
       <p className="text-center text-sm text-muted-foreground">
         Đã có tài khoản?{" "}
         <Link

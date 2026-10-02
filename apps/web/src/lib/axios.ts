@@ -57,6 +57,7 @@ apiClient.interceptors.response.use(
     // Don't attempt refresh for auth endpoints — 401 here means invalid credentials, not expired token
     const isAuthRequest = requestUrl.includes("/auth/login") ||
       requestUrl.includes("/auth/register") ||
+      requestUrl.includes("/auth/registration/") ||
       requestUrl.includes("/auth/refresh") || requestUrl.includes("/auth/logout");
 
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthRequest) {

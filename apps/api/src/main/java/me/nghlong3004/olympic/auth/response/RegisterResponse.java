@@ -9,4 +9,5 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record RegisterResponse(
     @Schema(example = "Registration accepted. Verify your email to activate the account.")
         String message,
-    @Schema(example = "success.register") String messageKey) {}
+    @Schema(example = "success.register") String messageKey,
+    RegistrationChallengeResponse verification) {}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { authService } from "@/features/auth/services/auth.service";
 import { parseApiError } from "@/lib/api-error";
@@ -14,6 +14,8 @@ export function VerifyEmailCard() {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState("");
 
+  const verification = useRef<{ token: string; request: ReturnType<typeof authService.verifyEmail> } | null>(null);
+
   useEffect(() => {
     if (!token) {
       setStatus("error");
@@ -21,11 +23,15 @@ export function VerifyEmailCard() {
       return;
     }
 
+    if (verification.current?.token !== token) {
+      verification.current = { token, request: authService.verifyEmail({ token }) };
+    }
+    const request = verification.current.request;
     let mounted = true;
 
     async function verify() {
       try {
-        await authService.verifyEmail({ token: token! });
+        await request;
         if (mounted) setStatus("success");
       } catch (err) {
         if (mounted) {
@@ -73,7 +79,7 @@ export function VerifyEmailCard() {
           <h1 className="auth-heading">Chưa thể xác thực.</h1>
           <p className="auth-status__message">{errorMessage}</p>
           <Button asChild variant="outline" className="h-11 rounded-full px-6">
-            <Link to={ROUTES.LOGIN}>Về đăng nhập</Link>
+            <Link to={ROUTES.REGISTER + "?resume=1"}>Nhận mã xác thực mới</Link>
           </Button>
         </div>
       )}

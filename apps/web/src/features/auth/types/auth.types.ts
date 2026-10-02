@@ -33,9 +33,18 @@ export interface RegisterRequest {
   password: string;
 }
 
+export interface RegistrationChallenge {
+  verificationSession: string;
+  email: string;
+  expiresAt: string;
+  resendAvailableAt: string;
+  sessionExpiresAt: string;
+}
+
 export interface RegisterResponse {
   message: string;
   messageKey: string;
+  verification: RegistrationChallenge;
 }
 
 export interface RefreshAccessTokenResponse {

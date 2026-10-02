@@ -22,6 +22,13 @@ public enum ErrorCode {
       HttpStatus.FORBIDDEN, "Self registration is disabled", "error.auth.registrationDisabled"),
   EMAIL_NOT_VERIFIED(
       HttpStatus.FORBIDDEN, "Email verification is required", "error.auth.emailNotVerified"),
+  REGISTRATION_SESSION_INVALID(HttpStatus.BAD_REQUEST, "Registration session is invalid or expired", "error.auth.registrationSessionInvalid"),
+  REGISTRATION_OTP_INVALID(HttpStatus.BAD_REQUEST, "Verification code is incorrect", "error.auth.registrationOtpInvalid"),
+  REGISTRATION_OTP_EXPIRED(HttpStatus.BAD_REQUEST, "Verification code has expired", "error.auth.registrationOtpExpired"),
+  REGISTRATION_OTP_LOCKED(HttpStatus.TOO_MANY_REQUESTS, "Too many incorrect codes; request a new code", "error.auth.registrationOtpLocked"),
+  REGISTRATION_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "Too many requests; try again later", "error.auth.registrationRateLimited"),
+  REGISTRATION_COOLDOWN(HttpStatus.TOO_MANY_REQUESTS, "Wait before requesting another code", "error.auth.registrationCooldown"),
+  REGISTRATION_ALREADY_VERIFIED(HttpStatus.CONFLICT, "Account is already verified; sign in", "error.auth.registrationAlreadyVerified"),
   EMAIL_TOKEN_MISSING(
       HttpStatus.BAD_REQUEST, "Email token is missing", "error.auth.emailTokenMissing"),
   EMAIL_TOKEN_INVALID(

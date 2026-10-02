@@ -11,10 +11,11 @@ import jakarta.validation.constraints.Size;
  */
 public record RegisterRequest(
     @Schema(description = "Work email address", example = "user@nghlong3004.me")
+        @Size(max = 100)
         @Email(message = "Email must be valid")
         @NotBlank(message = "Email is required")
         String email,
-    @NotBlank(message = "Username is required") String username,
+    @NotBlank(message = "Username is required") @Size(min = 3, max = 100) String username,
     @Schema(description = "Full name shown in the workspace", example = "Nguyen Van A")
         @NotBlank(message = "Full name is required")
         @Size(max = 120, message = "Full name must be at most 120 characters")

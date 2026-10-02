@@ -16,10 +16,10 @@ import me.nghlong3004.olympic.auth.response.*;
 import me.nghlong3004.olympic.auth.service.AuthEmailTokenService;
 import me.nghlong3004.olympic.auth.service.AuthService;
 import me.nghlong3004.olympic.auth.service.RefreshTokenService;
+import me.nghlong3004.olympic.auth.service.RegistrationVerificationService;
 import me.nghlong3004.olympic.auth.service.TokenService;
 import me.nghlong3004.olympic.common.error.ErrorCode;
 import me.nghlong3004.olympic.common.mail.event.MailSendEvent;
-import me.nghlong3004.olympic.common.mail.model.EmailVerificationMailModel;
 import me.nghlong3004.olympic.common.mail.model.PasswordResetMailModel;
 import me.nghlong3004.olympic.common.properties.AuthProperties;
 import me.nghlong3004.olympic.common.properties.UserProperties;
@@ -50,6 +50,7 @@ public class AuthServiceImpl implements AuthService {
   private final TokenService jwtTokenService;
   private final RefreshTokenService refreshTokenService;
   private final AuthEmailTokenService authEmailTokenService;
+  private final RegistrationVerificationService registrationVerificationService;
   private final ApplicationEventPublisher eventPublisher;
   private final AuthProperties authProperties;
   private final UserProperties userProperties;
@@ -80,19 +81,9 @@ public class AuthServiceImpl implements AuthService {
                 .createdAt(now)
                 .updatedAt(now)
                 .build());
-    var token =
-        authEmailTokenService.issue(
-            user,
-            AuthEmailTokenPurpose.EMAIL_VERIFICATION,
-            Duration.ofMinutes(authProperties.emailToken().verificationExpirationMinutes()),
-            ip,
-            userAgent);
-    eventPublisher.publishEvent(
-        new MailSendEvent(
-            new EmailVerificationMailModel(
-                user.getEmail(), user.getFullName(), linkBuilder.verificationLink(token.token()))));
+    var verification = registrationVerificationService.start(user, ip);
     log.info("User registration accepted: userId={}", user.getId());
-    return new RegisterResponse(REGISTRATION_SUCCESS_MESSAGE, REGISTRATION_SUCCESS_MESSAGE_KEY);
+    return new RegisterResponse(REGISTRATION_SUCCESS_MESSAGE, REGISTRATION_SUCCESS_MESSAGE_KEY, verification);
   }
 
   @Transactional
