@@ -5,7 +5,9 @@ import java.util.UUID;
 import me.nghlong3004.olympic.studyroom.request.AdvanceStudyRoomPlaybackRequest;
 import me.nghlong3004.olympic.studyroom.request.CreateStudyRoomRequest;
 import me.nghlong3004.olympic.studyroom.request.RequestStudyRoomTrackRequest;
+import me.nghlong3004.olympic.studyroom.request.TransferStudyRoomOwnershipRequest;
 import me.nghlong3004.olympic.studyroom.request.UpdateStudyRoomSettingsRequest;
+import me.nghlong3004.olympic.studyroom.request.UpdateStudyRoomRhythmRequest;
 import me.nghlong3004.olympic.studyroom.response.StudyRoomSnapshotResponse;
 import me.nghlong3004.olympic.studyroom.response.StudyRoomSummaryResponse;
 
@@ -20,7 +22,7 @@ public interface StudyRoomService {
   List<StudyRoomSummaryResponse> list();
 
   /** Creates a persistent room and joins its owner, leaving their previous selected room.
-   * @param request validated room settings; timing is fixed after creation
+   * @param request validated initial room settings
    * @return coherent initial snapshot
    */
   StudyRoomSnapshotResponse create(CreateStudyRoomRequest request);
@@ -43,6 +45,14 @@ public interface StudyRoomService {
    */
   StudyRoomSnapshotResponse heartbeat(UUID id);
 
+  /** Transfers ownership from the joined owner to an active online member under database locks.
+   * The target may own at most three open rooms; timing, playback and memberships are preserved.
+   * @param id open room ID
+   * @param request validated target member ID
+   * @return updated snapshot for the former owner, who remains a member
+   */
+  StudyRoomSnapshotResponse transferOwnership(UUID id, TransferStudyRoomOwnershipRequest request);
+
   /** Idempotently leaves the caller's membership while preserving earned focus time.
    * @param id room ID
    */
@@ -54,6 +64,13 @@ public interface StudyRoomService {
    * @return updated snapshot
    */
   StudyRoomSnapshotResponse settings(UUID id, UpdateStudyRoomSettingsRequest request);
+
+  /** Updates durations and starts a new shared focus cycle under the room lock.
+   * @param id open room ID owned by the joined caller
+   * @param request validated durations and current rhythm version
+   * @return snapshot with a new clock origin; membership, focus credit and music are retained
+   */
+  StudyRoomSnapshotResponse rhythm(UUID id, UpdateStudyRoomRhythmRequest request);
 
   /** Closes the room for everyone; only its owner may close it.
    * @param id room ID

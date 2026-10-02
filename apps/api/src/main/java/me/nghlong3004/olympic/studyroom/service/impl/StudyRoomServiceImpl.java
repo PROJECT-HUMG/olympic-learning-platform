@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nghlong3004.olympic.common.error.ErrorCode;
 import me.nghlong3004.olympic.common.security.CurrentUserProvider;
+import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.studyroom.entity.StudyRoom;
 import me.nghlong3004.olympic.studyroom.entity.StudyRoomMember;
 import me.nghlong3004.olympic.studyroom.entity.StudyRoomTrack;
@@ -22,7 +23,9 @@ import me.nghlong3004.olympic.studyroom.repository.StudyRoomTrackRepository;
 import me.nghlong3004.olympic.studyroom.request.AdvanceStudyRoomPlaybackRequest;
 import me.nghlong3004.olympic.studyroom.request.CreateStudyRoomRequest;
 import me.nghlong3004.olympic.studyroom.request.RequestStudyRoomTrackRequest;
+import me.nghlong3004.olympic.studyroom.request.TransferStudyRoomOwnershipRequest;
 import me.nghlong3004.olympic.studyroom.request.UpdateStudyRoomSettingsRequest;
+import me.nghlong3004.olympic.studyroom.request.UpdateStudyRoomRhythmRequest;
 import me.nghlong3004.olympic.studyroom.response.StudyRoomSnapshotResponse;
 import me.nghlong3004.olympic.studyroom.response.StudyRoomSummaryResponse;
 import me.nghlong3004.olympic.studyroom.service.StudyRoomService;
@@ -53,6 +56,7 @@ public class StudyRoomServiceImpl implements StudyRoomService {
   private final StudyRoomTrackRepository trackRepository;
   private final UserRepository userRepository;
   private final CurrentUserProvider currentUserProvider;
+  private final StorageService storageService;
   private final Clock clock;
 
   @Transactional(readOnly = true)
@@ -82,7 +86,7 @@ public class StudyRoomServiceImpl implements StudyRoomService {
     var room = roomRepository.save(StudyRoom.builder().owner(user).name(request.name().trim())
         .focusMinutes(request.focusMinutes()).breakMinutes(request.breakMinutes())
         .longBreakMinutes(request.longBreakMinutes()).requestPolicy(request.requestPolicy())
-        .minimumStudyMinutes(request.minimumStudyMinutes()).createdAt(now)
+        .minimumStudyMinutes(request.minimumStudyMinutes()).createdAt(now).timelineStartedAt(now)
         .playbackVideoId(DEFAULT_VIDEO_ID).playbackTitle(DEFAULT_TITLE).playbackStartedAt(now)
         .playbackDefault(true).build());
     memberRepository.save(StudyRoomMember.builder().room(room).user(user).joined(true)
@@ -166,6 +170,61 @@ public class StudyRoomServiceImpl implements StudyRoomService {
     room.setMinimumStudyMinutes(request.minimumStudyMinutes());
     log.info("Study room policy changed: roomId={}, ownerId={}", id, user.getId());
     return snapshot(room, user.getId(), now);
+  }
+
+  @Transactional
+  @Override
+  public StudyRoomSnapshotResponse rhythm(UUID id, UpdateStudyRoomRhythmRequest request) {
+    var user = currentUser(true);
+    var room = lockRoom(id);
+    var now = OffsetDateTime.now(clock);
+    requireOwner(room, user.getId(), now);
+    if (room.getRhythmVersion() != request.expectedVersion()) {
+      throw ErrorCode.STUDY_ROOM_CONFLICT.throwIt("Nhịp học đã thay đổi. Hãy tải lại thời lượng mới trước khi áp dụng.");
+    }
+    // Settle the old timeline without refreshing another member's presence/lease.
+    var members = memberRepository.findAllByRoomIdAndJoinedTrueOrderByJoinedAtAsc(id);
+    for (var member : members) {
+      if (member.getUser().getId().equals(user.getId())) accrue(room, member, now);
+      else if (online(member, now)) member.setFocusMillis(member.getFocusMillis()
+          + StudyRoomTimeline.focusMillis(room, member.getLastSeen(), now));
+    }
+    room.setFocusMinutes(request.focusMinutes());
+    room.setBreakMinutes(request.breakMinutes());
+    room.setLongBreakMinutes(request.longBreakMinutes());
+    room.setTimelineStartedAt(now);
+    room.setRhythmVersion(room.getRhythmVersion() + 1);
+    log.info("Study room rhythm restarted: roomId={}, ownerId={}, rhythmVersion={}", id, user.getId(), room.getRhythmVersion());
+    return snapshot(room, user.getId(), now);
+  }
+
+  @Transactional
+  @Override
+  public StudyRoomSnapshotResponse transferOwnership(UUID id, TransferStudyRoomOwnershipRequest request) {
+    UUID ownerId = currentUserProvider.getCurrentUser().id();
+    if (ownerId.equals(request.userId())) {
+      throw ErrorCode.STUDY_ROOM_CONFLICT.throwIt("Bạn đã là chủ phòng. Hãy chọn thành viên khác.");
+    }
+    // Lock both users in a stable order before the room, matching join/create/heartbeat locking.
+    var users = List.of(ownerId, request.userId()).stream().sorted()
+        .map(userId -> userRepository.findForUpdateById(userId).orElseThrow(ErrorCode.USER_NOT_FOUND::throwIt))
+        .toList();
+    users.stream().filter(user -> user.getId().equals(ownerId)).findFirst().orElseThrow().requireActiveForAuth();
+    var room = lockRoom(id);
+    var now = OffsetDateTime.now(clock);
+    requireOwner(room, ownerId, now);
+    var target = users.stream().filter(user -> user.getId().equals(request.userId())).findFirst().orElseThrow();
+    target.requireActiveForAuth();
+    var member = requireJoined(room, target.getId(), now);
+    if (!online(member, now)) {
+      throw ErrorCode.STUDY_ROOM_CONFLICT.throwIt("Thành viên này đang mất kết nối. Hãy chọn người đang có mặt.");
+    }
+    if (roomRepository.countByOwnerIdAndClosedFalse(target.getId()) >= 3) {
+      throw ErrorCode.STUDY_ROOM_CONFLICT.throwIt("Thành viên này đã làm chủ 3 phòng đang mở.");
+    }
+    room.setOwner(target);
+    log.info("Study room ownership transferred: roomId={}, previousOwnerId={}, ownerId={}", id, ownerId, target.getId());
+    return snapshot(room, ownerId, now);
   }
 
   @Transactional
@@ -337,10 +396,11 @@ public class StudyRoomServiceImpl implements StudyRoomService {
     return new StudyRoomSnapshotResponse(room.getId(), room.getName(), room.getOwner().getId(), displayName(room.getOwner()),
         members.stream().filter(member -> online(member, now)).count(), room.getFocusMinutes(), room.getBreakMinutes(),
         room.getLongBreakMinutes(), room.getRequestPolicy(), room.getMinimumStudyMinutes(), room.isClosed(), now,
-        phase.phase(), phase.endsAt(), phase.sessionNumber(),
+        phase.phase(), phase.endsAt(), phase.sessionNumber(), room.getRhythmVersion(),
         new StudyRoomSnapshotResponse.Playback(room.getPlaybackVideoId(), room.getPlaybackTitle(), room.getPlaybackStartedAt(),
             room.getPlaybackVersion(), room.isPlaybackDefault()),
         members.stream().map(member -> new StudyRoomSnapshotResponse.Member(member.getUser().getId(), displayName(member.getUser()),
+            member.getUser().getAvatar() == null ? null : storageService.getDownloadUri(member.getUser().getAvatar().getStorageKey()).toString(),
             member.getFocusMillis() / 1000, online(member, now))).toList(), me,
         tracks.stream().map(track -> new StudyRoomSnapshotResponse.Track(track.getId(), track.getVideoId(), track.getTitle(),
             track.getRequestedBy().getId(), displayName(track.getRequestedBy()), track.getStatus(), track.getCreatedAt())).toList());

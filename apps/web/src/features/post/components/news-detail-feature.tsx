@@ -9,8 +9,8 @@ import {
   ChevronDown,
   AlertTriangle,
 } from "lucide-react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { useParams, useLocation, Link } from "react-router-dom";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 
 import { usePost } from "@/features/post/hooks/use-post";
@@ -34,6 +34,8 @@ import { ReadingProgressBar } from "@/features/post/components/reading-progress-
 import { ArticleToc } from "@/features/post/components/article-toc";
 import { ShareButtons } from "@/features/post/components/share-buttons";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
+import { getListReturnPath } from "@/lib/list-navigation";
+import { parseApiError } from "@/lib/api-error";
 
 function calculateReadingTime(text: string): number {
   const wordsPerMinute = 250;
@@ -122,6 +124,7 @@ function MobileToc({
   contentRef: React.RefObject<HTMLElement | null>;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   return (
     <div className="mb-8 rounded-xl border border-border/50 bg-muted/30">
@@ -132,7 +135,7 @@ function MobileToc({
       >
         <span>Mục lục bài viết</span>
         <ChevronDown
-          className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+          className={`h-4 w-4 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none ${
             isOpen ? "rotate-180" : ""
           }`}
         />
@@ -140,10 +143,10 @@ function MobileToc({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
+            initial={reduceMotion ? false : { height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
+            transition={{ duration: reduceMotion ? 0 : 0.2, ease: "easeInOut" }}
             className="overflow-hidden"
           >
             <div className="border-t border-border/30 px-4 pb-4 pt-2">
@@ -160,8 +163,10 @@ function MobileToc({
 
 export function NewsDetailFeature() {
   const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
-  const { data: post, isLoading, isError } = usePost(slug || "", true);
+  const location = useLocation();
+  const returnPath = getListReturnPath(location.state?.from, ROUTES.NEWS);
+  const reduceMotion = useReducedMotion();
+  const { data: post, isLoading, isError, error, refetch, isFetching } = usePost(slug || "", true);
   const articleRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -175,17 +180,17 @@ export function NewsDetailFeature() {
   }
 
   if (isError || !post) {
+    const notFound = !isError || parseApiError(error).status === 404;
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
-        <h2 className="text-2xl font-bold">Không tìm thấy bài viết</h2>
+        <h2 className="text-2xl font-bold">{notFound ? "Không tìm thấy bài viết" : "Chưa tải được bài viết"}</h2>
         <p className="max-w-md text-muted-foreground">
-          Bài viết bạn đang tìm kiếm không tồn tại hoặc đã bị xóa khỏi hệ
-          thống.
+          {notFound ? "Bài viết không tồn tại hoặc đã bị xóa khỏi hệ thống." : "Kết nối hoặc máy chủ đang gặp sự cố. Bạn có thể thử tải lại."}
         </p>
-        <Button onClick={() => navigate(ROUTES.NEWS)} className="mt-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Quay lại danh sách
-        </Button>
+        {!notFound && <Button disabled={isFetching} onClick={() => void refetch()}>Thử lại</Button>}
+        <Button asChild variant="outline" className="mt-4"><Link to={returnPath}>
+          <ArrowLeft className="mr-2 h-4 w-4" />Quay lại danh sách
+        </Link></Button>
       </div>
     );
   }
@@ -216,13 +221,13 @@ export function NewsDetailFeature() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={ROUTES.HOME}>Trang chủ</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link to={ROUTES.HOME}>Trang chủ</Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href={ROUTES.NEWS}>
+                <BreadcrumbLink asChild><Link to={returnPath}>
                   Tin tức & Thông báo
-                </BreadcrumbLink>
+                </Link></BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -237,9 +242,9 @@ export function NewsDetailFeature() {
 
       {/* ── Compact title and thumbnail header ── */}
       <motion.header
-        initial={{ opacity: 0, y: 24 }}
+        initial={reduceMotion ? false : { opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: reduceMotion ? 0 : 0.5, delay: reduceMotion ? 0 : 0.15, ease: [0.16, 1, 0.3, 1] }}
         className="mx-auto max-w-4xl px-4 pt-10 sm:px-6"
       >
         <div className={`grid gap-8 ${post.thumbnailUrl ? "lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start" : ""}`}>
@@ -327,9 +332,9 @@ export function NewsDetailFeature() {
       <div className="mx-auto mt-10 max-w-4xl px-4 sm:px-6">
         {/* ── Article Content ── */}
         <motion.article
-          initial={{ opacity: 0, y: 24 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: reduceMotion ? 0 : 0.5, delay: reduceMotion ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
           {/* Article contents */}
           <MobileToc contentRef={contentRef} />
@@ -363,10 +368,10 @@ export function NewsDetailFeature() {
       {/* ── Related Posts ── */}
       {filteredRelatedPosts.length > 0 && (
         <motion.section
-          initial={{ opacity: 0, y: 32 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 32 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: reduceMotion ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="mx-auto mt-20 max-w-5xl px-4 sm:px-6 lg:px-8"
         >
           <div className="mb-8 flex items-center justify-between">
@@ -374,19 +379,19 @@ export function NewsDetailFeature() {
               Bài viết liên quan
             </h2>
             <Button variant="ghost" asChild>
-              <Link to={ROUTES.NEWS}>Xem tất cả</Link>
+              <Link to={returnPath}>Xem tất cả</Link>
             </Button>
           </div>
           <div className="space-y-3">
             {filteredRelatedPosts.map((relatedPost, index) => (
               <motion.div
                 key={relatedPost.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={reduceMotion ? false : { opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{
-                  duration: 0.4,
-                  delay: index * 0.08,
+                  duration: reduceMotion ? 0 : 0.4,
+                  delay: reduceMotion ? 0 : index * 0.08,
                   ease: [0.16, 1, 0.3, 1],
                 }}
               >

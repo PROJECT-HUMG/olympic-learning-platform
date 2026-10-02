@@ -4,6 +4,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -65,6 +66,12 @@ class StudyRoomControllerTest {
     mvc.perform(get("/api/v1/study-rooms/{id}", ID)).andExpect(status().isUnauthorized());
     mvc.perform(post("/api/v1/study-rooms/{id}/join", ID)).andExpect(status().isUnauthorized());
     mvc.perform(post("/api/v1/study-rooms/{id}/heartbeat", ID)).andExpect(status().isUnauthorized());
+    mvc.perform(patch("/api/v1/study-rooms/{id}/rhythm", ID)
+        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isUnauthorized());
+    mvc.perform(post("/api/v1/study-rooms/{id}/owner", ID)
+        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isUnauthorized());
     mvc.perform(post("/api/v1/study-rooms/{id}/tracks", ID)
         .contentType(MediaType.APPLICATION_JSON).content("{}"))
         .andExpect(status().isUnauthorized());
@@ -87,14 +94,15 @@ class StudyRoomControllerTest {
     var playback = new StudyRoomSnapshotResponse.Playback("jfKfPfyJRdk", "Lofi Girl", now, 0, true);
     when(service.get(ID)).thenReturn(new StudyRoomSnapshotResponse(ID, "Cùng học", ID,
         "Student", 1, 25, 5, 15, StudyRoomRequestPolicy.AFTER_FOCUS, 15, false,
-        now, StudyRoomPhase.FOCUS, now.plusMinutes(25), 1, playback, List.of(), null, List.of()));
+        now, StudyRoomPhase.FOCUS, now.plusMinutes(25), 1, 0, playback, List.of(), null, List.of()));
     mvc.perform(get("/api/v1/study-rooms/{id}", ID).header("Authorization", "Bearer test-token"))
         .andExpect(status().isOk()).andExpect(jsonPath("$.playback.isDefault").value(true))
         .andExpect(jsonPath("$.playback.videoId").value("jfKfPfyJRdk"))
         .andExpect(jsonPath("$.playback.startedAt").isString())
         .andExpect(jsonPath("$.serverNow").isString())
         .andExpect(jsonPath("$.phaseEndsAt").isString())
-        .andExpect(jsonPath("$.phase").value("FOCUS"));
+        .andExpect(jsonPath("$.phase").value("FOCUS"))
+        .andExpect(jsonPath("$.rhythmVersion").value(0));
   }
 
   @Test
@@ -117,6 +125,31 @@ class StudyRoomControllerTest {
     mvc.perform(post("/api/v1/study-rooms/{id}/playback/next", ID).header("Authorization", "Bearer test-token")
         .contentType(MediaType.APPLICATION_JSON).content("{\"expectedVersion\":-1}"))
         .andExpect(status().isBadRequest());
+    mvc.perform(post("/api/v1/study-rooms/{id}/owner", ID).header("Authorization", "Bearer test-token")
+        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isBadRequest());
+    mvc.perform(post("/api/v1/study-rooms/{id}/owner", ID).header("Authorization", "Bearer test-token")
+        .contentType(MediaType.APPLICATION_JSON).content("{\"userId\":\"invalid\"}"))
+        .andExpect(status().isBadRequest());
+    verifyNoInteractions(service);
+  }
+
+  @Test
+  void invalidRhythmsAndMissingVersionsNeverReachTheService() throws Exception {
+    for (String body : List.of("{}", """
+        {"focusMinutes":10,"breakMinutes":5,"longBreakMinutes":15,"expectedVersion":0}
+        """, """
+        {"focusMinutes":91,"breakMinutes":5,"longBreakMinutes":15,"expectedVersion":0}
+        """, """
+        {"focusMinutes":25,"breakMinutes":20,"longBreakMinutes":15,"expectedVersion":0}
+        """, """
+        {"focusMinutes":25,"breakMinutes":5,"longBreakMinutes":15,"expectedVersion":-1}
+        """, """
+        {"focusMinutes":25,"breakMinutes":5,"longBreakMinutes":15}
+        """)) {
+      mvc.perform(patch("/api/v1/study-rooms/{id}/rhythm", ID).header("Authorization", "Bearer test-token")
+          .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isBadRequest());
+    }
     verifyNoInteractions(service);
   }
 }

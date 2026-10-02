@@ -67,6 +67,12 @@ public class StudyRoom {
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;
 
+  @Column(name = "timeline_started_at", nullable = false)
+  private OffsetDateTime timelineStartedAt;
+
+  @Column(name = "rhythm_version", nullable = false)
+  private long rhythmVersion;
+
   @Column(name = "closed_at")
   private OffsetDateTime closedAt;
 

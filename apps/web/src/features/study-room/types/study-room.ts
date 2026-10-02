@@ -12,6 +12,13 @@ export interface CreateRoomInput extends RoomSettings {
   longBreakMinutes: number;
 }
 
+export interface RoomRhythm {
+  focusMinutes: number;
+  breakMinutes: number;
+  longBreakMinutes: number;
+  expectedVersion: number;
+}
+
 export interface StudyRoomSummary extends CreateRoomInput {
   id: string;
   ownerId: string;
@@ -27,14 +34,23 @@ export interface RoomPlayback {
   isDefault: boolean;
 }
 
+export interface StudyRoomMember {
+  userId: string;
+  displayName: string;
+  avatarUrl?: string | null;
+  focusSeconds: number;
+  online: boolean;
+}
+
 export interface StudyRoomSnapshot extends StudyRoomSummary {
   closed: boolean;
   serverNow: string;
   phase: "FOCUS" | "BREAK" | "LONG_BREAK";
   phaseEndsAt: string;
   sessionNumber: number;
+  rhythmVersion?: number;
   playback: RoomPlayback;
-  members: { userId: string; displayName: string; focusSeconds: number; online: boolean }[];
+  members: StudyRoomMember[];
   me: { userId: string; focusSeconds: number; canRequest: boolean; remainingStudySeconds: number } | null;
   tracks: {
     id: string;
@@ -50,6 +66,8 @@ export interface StudyRoomSnapshot extends StudyRoomSummary {
 export type RoomAction =
   | { type: "join" | "leave" | "close" }
   | { type: "settings"; input: RoomSettings }
+  | { type: "rhythm"; input: RoomRhythm }
+  | { type: "owner"; userId: string }
   | { type: "request"; input: { youtubeUrl: string; title: string } }
   | { type: "approve" | "reject"; trackId: string }
   | { type: "next"; expectedVersion: number };

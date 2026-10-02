@@ -49,4 +49,14 @@ class StudyRoomRulesTest {
       assertThatThrownBy(() -> StudyRoomYoutube.videoId(url)).as(url).isInstanceOf(ApiException.class);
     }
   }
+
+  @Test
+  void aRestartUsesTheNewOriginWithoutRecountingEarlierTime() {
+    room.setTimelineStartedAt(start.plusMinutes(10));
+    room.setFocusMinutes(50);
+    assertThat(StudyRoomTimeline.at(room, start.plusMinutes(10)).sessionNumber()).isEqualTo(1);
+    assertThat(StudyRoomTimeline.at(room, start.plusMinutes(10)).endsAt()).isEqualTo(start.plusMinutes(60));
+    assertThat(StudyRoomTimeline.focusMillis(room, start.plusMinutes(9), start.plusMinutes(11))).isEqualTo(60_000);
+    assertThat(StudyRoomTimeline.focusMillis(room, start, start.plusMinutes(9))).isZero();
+  }
 }

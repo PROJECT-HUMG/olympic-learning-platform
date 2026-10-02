@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { calculateGpa, newCourse, restoreGpa, type CourseRow, type GpaState } from "../lib/gpa";
 import { readToolState, saveToolState } from "../lib/toolkit-storage";
+import { GpaGoalCalculator } from "./gpa-goal-calculator";
 
 const STORAGE_KEY = "olympic-toolkit-gpa-v1";
 
@@ -64,6 +65,7 @@ export function GpaCalculator() {
         <p>{result.invalid ? "Hoàn thiện điểm và tín chỉ hợp lệ của các học phần để tính kết quả." : result.average === null ? "Thêm tín chỉ và điểm để bắt đầu tính." : `${result.courseCount} học phần, ${Number(result.totalCredits.toFixed(2))} tín chỉ. Tính theo tổng (điểm × tín chỉ) / tổng tín chỉ.`}</p>
       </div>
       <p className="toolkit-storage-note">{canSave ? "Bảng điểm được lưu trên trình duyệt này, chưa đồng bộ với tài khoản." : "Trình duyệt không lưu được bảng điểm. Dữ liệu sẽ mất khi bạn tải lại trang."}</p>
+      <GpaGoalCalculator scale={state.scale} />
     </section>
   );
 }

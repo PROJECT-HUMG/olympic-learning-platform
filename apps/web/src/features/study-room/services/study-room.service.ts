@@ -13,6 +13,8 @@ export const studyRoomService = {
     switch (action.type) {
       case "leave": await apiClient.post(`${path}/leave`); return null;
       case "settings": return apiClient.patch<StudyRoomSnapshot>(`${path}/settings`, action.input).then((r) => r.data);
+      case "rhythm": return apiClient.patch<StudyRoomSnapshot>(`${path}/rhythm`, action.input).then((r) => r.data);
+      case "owner": return apiClient.post<StudyRoomSnapshot>(`${path}/owner`, { userId: action.userId }).then((r) => r.data);
       case "request": return apiClient.post<StudyRoomSnapshot>(`${path}/tracks`, action.input).then((r) => r.data);
       case "approve":
       case "reject": return apiClient.post<StudyRoomSnapshot>(`${path}/tracks/${action.trackId}/${action.type}`).then((r) => r.data);

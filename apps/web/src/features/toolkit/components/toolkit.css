@@ -37,8 +37,18 @@
 .toolkit-gpa__result > p { max-width: 35ch; }
 .toolkit-gpa__result strong { display: block; margin-top: .25rem; color: var(--primary); font-size: 2.75rem; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.3; }
 .toolkit-gpa__result small { font-size: 1rem; color: var(--muted-foreground); font-weight: 400; }
+.toolkit-gpa-goal { margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+.toolkit-gpa-goal__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-top: 1.5rem; }
+.toolkit-gpa-goal__fields > div { min-width: 0; }
+.toolkit-gpa-goal__fields label { display: block; margin-bottom: .5rem; font-size: .8125rem; font-weight: 500; }
+.toolkit-gpa-goal__fields input { min-height: 2.75rem; }
+.toolkit-gpa-goal__result { margin-top: 1.5rem; padding: 1.25rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--muted); }
+.toolkit-gpa-goal__result p { color: var(--muted-foreground); font-size: .875rem; line-height: 1.8; }
+.toolkit-gpa-goal__result strong { display: block; color: var(--primary); font-size: 2.5rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.toolkit-gpa-goal__result small { color: var(--muted-foreground); font-size: 1rem; }
 
 @media (max-width: 639px) {
+  .toolkit-gpa-goal__fields { grid-template-columns: minmax(0, 1fr); }
   .toolkit-page { padding: 2rem 1.25rem 3rem; }
   .toolkit-page__heading { margin-bottom: 1.5rem; }
   .toolkit-workspace [role="tabpanel"] { padding: 1.25rem; }

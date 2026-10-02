@@ -30,7 +30,7 @@ API mặc định ở `http://localhost:8080`. Profile mặc định là `dev`; 
 
 Mã Java ở `src/main/java/me/nghlong3004/olympic`, test ở `src/test/java`, migrations ở `src/main/resources/db/migration`. Đọc [AGENTS.md](AGENTS.md) và skill backend được chỉ định trước khi sửa Java. Test tích hợp dùng Testcontainers có thể cần Docker. Contract API thay đổi cần cập nhật types và services ở web.
 
-Phòng học chung dùng `/api/v1/study-rooms`, yêu cầu JWT và tài khoản đang hoạt động. Flyway `V10` tạo ba bảng phòng/thành viên/hàng đợi; không cần thêm biến môi trường hay YouTube API key. Xem [contract, polling và vận hành](../../docs/architecture/study-rooms.md). Kiểm tra module (Docker cần chạy cho PostgreSQL integration):
+Phòng học chung dùng `/api/v1/study-rooms`, yêu cầu JWT và tài khoản đang hoạt động. Chủ phòng chuyển quyền qua `POST /{id}/owner` với `{userId}`; người nhận phải đang online trong phòng và chưa làm chủ 3 phòng mở. Chủ phòng chỉnh thời lượng qua `PATCH /{id}/rhythm` với `{focusMinutes, breakMinutes, longBreakMinutes, expectedVersion}`; bắt đầu phiên tập trung mới, giữ thời gian đã ghi nhận và nhạc. Snapshot trả `rhythmVersion`; phiên bản cũ trả 409. Flyway `V10` tạo ba bảng phòng/thành viên/hàng đợi; `V11` thêm mốc timeline và phiên bản nhịp, giữ lịch của phòng hiện có khi migration. Cập nhật mọi instance API trước web chỉnh giờ. Không cần biến môi trường hay YouTube API key mới. Xem [contract, polling và vận hành](../../docs/architecture/study-rooms.md). Kiểm tra module (Docker cần chạy cho PostgreSQL integration):
 
 ```bash
 ./mvnw -Dtest=StudyRoomRulesTest,StudyRoomIntegrationTest,StudyRoomControllerTest test

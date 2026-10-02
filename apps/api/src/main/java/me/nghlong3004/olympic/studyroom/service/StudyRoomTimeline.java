@@ -14,22 +14,23 @@ public final class StudyRoomTimeline {
 
   /** Returns the automatic phase at a server timestamp, with long rests after every fourth focus. */
   public static Phase at(StudyRoom room, OffsetDateTime now) {
+    var anchor = start(room);
     long focus = room.getFocusMinutes() * 60_000L;
     long rest = room.getBreakMinutes() * 60_000L;
     long longRest = room.getLongBreakMinutes() * 60_000L;
     long cycle = 4 * focus + 3 * rest + longRest;
-    long elapsed = Math.max(0, Duration.between(room.getCreatedAt(), now).toMillis());
+    long elapsed = Math.max(0, Duration.between(anchor, now).toMillis());
     long cycles = elapsed / cycle;
     long position = elapsed % cycle;
     long start = cycles * cycle;
     for (int index = 0; index < 4; index++) {
       long session = cycles * 4 + index + 1;
-      if (position < focus) return new Phase(StudyRoomPhase.FOCUS, room.getCreatedAt().plusNanos((start + focus) * 1_000_000), session);
+      if (position < focus) return new Phase(StudyRoomPhase.FOCUS, anchor.plusNanos((start + focus) * 1_000_000), session);
       position -= focus;
       start += focus;
       long pause = index == 3 ? longRest : rest;
       if (position < pause) return new Phase(index == 3 ? StudyRoomPhase.LONG_BREAK : StudyRoomPhase.BREAK,
-          room.getCreatedAt().plusNanos((start + pause) * 1_000_000), session);
+          anchor.plusNanos((start + pause) * 1_000_000), session);
       position -= pause;
       start += pause;
     }
@@ -46,7 +47,7 @@ public final class StudyRoomTimeline {
     long focus = room.getFocusMinutes() * 60_000L;
     long rest = room.getBreakMinutes() * 60_000L;
     long cycle = 4 * focus + 3 * rest + room.getLongBreakMinutes() * 60_000L;
-    long elapsed = Math.max(0, Duration.between(room.getCreatedAt(), time).toMillis());
+    long elapsed = Math.max(0, Duration.between(start(room), time).toMillis());
     long total = (elapsed / cycle) * 4 * focus;
     long position = elapsed % cycle;
     for (int index = 0; index < 4; index++) {
@@ -57,4 +58,8 @@ public final class StudyRoomTimeline {
   }
 
   public record Phase(StudyRoomPhase phase, OffsetDateTime endsAt, long sessionNumber) {}
+
+  private static OffsetDateTime start(StudyRoom room) {
+    return room.getTimelineStartedAt() == null ? room.getCreatedAt() : room.getTimelineStartedAt();
+  }
 }

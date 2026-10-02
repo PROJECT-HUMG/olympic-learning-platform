@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
 import { studyRoomService } from "../services/study-room.service";
 import type { RoomAction, StudyRoomSnapshot } from "../types/study-room";
 
@@ -14,6 +15,8 @@ async function withClock(request: () => Promise<StudyRoomSnapshot | null>): Prom
 }
 
 export function useStudyRoom(id: string, userId?: string) {
+  const [recovering, setRecovering] = useState(false);
+  const [online, setOnline] = useState(() => navigator.onLine);
   const client = useQueryClient();
   const key = ["study-room", id, userId];
   const action = useMutation({
@@ -45,8 +48,29 @@ export function useStudyRoom(id: string, userId?: string) {
     staleTime: 0,
     refetchInterval: (state) => action.isPending || state.state.data?.room.closed ? false : 5000,
     refetchIntervalInBackground: true,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     retry: false,
   });
-  return { query, action };
+  const { refetch } = query;
+  const reconnect = useCallback(async () => {
+    if (!userId || !navigator.onLine) return;
+    setRecovering(true);
+    try { await refetch({ cancelRefetch: false }); }
+    finally { setRecovering(false); }
+  }, [userId, refetch]);
+
+  useEffect(() => {
+    const onOnline = () => { setOnline(true); void reconnect(); };
+    const onOffline = () => setOnline(false);
+    const onVisible = () => { if (document.visibilityState === "visible") void reconnect(); };
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [reconnect]);
+  return { query, action, recovering, online, reconnect };
 }

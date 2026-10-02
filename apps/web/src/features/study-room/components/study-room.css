@@ -94,6 +94,9 @@
 .study-room-settings { border: 1px solid var(--border); border-radius: .75rem; background: var(--card); }
 .study-room-settings summary { min-height: 2.75rem; padding: 1rem; font-size: .875rem; cursor: pointer; }
 .study-room-settings form { padding: 0 1rem 1rem; }
+.study-room-transfer { padding: 1.25rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--card); }
+.study-room-transfer > p { margin-top: .65rem; }
+.study-room-transfer > button { margin-top: 1rem; max-width: 100%; white-space: normal; }
 .study-room-close { color: var(--muted-foreground); font-size: .8125rem; line-height: 1.8; }
 .study-room-close > div { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
 .study-room-join { max-width: 40rem; margin: 2rem auto; padding: 2rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--card); text-align: center; }
@@ -124,4 +127,52 @@
 
 @media (prefers-reduced-motion: reduce) {
   :is(.study-room-page, .study-rooms-lobby) *, :is(.study-room-page, .study-rooms-lobby) *::before, :is(.study-room-page, .study-rooms-lobby) *::after { animation: none !important; transition: none !important; }
+}
+
+.study-room-clock { position: relative; overflow: hidden; }
+.study-room-clock > .room-clock-controls { display: flex; justify-content: center; flex-wrap: wrap; gap: .5rem; margin-top: 1.25rem; }
+.study-room-clock > p.room-clock-bell-note { margin-top: .75rem; font-size: .75rem; line-height: 1.7; }
+.study-room-clock[data-celebrating], .room-scene[data-celebrating="true"] { animation: room-phase-glow 1.8s ease-out 3; }
+.study-room-clock > .room-phase-celebration { position: relative; z-index: 1; display: flex; align-items: flex-start; gap: .75rem; margin-top: 1rem; padding: .9rem; border: 1px solid color-mix(in srgb, #c5974d 45%, var(--border)); border-radius: .8rem; background: color-mix(in srgb, #c5974d 9%, var(--card)); text-align: left; }
+.room-phase-celebration[data-kind="rest-complete"] { border-color: color-mix(in srgb, var(--primary) 40%, var(--border)); background: color-mix(in srgb, var(--primary) 7%, var(--card)); }
+.room-phase-celebration__icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 2rem; height: 2rem; border-radius: 50%; color: color-mix(in srgb, #bb842b 80%, var(--foreground)); background: color-mix(in srgb, #c5974d 13%, var(--card)); }
+.room-phase-celebration__icon svg { width: 1.1rem; height: 1.1rem; }
+.room-phase-celebration > div { flex: 1; min-width: 0; }
+.room-phase-celebration strong { display: block; font-size: .875rem; font-weight: 500; line-height: 1.6; }
+.room-phase-celebration p { margin-top: .25rem; color: var(--muted-foreground); font-size: .75rem; line-height: 1.7; }
+.room-phase-celebration > button { display: inline-flex; justify-content: center; align-items: center; flex-shrink: 0; width: 2.25rem; border-radius: .5rem; color: var(--muted-foreground); }
+.room-phase-celebration > button:hover { background: var(--muted); }
+.room-phase-celebration > button svg { width: 1rem; height: 1rem; }
+.room-phase-sparks { position: absolute; z-index: 1; top: 7rem; left: 50%; width: 0; height: 0; pointer-events: none; }
+.room-phase-sparks i { position: absolute; width: .4rem; height: .75rem; border-radius: 2px; background: #cfa258; opacity: 0; animation: room-phase-spark 1.6s ease-out forwards; animation-delay: var(--spark-delay); }
+.room-phase-sparks i:nth-child(3n) { background: #87aa9a; }
+.room-phase-sparks i:nth-child(3n + 1) { background: #859cb9; }
+.room-rhythm-dialog { width: calc(100% - 2rem); max-width: 34rem; max-height: calc(100dvh - 2rem); overflow-y: auto; }
+.room-rhythm-dialog button { min-height: 2.75rem; }
+.room-rhythm-presets { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.room-rhythm-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+.room-rhythm-fields > div { min-width: 0; }
+.room-rhythm-fields label { display: block; margin-bottom: .5rem; font-size: .75rem; line-height: 1.6; }
+.room-rhythm-fields input { width: 100%; min-width: 0; min-height: 2.75rem; padding: .5rem .75rem; border: 1px solid var(--input); border-radius: .5rem; color: var(--foreground); background: var(--background); font-size: 1rem; }
+.room-rhythm-fields input:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.room-rhythm-note { margin-top: .75rem; color: var(--muted-foreground); font-size: .75rem; line-height: 1.8; }
+.room-rhythm-confirmation { margin-block: 1rem; padding: .85rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--muted); font-size: .8125rem; line-height: 1.7; }
+.room-rhythm-confirmation strong { font-weight: 500; }
+.room-rhythm-confirmation p { margin-top: .3rem; color: var(--muted-foreground); }
+.room-rhythm-stale { margin-bottom: 1rem; padding: .85rem; border-left: 2px solid var(--primary); font-size: .8125rem; line-height: 1.7; }
+.room-rhythm-stale button { margin-top: .5rem; }
+@keyframes room-phase-glow { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 35% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 12%, transparent), 0 0 30px color-mix(in srgb, #c5974d 14%, transparent); } }
+@keyframes room-phase-spark {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--spark-angle)) translateY(-32px) scale(.5); }
+  25% { opacity: .8; }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--spark-angle)) translateY(-155px) scale(.7); }
+}
+@media (max-width: 480px) {
+  .room-rhythm-fields { grid-template-columns: minmax(0, 1fr); }
+  .study-room-clock > .room-phase-celebration { gap: .4rem; padding: .75rem; }
+  .room-phase-celebration__icon { width: 1.6rem; height: 1.6rem; }
+  .room-phase-celebration > button { width: 1.75rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-rhythm-dialog { animation: none !important; transition: none !important; }
 }

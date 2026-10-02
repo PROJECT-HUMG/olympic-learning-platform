@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import me.nghlong3004.olympic.studyroom.request.AdvanceStudyRoomPlaybackRequest;
 import me.nghlong3004.olympic.studyroom.request.CreateStudyRoomRequest;
 import me.nghlong3004.olympic.studyroom.request.RequestStudyRoomTrackRequest;
+import me.nghlong3004.olympic.studyroom.request.TransferStudyRoomOwnershipRequest;
 import me.nghlong3004.olympic.studyroom.request.UpdateStudyRoomSettingsRequest;
+import me.nghlong3004.olympic.studyroom.request.UpdateStudyRoomRhythmRequest;
 import me.nghlong3004.olympic.studyroom.response.StudyRoomSnapshotResponse;
 import me.nghlong3004.olympic.studyroom.response.StudyRoomSummaryResponse;
 import me.nghlong3004.olympic.studyroom.service.StudyRoomService;
@@ -71,6 +73,25 @@ public class StudyRoomController {
   @Operation(summary = "Owner changes music request permissions")
   @ApiResponse(responseCode = "200", description = "Updated snapshot")
   public StudyRoomSnapshotResponse settings(@PathVariable UUID id, @Valid @RequestBody UpdateStudyRoomSettingsRequest request) { return service.settings(id, request); }
+
+  @PatchMapping("/{id}/rhythm")
+  @Operation(summary = "Owner changes study durations and starts a new shared focus cycle")
+  @ApiResponse(responseCode = "200", description = "Rhythm restarted; earned focus, membership and music retained")
+  @ApiResponse(responseCode = "400", description = "Invalid durations or version")
+  @ApiResponse(responseCode = "403", description = "Caller is not the joined owner")
+  @ApiResponse(responseCode = "409", description = "Room closed or rhythm version is stale")
+  public StudyRoomSnapshotResponse rhythm(@PathVariable UUID id, @Valid @RequestBody UpdateStudyRoomRhythmRequest request) {
+    return service.rhythm(id, request);
+  }
+
+  @PostMapping("/{id}/owner")
+  @Operation(summary = "Owner transfers the room to an active online member")
+  @ApiResponse(responseCode = "200", description = "Ownership transferred; the former owner remains a member")
+  @ApiResponse(responseCode = "403", description = "Caller is not the joined owner or target is not an active member")
+  @ApiResponse(responseCode = "409", description = "Room is closed, target is offline or already owns three rooms")
+  public StudyRoomSnapshotResponse transferOwnership(@PathVariable UUID id, @Valid @RequestBody TransferStudyRoomOwnershipRequest request) {
+    return service.transferOwnership(id, request);
+  }
 
   @PostMapping("/{id}/close")
   @Operation(summary = "Owner closes a room for all members")

@@ -1,21 +1,27 @@
 import { CalendarDays, Clock3, Pin } from "lucide-react";
 import { formatDistanceToNowStrict, format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ROUTES } from "@/router/route-constants";
+import { getListReturnPath } from "@/lib/list-navigation";
+import { getPostDeadline } from "../lib/post-deadline";
 import type { PostSummaryResponse } from "../types/post.types";
 import { PostBadge } from "./post-badge";
 import { PostThumbnail } from "./post-thumbnail";
 
 export function PostListItem({ post, priority = false, variant = "card" }: { post: PostSummaryResponse; priority?: boolean; variant?: "card" | "board" }) {
-  const deadline = post.expiredAt ? new Date(post.expiredAt) : null;
-  const daysLeft = deadline ? deadline.getTime() - Date.now() : null;
-  const isUrgent = daysLeft !== null && daysLeft <= 3 * 24 * 60 * 60 * 1000;
+  const location = useLocation();
+  const from = getListReturnPath(location.pathname + location.search + location.hash, ROUTES.NEWS);
+  const deadlineState = getPostDeadline(post.expiredAt);
+  const deadline = deadlineState ? new Date(post.expiredAt!) : null;
+  const deadlineLabel = deadlineState === "expired" ? "Đã hết hạn"
+    : deadlineState === "urgent" ? `Còn ${formatDistanceToNowStrict(deadline!, { locale: vi })}`
+    : deadline ? `Hạn ${format(deadline, "dd/MM/yyyy", { locale: vi })}` : null;
 
   if (variant === "board") return (
     <article className={`school-news-post${priority ? " school-news-post--pinned" : ""}${post.thumbnailUrl && !priority ? " school-news-post--illustrated" : ""}`}>
       {post.thumbnailUrl && !priority && (
-        <Link to={`${ROUTES.NEWS}/${post.slug}`} className="school-news-post__image" aria-label={`Đọc: ${post.title}`} tabIndex={-1}>
+        <Link to={`${ROUTES.NEWS}/${post.slug}`} state={{ from }} className="school-news-post__image" aria-label={`Đọc: ${post.title}`} tabIndex={-1}>
           <PostThumbnail src={post.thumbnailUrl} alt="" />
         </Link>
       )}
@@ -25,7 +31,8 @@ export function PostListItem({ post, priority = false, variant = "card" }: { pos
           {post.pinned && !priority && <span className="school-news-post__pinned-label"><Pin aria-hidden="true" /> Được ghim</span>}
           {post.publishedAt && <time dateTime={post.publishedAt}>{format(new Date(post.publishedAt), "dd/MM/yyyy", { locale: vi })}</time>}
         </div>
-        <h3><Link to={`${ROUTES.NEWS}/${post.slug}`}>{post.title}</Link></h3>
+        <h3><Link to={`${ROUTES.NEWS}/${post.slug}`} state={{ from }}>{post.title}</Link></h3>
+        {deadlineLabel && <p className="text-xs text-muted-foreground">{deadlineLabel}</p>}
         {post.summary && <p>{post.summary}</p>}
       </div>
     </article>
@@ -33,16 +40,16 @@ export function PostListItem({ post, priority = false, variant = "card" }: { pos
 
   return (
     <article className="group grid gap-4 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 hover:bg-muted/20 sm:grid-cols-[10.5rem_1fr] sm:p-4">
-      <Link to={`${ROUTES.NEWS}/${post.slug}`} className="overflow-hidden rounded-lg bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <Link to={`${ROUTES.NEWS}/${post.slug}`} state={{ from }} className="overflow-hidden rounded-lg bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <PostThumbnail src={post.thumbnailUrl} alt="" className="aspect-[16/9] h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
       </Link>
       <div className="min-w-0 py-1">
         <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
           <PostBadge type={post.type} />
           {priority && <span className="inline-flex items-center text-primary" title="Bài viết được ghim" aria-label="Bài viết được ghim"><Pin className="size-3.5 fill-current" /></span>}
-          {deadline && <span className={`inline-flex items-center gap-1 font-medium ${isUrgent ? "text-destructive" : "text-muted-foreground"}`}><Clock3 className="size-3" />{isUrgent ? (daysLeft! <= 0 ? "Hết hạn hôm nay" : `Còn ${formatDistanceToNowStrict(deadline, { locale: vi })}`) : `Hạn ${format(deadline, "dd/MM/yyyy", { locale: vi })}`}</span>}
+          {deadlineLabel && <span className={`inline-flex items-center gap-1 font-medium ${deadlineState !== "future" ? "text-destructive" : "text-muted-foreground"}`}><Clock3 className="size-3" />{deadlineLabel}</span>}
         </div>
-        <Link to={`${ROUTES.NEWS}/${post.slug}`} className="block text-base font-semibold leading-snug text-foreground outline-none transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring sm:text-lg">
+        <Link to={`${ROUTES.NEWS}/${post.slug}`} state={{ from }} className="block text-base font-semibold leading-snug text-foreground outline-none transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring sm:text-lg">
           {post.title}
         </Link>
         {post.summary && <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{post.summary}</p>}

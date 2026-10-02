@@ -22,7 +22,7 @@ public interface StudyRoomMemberRepository extends JpaRepository<StudyRoomMember
   @Query("select member.room.id from StudyRoomMember member where member.user.id = :userId and member.joined = true")
   Optional<UUID> findJoinedRoomIdByUserId(@Param("userId") UUID userId);
 
-  @EntityGraph(attributePaths = "user")
+  @EntityGraph(attributePaths = {"user", "user.avatar"})
   List<StudyRoomMember> findAllByRoomIdAndJoinedTrueOrderByJoinedAtAsc(UUID roomId);
 
   long countByRoomIdAndJoinedTrueAndLastSeenGreaterThanEqual(UUID roomId, OffsetDateTime threshold);

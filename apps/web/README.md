@@ -33,9 +33,15 @@ Trang chủ hiện có hero tìm tài liệu, bàn học với các tab tài li�
 Các màn học tập công khai:
 
 - `/subjects` lấy danh mục từ `/documents/metadata`, tìm tên/mã môn và mở `/documents?subjectId=...`.
-- `/news` dùng API posts, gồm bài ghim, bộ lọc loại bài, tìm kiếm và phân trang qua URL; `/news/:slug` mở chi tiết.
+- `/news` dùng API posts, gồm bài ghim, bộ lọc loại bài, tìm kiếm và phân trang qua URL; `/news/:slug` mở chi tiết. Liên kết quay lại giữ URL danh sách và dùng điều hướng SPA; chi tiết phân biệt 404 với lỗi kết nối/server có nút thử lại. Bài quá hạn được ghi rõ; hiệu ứng chi tiết tôn trọng giảm chuyển động.
 - `/toolkit?tool=rooms` là phòng học chung, yêu cầu đăng nhập để tạo hoặc tham gia. `/study-rooms/:roomId` mở phòng qua đường dẫn mời. API lưu lịch học/nghỉ, thành viên và hàng đợi nhạc; client đồng bộ mỗi 5 giây. Chủ phòng duyệt đề xuất YouTube và đặt quyền đề xuất theo thời gian học. Nhạc mặc định là livestream Lofi Girl; trình duyệt có thể yêu cầu bấm “Bật nhạc”. Xem [contract phòng học](../../docs/architecture/study-rooms.md).
-- `/toolkit?tool=gpa` tính trung bình theo tín chỉ trên hệ 4 hoặc 10, không tự quy đổi thang điểm hay áp dụng quy chế của trường. Bản nháp lưu vào localStorage, chưa đồng bộ tài khoản.
+- `/toolkit?tool=gpa` tính trung bình theo tín chỉ trên hệ 4 hoặc 10 và lập kế hoạch GPA mục tiêu từ GPA hiện tại, tín chỉ đã tính, tín chỉ còn lại. Màn báo điểm trung bình tối thiểu cần đạt hoặc mục tiêu vượt khả năng. Không tự quy đổi thang điểm hay áp dụng quy chế/học lại của trường. Bản nháp phép tính và kế hoạch lưu riêng vào localStorage, chưa đồng bộ tài khoản.
+
+Phòng học cho chủ phòng chuyển quyền cho thành viên đang online qua hộp thoại xác nhận. Mạng trở lại hoặc tab hiện lại sẽ đồng bộ phòng; màn báo kết nối và thời gian server đã ghi nhận. Khoảng gián đoạn quá 30 giây không được cộng; lease hết hạn cần bấm tham gia lại.
+
+Trang phòng có cảnh 2D với nhân vật SVG, avatar/tên tài khoản và bàn trống. Nhân vật vào/rời chỗ, viết bài hoặc nghỉ theo phase; mất kết nối sẽ dừng động tác. Bấm một bạn để xem thời gian đã ghi nhận. Chỗ ngồi giữ ổn định khi polling trong cùng màn; phòng đông chia tối đa 12 bàn mỗi nhóm. Hỗ trợ ảnh lỗi, bàn phím, mobile, theme và giảm chuyển động; animation không chứng minh người dùng đang thực sự học.
+
+Chủ phòng bấm “Chỉnh giờ” để chọn phút học/nghỉ ngắn/nghỉ dài hoặc mẫu 25/5/15, 50/10/20, 90/15/30. “Bắt đầu nhịp mới” đặt lại đồng hồ chung, giữ thời gian đã ghi nhận và nhạc. Web cần API có Flyway V11. Mỗi người có “Bật chuông”, “Tắt chuông” và “Thử chuông” riêng; cần bấm bật âm thanh sau mỗi lần tải lại. Hết nhịp học/nghỉ hiện thông báo, tia màu và ánh sáng nhẹ, chỉ một lần mỗi ranh giới; không phát bù khi mất mạng/tab ẩn hoặc đặt lại nhịp. Giảm chuyển động giữ thông báo, bỏ hiệu ứng động. Chuông dùng Web Audio, không thêm tài nguyên hoặc thư viện.
 
 Các màn tài khoản dùng video trên desktop. Dưới 1024px, giao diện dùng tông giấy/vở sáng hoặc tối, không mount video hay tải ảnh nền anime.
 
@@ -46,6 +52,7 @@ Các route luyện tập, kỳ thi và lịch sử hiện hiển thị hướng 
 - Từ 1280px, nav công khai nổi cách mép trên 16px, rộng tối đa 1200px, cao 60px và thu còn 56px khi cuộn. Logo trường dẫn về trang chủ; bốn mục Môn học/Tài liệu/Bảng tin/Tiện ích nằm giữa. Vạch chọn nhận cả route chi tiết và phòng học. Một CTA mở đăng nhập hoặc dashboard theo vai trò; menu avatar giữ các thao tác tài khoản.
 - Dưới 1280px, điều hướng nằm trong menu nhóm trên header, không có thanh dưới. Dashboard có sidebar theo vai trò, thu/mở bằng nút; không tự đổi kích thước khi hover.
 - Bộ lọc, số trang và kiểu xem tài liệu được giữ trong URL; mở chi tiết rồi quay lại giữ đường về danh sách. Đăng nhập giữ đích quay lại qua các màn tài khoản. Lỗi kiểm tra phiên trên server có trạng thái thử lại tại route đang mở.
+- Refresh dùng chung một request có timeout 15 giây. Refresh trả 401/403 sẽ xóa token, cache dữ liệu và cập nhật người dùng về null để mở lại màn đăng nhập; lỗi mạng/timeout/server giữ phiên cho lần thử sau. Kết quả refresh cũ không ghi đè lần đăng nhập/đăng xuất mới hơn.
 - Lần vào đầu hiển thị logo trường và tiến độ, giữ tối thiểu 1,5 giây. Loader đợi route đầu, các query lần đầu đang pending, font và video theme hiện tại rồi mới lên 100%; đây là tiến độ các bước chuẩn bị, không phải phần trăm byte của toàn website. Mạng chậm tiếp tục chờ và có hướng dẫn tải lại sau 12 giây. Request thất bại có fallback/trạng thái lỗi riêng.
 - Khi đạt 100%, giữ 250ms rồi GSAP kéo hai lớp nền sang hai bên; mở tương tác sau khi hiệu ứng xong. Giảm chuyển động dùng fade ngắn. Chuyển route trong SPA dùng loading gọn theo trang, không phát lại startup loader; thay query/filter giữ trạng thái trang.
 - Video theme đang dùng được tải một lần và dùng lại Blob URL trong vòng đời trang. Video lỗi hoặc autoplay bị chặn thì giữ poster; mobile auth và giảm chuyển động không tải video. Logo loader dùng cùng nguồn `public/icons.svg`, căn bỏ khoảng trắng và không có nền sáng ở theme tối.
@@ -62,7 +69,7 @@ pnpm preview
 
 `pnpm build` gồm kiểm tra TypeScript và bundle Vite. Xem [AGENTS.md](AGENTS.md) trước khi sửa web; giữ responsive, dark mode, keyboard focus và reduced motion khi chỉnh UI.
 
-Kiểm thử phép tính GPA, đường dẫn sau đăng nhập và điều hướng danh sách bằng Node.js 24, không cần dependency kiểm thử bổ sung:
+Kiểm thử GPA/mục tiêu, refresh phiên, thời hạn bài viết, đường dẫn sau đăng nhập và điều hướng danh sách bằng Node.js 24, không cần dependency kiểm thử bổ sung:
 
 ```bash
 node --test --test-isolation=none tests/*.test.ts

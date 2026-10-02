@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Copy, Crown, Headphones, LogOut, SkipForward, Users, X } from "lucide-react";
+import { ArrowLeft, Bell, BellOff, Check, Copy, Crown, Headphones, LogOut, SkipForward, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
@@ -11,6 +11,12 @@ import type { RoomSettings, StudyRoomSnapshot } from "../types/study-room";
 import { RoomPolicyFields } from "./room-policy-fields";
 import { StudyRoomAccess } from "./study-room-access";
 import { StudyMusicPlayer } from "./study-music-player";
+import { TransferRoomOwnership } from "./transfer-room-ownership";
+import { StudyRoomScene } from "./study-room-scene";
+import { EditRoomRhythm } from "./edit-room-rhythm";
+import { PhaseCelebration } from "./phase-celebration";
+import { useRoomBell } from "../hooks/use-room-bell";
+import { usePhaseFeedback } from "../hooks/use-phase-feedback";
 import "./study-room.css";
 
 const lobby = `${ROUTES.TOOLKIT}?tool=rooms`;
@@ -31,7 +37,7 @@ function HostSettings({ room, busy, onSave }: { room: StudyRoomSnapshot; busy: b
 export function StudyRoomSession({ id }: { id: string }) {
   const user = useCurrentUser();
   const navigate = useNavigate();
-  const { query, action } = useStudyRoom(id, user.data?.id);
+  const { query, action, recovering, online, reconnect } = useStudyRoom(id, user.data?.id);
   const [now, setNow] = useState(Date.now);
   const [title, setTitle] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
@@ -39,8 +45,11 @@ export function StudyRoomSession({ id }: { id: string }) {
   const [copyFailed, setCopyFailed] = useState(false);
   const [endedVersion, setEndedVersion] = useState<number | null>(null);
   const room = query.data?.room;
+  const synchronized = online && !recovering && !query.isError && now - query.dataUpdatedAt <= 30_000;
   const busy = action.isPending;
   const run = action.mutate;
+  const bell = useRoomBell();
+  const feedback = usePhaseFeedback({ room, now, synchronized, joined: !!room?.me, serverOffsetMs: query.data?.serverOffsetMs ?? 0, onBell: bell.play });
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
@@ -48,17 +57,17 @@ export function StudyRoomSession({ id }: { id: string }) {
   }, []);
 
   const nextTrack = useCallback((version: number) => {
-    if (!busy) run({ type: "next", expectedVersion: version });
-  }, [busy, run]);
+    if (!busy && synchronized) run({ type: "next", expectedVersion: version });
+  }, [busy, synchronized, run]);
 
   const trackEnded = useCallback((version: number) => setEndedVersion(version), []);
   useEffect(() => {
     if (endedVersion === null || busy || !room) return;
-    if (!query.isError && room.me && !room.closed && room.ownerId === user.data?.id && room.playback.version === endedVersion) {
+    if (synchronized && room.me && !room.closed && room.ownerId === user.data?.id && room.playback.version === endedVersion) {
       run({ type: "next", expectedVersion: endedVersion });
     }
     setEndedVersion(null);
-  }, [endedVersion, busy, room, query.isError, user.data?.id, run]);
+  }, [endedVersion, busy, room, synchronized, user.data?.id, run]);
 
   async function copyInvite() {
     try {
@@ -90,7 +99,7 @@ export function StudyRoomSession({ id }: { id: string }) {
 
   const isHost = room.ownerId === user.data.id;
   const joined = !!room.me && !room.closed;
-  const canAct = joined && !busy && !query.isError;
+  const canAct = joined && !busy && synchronized;
   const remaining = Math.max(0, Math.ceil((Date.parse(room.phaseEndsAt) - now - (query.data?.serverOffsetMs ?? 0)) / 1000));
   const duration = 60 * (room.phase === "FOCUS" ? room.focusMinutes : room.phase === "BREAK" ? room.breakMinutes : room.longBreakMinutes);
   const hasRequest = room.tracks.some((track) => track.requestedById === user.data.id);
@@ -108,8 +117,13 @@ export function StudyRoomSession({ id }: { id: string }) {
         </div>
       </header>
       {copyFailed && <label className="study-room-copy">Sao chép đường dẫn này để mời bạn<input readOnly value={window.location.href} onFocus={(event) => event.target.select()} /></label>}
-      {query.isError && <div className="study-room-feedback" role="alert"><p>Mất kết nối với phòng. Đồng hồ và nhạc có thể chưa được cập nhật; thời gian gián đoạn không được cộng vào thời gian học.</p><Button variant="outline" onClick={() => void query.refetch()} disabled={query.isFetching}>Kết nối lại</Button></div>}
+      {!synchronized && <div className="study-room-feedback" role={recovering ? "status" : "alert"} aria-busy={recovering}>
+        <p>{!online ? "Thiết bị đang mất mạng. Phòng sẽ được đồng bộ khi có kết nối trở lại." : recovering ? "Đang đồng bộ lại phòng học…" : "Trạng thái phòng chưa được cập nhật. Hãy kết nối lại trước khi tiếp tục thao tác."}</p>
+        <p>Khoảng gián đoạn quá 30 giây không được cộng vào thời gian tập trung. Phiên tham gia hết hạn sẽ cần bạn bấm tham gia lại.</p>
+        <Button variant="outline" onClick={() => void reconnect()} disabled={!online || query.isFetching || recovering}>Kết nối lại</Button>
+      </div>}
       {action.isError && <p className="study-room-error" role="alert">{parseApiError(action.error).detail}</p>}
+      {!room.closed && <StudyRoomScene room={room} currentUserId={user.data.id} synchronized={synchronized} celebrating={!!feedback.notice} />}
       {room.closed ? (
         <div className="study-room-feedback" role="status"><h2>Buổi học đã khép lại.</h2><p>Chủ phòng đã đóng bàn học này.</p><Button asChild><Link to={lobby}>Tìm một phòng khác</Link></Button></div>
       ) : !joined ? (
@@ -117,21 +131,32 @@ export function StudyRoomSession({ id }: { id: string }) {
           <Headphones aria-hidden="true" /><h2>Đặt sách xuống, vào học cùng nhé.</h2>
           <p>{room.focusMinutes} phút tập trung, {room.breakMinutes} phút nghỉ. Nhạc lofi và nhịp học được chia sẻ trong phòng.</p>
           <p>{policyText} Khi vào phòng này, bạn sẽ rời phòng đang tham gia trước đó.</p>
-          <Button disabled={busy || query.isError} onClick={() => run({ type: "join" })}>{busy ? "Đang vào phòng…" : "Tham gia phòng"}</Button>
+          <Button disabled={busy || !synchronized} onClick={() => run({ type: "join" })}>{busy ? "Đang vào phòng…" : "Tham gia phòng"}</Button>
         </div>
       ) : (
         <div className="study-room-layout">
           <div className="study-room-main">
-            <section className="study-room-clock" aria-label="Nhịp học chung">
+            <section className="study-room-clock" aria-label="Nhịp học chung" data-celebrating={feedback.notice?.kind}>
               <div><span>{room.phase === "FOCUS" ? "Cùng tập trung" : room.phase === "BREAK" ? "Nghỉ một chút" : "Một khoảng nghỉ dài"}</span><span>Phiên {room.sessionNumber}</span></div>
-              <p className="study-room-clock__time" role="timer" aria-live="off">{String(Math.floor(remaining / 60)).padStart(2, "0")}:{String(remaining % 60).padStart(2, "0")}</p>
-              <progress max={duration} value={Math.max(0, duration - remaining)} aria-label="Tiến độ phiên học" />
-              <p>{remaining === 0 ? "Đang đồng bộ phiên tiếp theo…" : room.phase === "FOCUS" ? "Chọn một việc nhỏ và dành trọn khoảng thời gian này cho nó." : "Rời mắt khỏi màn hình, đứng dậy và uống chút nước nhé."}</p>
+              <p className="study-room-clock__time" role="timer" aria-live="off">{synchronized ? `${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}` : "—:—"}</p>
+              <progress max={duration} value={synchronized ? Math.max(0, duration - remaining) : undefined} aria-label={synchronized ? "Tiến độ phiên học" : "Đang chờ đồng bộ phiên học"} />
+              <p>{!synchronized ? "Nhịp học sẽ cập nhật khi kết nối với phòng được khôi phục." : remaining === 0 ? "Đang đồng bộ phiên tiếp theo…" : room.phase === "FOCUS" ? "Chọn một việc nhỏ và dành trọn khoảng thời gian này cho nó." : "Rời mắt khỏi màn hình, đứng dậy và uống chút nước nhé."}</p>
               <small>{room.focusMinutes} phút học / {room.breakMinutes} phút nghỉ / nghỉ {room.longBreakMinutes} phút sau 4 phiên</small>
+              <div className="room-clock-controls">
+                {isHost && <EditRoomRhythm room={room} disabled={!canAct} busy={busy} onApply={(input, onSuccess) => run({ type: "rhythm", input }, {
+                  onSuccess: () => { onSuccess(); toast.success("Đã chỉnh giờ và bắt đầu nhịp học mới cho cả phòng."); },
+                })} />}
+                <Button variant="outline" aria-pressed={bell.enabled && bell.ready} disabled={bell.activating} onClick={() => void bell.toggle()}>
+                  {bell.enabled && bell.ready ? <Bell aria-hidden="true" /> : <BellOff aria-hidden="true" />}{bell.activating ? "Đang bật…" : bell.enabled && bell.ready ? "Tắt chuông" : "Bật chuông"}
+                </Button>
+                {bell.enabled && bell.ready && <Button variant="ghost" onClick={bell.play}>Thử chuông</Button>}
+              </div>
+              <p className="room-clock-bell-note">{bell.error ?? (bell.enabled && bell.ready ? "Chuông sẽ reo khi chuyển phiên trên thiết bị này." : "Bật chuông để nghe khi hết giờ. Cần bật lại âm thanh sau khi tải lại trang.")}</p>
+              <PhaseCelebration notice={feedback.notice} onDismiss={feedback.dismiss} />
             </section>
             <section className="study-room-music" aria-labelledby="room-music-heading">
               <div className="study-room-section-heading"><h2 id="room-music-heading">Nhạc ở bàn học</h2>{isHost && <Button variant="outline" disabled={!canAct} onClick={() => nextTrack(room.playback.version)}><SkipForward aria-hidden="true" /> Phát tiếp</Button>}</div>
-              <StudyMusicPlayer playback={room.playback} serverOffsetMs={query.data?.serverOffsetMs ?? 0} isHost={isHost && !query.isError} onEnded={trackEnded} />
+              <StudyMusicPlayer playback={room.playback} serverOffsetMs={query.data?.serverOffsetMs ?? 0} isHost={isHost && synchronized} onEnded={trackEnded} />
               {isHost && <p className="study-room-note">Bấm “Phát tiếp” để phát bài đã duyệt. Hết hàng đợi sẽ quay về Lofi Girl.</p>}
             </section>
             <section className="study-room-request" aria-labelledby="room-request-heading">
@@ -153,7 +178,8 @@ export function StudyRoomSession({ id }: { id: string }) {
             <section className="study-room-presence" aria-labelledby="room-members-heading">
               <h2 id="room-members-heading">Cùng bàn với bạn</h2>
               <p className="study-room-my-time">Bạn đã học <strong>{Math.floor((room.me?.focusSeconds ?? 0) / 60)} phút</strong></p>
-              <p className="study-room-note">Chỉ cộng thời gian tập trung khi còn kết nối với phòng; không cộng giờ nghỉ.</p>
+              <p className="study-room-note">Thời gian do phòng ghi nhận khi còn kết nối trong phiên tập trung; không gồm giờ nghỉ hoặc khoảng mất kết nối quá 30 giây.</p>
+              <p className="study-room-note" role="status">{synchronized ? "Đã đồng bộ với phòng · cập nhật mỗi 5 giây." : "Đang hiển thị thời gian đã ghi nhận ở lần đồng bộ gần nhất."}</p>
               <ul>{room.members.map((member) => <li key={member.userId}><span className="study-room-presence__dot" data-online={member.online} aria-label={member.online ? "Đang có mặt" : "Tạm mất kết nối"} /><span>{member.displayName}{member.userId === room.ownerId && <Crown aria-label="Chủ phòng" />}</span><small>{Math.floor(member.focusSeconds / 60)} phút</small></li>)}</ul>
             </section>
             <section className="study-room-queue" aria-labelledby="room-queue-heading">
@@ -169,6 +195,7 @@ export function StudyRoomSession({ id }: { id: string }) {
             </section>
             {isHost && <>
               <HostSettings key={`${room.requestPolicy}-${room.minimumStudyMinutes}`} room={room} busy={!canAct} onSave={(input) => run({ type: "settings", input })} />
+              <TransferRoomOwnership room={room} disabled={!canAct} onTransfer={(userId, onSuccess) => run({ type: "owner", userId }, { onSuccess: () => { onSuccess(); toast.success("Đã chuyển quyền chủ phòng. Bạn vẫn là thành viên của phòng."); } })} />
               <div className="study-room-close">
                 {confirmClose ? <><p>Đóng phòng sẽ kết thúc buổi học cho tất cả thành viên.</p><div><Button variant="destructive" disabled={!canAct} onClick={() => run({ type: "close" })}>Đóng phòng học</Button><Button variant="ghost" onClick={() => setConfirmClose(false)}>Học tiếp</Button></div></> : <Button variant="ghost" onClick={() => setConfirmClose(true)}>Kết thúc buổi học</Button>}
               </div>
