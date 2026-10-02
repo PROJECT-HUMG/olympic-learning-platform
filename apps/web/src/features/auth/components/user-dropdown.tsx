@@ -53,7 +53,7 @@ export function UserDropdown({
                 <img
                   src={user.avatarUrl}
                   alt=""
-                  className="size-full object-cover"
+                  className="size-full object-contain p-[15%]"
                 />
               ) : (
                 (user.fullName || user.username).charAt(0).toUpperCase()
