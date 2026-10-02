@@ -1,3 +1,4 @@
+import { AvatarImage } from "@/features/user/components/avatar-image";
 import type { ReactNode } from "react";
 import {
   HoverCard,
@@ -26,7 +27,7 @@ export function UserHoverCard({ user, children, align = "start" }: UserHoverCard
         <div className="flex space-x-4">
           <div className="w-12 h-12 rounded-full overflow-hidden bg-primary/10 shrink-0 shadow-sm border border-border/50">
             {user.avatarUrl ? (
-              <img src={user.avatarUrl} alt={user.fullName || "User"} className="w-full h-full object-cover" />
+              <AvatarImage crop={user.avatarCrop} src={user.avatarUrl} alt={user.fullName || "User"} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-lg font-bold text-primary">
                 {(user.fullName || "U")[0]}

@@ -1,3 +1,4 @@
+import { AvatarImage } from "@/features/user/components/avatar-image";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -50,10 +51,10 @@ export function UserDropdown({
           <span className="flex min-w-0 items-center gap-3">
             <span className={cn("flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-semibold", avatarClassName)}>
               {user.avatarUrl ? (
-                <img
+                <AvatarImage crop={user.avatarCrop}
                   src={user.avatarUrl}
                   alt=""
-                  className="size-full object-contain p-[15%]"
+                  className="size-full object-cover"
                 />
               ) : (
                 (user.fullName || user.username).charAt(0).toUpperCase()

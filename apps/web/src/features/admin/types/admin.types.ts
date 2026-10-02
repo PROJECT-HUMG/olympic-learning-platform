@@ -1,3 +1,4 @@
+import type { AvatarCrop } from "@/features/user/types/user.types";
 import type { Role, UserStatus } from "@/features/auth/types/auth.types";
 
 export interface AdminUserResponse {
@@ -6,6 +7,7 @@ export interface AdminUserResponse {
   username: string;
   fullName: string;
   avatarUrl: string | null;
+  avatarCrop?: AvatarCrop | null;
   role: Role;
   status: UserStatus;
   permissions: string[];

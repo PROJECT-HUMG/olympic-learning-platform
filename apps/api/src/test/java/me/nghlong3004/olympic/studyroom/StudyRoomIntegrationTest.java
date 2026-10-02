@@ -95,12 +95,14 @@ class StudyRoomIntegrationTest {
     var avatarId = UUID.randomUUID();
     jdbc.update("INSERT INTO files(id,storage_key,original_name,content_type,size,provider,folder) VALUES (?,?,'avatar.png','image/png',100,'CLOUDINARY','AVATAR')",
         avatarId, "avatars/member.png");
-    jdbc.update("UPDATE users SET avatar_id=? WHERE id=?", avatarId, MEMBER);
+    jdbc.update("UPDATE users SET avatar_id=?, avatar_crop_x=0.2, avatar_crop_y=0.8, avatar_crop_zoom=2 WHERE id=?", avatarId, MEMBER);
     when(storageService.getDownloadUri("avatars/member.png")).thenReturn(URI.create("https://example.test/member-avatar.png"));
     try {
       var snapshot = service.get(id);
       assertThat(snapshot.members().stream().filter(member -> member.userId().equals(MEMBER)).findFirst().orElseThrow().avatarUrl())
           .isEqualTo("https://example.test/member-avatar.png");
+      assertThat(snapshot.members().stream().filter(member -> member.userId().equals(MEMBER)).findFirst().orElseThrow().avatarCrop().zoom())
+          .isEqualTo(2);
       assertThat(snapshot.members().stream().filter(member -> member.userId().equals(HOST)).findFirst().orElseThrow().avatarUrl()).isNull();
     } finally {
       jdbc.update("UPDATE users SET avatar_id=NULL WHERE id=?", MEMBER);

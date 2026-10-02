@@ -2,6 +2,7 @@ package me.nghlong3004.olympic.auth.response;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import me.nghlong3004.olympic.user.response.AvatarCropResponse;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
 
@@ -15,6 +16,7 @@ public record CurrentUserResponse(
     String username,
     String fullName,
     String avatarUrl,
+    AvatarCropResponse avatarCrop,
     Role role,
     Status status,
     OffsetDateTime lastLoginAt) {
@@ -22,7 +24,7 @@ public record CurrentUserResponse(
   /** Returns a copy of this response with the given avatar URL. */
   public CurrentUserResponse withAvatarUrl(String avatarUrl) {
     return new CurrentUserResponse(
-        id, email, username, fullName, avatarUrl, role, status, lastLoginAt);
+        id, email, username, fullName, avatarUrl, avatarCrop, role, status, lastLoginAt);
   }
 }
 

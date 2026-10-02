@@ -3,6 +3,7 @@ package me.nghlong3004.olympic.admin.response;
 import java.time.OffsetDateTime;
 import java.util.Set;
 import java.util.UUID;
+import me.nghlong3004.olympic.user.response.AvatarCropResponse;
 import me.nghlong3004.olympic.user.enums.Permission;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
@@ -18,6 +19,7 @@ public record AdminUserResponse(
     String username,
     String fullName,
     String avatarUrl,
+    AvatarCropResponse avatarCrop,
     Role role,
     Status status,
     Set<Permission> permissions,
@@ -31,6 +33,7 @@ public record AdminUserResponse(
         user.getUsername(),
         user.getFullName(),
         avatarUrl,
+        AvatarCropResponse.fromEntity(user.getAvatarCrop()),
         user.getRole(),
         user.getStatus(),
         user.getPermissions(),

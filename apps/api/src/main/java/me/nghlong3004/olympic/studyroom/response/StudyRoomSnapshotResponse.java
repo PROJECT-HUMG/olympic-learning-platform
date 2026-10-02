@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import me.nghlong3004.olympic.user.response.AvatarCropResponse;
 import me.nghlong3004.olympic.studyroom.enums.StudyRoomPhase;
 import me.nghlong3004.olympic.studyroom.enums.StudyRoomRequestPolicy;
 import me.nghlong3004.olympic.studyroom.enums.StudyRoomTrackStatus;
@@ -21,7 +22,7 @@ public record StudyRoomSnapshotResponse(
   public record Playback(String videoId, String title, OffsetDateTime startedAt, long version, boolean isDefault) {}
   public record Member(UUID userId, String displayName,
       @Schema(description = "Account avatar URL; null when no custom avatar is set") String avatarUrl,
-      long focusSeconds, boolean online) {}
+      AvatarCropResponse avatarCrop, long focusSeconds, boolean online) {}
   public record Me(UUID userId, long focusSeconds, boolean canRequest, long remainingStudySeconds) {}
   public record Track(UUID id, String videoId, String title, UUID requestedById, String requestedByName,
       StudyRoomTrackStatus status, OffsetDateTime createdAt) {}

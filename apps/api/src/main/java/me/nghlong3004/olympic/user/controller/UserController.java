@@ -8,6 +8,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import me.nghlong3004.olympic.auth.response.CurrentUserResponse;
 import me.nghlong3004.olympic.user.request.UpdateProfileRequest;
+import me.nghlong3004.olympic.user.request.UpdateAvatarCropRequest;
 import me.nghlong3004.olympic.user.response.UserResponse;
 import me.nghlong3004.olympic.user.service.UserService;
 import org.springframework.http.MediaType;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -64,8 +66,19 @@ public class UserController {
   @ApiResponse(responseCode = "200", description = "Avatar updated")
   @ApiResponse(responseCode = "400", description = "Invalid avatar")
   @ApiResponse(responseCode = "401", description = "Authentication required")
-  public UserResponse updateAvatar(@RequestParam("avatar") MultipartFile avatar) {
-    return userService.updateAvatar(avatar);
+  public UserResponse updateAvatar(
+      @RequestParam("avatar") MultipartFile avatar,
+      @Valid @RequestPart(value = "crop", required = false) UpdateAvatarCropRequest crop) {
+    return userService.updateAvatar(avatar, crop);
+  }
+
+  @PatchMapping("/me/avatar/crop")
+  @Operation(summary = "Reframe the current avatar without replacing its original image")
+  @ApiResponse(responseCode = "200", description = "Avatar framing updated")
+  @ApiResponse(responseCode = "400", description = "Invalid framing")
+  @ApiResponse(responseCode = "401", description = "Authentication required")
+  public UserResponse updateAvatarCrop(@Valid @RequestBody UpdateAvatarCropRequest request) {
+    return userService.updateAvatarCrop(request);
   }
 
   @DeleteMapping("/me/avatar")

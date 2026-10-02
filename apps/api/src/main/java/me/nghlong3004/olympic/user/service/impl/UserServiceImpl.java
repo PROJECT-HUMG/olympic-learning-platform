@@ -15,9 +15,11 @@ import me.nghlong3004.olympic.storage.enums.StorageFolder;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
 import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.User;
+import me.nghlong3004.olympic.user.entity.AvatarCrop;
 import me.nghlong3004.olympic.user.mapper.UserMapper;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import me.nghlong3004.olympic.user.request.UpdateProfileRequest;
+import me.nghlong3004.olympic.user.request.UpdateAvatarCropRequest;
 import me.nghlong3004.olympic.user.response.UserResponse;
 import me.nghlong3004.olympic.user.service.UserService;
 import org.springframework.stereotype.Service;
@@ -87,7 +89,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional
-  public UserResponse updateAvatar(MultipartFile avatar) {
+  public UserResponse updateAvatar(MultipartFile avatar, UpdateAvatarCropRequest crop) {
     validateAvatar(avatar);
 
     CurrentUser currentUser = currentUserProvider.getCurrentUser();
@@ -97,9 +99,8 @@ public class UserServiceImpl implements UserService {
             .findForUpdateById(currentUser.id())
             .orElseThrow(ErrorCode.USER_NOT_FOUND::throwIt);
 
-    deleteOldAvatar(user);
-
     UploadedFile uploaded = storageService.upload(avatar, StorageFolder.AVATAR);
+    deleteOldAvatar(user);
 
     var fileEntity =
         fileRepository.save(
@@ -113,9 +114,21 @@ public class UserServiceImpl implements UserService {
                 .build());
 
     user.setAvatar(fileEntity);
+    user.setAvatarCrop(crop == null ? null : new AvatarCrop(crop.x(), crop.y(), crop.zoom()));
 
     log.info("User {} updated avatar: fileId={}", user.getId(), fileEntity.getId());
 
+    return userMapper.toResponse(user).withAvatarUrl(resolveAvatarUrl(user));
+  }
+
+  @Transactional
+  @Override
+  public UserResponse updateAvatarCrop(UpdateAvatarCropRequest request) {
+    CurrentUser currentUser = currentUserProvider.getCurrentUser();
+    User user = userRepository.findForUpdateById(currentUser.id())
+        .orElseThrow(ErrorCode.USER_NOT_FOUND::throwIt);
+    user.setAvatarCrop(new AvatarCrop(request.x(), request.y(), request.zoom()));
+    log.info("User avatar framing updated: userId={}", user.getId());
     return userMapper.toResponse(user).withAvatarUrl(resolveAvatarUrl(user));
   }
 
@@ -132,6 +145,7 @@ public class UserServiceImpl implements UserService {
     deleteOldAvatar(user);
 
     user.setAvatar(null);
+    user.setAvatarCrop(null);
 
     log.info("User {} removed avatar", user.getId());
 

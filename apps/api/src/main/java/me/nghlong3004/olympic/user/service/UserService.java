@@ -7,6 +7,7 @@ package me.nghlong3004.olympic.user.service;
 import java.util.UUID;
 import me.nghlong3004.olympic.auth.response.CurrentUserResponse;
 import me.nghlong3004.olympic.user.request.UpdateProfileRequest;
+import me.nghlong3004.olympic.user.request.UpdateAvatarCropRequest;
 import me.nghlong3004.olympic.user.response.UserResponse;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -48,9 +49,18 @@ public interface UserService {
    * Updates the avatar of the currently authenticated user.
    *
    * @param avatar avatar image
+   * @param crop optional framing metadata; the original image remains unchanged
    * @return the updated user profile
    */
-  UserResponse updateAvatar(MultipartFile avatar);
+  UserResponse updateAvatar(MultipartFile avatar, UpdateAvatarCropRequest crop);
+
+  /**
+   * Updates only the current user's avatar framing, retaining its original file and URL.
+   *
+   * @param request validated alignment and zoom
+   * @return the profile with persisted framing metadata
+   */
+  UserResponse updateAvatarCrop(UpdateAvatarCropRequest request);
 
   /**
    * Removes the current user's avatar and restores the default avatar.

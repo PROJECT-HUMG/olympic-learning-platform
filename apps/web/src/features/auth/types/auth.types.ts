@@ -1,3 +1,4 @@
+import type { AvatarCrop } from "@/features/user/types/user.types";
 export type Role = "STUDENT" | "LECTURER" | "ADMIN";
 export type UserStatus = "PENDING" | "ACTIVE" | "DISABLED";
 
@@ -7,6 +8,7 @@ export interface CurrentUser {
   username: string;
   fullName: string;
   avatarUrl: string;
+  avatarCrop?: AvatarCrop | null;
   role: Role;
   status: UserStatus;
   lastLoginAt?: string | null;

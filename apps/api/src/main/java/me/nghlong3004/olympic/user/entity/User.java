@@ -60,6 +60,9 @@ public class User {
   @JoinColumn(name = "avatar_id")
   private File avatar;
 
+  @Embedded
+  private AvatarCrop avatarCrop;
+
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_id"))
   @Enumerated(EnumType.STRING)

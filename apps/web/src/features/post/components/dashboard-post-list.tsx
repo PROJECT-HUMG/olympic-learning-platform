@@ -1,3 +1,4 @@
+import { AvatarImage } from "@/features/user/components/avatar-image";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, Newspaper, Calendar, Eye, Pin, Clock3 } from "lucide-react";
 import { format } from "date-fns";
@@ -85,7 +86,7 @@ export function DashboardPostList({ data, onDeleteClick, onEditClick }: Dashboar
                       <div className="flex items-center gap-1.5 max-w-[120px] truncate" title={post.author.fullName}>
                         <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-[8px] font-semibold text-primary border shrink-0 overflow-hidden">
                           {post.author.avatarUrl ? (
-                            <img src={post.author.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                            <AvatarImage crop={post.author.avatarCrop} src={post.author.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                           ) : (
                             (post.author.fullName)[0].toUpperCase()
                           )}

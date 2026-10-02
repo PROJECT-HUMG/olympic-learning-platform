@@ -1,3 +1,4 @@
+import { AvatarImage } from "@/features/user/components/avatar-image";
 import { PageHeader } from "@/components/ui/page-header";
 import { useState } from "react";
 import {
@@ -123,7 +124,7 @@ export default function AdminUsersPage() {
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary border shrink-0">
                         {user.avatarUrl ? (
-                          <img
+                          <AvatarImage crop={user.avatarCrop}
                             src={user.avatarUrl}
                             alt="Avatar"
                             className="w-full h-full rounded-full object-cover"

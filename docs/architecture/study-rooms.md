@@ -29,7 +29,7 @@ Chủ phòng đang tham gia có thể chỉnh giờ và bấm “Bắt đầu nh
 
 Snapshot gồm cấu hình, `serverNow`, `phase`, `phaseEndsAt`, `sessionNumber`, `rhythmVersion`, `playback`, `members`, `me` (null khi chưa tham gia/hết lease) và `tracks`. `playback` gồm `videoId`, `title`, `startedAt`, `version`, `isDefault`. Phase là `FOCUS`, `BREAK`, `LONG_BREAK`; trạng thái track là `PENDING` hoặc `APPROVED`.
 
-Mỗi phần tử `members` gồm `userId`, `displayName`, `avatarUrl`, `focusSeconds`, `online`. `avatarUrl` được giải quyết từ file avatar tài khoản qua storage service, null khi không có avatar riêng. Snapshot lấy kèm user/avatar trong entity graph; không cần request hồ sơ riêng cho từng thành viên hoặc thay đổi schema. Web dùng chữ cái tên khi ảnh không có/tải lỗi, và vẫn hỗ trợ snapshot từ API cũ chưa có trường avatar.
+Mỗi phần tử `members` gồm `userId`, `displayName`, `avatarUrl`, `avatarCrop`, `focusSeconds`, `online`. `avatarUrl` được giải quyết từ file avatar tài khoản qua storage service, null khi không có avatar riêng. Snapshot lấy kèm user/avatar trong entity graph; không cần request hồ sơ riêng cho từng thành viên. Khung ảnh dùng metadata user từ migration V12. Web dùng chữ cái tên khi ảnh không có/tải lỗi, và vẫn hỗ trợ snapshot từ API cũ chưa có trường avatar.
 
 Policy `OPEN` cho mọi thành viên gửi đề xuất; `AFTER_FOCUS` yêu cầu đủ phút tập trung tích lũy trong phòng; `HOST_ONLY` chỉ cho chủ phòng. Chủ phòng luôn được gửi và bài của chủ phòng được tự duyệt. Thành viên chỉ có một bài đang chờ, hàng đợi tối đa 50 bài. Phòng tối đa 50 membership còn lease; mỗi chủ phòng tối đa 3 phòng mở. Không có phòng riêng/password ở phiên bản này; mọi tài khoản hoạt động đều có thể xem và tham gia phòng mở.
 
@@ -76,3 +76,5 @@ Chủ phòng bấm “Phát tiếp” để rời livestream và phát hàng đ�
 `V11__add_study_room_timeline.sql` thêm `timeline_started_at` (backfill từ `created_at`) và `rhythm_version` mặc định 0. Triển khai API có V11 trên mọi instance trước web hỗ trợ chỉnh giờ; không trộn instance tính lịch theo `created_at` với instance dùng mốc mới khi cho phép đổi giờ. Rollback về API cũ sau khi đổi nhịp sẽ tính lịch theo thời điểm tạo, nên cần điều phối rollback; không xóa/sửa migration đã áp dụng.
 
 `StudyRoomRulesTest` kiểm tra timeline và URL; `StudyRoomIntegrationTest` dùng PostgreSQL Testcontainers để kiểm tra thời gian, quyền, chuyển phòng, expiry, đóng phòng và concurrency thật; `StudyRoomControllerTest` kiểm tra auth filter và HTTP validation. Browser kiểm tra hai tài khoản, polling, player lifecycle và responsive với API/YouTube giả lập; chưa thay thế thử nghiệm YouTube thật trên thiết bị.
+
+Snapshot member trả thêm avatarCrop nullable (x/y căn ảnh 0–1, zoom 1–3), dùng cùng avatarUrl gốc. Null dùng cover ở giữa, zoom 1. Xem [khung avatar](avatar-framing.md).

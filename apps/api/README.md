@@ -35,3 +35,7 @@ Phòng học chung dùng `/api/v1/study-rooms`, yêu cầu JWT và tài khoản 
 ```bash
 ./mvnw -Dtest=StudyRoomRulesTest,StudyRoomIntegrationTest,StudyRoomControllerTest test
 ```
+
+## Khung avatar và ảnh gốc
+
+Ảnh gốc giữ nguyên trong storage; vị trí/độ phóng lưu riêng ở user qua migration V12. Upload avatar nhận thêm part JSON crop tùy chọn; PATCH /api/v1/users/me/avatar/crop chỉnh lại khung mà không upload ảnh. API trả avatarCrop cùng avatarUrl cho frontend. Xem [contract khung avatar](../../docs/architecture/avatar-framing.md).

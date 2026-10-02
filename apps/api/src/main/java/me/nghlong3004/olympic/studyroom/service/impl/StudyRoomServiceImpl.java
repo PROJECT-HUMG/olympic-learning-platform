@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import me.nghlong3004.olympic.user.response.AvatarCropResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nghlong3004.olympic.common.error.ErrorCode;
@@ -401,6 +402,7 @@ public class StudyRoomServiceImpl implements StudyRoomService {
             room.getPlaybackVersion(), room.isPlaybackDefault()),
         members.stream().map(member -> new StudyRoomSnapshotResponse.Member(member.getUser().getId(), displayName(member.getUser()),
             member.getUser().getAvatar() == null ? null : storageService.getDownloadUri(member.getUser().getAvatar().getStorageKey()).toString(),
+            AvatarCropResponse.fromEntity(member.getUser().getAvatarCrop()),
             member.getFocusMillis() / 1000, online(member, now))).toList(), me,
         tracks.stream().map(track -> new StudyRoomSnapshotResponse.Track(track.getId(), track.getVideoId(), track.getTitle(),
             track.getRequestedBy().getId(), displayName(track.getRequestedBy()), track.getStatus(), track.getCreatedAt())).toList());

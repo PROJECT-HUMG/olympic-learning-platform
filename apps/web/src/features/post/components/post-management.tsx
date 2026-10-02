@@ -1,3 +1,4 @@
+import { AvatarImage } from "@/features/user/components/avatar-image";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { usePosts } from "@/features/post/hooks/use-posts";
@@ -129,7 +130,7 @@ export function PostManagement() {
                     {post.author ? (
                       <div className="flex items-center gap-2">
                         {post.author.avatarUrl && (
-                          <img src={post.author.avatarUrl} alt={post.author.fullName} className="w-6 h-6 rounded-full object-cover" />
+                          <AvatarImage crop={post.author.avatarCrop} src={post.author.avatarUrl} alt={post.author.fullName} className="w-6 h-6 rounded-full object-cover" />
                         )}
                         <span className="text-sm">{post.author.fullName}</span>
                       </div>

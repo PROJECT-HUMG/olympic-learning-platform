@@ -24,6 +24,8 @@ public record UserResponse(
             example = "https://ui-avatars.com/api/?name=Nguyen+Hoang+Long",
             nullable = true)
         String avatarUrl,
+    @Schema(description = "Avatar framing; null means centered cover", nullable = true)
+        AvatarCropResponse avatarCrop,
     @Schema(description = "Application role.", example = "STUDENT") Role role,
     @Schema(description = "User account status.", example = "ACTIVE") Status status,
     @Schema(
@@ -34,7 +36,7 @@ public record UserResponse(
 
   /** Returns a copy of this response with the given avatar URL. */
   public UserResponse withAvatarUrl(String avatarUrl) {
-    return new UserResponse(id, email, username, fullName, avatarUrl, role, status, lastLoginAt);
+    return new UserResponse(id, email, username, fullName, avatarUrl, avatarCrop, role, status, lastLoginAt);
   }
 }
 

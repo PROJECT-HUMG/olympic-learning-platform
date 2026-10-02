@@ -1,3 +1,4 @@
+import type { AvatarCrop } from "@/features/user/types/user.types";
 export type RequestPolicy = "AFTER_FOCUS" | "OPEN" | "HOST_ONLY";
 
 export interface RoomSettings {
@@ -38,6 +39,7 @@ export interface StudyRoomMember {
   userId: string;
   displayName: string;
   avatarUrl?: string | null;
+  avatarCrop?: AvatarCrop | null;
   focusSeconds: number;
   online: boolean;
 }

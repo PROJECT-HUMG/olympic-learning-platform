@@ -1,3 +1,4 @@
+import { AvatarImage } from "@/features/user/components/avatar-image";
 import { useId, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Crown, Headphones, Moon, Users } from "lucide-react";
@@ -13,7 +14,7 @@ function MemberAvatar({ member }: { member: StudyRoomMember }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   return <span className="room-scene-avatar" aria-hidden="true">
     {member.avatarUrl && member.avatarUrl !== failedUrl
-      ? <img src={member.avatarUrl} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setFailedUrl(member.avatarUrl!)} />
+      ? <AvatarImage crop={member.avatarCrop} src={member.avatarUrl} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setFailedUrl(member.avatarUrl!)} />
       : memberInitials(member.displayName)}
   </span>;
 }

@@ -1,3 +1,4 @@
+import { AvatarImage } from "@/features/user/components/avatar-image";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { EyeIcon } from "lucide-react";
@@ -74,7 +75,7 @@ export function PostCard({ post, className, onClick }: PostCardProps) {
             <UserHoverCard user={post.author as any}>
               <div className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
                 {post.author.avatarUrl ? (
-                  <img src={post.author.avatarUrl} alt={post.author.fullName} className="w-6 h-6 rounded-full object-cover ring-1 ring-border" />
+                  <AvatarImage crop={post.author.avatarCrop} src={post.author.avatarUrl} alt={post.author.fullName} className="w-6 h-6 rounded-full object-cover ring-1 ring-border" />
                 ) : (
                   <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-medium text-muted-foreground ring-1 ring-border">
                     {post.author.fullName?.charAt(0) || "U"}

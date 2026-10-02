@@ -1,3 +1,4 @@
+import { AvatarImage } from "@/features/user/components/avatar-image";
 import { useRef } from "react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -275,7 +276,7 @@ export function NewsDetailFeature() {
               <div className="-ml-1 flex cursor-pointer items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-muted/50">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-primary/10">
                     {post.author.avatarUrl ? (
-                      <img
+                      <AvatarImage crop={post.author.avatarCrop}
                         src={post.author.avatarUrl}
                         alt={post.author.fullName}
                         className="h-full w-full object-cover"

@@ -1,3 +1,4 @@
+import type { AvatarCrop } from "@/features/user/types/user.types";
 import type { CreatePostInput, UpdatePostInput } from "../schemas/post.schema";
 
 export type PostType = "BLOG" | "NEWS" | "ANNOUNCEMENT";
@@ -33,6 +34,7 @@ export interface PostSummaryResponse {
     username: string;
     fullName: string;
     avatarUrl: string | null;
+  avatarCrop?: AvatarCrop | null;
   } | null;
   viewCount: number;
   updatedAt: string;

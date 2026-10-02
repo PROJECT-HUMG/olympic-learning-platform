@@ -1,3 +1,4 @@
+import { AvatarImage } from "@/features/user/components/avatar-image";
 import { getListReturnPath } from "@/lib/list-navigation";
 import { useParams, Link, useLocation } from "react-router-dom";
 import {
@@ -228,7 +229,7 @@ export default function DocumentDetailPage() {
                   <div className="flex items-center gap-2 cursor-pointer hover:bg-muted/60 p-1.5 -ml-1.5 rounded-lg transition-colors">
                     <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 border border-border/50">
                       {document.owner.avatarUrl ? (
-                        <img
+                        <AvatarImage crop={document.owner.avatarCrop}
                           src={document.owner.avatarUrl}
                           alt={document.owner.fullName || "User"}
                           className="w-full h-full object-cover"
