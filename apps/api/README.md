@@ -43,3 +43,7 @@ Phòng học chung dùng `/api/v1/study-rooms`, yêu cầu JWT và tài khoản 
 ## OTP đăng ký
 
 Đăng ký mới dùng OTP 6 số, sống 10 phút; sửa email/resend/resume có phiên đăng ký riêng, cooldown và giới hạn theo user/IP. API cần Flyway V13 và cập nhật cùng đợt với web. Link xác thực cũ vẫn được hỗ trợ tới khi dùng/hết hạn/bị thay thế. Xem [contract và vận hành OTP](../../docs/architecture/registration-otp.md).
+
+## Email tài khoản
+
+OTP, đặt lại mật khẩu, lời mời tài khoản và xác thực link cũ dùng chung mẫu HTML nhẹ, bản chữ thuần dự phòng và logo PNG nhúng inline lấy từ web. Cấu hình SMTP không đổi. Xem [định dạng và kiểm tra email](../../docs/architecture/account-email.md).

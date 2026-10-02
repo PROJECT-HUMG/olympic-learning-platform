@@ -13,11 +13,16 @@ import me.nghlong3004.olympic.common.mail.MailStrategy;
 import me.nghlong3004.olympic.common.mail.MailTemplateModel;
 import me.nghlong3004.olympic.common.properties.MailProperties;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+/**
+ * @author nghlong3004 (Long Nguyen Hoang)
+ * @since 10/2/2026
+ */
 @Service
 @Slf4j
 public class JavaMailServiceImpl implements MailService {
@@ -53,11 +58,23 @@ public class JavaMailServiceImpl implements MailService {
     var message = strategy.build(model);
     try {
       var mimeMessage = sender.createMimeMessage();
-      var helper = new MimeMessageHelper(mimeMessage, false, StandardCharsets.UTF_8.name());
+      var multipart = message.plainTextBody() != null || !message.inlineResources().isEmpty();
+      var helper = new MimeMessageHelper(mimeMessage,
+          multipart ? MimeMessageHelper.MULTIPART_MODE_RELATED : MimeMessageHelper.MULTIPART_MODE_NO,
+          StandardCharsets.UTF_8.name());
       helper.setFrom(properties.from());
       helper.setTo(message.to());
       helper.setSubject(message.subject());
-      helper.setText(message.body(), message.html());
+      if (message.html() && message.plainTextBody() != null) {
+        helper.setText(message.plainTextBody(), message.body());
+      } else {
+        helper.setText(message.body(), message.html());
+      }
+      // Inline resources must be added after the text/alternative parts.
+      for (var resource : message.inlineResources()) {
+        helper.addInline(resource.contentId(), new ClassPathResource(resource.classpathLocation()),
+            resource.contentType());
+      }
       sender.send(mimeMessage);
       log.info("Mail sent: model={} recipient={}", model.getClass().getSimpleName(), message.to());
     } catch (MessagingException | MailException exception) {
