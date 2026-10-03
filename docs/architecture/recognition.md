@@ -66,6 +66,20 @@ Trùng hồ sơ đang chờ hoặc đã duyệt được xác định theo tài 
 
 ## Kiểm tra
 
+### Visual polish — ACCEPT tại local, 03/10/2026
+
+Phạm vi: dấu hạng số 1/2/3 theo rank server (giữ đồng hạng và ngữ cảnh bộ lọc), nhãn chỉ từ thành tích APPROVED và publicVisible, cùng dấu mốc theo năm. Vinh danh biên tập có nhãn riêng “Được vinh danh”; không đổi điểm, quyền riêng tư, opt-in hoặc API. Không suy huy hiệu từ tổng điểm xếp hạng. Không thêm tùy chỉnh tên, danh hiệu ngưỡng điểm hay thưởng.
+
+Ownership đã đóng: Grok Peer `d4ebae09` tác giả các file mới ranking-presentation và test riêng; Grok Peer `27350bf8` tác giả các file mới achievement-presentation và test riêng. Lead áp dụng patch, sở hữu wiring/tích hợp, tài liệu, verification và technical acceptance. Types/scoring/service giữ nguyên; hai phạm vi không ghi chồng. Hai handoff đã đóng, không còn Peer pending.
+
+Lead ACCEPT exact candidate sau source inspection và verification: focused Node 9/9; toàn bộ Node 59/59, 0 fail/cancel/skip; build exit 0 (chunk warning); lint exit 0 (29 cảnh báo hiện hữu). Chromium production-build fixture đạt 20 tổ hợp honors/list/detail, rankings theo năm/mọi năm, public profile × sáng/tối × 320/1440px, không tràn ngang hoặc runtime exception. Có đồng hạng 1/1/3, tên/title liền dài, điểm ranking chuyển hàng phụ ở 320px, hai nhãn trước mở rộng, eligibility loại private/pending, nhóm năm giảm dần, mô tả/breakdown giữ nguyên. Hồ sơ mở nhãn bằng phím Space và thu gọn bằng touch, focus hiện rõ và nút ít nhất 44px. Toàn ma trận dùng reduced motion; các component không thêm motion tự động. Lead xem ảnh ranking/profile mobile tối; rank text contrast tính local ít nhất 6:1 sáng, 9:1 tối, phần thành tích dùng token giao diện hiện có.
+
+Evidence local tạm: `/tmp/recognition-polish-kp2C4C/check.mjs`, `recognition-ui-results.json`, `recognition-*.png`. Các lượt harness trước đã lỗi interception/timeout/định vị touch; chỉ lượt cuối exit 0 được tính pass. Fixture chặn request ngoài tài nguyên local, không ghi API thật, không phải live API E2E. Giới hạn production/UX cũ giữ nguyên; không push/deploy hoặc dịch vụ ngoài. Feature-scoped local commit được Human cho phép sau acceptance.
+
+Handoff ranking `d4ebae09` đã đóng: Peer tác giả patch bốn file ranking-presentation model/TSX/CSS và test; Lead áp dụng bằng apply_patch do Peer không có công cụ này, tích hợp vào RankingsPage. Lead chạy focused Node test từ apps/web: 5 pass, 0 fail/cancel/skip. Peer đã relinquish ownership; Lead sở hữu bốn file. Handoff và toàn feature đã được chấp nhận như evidence phía trên, không còn runner ranking cần chờ.
+
+Patch thành tích `27350bf8` và update patch đã được Lead áp dụng. REOPEN đã giải quyết: mô tả và breakdown điểm tham gia công khai giữ sau bộ lọc eligibility, ghi rõ điểm nền tảng, nút +N có accessible name. Lead ACCEPT handoff; Peer đã đóng và relinquish ownership. Lead tích hợp public profile/honors và ACCEPT toàn feature theo evidence phía trên.
+
 ### Checkpoint hiện tại — 03/10/2026
 
 Lead đã thu completion exec 14982: Chromium đạt 20 tổ hợp public/admin × sáng/tối × 320/1440 px, không tràn ngang hoặc lỗi runtime. Editor vinh danh đã sửa → PUT → refetch → reload → mở lại, giữ tiêu đề mới và version 1. Lead đã xem ảnh admin mobile tối; evidence ở `/tmp/olympic-verification-8A1Txe/recognition-ui-results.json` và ảnh `recognition-*.png`. Đây là UI production build với API fixture cô lập, không phải live API E2E; không gửi request thay đổi tới API thật. Preview do Lead mở đã dừng sau kiểm tra.

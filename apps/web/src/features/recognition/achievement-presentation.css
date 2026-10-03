@@ -1,0 +1,181 @@
+.achievement-presentation {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: left;
+}
+
+.achievement-presentation__labels,
+.achievement-presentation__records,
+.achievement-presentation__overflow-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.achievement-presentation__labels {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.achievement-presentation__label-item,
+.achievement-presentation__expand-item,
+.achievement-presentation__overflow {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.achievement-presentation__label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  max-width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.achievement-presentation__label-part,
+.achievement-presentation__title,
+.achievement-presentation__description,
+.achievement-presentation__participation,
+.achievement-presentation__facts span,
+.achievement-presentation__points,
+.achievement-presentation__year-title,
+.achievement-presentation__honor {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.achievement-presentation__expand {
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  height: auto;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--foreground);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.achievement-presentation__expand:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.achievement-presentation__overflow {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.achievement-presentation__overflow[hidden] {
+  display: none !important;
+}
+
+.achievement-presentation__overflow-list {
+  display: contents;
+}
+
+.achievement-presentation__year-title {
+  margin: 16px 0 0;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.achievement-presentation__record {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.achievement-presentation__title {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.achievement-presentation__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.achievement-presentation__description {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.achievement-presentation__participation {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.achievement-presentation__points {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+.achievement-presentation__honor {
+  display: inline-block;
+  margin: 0;
+  padding: 0 0 2px;
+  border-bottom: 2px solid var(--primary);
+  background: none;
+  color: var(--primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-presentation,
+  .achievement-presentation * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
