@@ -11,6 +11,8 @@ import {
   Newspaper,
   User,
   Users,
+  Award,
+  Trophy,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES, getDashboardRoute } from "../router/route-constants";
@@ -32,6 +34,7 @@ export const PUBLIC_PRIMARY_NAVIGATION: NavigationItem[] = [
   { label: "Môn học", href: ROUTES.SUBJECTS, icon: GraduationCap },
   { label: "Tài liệu", href: ROUTES.DOCUMENTS, icon: FileText },
   { label: "Bảng tin", href: ROUTES.NEWS, icon: Newspaper },
+  { label: "Vinh danh", href: ROUTES.HONORS, icon: Award, aliases: [ROUTES.RANKINGS, ROUTES.ACHIEVEMENTS] },
   {
     label: "Tiện ích",
     href: ROUTES.TOOLKIT,
@@ -65,6 +68,8 @@ export function getNavigationGroups(role?: string): NavigationGroup[] {
       items: [
         { label: "Trang chủ", href: ROUTES.HOME, icon: Home },
         { label: "Bảng tin", href: ROUTES.NEWS, icon: Newspaper },
+        { label: "Vinh danh", href: ROUTES.HONORS, icon: Award },
+        { label: "Xếp hạng thành tích", href: ROUTES.RANKINGS, icon: Trophy, aliases: [ROUTES.ACHIEVEMENTS] },
         { label: "Giới thiệu", href: ROUTES.ABOUT, icon: Info },
       ],
     },
@@ -99,6 +104,7 @@ export function getNavigationGroups(role?: string): NavigationGroup[] {
       label: "Quản trị hệ thống",
       items: [
         { label: "Người dùng & quyền", href: "/admin/users", icon: Users },
+        { label: "Vinh danh & thành tích", href: ROUTES.ADMIN_RECOGNITION, icon: Award },
         {
           label: "Môn học, danh mục & tag",
           href: "/admin/categories",
@@ -116,6 +122,7 @@ export function getNavigationGroups(role?: string): NavigationGroup[] {
           icon: LayoutDashboard,
         },
         { label: "Hồ sơ & bảo mật", href: ROUTES.PROFILE, icon: User },
+        ...(role === "STUDENT" ? [{ label: "Thành tích của tôi", href: ROUTES.MY_ACHIEVEMENTS, icon: Award }] : []),
       ],
     });
   return groups;

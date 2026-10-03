@@ -15,6 +15,7 @@ import RegisterPage from "@/pages/auth/register-page";
 import VerifyEmailPage from "@/pages/auth/verify-email-page";
 import ForgotPasswordPage from "@/pages/auth/forgot-password-page";
 import ResetPasswordPage from "@/pages/auth/reset-password-page";
+import { HonorsPage, HonorDetailPage, RankingsPage, AchievementProfilePage, MyAchievementsPage, AdminRecognitionPage } from "@/features/recognition/lazy-pages";
 
 // Lazy load portal public pages
 const HomePage = lazy(() => import("@/pages/home-page"));
@@ -51,6 +52,10 @@ export const router = createBrowserRouter([
   {
     element: <PublicLayout />,
     children: [
+      { path: ROUTES.HONORS, element: <RouteSuspense><HonorsPage /></RouteSuspense> },
+      { path: `${ROUTES.HONORS}/:id`, element: <RouteSuspense><HonorDetailPage /></RouteSuspense> },
+      { path: ROUTES.RANKINGS, element: <RouteSuspense><RankingsPage /></RouteSuspense> },
+      { path: `${ROUTES.ACHIEVEMENTS}/:userId`, element: <RouteSuspense><AchievementProfilePage /></RouteSuspense> },
       {
         path: ROUTES.HOME,
         element: (
@@ -217,6 +222,7 @@ export const router = createBrowserRouter([
               </RouteSuspense>
             ),
           },
+          { path: ROUTES.MY_ACHIEVEMENTS, element: <RouteSuspense><MyAchievementsPage /></RouteSuspense> },
         ],
       },
     ],
@@ -283,6 +289,7 @@ export const router = createBrowserRouter([
             path: "/admin/dashboard",
             element: <RouteSuspense><DashboardPage /></RouteSuspense>,
           },
+          { path: ROUTES.ADMIN_RECOGNITION, element: <RouteSuspense><AdminRecognitionPage /></RouteSuspense> },
           {
             path: "/admin/documents",
             element: (

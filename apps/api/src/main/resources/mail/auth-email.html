@@ -3,40 +3,54 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
 <title>{{title}}</title>
 <style>
+:root { color-scheme:light dark; supported-color-schemes:light dark; }
 @media only screen and (max-width:480px) {
   .email-content { padding:24px !important; }
   .email-title { font-size:24px !important; line-height:32px !important; }
 }
+@media (prefers-color-scheme:dark) {
+  .email-background { background-color:#002b42 !important; }
+  .email-card { background-color:#11364a !important; border-color:#35586b !important; }
+  .email-text { color:#f1f7fa !important; }
+  .email-muted { color:#adc3cf !important; }
+  .email-divider { border-color:#35586b !important; }
+  .email-code { background-color:#153e53 !important; }
+  .email-button { background-color:#97cde6 !important; }
+  .email-button-link { border-color:#97cde6 !important; color:#002b42 !important; }
+  .email-link { color:#97cde6 !important; }
+}
 </style>
 </head>
-<body style="margin:0;padding:0;background-color:#f1f6fa;color:#0b3150;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;">
+<body class="email-background" style="margin:0;padding:0;background-color:#f1f6fa;color:#0b3150;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;">
 <div style="display:none;font-size:1px;line-height:1px;color:#f1f6fa;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">{{preheader}}</div>
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f1f6fa" style="width:100%;background-color:#f1f6fa;">
+<table class="email-background" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f1f6fa" style="width:100%;background-color:#f1f6fa;">
 <tr><td align="center" style="padding:24px 16px;">
 <!--[if mso]><table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0"><tr><td><![endif]-->
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:560px;table-layout:fixed;border:1px solid #dce6ec;border-radius:16px;background-color:#ffffff;">
+<table class="email-card" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:560px;table-layout:fixed;border:1px solid #dce6ec;border-radius:16px;background-color:#ffffff;">
 <tr><td class="email-content" style="padding:32px;">
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:28px;">
 <tr>
 <td width="56" valign="middle" style="width:56px;padding-right:12px;">
-<img src="cid:olympic-logo" width="44" height="44" alt="Logo Olympic HUMG" style="display:block;width:44px;height:44px;border:0;background-color:#ffffff;">
+<img src="cid:olympic-logo" width="44" height="44" alt="Logo Olympic HUMG" style="display:block;width:44px;height:44px;border:0;">
 </td>
 <td valign="middle" style="font-family:Arial,Helvetica,sans-serif;">
-<p style="margin:0;color:#0b3150;font-size:18px;line-height:24px;font-weight:700;">Olympic HUMG</p>
-<p style="margin:3px 0 0;color:#617585;font-size:12px;line-height:18px;">Nền tảng học tập</p>
+<p class="email-text" style="margin:0;color:#0b3150;font-size:18px;line-height:24px;font-weight:700;">Olympic HUMG</p>
+<p class="email-muted" style="margin:3px 0 0;color:#617585;font-size:12px;line-height:18px;">Nền tảng học tập</p>
 </td>
 </tr>
 </table>
-<h1 class="email-title" style="margin:0 0 24px;color:#0b3150;font-size:26px;line-height:34px;font-weight:700;">{{title}}</h1>
-<p style="margin:0 0 12px;color:#0b3150;font-size:15px;line-height:24px;word-break:break-word;overflow-wrap:anywhere;">{{greeting}}</p>
-<p style="margin:0 0 24px;color:#617585;font-size:15px;line-height:24px;">{{intro}}</p>
+<h1 class="email-title email-text" style="margin:0 0 24px;color:#0b3150;font-size:26px;line-height:34px;font-weight:700;">{{title}}</h1>
+<p class="email-text" style="margin:0 0 12px;color:#0b3150;font-size:15px;line-height:24px;word-break:break-word;overflow-wrap:anywhere;">{{greeting}}</p>
+<p class="email-muted" style="margin:0 0 24px;color:#617585;font-size:15px;line-height:24px;">{{intro}}</p>
 {{action}}
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin-top:28px;">
-<tr><td style="border-top:1px solid #dce6ec;padding-top:20px;">
-<p style="margin:0 0 12px;color:#617585;font-size:13px;line-height:21px;">{{disclaimer}}</p>
-<p style="margin:0;color:#617585;font-size:12px;line-height:18px;">Email được gửi tự động từ Olympic HUMG.</p>
+<tr><td class="email-divider" style="border-top:1px solid #dce6ec;padding-top:20px;">
+<p class="email-muted" style="margin:0 0 12px;color:#617585;font-size:13px;line-height:21px;">{{disclaimer}}</p>
+<p class="email-muted" style="margin:0;color:#617585;font-size:12px;line-height:18px;">Email được gửi tự động từ Olympic HUMG.</p>
 </td></tr>
 </table>
 </td></tr>

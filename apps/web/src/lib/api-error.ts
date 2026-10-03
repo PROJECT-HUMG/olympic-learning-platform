@@ -33,6 +33,8 @@ export const ERROR_MESSAGE_MAP: Record<string, string> = {
   "error.accessDenied": "Bạn không có quyền thực hiện thao tác này.",
   "error.resource.notFound": "Không tìm thấy tài nguyên yêu cầu.",
   "error.resource.duplicate": "Email hoặc Tên đăng nhập đã được sử dụng.",
+  "error.recognition.duplicate": "Thành tích này đã được gửi cho tài khoản. Hãy kiểm tra lịch sử trước khi gửi lại.",
+  "error.recognition.conflict": "Hồ sơ đã được thay đổi hoặc xét duyệt. Hãy tải lại thông tin trước khi tiếp tục.",
   "error.resource.invalidName": "Tên không hợp lệ.",
   "error.auth.invalidCurrentPassword": "Mật khẩu hiện tại không chính xác.",
   "error.storage.uploadFailed": "Tải file lên thất bại. Vui lòng thử lại sau.",

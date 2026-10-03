@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageSection } from "@/components/ui/page-section";
-import { getDashboardRoute } from "@/router/route-constants";
+import { getDashboardRoute, ROUTES } from "@/router/route-constants";
 import "@/features/user/components/profile.css";
 
 export default function ProfilePage() {
@@ -23,7 +23,7 @@ export default function ProfilePage() {
       <Button variant="outline" disabled={isFetching} onClick={() => void refetch()}>Thử lại</Button>
     </PageSection> : <div className="profile-layout">
       <AvatarUploadCard user={user} />
-      <div className="profile-layout__main"><ProfileForm user={user} /><AccountSecurityCard user={user} /></div>
+      <div className="profile-layout__main"><ProfileForm user={user} /><AccountSecurityCard user={user} />{user.role === "STUDENT" && <PageSection title="Thành tích học tập" description="Gửi minh chứng, theo dõi lịch sử xét duyệt và chọn tham gia bảng xếp hạng."><Button asChild variant="outline"><Link to={ROUTES.MY_ACHIEVEMENTS}>Quản lý thành tích của tôi</Link></Button></PageSection>}</div>
     </div>}
   </div>;
 }

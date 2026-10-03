@@ -1,0 +1,64 @@
+.recognition-page { min-width: 0; }
+.recognition-links,.recognition-actions,.recognition-filters,.recognition-pager { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+.recognition-links a { color:var(--primary); text-decoration:underline; text-underline-offset:4px; padding:8px 0; }
+.recognition-filters { align-items:end; margin-bottom:24px; }
+.recognition-field { display:flex; flex-direction:column; gap:8px; min-width:0; }
+.recognition-filters .recognition-field { flex:1; min-width:min(180px,100%); max-width:320px; }
+.recognition-select { width:100%; min-height:44px; border:1px solid var(--input); border-radius:8px; padding:8px 12px; background:var(--card); color:var(--foreground); font:inherit; }
+.recognition-select:focus-visible, .recognition-checkbox input:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }
+.recognition-hint,.recognition-field .recognition-hint { color:var(--muted-foreground); font-size:13px; line-height:1.7; overflow-wrap:anywhere; }
+.recognition-feedback { padding:32px 0; display:flex; flex-direction:column; align-items:start; gap:16px; color:var(--muted-foreground); }
+.recognition-gallery { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:32px 24px; }
+.recognition-memory { min-width:0; }
+.recognition-memory__photo { display:block; aspect-ratio:4/3; overflow:hidden; border-radius:12px; background:var(--muted); margin-bottom:16px; }
+.recognition-memory__photo img,.recognition-photo img { width:100%; height:100%; object-fit:cover; }
+.recognition-image { width:100%; height:100%; }
+.recognition-memory h2 { font-size:18px; font-weight:600; line-height:1.5; margin:6px 0 12px; overflow-wrap:anywhere; }
+.recognition-memory a:focus-visible { outline:2px solid var(--ring); outline-offset:4px; }
+.recognition-participants { display:flex; flex-direction:column; gap:8px; }
+.recognition-participants li { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; }
+.recognition-participants a { color:var(--primary); text-decoration:underline; text-underline-offset:3px; }
+.recognition-image-feedback { display:grid; place-items:center; width:100%; height:100%; min-height:140px; color:var(--muted-foreground); font-size:13px; }
+.recognition-photo-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.recognition-photo { aspect-ratio:4/3; background:var(--muted); overflow:hidden; border-radius:12px; }
+.recognition-photo:focus-visible { outline:2px solid var(--ring); outline-offset:4px; }
+.recognition-photo--full { aspect-ratio:auto; }
+.recognition-photo--full img { object-fit:contain; height:auto; max-height:65dvh; }
+.recognition-ranking { display:flex; flex-direction:column; }
+.recognition-ranking li { display:grid; grid-template-columns:48px minmax(0,1fr) auto; gap:16px; align-items:center; padding:20px 0; border-bottom:1px solid var(--border); }
+.recognition-rank { color:var(--primary); font-size:24px; font-weight:600; }
+.recognition-ranking a { font-weight:600; text-decoration:underline; text-underline-offset:4px; overflow-wrap:anywhere; }
+.recognition-ranking small { display:block; color:var(--muted-foreground); margin-top:4px; }
+.recognition-ranking strong { font-size:18px; white-space:nowrap; }
+.recognition-ranking strong small { font-size:12px; font-weight:400; text-align:right; }
+.recognition-pager { justify-content:center; margin-top:24px; }
+.recognition-rules { border-top:1px solid var(--border); padding-top:20px; }
+.recognition-rules summary { cursor:pointer; min-height:44px; font-weight:600; }
+.recognition-rules p { margin-top:16px; color:var(--muted-foreground); }
+.recognition-table-scroll { max-width:100%; overflow:auto; }
+.recognition-table-scroll table { width:100%; text-align:left; border-collapse:collapse; min-width:600px; }
+.recognition-table-scroll caption { text-align:left; color:var(--muted-foreground); padding:8px 0 16px; }
+.recognition-table-scroll th,.recognition-table-scroll td { padding:12px; border-bottom:1px solid var(--border); }
+.recognition-form { display:flex; flex-direction:column; gap:20px; min-width:0; }
+.recognition-form-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.recognition-checkbox { display:flex; gap:12px; align-items:center; min-height:44px; cursor:pointer; }
+.recognition-checkbox input { width:20px; height:20px; flex-shrink:0; accent-color:var(--primary); }
+.recognition-file-input { display:block; width:100%; min-width:0; font:inherit; padding:12px; border:1px dashed var(--border); border-radius:8px; background:var(--card); }
+.recognition-file-input::file-selector-button { border:0; padding:8px 10px; background:var(--muted); color:var(--foreground); border-radius:6px; margin-right:12px; }
+.recognition-file-list { display:flex; flex-direction:column; gap:8px; overflow-wrap:anywhere; }
+.recognition-record { padding:24px 0; border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:12px; min-width:0; }
+.recognition-record:first-child { padding-top:0; }
+.recognition-record__heading { display:flex; flex-wrap:wrap; align-items:start; justify-content:space-between; gap:12px; }
+.recognition-record h3 { font-size:16px; font-weight:600; overflow-wrap:anywhere; }
+.recognition-status { border:1px solid var(--border); border-radius:6px; padding:4px 8px; font-size:12px; white-space:nowrap; }
+.recognition-status[data-status="APPROVED"] { background:var(--accent); color:var(--accent-foreground); }
+.recognition-status[data-status="REJECTED"],.recognition-status[data-status="REVOKED"] { color:var(--destructive); }
+.recognition-note { border-left:3px solid var(--border); padding-left:12px; overflow-wrap:anywhere; }
+.recognition-editor-panel { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:24px; }
+.recognition-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px; }
+.recognition-user-picker { display:flex; flex-direction:column; gap:12px; }
+.recognition-participant-editor { display:flex; flex-direction:column; gap:12px; border-top:1px solid var(--border); padding-top:16px; }
+.recognition-review-dialog { width:min(600px,calc(100% - 32px)); max-width:600px; }
+@media(max-width:900px) { .recognition-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { .recognition-gallery,.recognition-photo-grid,.recognition-form-row { grid-template-columns:1fr; } .recognition-editor-panel { padding:16px; } .recognition-ranking li { grid-template-columns:32px minmax(0,1fr) auto; gap:12px; } .recognition-rank { font-size:20px; } .recognition-ranking strong { font-size:16px; } .recognition-actions > button { max-width:100%; height:auto; min-height:44px; white-space:normal; overflow-wrap:anywhere; } }
+@media(prefers-reduced-motion:reduce) { .recognition-page *, .recognition-review-dialog { animation:none!important; transition:none!important; } }

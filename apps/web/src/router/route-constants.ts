@@ -8,6 +8,9 @@ export const ROUTES = {
   ABOUT: "/about",
   TOOLKIT: "/toolkit",
   STUDY_ROOMS: "/study-rooms",
+  HONORS: "/honors",
+  RANKINGS: "/rankings",
+  ACHIEVEMENTS: "/achievements",
 
   // Auth pages (Guest only)
   LOGIN: "/login",
@@ -19,6 +22,7 @@ export const ROUTES = {
   // Private pages (Authenticated dashboard area)
   DASHBOARD: "/dashboard",
   PROFILE: "/profile",
+  MY_ACHIEVEMENTS: "/profile/achievements",
   PRACTICE: "/practice",
   HISTORY: "/history",
   QUESTION_IMPORT: "/questions/import",
@@ -26,6 +30,7 @@ export const ROUTES = {
 
   // Admin area
   ADMIN: "/admin/dashboard",
+  ADMIN_RECOGNITION: "/admin/recognition",
 
   // Lecturer area
   LECTURER: "/lecturer/dashboard",

@@ -1,6 +1,6 @@
 # API
 
-Backend của Olympic Learning Platform: Spring Boot 4.0.7, Java 25 và Maven. REST API ở `/api/v1`; dữ liệu lưu trong PostgreSQL, migration qua Flyway, Redis hỗ trợ các luồng nền. Các module hiện có: auth/user/admin, document, post, topic/question, assessment import, storage và studyroom.
+Backend của Olympic Learning Platform: Spring Boot 4.0.7, Java 25 và Maven. REST API ở `/api/v1`; dữ liệu lưu trong PostgreSQL, migration qua Flyway, Redis hỗ trợ các luồng nền. Các module hiện có: auth/user/admin, document, post, topic/question, assessment import, storage, studyroom và recognition.
 
 ## Chạy local
 
@@ -39,6 +39,16 @@ Phòng học chung dùng `/api/v1/study-rooms`, yêu cầu JWT và tài khoản 
 ## Khung avatar và ảnh gốc
 
 Ảnh gốc giữ nguyên trong storage; vị trí/độ phóng lưu riêng ở user qua migration V12. Upload avatar nhận thêm part JSON crop tùy chọn; PATCH /api/v1/users/me/avatar/crop chỉnh lại khung mà không upload ảnh. API trả avatarCrop cùng avatarUrl cho frontend. Xem [contract khung avatar](../../docs/architecture/avatar-framing.md).
+
+## Vinh danh và thành tích học thuật
+
+Module recognition tách bài vinh danh công khai/bản nháp khỏi hồ sơ thành tích có minh chứng riêng tư. Điểm chỉ đến từ hồ sơ Olympic/NCKH đã được admin duyệt; tổng mọi năm/theo năm không áp dụng trần hoặc chỉ lấy giải cao nhất, và cộng điểm tham gia khi nhóm có quy tắc. Chủ tài khoản tự bật xếp hạng và chọn hiển thị từng hồ sơ. Flyway V14 bổ sung dữ liệu; cập nhật cùng web, không cần biến môi trường mới. Minh chứng lưu trong PostgreSQL, tối đa 3 file × 5 MB; request cần cho phép đủ 15 MB dữ liệu cùng metadata. Xem [contract, quyền riêng tư và kiểm tra](../../docs/architecture/recognition.md).
+
+```bash
+./mvnw -Dtest=RecognitionPointsPolicyTest,RecognitionIntegrationTest,RecognitionControllerTest test
+```
+
+Integration test cần Docker/PostgreSQL Testcontainers; nếu bị bỏ qua thì chưa xác nhận migration và xử lý đồng thời. Quốc tế chưa có mức điểm, nhóm ngoài học thuật chưa triển khai.
 
 ## OTP đăng ký
 

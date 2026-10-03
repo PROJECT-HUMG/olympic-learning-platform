@@ -42,6 +42,8 @@ public enum ErrorCode {
   DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "Resource already exists", "error.resource.duplicate"),
   RESOURCE_STATE_CONFLICT(
       HttpStatus.CONFLICT, "Resource state conflict", "error.resource.stateConflict"),
+  RECOGNITION_DUPLICATE(HttpStatus.CONFLICT, "This achievement has already been submitted", "error.recognition.duplicate"),
+  RECOGNITION_CONFLICT(HttpStatus.CONFLICT, "Recognition record changed or transition is invalid", "error.recognition.conflict"),
   STUDY_ROOM_CONFLICT(
       HttpStatus.CONFLICT, "Study room state conflict", "error.studyRoom.conflict"),
   STUDY_ROOM_FORBIDDEN(

@@ -33,4 +33,6 @@ Web chạy tại `http://localhost:3000`, API tại `http://localhost:8080`. Vit
 
 ## Cách làm việc
 
+Vinh danh lưu kỷ niệm độc lập với hồ sơ thành tích học thuật. Thành tích Olympic/NCKH do người dùng gửi minh chứng và admin duyệt; bảng xếp hạng theo năm/mọi năm yêu cầu tự bật tham gia. Hồ sơ và minh chứng có quyền riêng tư riêng, không tự cộng điểm từ bài vinh danh. Xem [quy tắc, quyền truy cập và kiểm tra](docs/architecture/recognition.md). Các mức điểm quốc tế và nhóm hoạt động ngoài học thuật được để lại cho đợt sau.
+
 Đọc [AGENTS.md](AGENTS.md) trước khi sửa code. Quy ước cụ thể của API và web nằm trong `apps/api/AGENTS.md` và `apps/web/AGENTS.md`. Giữ migration và API contract đồng bộ với client; kiểm tra phần bị ảnh hưởng trước khi gửi thay đổi. Không đưa secret hoặc dữ liệu thật vào tài liệu và commit.

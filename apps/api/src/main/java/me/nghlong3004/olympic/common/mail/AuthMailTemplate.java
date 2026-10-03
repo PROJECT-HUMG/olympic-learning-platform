@@ -28,11 +28,11 @@ public class AuthMailTemplate {
     var intro = "Nhập mã bên dưới trên màn hình đăng ký để xác thực email của bạn.";
     var disclaimer = "Không chia sẻ mã với bất kỳ ai. Nếu bạn không đăng ký tài khoản, hãy bỏ qua email này.";
     var action = """
-        <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" border="0" bgcolor="#eaf2f9"
+        <table class="email-code" role="presentation" width="100%%" cellspacing="0" cellpadding="0" border="0" bgcolor="#eaf2f9"
           style="width:100%%;background-color:#eaf2f9;border-radius:12px;">
         <tr><td align="center" style="padding:22px 12px;">
-        <p style="margin:0;color:#0b3150;font-family:'Courier New',monospace;font-size:36px;line-height:44px;font-weight:700;letter-spacing:6px;white-space:nowrap;">%s</p>
-        <p style="margin:10px 0 0;color:#617585;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;">Có hiệu lực trong 10 phút · Chỉ dùng một lần</p>
+        <p class="email-text" style="margin:0;color:#0b3150;font-family:'Courier New',monospace;font-size:36px;line-height:44px;font-weight:700;letter-spacing:6px;white-space:nowrap;">%s</p>
+        <p class="email-muted" style="margin:10px 0 0;color:#617585;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;">Có hiệu lực trong 10 phút · Chỉ dùng một lần</p>
         </td></tr>
         </table>
         """.formatted(escape(code));
@@ -50,12 +50,12 @@ public class AuthMailTemplate {
     var escapedUrl = escape(actionUrl);
     var action = """
         <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-        <tr><td align="center" bgcolor="#07549c" style="background-color:#07549c;border-radius:10px;">
-        <a href="%s" style="display:inline-block;padding:14px 22px;border:1px solid #07549c;border-radius:10px;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:20px;font-weight:700;text-decoration:none;">%s</a>
+        <tr><td class="email-button" align="center" bgcolor="#07549c" style="background-color:#07549c;border-radius:10px;">
+        <a class="email-button-link" href="%s" style="display:inline-block;padding:14px 22px;border:1px solid #07549c;border-radius:10px;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:20px;font-weight:700;text-decoration:none;">%s</a>
         </td></tr>
         </table>
-        <p style="margin:20px 0 8px;color:#617585;font-size:12px;line-height:20px;">Nếu nút không mở được, hãy sao chép đường dẫn này vào trình duyệt:</p>
-        <p style="margin:0;font-size:12px;line-height:20px;word-break:break-all;overflow-wrap:anywhere;"><a href="%s" style="color:#07549c;text-decoration:underline;word-break:break-all;">%s</a></p>
+        <p class="email-muted" style="margin:20px 0 8px;color:#617585;font-size:12px;line-height:20px;">Nếu nút không mở được, hãy sao chép đường dẫn này vào trình duyệt:</p>
+        <p style="margin:0;font-size:12px;line-height:20px;word-break:break-all;overflow-wrap:anywhere;"><a class="email-link" href="%s" style="color:#07549c;text-decoration:underline;word-break:break-all;">%s</a></p>
         """.formatted(escapedUrl, escape(actionLabel), escapedUrl, escapedUrl);
     var plainText = greeting + "\n\n" + intro + "\n\n" + actionLabel + ":\n" + actionUrl
         + "\n\n" + disclaimer + "\n\nOlympic HUMG";

@@ -55,9 +55,13 @@ Giao diện chức năng dùng chung `PageHeader`, `PageSection` và `.page-shel
 
 Các route luyện tập, kỳ thi và lịch sử hiện hiển thị hướng dẫn đến những tính năng có sẵn; chưa có toàn bộ luồng làm bài, chấm điểm và lưu kết quả.
 
+## Vinh danh, thành tích và bảng xếp hạng
+
+Vinh danh là nội dung kỷ niệm do admin công bố, có ảnh và danh sách người tham gia liên kết tài khoản hoặc nhập tay; bản nháp chỉ hiện trong quản lý. Thành tích học thuật là hồ sơ riêng: người dùng gửi Olympic/NCKH kèm minh chứng, admin duyệt/từ chối/thu hồi. Chỉ hồ sơ được duyệt góp điểm. Có lựa chọn hiển thị cho từng hồ sơ và tự bật tham gia bảng xếp hạng theo năm hoặc mọi năm. Minh chứng chỉ chủ hồ sơ/admin được tải, kể cả khi chi tiết thành tích công khai. Tổng công khai trên hồ sơ chỉ tính hồ sơ đã duyệt và bật hiển thị; tổng xếp hạng gồm cả hồ sơ đã duyệt riêng tư khi tài khoản tự tham gia. Web cần API có migration V14. Xem [quy tắc và giới hạn](../../docs/architecture/recognition.md). Các nhóm ngoài học thuật và mức điểm quốc tế được để lại cho đợt sau.
+
 ## Điều hướng và loading
 
-- Từ 1280px, nav công khai nổi cách mép trên 16px, rộng tối đa 1200px, cao 60px, giữ kích thước khi cuộn để tránh dịch các nút. Logo trường dẫn về trang chủ; năm mục Trang chủ/Môn học/Tài liệu/Bảng tin/Tiện ích nằm giữa. Mục đang mở có nền accent, nhận cả route chi tiết và phòng học. CTA Đăng nhập/Góc học tập/Quản lý mở route theo trạng thái và vai trò; menu avatar giữ các thao tác tài khoản.
+- Từ 1280px, nav công khai nổi cách mép trên 16px, rộng tối đa 1200px, cao 60px, giữ kích thước khi cuộn để tránh dịch các nút. Logo trường dẫn về trang chủ; sáu mục Trang chủ/Môn học/Tài liệu/Bảng tin/Vinh danh/Tiện ích nằm giữa. Mục Vinh danh nhận cả trang xếp hạng/hồ sơ thành tích; menu nhóm mobile có Vinh danh và Xếp hạng thành tích riêng. Mục đang mở có nền accent, nhận cả route chi tiết và phòng học. CTA Đăng nhập/Góc học tập/Quản lý mở route theo trạng thái và vai trò; menu avatar giữ các thao tác tài khoản.
 - Dưới 1280px, thanh trên nổi gọn với logo, avatar 44px khi đăng nhập và nút Menu. Menu mở từ dưới lên, có công tắc sáng/tối/nền động trang chủ, nhóm điều hướng theo vai trò và vùng cuộn; không có thanh dưới. Avatar trên nav public có đường kính bằng các nút hiển thị desktop. Dashboard có sidebar theo vai trò, thu/mở bằng nút; không tự đổi kích thước khi hover.
 - Bộ lọc, số trang và kiểu xem tài liệu được giữ trong URL; mở chi tiết rồi quay lại giữ đường về danh sách. Đăng nhập giữ đích quay lại qua các màn tài khoản. Lỗi kiểm tra phiên trên server có trạng thái thử lại tại route đang mở.
 - Refresh dùng chung một request có timeout 15 giây. Refresh trả 401/403 sẽ xóa token, cache dữ liệu và cập nhật người dùng về null để mở lại màn đăng nhập; lỗi mạng/timeout/server giữ phiên cho lần thử sau. Kết quả refresh cũ không ghi đè lần đăng nhập/đăng xuất mới hơn.
