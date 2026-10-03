@@ -17,7 +17,9 @@ public interface AuthService {
 
   /**
    * Registers a local user when self-registration is enabled. The created account remains pending
-   * until the verification OTP is accepted.
+   * until the verification OTP is accepted. When Turnstile is enabled, the token is verified for
+   * the {@code register} action before any account lookup, account write, or mail side effect.
+   * The implementation must never log the Turnstile token or the password.
    *
    * @param request validated registration payload
    * @param ip client IP address for registration rate limits
@@ -57,8 +59,10 @@ public interface AuthService {
   AuthMessageResponse verifyEmail(VerifyEmailRequest request);
 
   /**
-   * Starts a password reset flow. The response is intentionally generic for both existing and
-   * missing emails to avoid account enumeration.
+   * Starts a password reset flow. When Turnstile is enabled, the token is verified for the
+   * {@code password_reset} action before any account lookup or mail side effect. After that check
+   * passes, or when Turnstile is disabled, the response is intentionally generic for both existing
+   * and missing emails to avoid account enumeration. The implementation must never log the token.
    *
    * @param request email payload
    * @param ip client IP address for email-token audit metadata
@@ -68,8 +72,8 @@ public interface AuthService {
   AuthMessageResponse forgotPassword(ForgotPasswordRequest request, String ip, String userAgent);
 
   /**
-   * Resets a password by consuming a one-time password reset or admin invite token. Existing
-   * refresh tokens for the user are revoked after the password changes.
+   * Resets a password by consuming a one-time password reset or admin invite token. This path does
+   * not use Turnstile. Existing refresh tokens for the user are revoked after the password changes.
    *
    * @param request reset token and new password payload
    * @return generic success response

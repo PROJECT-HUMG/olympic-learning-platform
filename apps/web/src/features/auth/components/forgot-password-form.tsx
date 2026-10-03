@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { toast } from "sonner";
 import { MailCheckIcon } from "lucide-react";
+import { TurnstileChallenge } from "./turnstile-challenge";
+import { useTurnstileChallenge } from "../hooks/use-turnstile-challenge";
 
 const forgotPasswordSchema = z.object({
   email: z.email("Vui lòng nhập địa chỉ email hợp lệ"),
@@ -18,6 +20,7 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordForm() {
+  const turnstile = useTurnstileChallenge();
   const location = useLocation();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
@@ -32,13 +35,15 @@ export function ForgotPasswordForm() {
 
   async function onSubmit(data: ForgotPasswordFormValues) {
     try {
-      await authService.forgotPassword(data);
+      await authService.forgotPassword({ ...data, turnstileToken: turnstile.token() });
       setSubmittedEmail(data.email);
       setIsSubmitted(true);
       toast.success("Đã nhận yêu cầu khôi phục mật khẩu.");
     } catch (err) {
       const apiError = parseApiError(err);
       toast.error(apiError.detail || "Gửi yêu cầu khôi phục thất bại.");
+    } finally {
+      turnstile.reset();
     }
   }
 
@@ -78,7 +83,8 @@ export function ForgotPasswordForm() {
           {...register("email")}
         />
 
-        <Button type="submit" className="w-full" loading={isSubmitting}>
+        <TurnstileChallenge action="password_reset" generation={turnstile.generation} onToken={turnstile.receive} />
+        <Button type="submit" className="w-full" loading={isSubmitting} disabled={!turnstile.ready}>
           Gửi liên kết khôi phục
         </Button>
       </form>

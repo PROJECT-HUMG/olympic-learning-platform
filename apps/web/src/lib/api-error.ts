@@ -11,6 +11,8 @@ export interface ProblemDetail {
 }
 
 export const ERROR_MESSAGE_MAP: Record<string, string> = {
+  "error.auth.turnstileRejected": "Xác minh chống spam không hợp lệ hoặc đã hết hạn. Vui lòng xác minh lại.",
+  "error.auth.turnstileUnavailable": "Dịch vụ xác minh tạm thời không khả dụng. Vui lòng thử lại sau.",
   "error.validation": "Dữ liệu nhập vào không hợp lệ.",
   "error.auth.required": "Vui lòng đăng nhập để tiếp tục.",
   "error.auth.invalidCredentials": "Email hoặc mật khẩu không chính xác.",

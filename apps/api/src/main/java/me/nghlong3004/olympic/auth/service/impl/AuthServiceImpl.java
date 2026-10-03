@@ -10,6 +10,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nghlong3004.olympic.auth.enums.AuthEmailTokenPurpose;
+import me.nghlong3004.olympic.auth.enums.TurnstileAction;
 import me.nghlong3004.olympic.auth.mapper.AuthMapper;
 import me.nghlong3004.olympic.auth.request.*;
 import me.nghlong3004.olympic.auth.response.*;
@@ -18,6 +19,7 @@ import me.nghlong3004.olympic.auth.service.AuthService;
 import me.nghlong3004.olympic.auth.service.RefreshTokenService;
 import me.nghlong3004.olympic.auth.service.RegistrationVerificationService;
 import me.nghlong3004.olympic.auth.service.TokenService;
+import me.nghlong3004.olympic.auth.service.TurnstileVerificationService;
 import me.nghlong3004.olympic.common.error.ErrorCode;
 import me.nghlong3004.olympic.common.mail.event.MailSendEvent;
 import me.nghlong3004.olympic.common.mail.model.PasswordResetMailModel;
@@ -59,6 +61,7 @@ public class AuthServiceImpl implements AuthService {
   private final StorageService storageService;
   private final CurrentUserProvider currentUserProvider;
   private final Clock clock;
+  private final TurnstileVerificationService turnstileVerificationService;
 
   @Transactional
   @Override
@@ -66,6 +69,7 @@ public class AuthServiceImpl implements AuthService {
     if (authProperties.registration().mode() != AuthProperties.RegistrationMode.SELF_VERIFY) {
       throw ErrorCode.REGISTRATION_DISABLED.throwIt();
     }
+    turnstileVerificationService.verify(request.turnstileToken(), TurnstileAction.REGISTER);
     var email = normalizeEmail(request.email());
     if (userRepository.existsByEmailIgnoreCaseAndDeletedAtIsNull(email)) {
       throw ErrorCode.DUPLICATE_RESOURCE.throwIt("Email already exists");
@@ -167,6 +171,8 @@ public class AuthServiceImpl implements AuthService {
   @Override
   public AuthMessageResponse forgotPassword(
       ForgotPasswordRequest request, String ip, String userAgent) {
+    turnstileVerificationService.verify(
+        request.turnstileToken(), TurnstileAction.PASSWORD_RESET);
     userRepository
         .findByEmailIgnoreCaseAndDeletedAtIsNull(normalizeEmail(request.email()))
         .filter(User::active)

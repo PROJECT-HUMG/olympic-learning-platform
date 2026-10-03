@@ -1,5 +1,9 @@
 # Web
 
+Turnstile for registration/reset-email uses `VITE_TURNSTILE_ENABLED` and
+`VITE_TURNSTILE_SITE_KEY` at build time; backend verification is configured
+separately. See [authentication setup](../../docs/architecture/authentication.md#turnstile--registration-and-reset-email-request).
+
 SPA React 19 + TypeScript + Vite 8 của Olympic Learning Platform. Tailwind CSS 4 và các UI primitive trong `src/components/ui` tạo giao diện; React Router quản lý route; TanStack Query giữ server state; Zustand giữ một số trạng thái client.
 
 ## Chạy local

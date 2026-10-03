@@ -45,8 +45,10 @@ public class AuthController {
   @ApiResponse(
       responseCode = "200",
       description = "Registration accepted and verification email sent")
+  @ApiResponse(responseCode = "400", description = "Validation failed or the Turnstile token was rejected")
   @ApiResponse(responseCode = "403", description = "Self-registration is disabled")
   @ApiResponse(responseCode = "409", description = "Email already exists")
+  @ApiResponse(responseCode = "503", description = "Turnstile verification is temporarily unavailable")
   public ResponseEntity<RegisterResponse> register(
       @Valid @RequestBody RegisterRequest request, HttpServletRequest servletRequest) {
     return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(authService.register(
@@ -142,6 +144,8 @@ public class AuthController {
   @PostMapping("/password/forgot")
   @Operation(summary = "Request a password reset email")
   @ApiResponse(responseCode = "200", description = "Request accepted")
+  @ApiResponse(responseCode = "400", description = "Validation failed or the Turnstile token was rejected")
+  @ApiResponse(responseCode = "503", description = "Turnstile verification is temporarily unavailable")
   public AuthMessageResponse forgotPassword(
       @Valid @RequestBody ForgotPasswordRequest request, HttpServletRequest servletRequest) {
     return authService.forgotPassword(

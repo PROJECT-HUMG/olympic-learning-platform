@@ -23,4 +23,15 @@ public record RegisterRequest(
     @Schema(description = "Initial password; never returned by the API", example = "ChangeMe@123")
         @NotBlank(message = "Password is required")
         @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
-        String password) {}
+        String password,
+    @Schema(
+            description =
+                "Cloudflare Turnstile token. Optional while Turnstile is disabled. Maximum 2048 characters.",
+            example = "turnstile-token")
+        @Size(max = 2048, message = "Turnstile token must be at most 2048 characters")
+        String turnstileToken) {
+
+  public RegisterRequest(String email, String username, String fullName, String password) {
+    this(email, username, fullName, password, null);
+  }
+}

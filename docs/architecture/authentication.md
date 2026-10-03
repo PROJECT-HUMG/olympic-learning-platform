@@ -8,6 +8,76 @@ version: 1
 
 # Authentication
 
+## Turnstile — registration and reset-email request
+
+Only `POST /auth/register` and `POST /auth/password/forgot` accept
+`turnstileToken`. Actions are `register` and `password_reset`, respectively.
+When protection is enabled, the backend validates success, exact allowed
+hostname and action before account creation or email side effects. Token-based
+password reset and OTP verify/resend/resume remain unchanged; OTP rate limits
+and cooldowns remain in force. Turnstile is not a replacement for rate limiting.
+
+Backend runtime environment: `TURNSTILE_ENABLED`, `TURNSTILE_SECRET_KEY`,
+`TURNSTILE_ALLOWED_HOSTNAMES` (comma-separated frontend hostnames, no scheme,
+path or port), `TURNSTILE_TIMEOUT` (default `2s`, allowed `1s`–`10s`, connect/request
+timeouts each bounded). Frontend build environment: `VITE_TURNSTILE_ENABLED`,
+`VITE_TURNSTILE_SITE_KEY`. Both enable flags must agree. Defaults leave the
+feature disabled until explicitly configured; no dev/profile-based bypass.
+Enabled backend with missing required configuration must fail clearly;
+provider errors/timeouts fail closed with a retryable response. Missing public
+key or widget failure blocks the frontend form rather than bypassing it.
+
+Vite embeds the public site key at build time. Dockerfile/Compose pass the
+frontend build arguments; changing runtime variables on an already-built web
+container does not change that key: rebuild the frontend. The secret is ONLY
+a backend runtime secret, never a Docker build argument, Vite variable, Git
+file or chat message. Provision it through the deployment environment's secure
+secret mechanism. Real keys can be configured before deployment without calling
+Cloudflare; actually loading the enabled widget or submitting the protected form
+uses Cloudflare and requires separate authorization for this candidate.
+
+Localhost: explicitly leave both flags false for ordinary offline development.
+Automated checks use fake widget/provider responses, not Cloudflare. To exercise
+Cloudflare's documented test-key configuration later, explicitly enable both
+flags and supply the official matching test site/secret keys plus permitted
+local hostnames; test keys are NOT production protection. Such widget/Siteverify
+calls have not been authorized or performed here. There is no shipped fake
+verifier mode that can accidentally bypass production.
+
+Owner setup before real activation: create a Turnstile widget in Cloudflare,
+authorize the frontend hostnames, provide its public site key for the web build
+and secret key securely for the backend, and configure the backend's exact
+hostname allowlist. Cloudflare dashboard hostname authorization includes
+subdomains, but the backend deliberately uses an exact allowlist. Cloudflare
+DNS/proxy is not required for Turnstile; edge/WAF is a separate configuration.
+Cloudflare recommends separate test/local configuration from production keys.
+
+Official documentation read on 03/10/2026:
+
+- [Server validation](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/): mandatory server validation, single-use tokens valid 300 seconds, maximum 2048 characters.
+- [Client rendering](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/): explicit SPA rendering, expiry/error callbacks, removal/reset.
+- [Testing](https://developers.cloudflare.com/turnstile/troubleshooting/testing/): official dummy keys work on localhost and other domains; using them still involves provider calls.
+- [Hostnames](https://developers.cloudflare.com/turnstile/additional-configuration/hostname-management/): dashboard hostname rules, no scheme/port/path.
+- [Overview](https://developers.cloudflare.com/turnstile/): usable without routing traffic through Cloudflare/CDN.
+
+Candidate verification checkpoint — 03/10/2026: Lead ACCEPTs the complete local
+Turnstile integration after source inspection and Grok Peer `52759927` independent
+read-only review (no concrete blocker). Lead focused offline Maven rerun:
+43 Turnstile unit/configuration checks plus 3 OTP controller checks pass, zero
+failures/errors/skips. Includes Spring binding failures for enabled protection
+with missing keys/hosts; existing OTP integration test dependency wiring fixed.
+Frontend build passes (existing
+large-chunk warning); lint passes (29 existing warnings); Node 50/50 pass.
+Isolated Chromium fake-widget/fake-API checks passed for both forms: token gating,
+expiry, action/payload, reset after submission, outage retaining form and error
+retry; no runtime exceptions. Every nonlocal browser request was intercepted;
+no widget/Siteverify network call occurred. Temporary reproduction harness:
+`/tmp/olympic-turnstile-D5ef24/check.mjs`. Live Cloudflare behavior, real keys and
+full production startup remain unverified. OTP DB cooldown tests were not rerun;
+the implementation/limits were not changed. Protection remains disabled until
+explicitly configured; acceptance is of the integration, not live deployment.
+Feature-scoped local commit is authorized. No push, deploy or provisioning.
+
 > This document specifies the authentication architecture used by the
 > Olympic Learning Platform.
 

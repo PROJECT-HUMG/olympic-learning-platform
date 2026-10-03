@@ -3,6 +3,7 @@ package me.nghlong3004.olympic.common.config;
 import me.nghlong3004.olympic.common.properties.AuthProperties;
 import me.nghlong3004.olympic.common.properties.ClientProperties;
 import me.nghlong3004.olympic.common.properties.SecurityProperties;
+import me.nghlong3004.olympic.common.properties.TurnstileProperties;
 import me.nghlong3004.olympic.common.properties.UserProperties;
 import me.nghlong3004.olympic.assessment.properties.AssessmentImportProperties;
 import me.nghlong3004.olympic.storage.properties.StorageProperties;
@@ -19,6 +20,7 @@ import org.springframework.context.annotation.Configuration;
   SecurityProperties.class,
   ClientProperties.class,
   UserProperties.class,
+  TurnstileProperties.class,
   StorageProperties.class,
   AssessmentImportProperties.class
 })

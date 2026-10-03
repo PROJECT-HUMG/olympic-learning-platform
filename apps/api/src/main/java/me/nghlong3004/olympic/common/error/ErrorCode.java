@@ -20,6 +20,12 @@ public enum ErrorCode {
       HttpStatus.UNAUTHORIZED, "Refresh token is expired", "error.auth.refreshExpired"),
   REGISTRATION_DISABLED(
       HttpStatus.FORBIDDEN, "Self registration is disabled", "error.auth.registrationDisabled"),
+  TURNSTILE_REJECTED(
+      HttpStatus.BAD_REQUEST, "Turnstile verification failed", "error.auth.turnstileRejected"),
+  TURNSTILE_UNAVAILABLE(
+      HttpStatus.SERVICE_UNAVAILABLE,
+      "Turnstile verification is temporarily unavailable",
+      "error.auth.turnstileUnavailable"),
   EMAIL_NOT_VERIFIED(
       HttpStatus.FORBIDDEN, "Email verification is required", "error.auth.emailNotVerified"),
   REGISTRATION_SESSION_INVALID(HttpStatus.BAD_REQUEST, "Registration session is invalid or expired", "error.auth.registrationSessionInvalid"),

@@ -11,6 +11,8 @@ import { FormField } from "@/components/ui/form-field";
 import { toast } from "sonner";
 import { RegistrationVerification } from "./registration-verification";
 import { ResumeRegistrationForm } from "./resume-registration-form";
+import { TurnstileChallenge } from "./turnstile-challenge";
+import { useTurnstileChallenge } from "../hooks/use-turnstile-challenge";
 import { readRegistrationSession, storeRegistrationSession } from "../lib/registration-session";
 import type { RegistrationChallenge } from "../types/auth.types";
 
@@ -36,6 +38,7 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
+  const turnstile = useTurnstileChallenge();
   const location = useLocation();
   const [challenge, setChallenge] = useState<RegistrationChallenge | null>(readRegistrationSession);
   const [showVerification, setShowVerification] = useState(() => challenge !== null);
@@ -82,6 +85,7 @@ export function RegisterForm() {
         username: data.username,
         fullName: data.fullName,
         password: data.password,
+        turnstileToken: turnstile.token(),
       });
       reset();
       setIsUsernameTouched(false);
@@ -91,6 +95,8 @@ export function RegisterForm() {
     } catch (err) {
       const apiError = parseApiError(err);
       toast.error(apiError.detail || "Đăng ký thất bại. Vui lòng thử lại.");
+    } finally {
+      turnstile.reset();
     }
   }
 
@@ -166,7 +172,8 @@ export function RegisterForm() {
           {...register("confirmPassword")}
         />
 
-        <Button type="submit" className="w-full" loading={isSubmitting}>
+        <TurnstileChallenge action="register" generation={turnstile.generation} onToken={turnstile.receive} />
+        <Button type="submit" className="w-full" loading={isSubmitting} disabled={!turnstile.ready}>
           Tạo tài khoản
         </Button>
       </form>

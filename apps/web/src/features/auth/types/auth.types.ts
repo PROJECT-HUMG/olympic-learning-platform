@@ -27,6 +27,7 @@ export interface LoginResponse {
 }
 
 export interface RegisterRequest {
+  turnstileToken?: string;
   email: string;
   username: string;
   fullName: string;
@@ -59,6 +60,7 @@ export interface AuthMessageResponse {
 }
 
 export interface ForgotPasswordRequest {
+  turnstileToken?: string;
   email: string;
 }
 

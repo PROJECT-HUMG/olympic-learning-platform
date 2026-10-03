@@ -125,3 +125,8 @@ olympic:
     cookie:
       secure: false
       same-site: lax
+  turnstile:
+    enabled: ${TURNSTILE_ENABLED:false}
+    secret-key: ${TURNSTILE_SECRET_KEY:}
+    allowed-hostnames: ${TURNSTILE_ALLOWED_HOSTNAMES:}
+    timeout: ${TURNSTILE_TIMEOUT:2s}

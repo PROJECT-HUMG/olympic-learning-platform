@@ -30,6 +30,7 @@ import me.nghlong3004.olympic.auth.response.RegistrationChallengeResponse;
 import me.nghlong3004.olympic.auth.service.AuthEmailTokenService;
 import me.nghlong3004.olympic.auth.service.AuthService;
 import me.nghlong3004.olympic.auth.service.RegistrationRateLimitService;
+import me.nghlong3004.olympic.auth.service.TurnstileVerificationService;
 import me.nghlong3004.olympic.auth.service.RegistrationVerificationService;
 import me.nghlong3004.olympic.auth.service.RefreshTokenService;
 import me.nghlong3004.olympic.auth.service.TokenService;
@@ -83,6 +84,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @RecordApplicationEvents
 @Testcontainers(disabledWithoutDocker = true)
 class RegistrationOtpIntegrationTest {
+  @MockitoBean private TurnstileVerificationService turnstileVerificationService;
   @Container @ServiceConnection
   static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
 
