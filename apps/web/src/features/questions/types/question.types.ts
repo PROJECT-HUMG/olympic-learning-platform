@@ -23,6 +23,8 @@ export interface Question {
   publishedAt?: string | null;
   archivedAt?: string | null;
   assets: QuestionAsset[];
+  createdById: string;
+  version: number;
 }
 
 export interface QuestionPage {
@@ -41,6 +43,7 @@ export interface UpdateQuestionRequest {
   answer: Record<string, unknown>;
   explanation?: Record<string, unknown> | null;
   difficulty?: string | null;
+  expectedVersion?: number | null;
 }
 
 export interface TopicSummary {
@@ -48,4 +51,11 @@ export interface TopicSummary {
   subjectId: string;
   name: string;
   slug: string;
+}
+
+export interface QuestionFigureUpload {
+  id: string;
+  contentType: string;
+  size: number;
+  originalName: string;
 }

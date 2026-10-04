@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { getListReturnPath } from "@/lib/list-navigation";
 import { useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -44,6 +44,14 @@ import {
 import { useDocumentMetadata } from "@/features/documents/hooks/use-documents";
 import { parseApiError } from "@/lib/api-error";
 import type { Question } from "@/features/questions/types/question.types";
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { ManualQuestionWorkspace } from "@/features/questions/components/manual-question-form";
+import {
+  isSchemaVersionOne,
+  LEGACY_ASSET_ADVICE,
+  questionPermissions,
+  readManualAuthorHandoff,
+} from "@/features/questions/components/manual-question";
 
 const DIFFICULTY_OPTIONS = [
   { value: "EASY", label: "Dễ" },
@@ -264,6 +272,11 @@ function QuestionEditForm({
     useTopics(selectedSubjectId);
 
   async function onSubmit(data: UpdateFormValues) {
+    const content = wrapText(data.contentText);
+    if (question.assets.length > 0 && isSchemaVersionOne(content)) {
+      toast.error(LEGACY_ASSET_ADVICE);
+      return;
+    }
     try {
       await updateQuestion.mutateAsync({
         id: question.id,
@@ -271,7 +284,7 @@ function QuestionEditForm({
           subjectId: data.subjectId,
           topicId: data.topicId,
           type: data.type,
-          content: wrapText(data.contentText),
+          content,
           answer: wrapText(data.answerText),
           explanation: data.explanationText
             ? wrapText(data.explanationText)
@@ -473,6 +486,7 @@ export default function QuestionDetailPage() {
     : "/lecturer/questions";
   const backPath = getListReturnPath(location.state?.from, listPath);
   const [isEditing, setIsEditing] = useState(false);
+  const currentUser = useCurrentUser();
 
   const {
     data: question,
@@ -485,6 +499,30 @@ export default function QuestionDetailPage() {
   const archiveQuestion = useArchiveQuestion();
   const restoreQuestion = useRestoreQuestion();
   const duplicateQuestion = useDuplicateQuestion();
+  const handoff = readManualAuthorHandoff(location.state);
+  const handoffHere = handoff != null && handoff.questionId === (id ?? null);
+  const manualQuestion = question != null && isSchemaVersionOne(question.content) ? question : null;
+  const manual = !id || manualQuestion != null || (handoffHere && question == null);
+
+  if (manual) {
+    if (id && !handoffHere && isLoading) return <QuestionDetailSkeleton />;
+    return (
+      <div className="page-shell">
+        <div><Button variant="ghost" size="sm" className="-ml-2" onClick={() => navigate(backPath)}>
+          <ArrowLeft aria-hidden="true" className="size-4" />Quay lại
+        </Button></div>
+        <ManualQuestionWorkspace
+          key={id ?? "new"}
+          routeId={id ?? null}
+          question={manualQuestion}
+          handoff={handoffHere ? handoff : null}
+          listPath={listPath}
+          returnTo={backPath}
+          onReload={() => refetch()}
+        />
+      </div>
+    );
+  }
 
   if (isLoading) return <QuestionDetailSkeleton />;
 
@@ -513,7 +551,7 @@ export default function QuestionDetailPage() {
     );
   }
 
-  const isDraft = question.status === "DRAFT";
+  const permissions = questionPermissions(currentUser.data, question);
 
   async function handleAction(
     action: { mutateAsync: (id: string) => Promise<unknown> },
@@ -537,7 +575,7 @@ export default function QuestionDetailPage() {
         description={<><span>{question.subjectName} · {question.topicName}</span>{" "}
           <Badge variant={STATUS_VARIANT[question.status] ?? "secondary"}>{STATUS_LABEL[question.status] ?? question.status}</Badge></>}
         actions={<div className="flex flex-wrap items-center gap-2">
-          {isDraft && !isEditing && (
+          {permissions.edit && !isEditing && (
             <Button
               variant="outline"
               size="sm"
@@ -547,7 +585,7 @@ export default function QuestionDetailPage() {
               Chỉnh sửa
             </Button>
           )}
-          {isEditing && (
+          {isEditing && permissions.edit && (
             <Button
               variant="ghost"
               size="sm"
@@ -557,18 +595,20 @@ export default function QuestionDetailPage() {
               Xem
             </Button>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            loading={duplicateQuestion.isPending}
-            onClick={() =>
-              void handleAction(duplicateQuestion, "Đã sao chép câu hỏi.")
-            }
-          >
-            <Copy className="size-4" />
-            Sao chép
-          </Button>
-          {isDraft && (
+          {permissions.duplicate && (
+            <Button
+              variant="outline"
+              size="sm"
+              loading={duplicateQuestion.isPending}
+              onClick={() =>
+                void handleAction(duplicateQuestion, "Đã sao chép câu hỏi.")
+              }
+            >
+              <Copy className="size-4" />
+              Sao chép
+            </Button>
+          )}
+          {permissions.publish && (
             <Button
               size="sm"
               loading={publishQuestion.isPending}
@@ -580,7 +620,7 @@ export default function QuestionDetailPage() {
               Xuất bản
             </Button>
           )}
-          {question.status === "PUBLISHED" && (
+          {permissions.archive && (
             <Button
               variant="outline"
               size="sm"
@@ -593,7 +633,7 @@ export default function QuestionDetailPage() {
               Lưu trữ
             </Button>
           )}
-          {question.status === "ARCHIVED" && (
+          {permissions.restore && (
             <Button
               variant="outline"
               size="sm"
@@ -608,8 +648,16 @@ export default function QuestionDetailPage() {
           )}
         </div>} />
 
-      {/* Content */}
-      {isEditing && isDraft ? (
+      {question.assets.length > 0 ? (
+        <div role="note" className="rounded-lg border border-border p-4 text-sm">
+          <p>{LEGACY_ASSET_ADVICE}</p>
+          <Link className="mt-2 inline-flex min-h-11 items-center underline" to={`${listPath}/new`} state={{ from: location.pathname + location.search }}>
+            Tạo bản nháp mới
+          </Link>
+        </div>
+      ) : null}
+
+      {isEditing && permissions.edit ? (
         <QuestionEditForm
           question={question}
           onCancel={() => setIsEditing(false)}

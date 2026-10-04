@@ -8,6 +8,7 @@
 - `src/layouts/navigation.ts` owns navigation groups, role-specific items and active-route matching. Public desktop navigation floats from 1280px; smaller screens use a grouped header sheet. Dashboard sidebar behavior belongs to `dashboard-layout.tsx` and `navigation.css`.
 - The initial logo loader starts in `index.html`; `src/app/startup-preloader.ts` waits for initial route tasks, pending initial queries, fonts and the selected video before GSAP reveals the app. Later lazy routes use `RouteSuspense` and `PageLoading`. Video downloads are shared by `cinematic-media.ts`; mobile auth skips video. Cinematic scenes respect reduced motion by default; home explicitly uses the remembered manual motion preference instead.
 - Available commands are `pnpm dev`, `pnpm build`, `pnpm lint`, and `pnpm preview`. Vite serves on port 3000 and proxies `/api` to port 8080.
+- Manual questions live in `src/features/questions` at `/lecturer/questions` and `/admin/questions`, with `/new` registered before `/:id`. Content is `schemaVersion` 1 scientific blocks and must not persist HTML or remote figure URLs. Figure bytes come from the authenticated question-figure request, not a public URL. Prepared exams live in `src/features/exams`: staff drafts and papers at `/lecturer/exams` and `/admin/exams`, student papers at `/exams`. A student paper stays unavailable until release and must not render answer fields or solution-only figures.
 
 ## Working practices
 

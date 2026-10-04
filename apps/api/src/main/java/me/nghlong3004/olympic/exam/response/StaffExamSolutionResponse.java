@@ -1,0 +1,27 @@
+package me.nghlong3004.olympic.exam.response;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Staff paper with solutions. Null id, versionNumber, and publishedAt mean draft preview.
+ * releaseAt stays null until the draft sets one. A frozen paper sets all four.
+ *
+ * @author nghlong3004 (Long Nguyen Hoang)
+ * @since 10/3/2026
+ */
+public record StaffExamSolutionResponse(
+    @Schema(description = "Paper id, null for a draft preview") UUID id,
+    @Schema(description = "Parent draft id") UUID examId,
+    @Schema(description = "Published version, null for a draft preview") Integer versionNumber,
+    @Schema(description = "Title") String title,
+    @Schema(description = "Subject id") UUID subjectId,
+    @Schema(description = "Instructions") String instructions,
+    @Schema(description = "Release time, null while the draft has none") OffsetDateTime releaseAt,
+    @Schema(description = "Publication time, null for a draft preview") OffsetDateTime publishedAt,
+    @Schema(description = "Total points") BigDecimal totalPoints,
+    @Schema(description = "Items with answers") List<StaffExamSolutionItemResponse> items)
+    implements ExamPaperView {}

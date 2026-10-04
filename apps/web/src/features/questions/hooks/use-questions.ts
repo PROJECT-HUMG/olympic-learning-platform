@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { questionService } from "../services/question.service";
-import type { QuestionStatus, UpdateQuestionRequest } from "../types/question.types";
+import type { Question, QuestionStatus, UpdateQuestionRequest } from "../types/question.types";
 
 export const questionKeys = {
   all: ["questions"] as const,
   list: (params: unknown) => ["questions", "list", params] as const,
   detail: (id: string) => ["questions", "detail", id] as const,
+  figure: (questionId: string, assetId: string) =>
+    ["questions", "figure", questionId, assetId] as const,
   topics: (subjectId: string) => ["topics", subjectId] as const,
 };
 
@@ -31,6 +33,17 @@ export function useQuestion(id: string | undefined) {
   });
 }
 
+export function useCreateQuestion() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (data: UpdateQuestionRequest) => questionService.create(data),
+    onSuccess: (created) => {
+      client.setQueryData(questionKeys.detail(created.id), created);
+      client.invalidateQueries({ queryKey: questionKeys.all });
+    },
+  });
+}
+
 export function useUpdateQuestion() {
   const client = useQueryClient();
   return useMutation({
@@ -43,11 +56,14 @@ export function useUpdateQuestion() {
   });
 }
 
-function useQuestionAction(action: (id: string) => Promise<unknown>) {
+function useQuestionAction(action: (id: string) => Promise<Question>) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: action,
-    onSuccess: () => client.invalidateQueries({ queryKey: questionKeys.all }),
+    onSuccess: (updated) => {
+      client.setQueryData(questionKeys.detail(updated.id), updated);
+      client.invalidateQueries({ queryKey: questionKeys.all });
+    },
   });
 }
 

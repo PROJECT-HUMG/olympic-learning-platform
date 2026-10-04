@@ -1,4 +1,6 @@
 import { PageHeader } from "@/components/ui/page-header";
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { useDocumentMetadata } from "@/features/documents/hooks/use-documents";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Archive, Copy, Eye, RotateCcw, Search } from "lucide-react";
@@ -9,14 +11,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { parseApiError } from "@/lib/api-error";
-import { getPageNumber } from "@/lib/list-navigation";
+import {
+  questionBankLabel,
+  questionBankQuery,
+  questionPermissions,
+  replaceQuestionBankParam,
+} from "@/features/questions/components/manual-question";
 import {
   useArchiveQuestion,
   useDuplicateQuestion,
   useQuestions,
   useRestoreQuestion,
 } from "@/features/questions/hooks/use-questions";
-import type { Question } from "@/features/questions/types/question.types";
 
 function QuestionSearch({
   value,
@@ -55,20 +61,14 @@ function QuestionSearch({
   );
 }
 
-function questionText(question: Question) {
-  const value =
-    question.content.text ?? question.content.question ?? question.content.stem;
-  return typeof value === "string"
-    ? value
-    : "Câu hỏi chưa có nội dung hiển thị";
-}
-
 export default function QuestionBankPage() {
   const [params, setParams] = useSearchParams();
-  const search = params.get("search") ?? "";
-  const page = getPageNumber(params.get("page"));
+  const bank = questionBankQuery(params);
+  const page = bank.page;
   const query = useQuestions({
-    search: search || undefined,
+    search: bank.search,
+    subjectId: bank.subjectId,
+    status: bank.status,
     page: page - 1,
     size: 20,
   });
@@ -85,6 +85,9 @@ export default function QuestionBankPage() {
       );
   }, [totalPages, page, setParams]);
   const location = useLocation();
+  const currentUser = useCurrentUser();
+  const metadata = useDocumentMetadata();
+  const subjects = metadata.data?.subjects ?? [];
   const duplicate = useDuplicateQuestion();
   const archive = useArchiveQuestion();
   const restore = useRestoreQuestion();
@@ -103,20 +106,50 @@ export default function QuestionBankPage() {
   };
   return (
     <div className="page-shell">
-      <PageHeader title="Ngân hàng câu hỏi" description="Tìm, sao chép hoặc lưu trữ câu hỏi đã được kiểm duyệt." />
-      <QuestionSearch
-        key={search}
-        value={search}
-        onSearch={(value) =>
-          setParams((previous) => {
-            const next = new URLSearchParams(previous);
-            if (value) next.set("search", value);
-            else next.delete("search");
-            next.delete("page");
-            return next;
-          })
+      <PageHeader
+        title="Ngân hàng câu hỏi"
+        description="Tìm, sao chép hoặc lưu trữ câu hỏi đã được kiểm duyệt."
+        actions={
+          <Button asChild className="min-h-11">
+            <Link to={`${location.pathname}/new`} state={{ from: location.pathname + location.search }}>
+              Tạo câu hỏi
+            </Link>
+          </Button>
         }
       />
+      <QuestionSearch
+        key={bank.search ?? ""}
+        value={bank.search ?? ""}
+        onSearch={(value) => setParams((previous) => replaceQuestionBankParam(previous, "search", value))}
+      />
+      <div className="flex flex-wrap gap-3">
+        <label className="flex min-w-48 flex-col gap-1 text-sm">
+          Môn học
+          <select
+            className="h-11 rounded-lg border border-input bg-transparent px-3"
+            value={params.get("subjectId") ?? ""}
+            onChange={(event) => setParams((previous) => replaceQuestionBankParam(previous, "subjectId", event.target.value))}
+          >
+            <option value="">Tất cả</option>
+            {subjects.map((subject) => (
+              <option key={subject.id} value={subject.id}>{subject.name}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex min-w-48 flex-col gap-1 text-sm">
+          Trạng thái
+          <select
+            className="h-11 rounded-lg border border-input bg-transparent px-3"
+            value={params.get("status") ?? ""}
+            onChange={(event) => setParams((previous) => replaceQuestionBankParam(previous, "status", event.target.value))}
+          >
+            <option value="">Tất cả</option>
+            <option value="DRAFT">Bản nháp</option>
+            <option value="PUBLISHED">Đã xuất bản</option>
+            <option value="ARCHIVED">Lưu trữ</option>
+          </select>
+        </label>
+      </div>
       {query.isLoading ? (
         <div role="status" className="grid gap-4 md:grid-cols-2">
           <span className="sr-only">Đang tải câu hỏi…</span>
@@ -170,7 +203,7 @@ export default function QuestionBankPage() {
                     </Badge>
                   </div>
                   <p className="line-clamp-4 break-words text-sm leading-6">
-                    {questionText(question)}
+                    {questionBankLabel(question.content)}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <Button
@@ -187,22 +220,24 @@ export default function QuestionBankPage() {
                         Chi tiết
                       </Link>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="min-h-11"
-                      disabled={pending}
-                      onClick={() =>
-                        duplicate.mutate(
-                          question.id,
-                          feedback("Đã sao chép câu hỏi"),
-                        )
-                      }
-                    >
-                      <Copy aria-hidden="true" className="size-4" />
-                      Sao chép
-                    </Button>
-                    {question.status === "PUBLISHED" ? (
+                    {questionPermissions(currentUser.data, question).duplicate ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="min-h-11"
+                        disabled={pending}
+                        onClick={() =>
+                          duplicate.mutate(
+                            question.id,
+                            feedback("Đã sao chép câu hỏi"),
+                          )
+                        }
+                      >
+                        <Copy aria-hidden="true" className="size-4" />
+                        Sao chép
+                      </Button>
+                    ) : null}
+                    {questionPermissions(currentUser.data, question).archive ? (
                       <Button
                         size="sm"
                         variant="ghost"
@@ -218,7 +253,8 @@ export default function QuestionBankPage() {
                         <Archive aria-hidden="true" className="size-4" />
                         Lưu trữ
                       </Button>
-                    ) : question.status === "ARCHIVED" ? (
+                    ) : null}
+                    {questionPermissions(currentUser.data, question).restore ? (
                       <Button
                         size="sm"
                         variant="ghost"
@@ -245,11 +281,7 @@ export default function QuestionBankPage() {
               currentPage={page}
               totalPages={query.data.totalPages}
               onPageChange={(value) =>
-                setParams((previous) => {
-                  const next = new URLSearchParams(previous);
-                  next.set("page", String(value));
-                  return next;
-                })
+                setParams((previous) => replaceQuestionBankParam(previous, "page", String(value)))
               }
             />
           )}

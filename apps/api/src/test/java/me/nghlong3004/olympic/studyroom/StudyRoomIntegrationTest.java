@@ -27,10 +27,12 @@ import me.nghlong3004.olympic.studyroom.request.TransferStudyRoomOwnershipReques
 import me.nghlong3004.olympic.studyroom.request.UpdateStudyRoomSettingsRequest;
 import me.nghlong3004.olympic.studyroom.request.UpdateStudyRoomRhythmRequest;
 import me.nghlong3004.olympic.studyroom.enums.StudyRoomPhase;
+import me.nghlong3004.olympic.studyroom.mapper.StudyRoomMapper;
 import me.nghlong3004.olympic.studyroom.service.StudyRoomService;
 import me.nghlong3004.olympic.studyroom.service.impl.StudyRoomServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -338,6 +340,7 @@ class StudyRoomIntegrationTest {
 
   @TestConfiguration
   static class Dependencies {
+    @Bean StudyRoomMapper studyRoomMapper() { return Mappers.getMapper(StudyRoomMapper.class); }
     @Bean MutableClock roomClock() { return new MutableClock(); }
     @Bean TestUser testUser() { return new TestUser(); }
   }

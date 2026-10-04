@@ -18,6 +18,7 @@ import me.nghlong3004.olympic.studyroom.entity.StudyRoomMember;
 import me.nghlong3004.olympic.studyroom.entity.StudyRoomTrack;
 import me.nghlong3004.olympic.studyroom.enums.StudyRoomRequestPolicy;
 import me.nghlong3004.olympic.studyroom.enums.StudyRoomTrackStatus;
+import me.nghlong3004.olympic.studyroom.mapper.StudyRoomMapper;
 import me.nghlong3004.olympic.studyroom.repository.StudyRoomMemberRepository;
 import me.nghlong3004.olympic.studyroom.repository.StudyRoomRepository;
 import me.nghlong3004.olympic.studyroom.repository.StudyRoomTrackRepository;
@@ -55,6 +56,7 @@ public class StudyRoomServiceImpl implements StudyRoomService {
   private final StudyRoomRepository roomRepository;
   private final StudyRoomMemberRepository memberRepository;
   private final StudyRoomTrackRepository trackRepository;
+  private final StudyRoomMapper studyRoomMapper;
   private final UserRepository userRepository;
   private final CurrentUserProvider currentUserProvider;
   private final StorageService storageService;
@@ -66,10 +68,9 @@ public class StudyRoomServiceImpl implements StudyRoomService {
     currentUser(false);
     var now = OffsetDateTime.now(clock);
     return roomRepository.findFirst50ByClosedFalseOrderByCreatedAtDesc().stream()
-        .map(room -> new StudyRoomSummaryResponse(room.getId(), room.getName(), room.getOwner().getId(),
-            displayName(room.getOwner()), memberRepository.countByRoomIdAndJoinedTrueAndLastSeenGreaterThanEqual(
-                room.getId(), now.minusSeconds(HEARTBEAT_GRACE_SECONDS)), room.getFocusMinutes(),
-            room.getBreakMinutes(), room.getLongBreakMinutes(), room.getRequestPolicy(), room.getMinimumStudyMinutes()))
+        .map(room -> studyRoomMapper.toSummary(room, displayName(room.getOwner()),
+            memberRepository.countByRoomIdAndJoinedTrueAndLastSeenGreaterThanEqual(
+                room.getId(), now.minusSeconds(HEARTBEAT_GRACE_SECONDS))))
         .toList();
   }
 
@@ -394,17 +395,14 @@ public class StudyRoomServiceImpl implements StudyRoomService {
           policyAllows(room, member) && !pending && tracks.size() < MAX_TRACKS, (remaining + 999) / 1000);
     }).orElse(null);
     var phase = StudyRoomTimeline.at(room, room.isClosed() ? room.getClosedAt() : now);
-    return new StudyRoomSnapshotResponse(room.getId(), room.getName(), room.getOwner().getId(), displayName(room.getOwner()),
-        members.stream().filter(member -> online(member, now)).count(), room.getFocusMinutes(), room.getBreakMinutes(),
-        room.getLongBreakMinutes(), room.getRequestPolicy(), room.getMinimumStudyMinutes(), room.isClosed(), now,
-        phase.phase(), phase.endsAt(), phase.sessionNumber(), room.getRhythmVersion(),
-        new StudyRoomSnapshotResponse.Playback(room.getPlaybackVideoId(), room.getPlaybackTitle(), room.getPlaybackStartedAt(),
-            room.getPlaybackVersion(), room.isPlaybackDefault()),
-        members.stream().map(member -> new StudyRoomSnapshotResponse.Member(member.getUser().getId(), displayName(member.getUser()),
-            member.getUser().getAvatar() == null ? null : storageService.getDownloadUri(member.getUser().getAvatar().getStorageKey()).toString(),
-            AvatarCropResponse.fromEntity(member.getUser().getAvatarCrop()),
-            member.getFocusMillis() / 1000, online(member, now))).toList(), me,
-        tracks.stream().map(track -> new StudyRoomSnapshotResponse.Track(track.getId(), track.getVideoId(), track.getTitle(),
-            track.getRequestedBy().getId(), displayName(track.getRequestedBy()), track.getStatus(), track.getCreatedAt())).toList());
+    return studyRoomMapper.toSnapshot(room, displayName(room.getOwner()),
+        members.stream().filter(member -> online(member, now)).count(), now, phase.phase(), phase.endsAt(),
+        phase.sessionNumber(), studyRoomMapper.toPlayback(room),
+        members.stream().map(member -> studyRoomMapper.toMember(member, displayName(member.getUser()),
+            member.getUser().getAvatar() == null ? null
+                : storageService.getDownloadUri(member.getUser().getAvatar().getStorageKey()).toString(),
+            AvatarCropResponse.fromEntity(member.getUser().getAvatarCrop()), member.getFocusMillis() / 1000,
+            online(member, now))).toList(),
+        me, tracks.stream().map(track -> studyRoomMapper.toTrack(track, displayName(track.getRequestedBy()))).toList());
   }
 }

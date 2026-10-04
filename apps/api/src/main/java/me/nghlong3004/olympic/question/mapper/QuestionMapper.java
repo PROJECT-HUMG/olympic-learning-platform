@@ -22,6 +22,8 @@ public interface QuestionMapper {
   @Mapping(target = "content", source = "question.contentJson")
   @Mapping(target = "answer", source = "question.answerJson")
   @Mapping(target = "explanation", source = "question.explanationJson")
+  @Mapping(target = "createdById", source = "question.createdBy.id")
+  @Mapping(target = "version", source = "question.version")
   QuestionResponse toResponse(
       Question question, List<QuestionResponse.QuestionAssetResponse> assets);
 

@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nghlong3004.olympic.common.error.ErrorCode;
 import me.nghlong3004.olympic.common.security.CurrentUserProvider;
+import me.nghlong3004.olympic.recognition.dto.AchievementMappingSource;
 import me.nghlong3004.olympic.recognition.dto.RecognitionDownload;
+import me.nghlong3004.olympic.recognition.mapper.RecognitionMapper;
 import me.nghlong3004.olympic.recognition.entity.Achievement;
 import me.nghlong3004.olympic.recognition.entity.Honor;
 import me.nghlong3004.olympic.recognition.entity.HonorParticipant;
@@ -26,7 +28,6 @@ import me.nghlong3004.olympic.recognition.request.ReviewAchievementRequest;
 import me.nghlong3004.olympic.recognition.request.SaveHonorRequest;
 import me.nghlong3004.olympic.recognition.request.SubmitAchievementRequest;
 import me.nghlong3004.olympic.recognition.response.AchievementResponse;
-import me.nghlong3004.olympic.recognition.response.HonorParticipantResponse;
 import me.nghlong3004.olympic.recognition.response.HonorResponse;
 import me.nghlong3004.olympic.recognition.response.RankingResponse;
 import me.nghlong3004.olympic.recognition.response.RecognitionFileResponse;
@@ -65,6 +66,7 @@ public class RecognitionServiceImpl implements RecognitionService {
   private final CurrentUserProvider currentUserProvider;
   private final RecognitionUploadPolicy uploads;
   private final Clock clock;
+  private final RecognitionMapper mapper;
 
   @Override
   public Page<HonorResponse> listHonors(Integer year, String subject, int page, int size, boolean admin) {
@@ -277,8 +279,7 @@ public class RecognitionServiceImpl implements RecognitionService {
   @Override
   public Page<RankingResponse> rankings(Integer year, int page, int size) {
     validateYear(year);
-    return achievements.rankings(year, page(page, size, Sort.unsorted())).map(row ->
-        new RankingResponse(row.getRank(), row.getUserId(), row.getFullName(), row.getUsername(), row.getTotalPoints(), row.getApprovedCount()));
+    return achievements.rankings(year, page(page, size, Sort.unsorted())).map(mapper::toRanking);
   }
 
   @Override
@@ -288,7 +289,7 @@ public class RecognitionServiceImpl implements RecognitionService {
     var published = achievements.findByUserIdAndStatusAndPublicVisibleTrueOrderByAchievedDateDescCreatedAtDesc(userId, AchievementStatus.APPROVED)
         .stream().map(record -> achievementResponse(record, user, false)).toList();
     long publicPoints = published.stream().mapToLong(AchievementResponse::totalPoints).sum();
-    return new RecognitionProfileResponse(userId, name(user), user.getUsername(),
+    return mapper.toProfile(userId, name(user), user.getUsername(),
         preferences.findById(userId).map(RecognitionPreference::isRankingOptIn).orElse(false), publicPoints, published);
   }
 
@@ -391,29 +392,23 @@ public class RecognitionServiceImpl implements RecognitionService {
   }
 
   private HonorResponse honorResponse(Honor honor, boolean admin) {
-    var participants = honor.getParticipants().stream().map(p -> new HonorParticipantResponse(p.getUserId(), p.getFullName(), p.getAward())).toList();
     var prefix = admin && honor.getStatus() == HonorStatus.DRAFT ? "/api/v1/admin/recognition/honors/" : "/api/v1/recognition/honors/";
     var photos = files.metadataForHonor(honor.getId()).stream().map(file ->
-        fileResponse(file, prefix + honor.getId() + "/photos/" + file.getId())).toList();
-    return new HonorResponse(honor.getId(), honor.getTitle(), honor.getSubject(), honor.getYear(), honor.getDescription(),
-        honor.getScope(), honor.getStatus(), participants, photos, honor.getCreatedAt(), honor.getUpdatedAt(), honor.getVersion());
+        mapper.toFile(file, prefix + honor.getId() + "/photos/" + file.getId())).toList();
+    return mapper.toHonor(honor, mapper.toParticipants(honor.getParticipants()), photos);
   }
 
   private AchievementResponse achievementResponse(Achievement record, User owner, boolean privileged) {
-    var evidence = privileged ? files.metadataForAchievement(record.getId()).stream().map(file -> fileResponse(file, null)).toList() : List.<RecognitionFileResponse>of();
-    return new AchievementResponse(record.getId(), record.getUserId(), name(owner), record.getTitle(), record.getDescription(),
-        record.getCategory(), record.getAward(), record.isIncludeParticipation(), record.getAchievedDate(), record.isPublicVisible(),
-        record.getStatus(), record.getAwardPoints(), record.getParticipationPoints(), record.getAwardPoints() + record.getParticipationPoints(),
+    var evidence = privileged
+        ? files.metadataForAchievement(record.getId()).stream().map(file -> mapper.toFile(file, null)).toList()
+        : List.<RecognitionFileResponse>of();
+    return mapper.toAchievement(new AchievementMappingSource(record, name(owner),
         privileged ? record.getReviewNote() : null, privileged ? record.getReviewedAt() : null,
-        record.getCreatedAt(), record.getUpdatedAt(), record.getVersion(), evidence);
-  }
-
-  private RecognitionFileResponse fileResponse(RecognitionFileRepository.Metadata file, String url) {
-    return new RecognitionFileResponse(file.getId(), file.getOriginalName(), file.getContentType(), file.getSize(), url);
+        record.getAwardPoints() + record.getParticipationPoints(), evidence));
   }
 
   private RecognitionDownload download(RecognitionFile file) {
-    return new RecognitionDownload(file.getOriginalName(), file.getContentType(), file.getContent());
+    return mapper.toDownload(file);
   }
 
   private Pageable page(int page, int size, Sort sort) {

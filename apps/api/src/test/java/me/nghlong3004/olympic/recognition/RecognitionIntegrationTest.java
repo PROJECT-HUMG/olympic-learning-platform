@@ -22,6 +22,7 @@ import me.nghlong3004.olympic.recognition.enums.AchievementCategory;
 import me.nghlong3004.olympic.recognition.enums.AchievementStatus;
 import me.nghlong3004.olympic.recognition.enums.HonorScope;
 import me.nghlong3004.olympic.recognition.enums.HonorStatus;
+import me.nghlong3004.olympic.recognition.mapper.RecognitionMapperImpl;
 import me.nghlong3004.olympic.recognition.request.HonorParticipantRequest;
 import me.nghlong3004.olympic.recognition.request.ReviewAchievementRequest;
 import me.nghlong3004.olympic.recognition.request.SaveHonorRequest;
@@ -56,7 +57,8 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
  */
 @DataJpaTest(properties = {"spring.jpa.hibernate.ddl-auto=validate", "spring.flyway.enabled=true"}, showSql = false)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({RecognitionServiceImpl.class, RecognitionUploadPolicy.class, RecognitionIntegrationTest.Dependencies.class})
+@Import({RecognitionServiceImpl.class, RecognitionUploadPolicy.class, RecognitionMapperImpl.class,
+    RecognitionIntegrationTest.Dependencies.class})
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @Testcontainers(disabledWithoutDocker = true)
 class RecognitionIntegrationTest {

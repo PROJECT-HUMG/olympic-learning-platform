@@ -1,5 +1,6 @@
 package me.nghlong3004.olympic.user.service.impl;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +11,8 @@ import me.nghlong3004.olympic.common.properties.UserProperties;
 import me.nghlong3004.olympic.common.security.CurrentUser;
 import me.nghlong3004.olympic.common.security.CurrentUserProvider;
 import me.nghlong3004.olympic.storage.dto.UploadedFile;
-import me.nghlong3004.olympic.storage.entity.File;
 import me.nghlong3004.olympic.storage.enums.StorageFolder;
+import me.nghlong3004.olympic.storage.mapper.FileMapper;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
 import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.User;
@@ -46,6 +47,7 @@ public class UserServiceImpl implements UserService {
   private final UserProperties userProperties;
   private final StorageService storageService;
   private final FileRepository fileRepository;
+  private final FileMapper fileMapper;
 
   @Override
   public CurrentUserResponse me() {
@@ -104,14 +106,7 @@ public class UserServiceImpl implements UserService {
 
     var fileEntity =
         fileRepository.save(
-            File.builder()
-                .storageKey(uploaded.storageKey())
-                .originalName(uploaded.originalName())
-                .contentType(uploaded.contentType())
-                .size(uploaded.size())
-                .provider(uploaded.provider())
-                .folder(StorageFolder.AVATAR)
-                .build());
+            fileMapper.toEntity(Objects.requireNonNull(uploaded), StorageFolder.AVATAR));
 
     user.setAvatar(fileEntity);
     user.setAvatarCrop(crop == null ? null : new AvatarCrop(crop.x(), crop.y(), crop.zoom()));

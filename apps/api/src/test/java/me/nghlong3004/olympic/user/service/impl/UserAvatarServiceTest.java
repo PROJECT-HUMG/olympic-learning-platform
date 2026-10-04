@@ -3,6 +3,7 @@ package me.nghlong3004.olympic.user.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -19,6 +20,7 @@ import me.nghlong3004.olympic.storage.dto.UploadedFile;
 import me.nghlong3004.olympic.storage.entity.File;
 import me.nghlong3004.olympic.storage.enums.StorageFolder;
 import me.nghlong3004.olympic.storage.enums.StorageProvider;
+import me.nghlong3004.olympic.storage.mapper.FileMapper;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
 import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.AvatarCrop;
@@ -45,6 +47,7 @@ class UserAvatarServiceTest {
   @Mock private StorageService storage;
   @Mock private FileRepository files;
   private final UserMapper mapper = Mappers.getMapper(UserMapper.class);
+  private final FileMapper fileMapper = Mappers.getMapper(FileMapper.class);
   private UserAvatarServiceFixture fixture;
   private UserServiceImpl service;
 
@@ -52,7 +55,9 @@ class UserAvatarServiceTest {
   void setUp() {
     var user = User.builder().id(UUID.randomUUID()).username("student").build();
     fixture = new UserAvatarServiceFixture(user);
-    service = new UserServiceImpl(users, mapper, current, new UserProperties(null), storage, files);
+    service =
+        new UserServiceImpl(
+            users, mapper, current, new UserProperties(null), storage, files, fileMapper);
   }
 
   private void authenticate() {
@@ -78,7 +83,13 @@ class UserAvatarServiceTest {
     assertThat(result.avatarCrop().x()).isEqualTo(.2);
     assertThat(result.avatarCrop().y()).isEqualTo(.8);
     assertThat(result.avatarCrop().zoom()).isEqualTo(2);
-    assertThat(fixture.user().getAvatar().getOriginalName()).isEqualTo("portrait.jpg");
+    var saved = fixture.user().getAvatar();
+    assertThat(saved.getStorageKey()).isEqualTo("avatar/original.jpg");
+    assertThat(saved.getOriginalName()).isEqualTo("portrait.jpg");
+    assertThat(saved.getContentType()).isEqualTo("image/jpeg");
+    assertThat(saved.getSize()).isEqualTo(4);
+    assertThat(saved.getProvider()).isEqualTo(StorageProvider.CLOUDINARY);
+    assertThat(saved.getFolder()).isEqualTo(StorageFolder.AVATAR);
   }
 
   @Test
@@ -115,6 +126,26 @@ class UserAvatarServiceTest {
     verifyNoInteractions(files);
     verify(storage).upload(original, StorageFolder.AVATAR);
     verifyNoMoreInteractions(storage);
+  }
+
+  @Test
+  void nullUploadThrowsBeforeSave() {
+    authenticate();
+    var oldFile = File.builder().storageKey("avatar/original.jpg").build();
+    var oldCrop = new AvatarCrop(.1, .2, 1.5);
+    fixture.user().setAvatar(oldFile);
+    fixture.user().setAvatarCrop(oldCrop);
+    var original = new MockMultipartFile("avatar", "new.png", "image/png", new byte[] {1});
+    when(storage.upload(original, StorageFolder.AVATAR)).thenReturn(null);
+
+    assertThatThrownBy(() -> service.updateAvatar(original, new UpdateAvatarCropRequest(.5, .5, 1.0)))
+        .isInstanceOf(NullPointerException.class);
+
+    assertThat(fixture.user().getAvatar()).isSameAs(oldFile);
+    assertThat(fixture.user().getAvatarCrop()).isSameAs(oldCrop);
+    verify(storage).delete(oldFile.getStorageKey());
+    verify(files).delete(oldFile);
+    verify(files, never()).save(any());
   }
 
   @Test

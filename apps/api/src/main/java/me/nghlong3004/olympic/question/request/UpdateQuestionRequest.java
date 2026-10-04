@@ -23,4 +23,6 @@ public record UpdateQuestionRequest(
     @Schema(description = "Structured answer explanation") JsonNode explanation,
     @Schema(description = "Question difficulty", example = "MEDIUM")
         @Size(max = 30)
-        String difficulty) {}
+        String difficulty,
+    @Schema(description = "Stored question version. Required for schemaVersion 1 updates; omitted by legacy clients.")
+        Long expectedVersion) {}

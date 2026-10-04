@@ -37,6 +37,11 @@ const HistoryPage = lazy(() => import("@/pages/history-page"));
 const AssessmentImportPage = lazy(() => import("@/pages/assessment-import-page"));
 const QuestionBankPage = lazy(() => import("@/pages/question-bank-page"));
 const QuestionDetailPage = lazy(() => import("@/pages/question-detail-page"));
+const ExamDraftsPage = lazy(() => import("@/pages/exam-drafts-page").then((m) => ({ default: m.ExamDraftsPage })));
+const ExamEditorPage = lazy(() => import("@/pages/exam-editor-page").then((m) => ({ default: m.ExamEditorPage })));
+const ExamPreviewPage = lazy(() => import("@/pages/exam-preview-page").then((m) => ({ default: m.ExamPreviewPage })));
+const ExamPapersPage = lazy(() => import("@/pages/exam-papers-page").then((m) => ({ default: m.ExamPapersPage })));
+const ExamPaperPage = lazy(() => import("@/pages/exam-paper-page").then((m) => ({ default: m.ExamPaperPage })));
 
 // Lazy load fallback pages
 const NotFoundPage = lazy(() => import("@/pages/not-found-page"));
@@ -48,6 +53,28 @@ const AdminCategoriesPage = lazy(() => import("@/pages/dashboard/categories/admi
 const AdminUsersPage = lazy(() => import("@/pages/admin/users/admin-users-page"));
 
 export const router = createBrowserRouter([
+  ...(["LECTURER", "ADMIN"] as const).map((role) => {
+    const listPath = role === "ADMIN" ? "/admin/exams" : "/lecturer/exams";
+    const papersPath = `${listPath}/papers`;
+    return {
+      element: <RoleGuard allowedRoles={[role]} />,
+      children: [{ element: <DashboardLayout />, children: [
+        { path: listPath, element: <RouteSuspense><ExamDraftsPage listPath={listPath} papersPath={papersPath} /></RouteSuspense> },
+        { path: `${listPath}/new`, element: <RouteSuspense><ExamEditorPage listPath={listPath} papersPath={papersPath} /></RouteSuspense> },
+        { path: papersPath, element: <RouteSuspense><ExamPapersPage papersPath={papersPath} /></RouteSuspense> },
+        { path: `${papersPath}/:paperId`, element: <RouteSuspense><ExamPaperPage papersPath={papersPath} /></RouteSuspense> },
+        { path: `${listPath}/:examId/preview`, element: <RouteSuspense><ExamPreviewPage listPath={listPath} /></RouteSuspense> },
+        { path: `${listPath}/:examId`, element: <RouteSuspense><ExamEditorPage listPath={listPath} papersPath={papersPath} /></RouteSuspense> },
+      ] }],
+    };
+  }),
+  {
+    element: <RoleGuard allowedRoles={["STUDENT"]} />,
+    children: [{ element: <DashboardLayout />, children: [
+      { path: "/exams", element: <RouteSuspense><ExamPapersPage papersPath="/exams" /></RouteSuspense> },
+      { path: "/exams/:paperId", element: <RouteSuspense><ExamPaperPage papersPath="/exams" /></RouteSuspense> },
+    ] }],
+  },
   // 1. Public Portal Area (PublicLayout with Top Navbar)
   {
     element: <PublicLayout />,
@@ -268,6 +295,7 @@ export const router = createBrowserRouter([
             ),
           },
           { path: "/lecturer/questions", element: <RouteSuspense><QuestionBankPage /></RouteSuspense> },
+          { path: "/lecturer/questions/new", element: <RouteSuspense><QuestionDetailPage /></RouteSuspense> },
           { path: "/lecturer/questions/:id", element: <RouteSuspense><QuestionDetailPage /></RouteSuspense> },
         ],
       },
@@ -331,6 +359,7 @@ export const router = createBrowserRouter([
             ),
           },
           { path: "/admin/questions", element: <RouteSuspense><QuestionBankPage /></RouteSuspense> },
+          { path: "/admin/questions/new", element: <RouteSuspense><QuestionDetailPage /></RouteSuspense> },
           { path: "/admin/questions/:id", element: <RouteSuspense><QuestionDetailPage /></RouteSuspense> },
         ],
       },

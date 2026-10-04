@@ -8,10 +8,22 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import me.nghlong3004.olympic.question.enums.QuestionStatus;
 import me.nghlong3004.olympic.question.request.UpdateQuestionRequest;
+import me.nghlong3004.olympic.question.dto.QuestionFigureDownload;
+import me.nghlong3004.olympic.question.response.QuestionFigureResponse;
 import me.nghlong3004.olympic.question.response.QuestionPageResponse;
 import me.nghlong3004.olympic.question.response.QuestionResponse;
 import me.nghlong3004.olympic.question.service.QuestionService;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MultipartFile;
+import java.nio.charset.StandardCharsets;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,6 +55,16 @@ public class QuestionController {
       @RequestParam(required = false) String search,
       Pageable pageable) {
     return questionService.search(status, subjectId, topicId, search, pageable);
+  }
+
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(summary = "Create a schemaVersion 1 draft question")
+  @ApiResponse(responseCode = "201", description = "Draft question created")
+  @ApiResponse(responseCode = "400", description = "Invalid manual question content")
+  @ApiResponse(responseCode = "403", description = "Staff access required")
+  public QuestionResponse create(@Valid @RequestBody UpdateQuestionRequest request) {
+    return questionService.create(request);
   }
 
   @GetMapping("/{id}")
@@ -98,5 +120,38 @@ public class QuestionController {
   @ApiResponse(responseCode = "409", description = "Question is not archived or changed concurrently")
   public QuestionResponse restore(@PathVariable UUID id) {
     return questionService.restore(id);
+  }
+
+  @PostMapping(value = "/{id}/figures", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(summary = "Store an immutable figure on an owned draft")
+  @ApiResponse(responseCode = "201", description = "Figure stored")
+  @ApiResponse(responseCode = "400", description = "Figure type, size, or dimension is invalid")
+  @ApiResponse(responseCode = "404", description = "Draft question not found")
+  public QuestionFigureResponse uploadFigure(
+      @PathVariable UUID id, @RequestPart("file") MultipartFile file) {
+    return questionService.uploadFigure(id, file);
+  }
+
+  @GetMapping("/{id}/figures/{figureId}")
+  @Operation(summary = "Read a private figure for a staff-visible question")
+  @ApiResponse(responseCode = "200", description = "Figure bytes")
+  @ApiResponse(responseCode = "403", description = "Staff access required")
+  @ApiResponse(responseCode = "404", description = "Question or figure not found")
+  public ResponseEntity<byte[]> downloadFigure(@PathVariable UUID id, @PathVariable UUID figureId) {
+    return figure(questionService.downloadFigure(id, figureId));
+  }
+
+  private static ResponseEntity<byte[]> figure(QuestionFigureDownload file) {
+    var disposition = ContentDisposition.inline()
+        .filename(file.originalName(), StandardCharsets.UTF_8)
+        .build();
+    return ResponseEntity.ok()
+        .contentType(MediaType.parseMediaType(file.contentType()))
+        .contentLength(file.content().length)
+        .cacheControl(CacheControl.noStore())
+        .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+        .header("X-Content-Type-Options", "nosniff")
+        .body(file.content());
   }
 }

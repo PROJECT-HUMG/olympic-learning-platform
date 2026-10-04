@@ -20,6 +20,7 @@ import me.nghlong3004.olympic.user.enums.Permission;
 import me.nghlong3004.olympic.user.enums.Status;
 import me.nghlong3004.olympic.user.mapper.UserMapper;
 import me.nghlong3004.olympic.user.repository.UserRepository;
+import me.nghlong3004.olympic.admin.mapper.AdminUserMapper;
 import me.nghlong3004.olympic.admin.request.AdminCreateUserRequest;
 import me.nghlong3004.olympic.admin.response.AdminCreateUserResponse;
 import me.nghlong3004.olympic.admin.response.AdminUserResponse;
@@ -49,6 +50,7 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
   private final AuthLinkBuilder linkBuilder;
   private final Clock clock;
   private final UserMapper userMapper;
+  private final AdminUserMapper adminUserMapper;
 
   @Transactional
   @Override
@@ -114,6 +116,6 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
   public Page<AdminUserResponse> searchUsers(String search, Pageable pageable) {
     String keyword = search != null ? search : "";
     return userRepository.searchUsers(keyword, pageable)
-        .map(user -> AdminUserResponse.fromEntity(user, resolveAvatarUrl(user)));
+        .map(user -> adminUserMapper.toResponse(user, resolveAvatarUrl(user)));
   }
 }

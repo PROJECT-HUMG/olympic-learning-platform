@@ -1,11 +1,14 @@
 package me.nghlong3004.olympic.question.service;
 
 import java.util.UUID;
+import me.nghlong3004.olympic.question.dto.QuestionFigureDownload;
 import me.nghlong3004.olympic.question.enums.QuestionStatus;
 import me.nghlong3004.olympic.question.request.UpdateQuestionRequest;
+import me.nghlong3004.olympic.question.response.QuestionFigureResponse;
 import me.nghlong3004.olympic.question.response.QuestionPageResponse;
 import me.nghlong3004.olympic.question.response.QuestionResponse;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
@@ -13,7 +16,8 @@ import org.springframework.data.domain.Pageable;
  */
 public interface QuestionService {
   /**
-   * Searches questions visible to the current staff user.
+   * Searches the staff bank. Lecturers see every published question and their own rows. Admins see every row.
+   * Students are denied. This is not a public bank.
    *
    * @param status optional status filter
    * @param subjectId optional subject filter
@@ -24,6 +28,15 @@ public interface QuestionService {
    */
   QuestionPageResponse search(
       QuestionStatus status, UUID subjectId, UUID topicId, String search, Pageable pageable);
+
+  /**
+   * Creates an owned schemaVersion 1 draft. The stored content is forced to schemaVersion 1.
+   * expectedVersion on the shared update shape is ignored.
+   *
+   * @param request manual question payload
+   * @return created draft, including author and version
+   */
+  QuestionResponse create(UpdateQuestionRequest request);
 
   /**
    * Gets a question visible to the current staff user.
@@ -74,4 +87,22 @@ public interface QuestionService {
    */
   QuestionResponse restore(UUID id);
 
+
+  /**
+   * Stores one immutable JPEG, PNG, or WebP on an owned draft. No external storage write is performed.
+   *
+   * @param id question identifier
+   * @param file multipart part named file
+   * @return figure metadata without a URL or bytes
+   */
+  QuestionFigureResponse uploadFigure(UUID id, MultipartFile file);
+
+  /**
+   * Reads figure bytes when the caller is staff and may read the parent question.
+   *
+   * @param id question identifier
+   * @param figureId figure identifier
+   * @return private bytes
+   */
+  QuestionFigureDownload downloadFigure(UUID id, UUID figureId);
 }

@@ -7,7 +7,6 @@ import me.nghlong3004.olympic.user.response.AvatarCropResponse;
 import me.nghlong3004.olympic.user.enums.Permission;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
-import me.nghlong3004.olympic.user.entity.User;
 
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
@@ -24,20 +23,4 @@ public record AdminUserResponse(
     Status status,
     Set<Permission> permissions,
     OffsetDateTime lastLoginAt,
-    OffsetDateTime createdAt) {
-
-  public static AdminUserResponse fromEntity(User user, String avatarUrl) {
-    return new AdminUserResponse(
-        user.getId(),
-        user.getEmail(),
-        user.getUsername(),
-        user.getFullName(),
-        avatarUrl,
-        AvatarCropResponse.fromEntity(user.getAvatarCrop()),
-        user.getRole(),
-        user.getStatus(),
-        user.getPermissions(),
-        user.getLastLoginAt(),
-        user.getCreatedAt());
-  }
-}
+    OffsetDateTime createdAt) {}

@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/axios";
 import type {
   Question,
+  QuestionFigureUpload,
   QuestionPage,
   QuestionStatus,
   TopicSummary,
@@ -24,6 +25,32 @@ export const questionService = {
   get(id: string) {
     return apiClient
       .get<Question>(`/questions/${id}`)
+      .then((response) => response.data);
+  },
+
+  create(data: UpdateQuestionRequest) {
+    return apiClient
+      .post<Question>("/questions", data)
+      .then((response) => response.data);
+  },
+
+  uploadFigure(id: string, file: File) {
+    const body = new FormData();
+    body.append("file", file);
+    return apiClient
+      .post<QuestionFigureUpload>(`/questions/${id}/figures`, body, {
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 120_000,
+      })
+      .then((response) => response.data);
+  },
+
+  downloadFigure(questionId: string, assetId: string) {
+    return apiClient
+      .get<Blob>(`/questions/${questionId}/figures/${assetId}`, {
+        responseType: "blob",
+        timeout: 120_000,
+      })
       .then((response) => response.data);
   },
 

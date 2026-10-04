@@ -25,11 +25,15 @@ public record QuestionResponse(
     @Schema(example = "MEDIUM") String difficulty,
     @Schema(description = "Publication timestamp") OffsetDateTime publishedAt,
     @Schema(description = "Archive timestamp") OffsetDateTime archivedAt,
-    @Schema(description = "Question assets") List<QuestionAssetResponse> assets) {
+    @Schema(description = "Question assets") List<QuestionAssetResponse> assets,
+    @Schema(description = "Author identifier") UUID createdById,
+    @Schema(description = "Optimistic version") long version) {
   public record QuestionAssetResponse(
       @Schema(description = "Asset identifier") UUID id,
       @Schema(example = "QUESTION_IMAGE") String role,
       @Schema(description = "Download URL") String url,
       @Schema(description = "Accessible alternative text") String altText,
       @Schema(description = "Crop metadata") JsonNode crop) {}
+
+  // createdById and version are appended so existing JSON field order stays stable.
 }

@@ -10,10 +10,14 @@ import me.nghlong3004.olympic.question.repository.QuestionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -23,12 +27,11 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
  * @author nghlong3004 (Long Nguyen Hoang)
  * @since 8/10/2026
  */
-@SpringBootTest(
-    properties = {
-      "spring.profiles.active=dev",
-      "olympic.client.base-url=http://localhost:3000",
-      "olympic.mail.enabled=false"
-    })
+@DataJpaTest(
+    properties = {"spring.jpa.hibernate.ddl-auto=validate", "spring.flyway.enabled=true"},
+    showSql = false)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 @Testcontainers(disabledWithoutDocker = true)
 class QuestionOptimisticLockIntegrationTest {
   private static final UUID USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000101");
@@ -49,7 +52,7 @@ class QuestionOptimisticLockIntegrationTest {
   private QuestionRepository questionRepository;
 
   @Autowired
-  private TransactionTemplate transactionTemplate;
+  private PlatformTransactionManager transactionManager;
 
   @BeforeEach
   void setUp() {
@@ -108,12 +111,12 @@ class QuestionOptimisticLockIntegrationTest {
   }
 
   private Question findQuestionInNewTransaction() {
-    return transactionTemplate.execute(
+    return new TransactionTemplate(transactionManager).execute(
         ignored -> questionRepository.findById(QUESTION_ID).orElseThrow());
   }
 
   private void saveInNewTransaction(Question question) {
-    transactionTemplate.executeWithoutResult(
+    new TransactionTemplate(transactionManager).executeWithoutResult(
         ignored -> questionRepository.saveAndFlush(question));
   }
 }
