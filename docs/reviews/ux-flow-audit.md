@@ -32,6 +32,113 @@ Checkpoint trước khi sửa UX: `ecbfb14` — `feat: add study rooms and refre
 
 ## Những phần vẫn cần hoàn thiện
 
+### Daily MVP — accepted local delivery (04/10/2026)
+
+The personal Daily, evidence, accountability-group, shared-review and identified-feedback increment is technically accepted for local use. Original base: `d1dc0d5ea43ca0ebccfbe89cfccefd722da021f5`. Backend migrations V17–V21, authenticated API routes, Vietnamese web screens, persistence, current-access checks and original-byte revocation are delivered. No known implementation blocker remains for this bounded path. Local technical acceptance is not production-auth or deployment acceptance.
+
+#### Usable paths and retained behavior
+
+`/daily?date=YYYY-MM-DD` edits the owner's plan/tasks/reflection, uploads or links saved-task evidence and explicitly submits the plan. `/daily/week?weekStart=YYYY-MM-DD` reads aggregates and edits weekly reflection. `/daily/groups` creates groups, lists identified pending invitations and accepts or declines them. Group detail edits the member's own sharing and audience, invites by known username for the active founder, and leaves. A selected historical date opens a permitted member's day/week review, private evidence and named contributions; each contributor can create, edit or delete their own feedback.
+
+Busy operations prevent draft replacement during editing. Failed transport/version conflicts retain typed drafts with explicit reload/retry. Dirty navigation requires confirmation. Cancelled or failed leave preserves sharing drafts; successful confirmed leave discards that draft and navigates without a second unsaved-draft prompt. Account-scoped queries and abort cleanup prevent cross-account reuse; access loss unmounts private content. Successful personal-plan mutations invalidate weekly aggregates.
+
+#### Personal Daily contract
+
+Daily plans belong to users, not groups: database uniqueness is owner/date and owner/week. The platform calendar is Asia/Ho_Chi_Minh (UTC+7), midnight day boundaries, Monday–Sunday weeks. The first explicit submission records one server timestamp across all groups; on-time means at or before the selected plan date's 07:30 cutoff. Edits/repeated submission do not reset it; late plans remain usable.
+
+GET/PUT `/api/v1/daily/plans?date=YYYY-MM-DD`: 404 means no owned plan. PUT creates only with `expectedVersion=null`; updates require the matching version. Stale versions, duplicate creation and foreign task IDs return 409. Null task IDs create tasks; stable existing IDs remain; omitted tasks are removed. POST `/api/v1/daily/plans/{planId}/submit` records the first timestamp once; another owner/admin cannot submit it. GET/PUT `/api/v1/daily/weeks?weekStart=YYYY-MM-DD` normalizes Monday and version-guards reflection.
+
+Task priorities MUST/SHOULD/COULD and statuses TODO/IN_PROGRESS/COMPLETED remain English wire enums with Vietnamese labels. Rates are fractions, not percentages or weighted scores. Planned days include saved empty plans; missing days have no row. Weekly completion is the arithmetic mean over nonempty saved plans; MUST rate pools completed/total MUST tasks. Zero denominators are null/N/A. Recurring unfinished work/issues are owner-authored reflection, not generated analysis.
+
+#### Group consent and current-access contract
+
+Every actor comes from CurrentUserProvider and a current nondeleted ACTIVE account. Group membership alone grants no Daily access. New/reactivated membership starts sharing OFF/GROUP with old selections cleared. Nonowner reads require current ACTIVE owner/viewer accounts, current ACTIVE memberships in the named group, owner sharing ON and GROUP or current selected-viewer authorization. There is no founder/admin privacy bypass. Resource-parent/owner/path consistency is checked before projection or byte delivery.
+
+Root `/api/v1/groups`: GET lists the actor's active groups; POST `{name}` creates a group and founder membership. Summary is `{id,name,ownerId}`. GET `/{groupId}` returns `{id,name,ownerId,members,mySharing}` to active members, without email. PUT `/{groupId}/sharing` atomically replaces own `{shareDaily,sharingMode,selectedViewerIds}`; selected viewers must be other active members, validated even while OFF. POST `/{groupId}/leave` returns 204, clears own sharing/membership and incoming/outgoing selections.
+
+The active founder POSTs `/{groupId}/invitations` with `{username}` targeting an existing ACTIVE account. GET `/groups/invitations` lists the actor's pending invitations. POST `/groups/invitations/{invitationId}/accept` grants membership only to that identified target; `/decline` returns 204. Pending invitations grant no access; pending group/target pairs are unique. Mutations serialize on the group row and refresh invitation status after locking. Terminal acceptance never reactivates a departed member; rejoin needs a new invitation. No open directory/join, founder transfer or outbound notification is included.
+
+Private JSON/errors/bytes use no-store. Committed OFF/deselection/leave/account changes deny subsequent historical and current reads, including old saved metadata/byte IDs. Already downloaded bytes, rendered content and external-link destinations cannot be remotely recalled. In-flight overlap is not claimed cancelled or linearly excluded.
+
+#### Evidence contract
+
+Root `/api/v1/daily/plans/{planId}/tasks/{taskId}/evidence`: GET returns a metadata array; POST multipart `file` plus `stage=START|FINISH` creates FILE; POST `/links` with `{stage,url,label}` creates LINK. Both POSTs return 201 with one complete persisted metadata record, not an envelope/array/empty body. GET `/{evidenceId}/bytes` downloads original FILE bytes; DELETE `/{evidenceId}` returns 204. Mutations are owner-only; nonowner reads supply `groupId` and pass current group/resource authorization.
+
+Metadata: `{id,planId,taskId,stage,kind,originalName,contentType,sizeBytes,url,label,createdAt}`; irrelevant fields are null, including LINK sizeBytes. FILE stores immutable PostgreSQL bytea, nonempty and at most 5 MiB, with at most 10 evidence items per task total. Filename is bounded/sanitized; MIME is untrusted, and delivery is attachment/octet-stream with nosniff, never inline HTML/SVG. LINK permits bounded absolute HTTP(S) URLs without credentials (at most 2048 characters) and nonblank labels (at most 200). External links are not fetched/prefetched; the UI explains their independent access policy and uses noreferrer.
+
+Unsaved tasks must be saved first. Failure retains file/link input and never claims persistence. Evidence mutations lock the saved parent consistently with task deletion, enforce concurrent limits, and never change plan version/reflection/firstSubmittedAt. Task deletion cascades evidence. Returned identity/stage/kind is checked before treating an upload as saved. The shared EvidencePanel downloads only through the authenticated original-byte route, without public embeds.
+
+#### Shared Daily and identified feedback
+
+GET `/api/v1/groups/{groupId}/daily?date=` returns `{groupId,date,members:[{userId,displayName,access,summary}]}`. NOT_SHARED has an explicit null summary and does not query/reveal private plan existence or counts. An allowed missing plan also has null summary. Permitted summary is `{planId,firstSubmittedAt,onTime,completedCount,totalCount,mustCompleted,mustTotal}`. GET `/groups/{groupId}/daily/{ownerId}/plans?date=` and `/weeks?weekStart=` return the unchanged owner shapes through current access checks.
+
+Feedback roots are `/groups/{groupId}/daily/{ownerId}/plans/{planId}/feedback` and `/weeks/{reviewId}/feedback`. GET returns `{contributions,contributorCount}`; contribution fields are `{id,authorId,authorDisplayName,text,createdAt,updatedAt,version}`. PUT own `{text,expectedVersion}` creates only with null expectedVersion or updates the matching version. DELETE own contribution with expectedVersion returns 204. Text is trimmed, nonblank, at most 4000 characters, multiline and flexible; one unique contribution per group/review/author, with no anonymous input, paired-field requirement, threads or append stream.
+
+The author must be a different current authorized active member; author identity is never supplied by the request. Saved plan/weekly-review IDs and group/owner/review consistency are checked. Only contributors with current access remain visible, including their identities/text/count; different group audiences cannot leak each other's feedback. Feedback does not mutate personal plans or generate reviews.
+
+#### Daily/Group mapping refactor — ACCEPTED
+
+Eight service implementations were audited; structural mapping was extracted from five: DailyServiceImpl, SharedDailyServiceImpl, EvidenceServiceImpl, DailyFeedbackServiceImpl and GroupServiceImpl. Module-local Spring MapStruct DailyMapper, SharedDailyMapper, EvidenceMapper, DailyFeedbackMapper and GroupMapper construct task/plan/week, shared summary/member/dashboard, evidence metadata/cloned-download, feedback and group summary/member/detail/sharing/invitation projections.
+
+Business calculations, on-time policy, weekly rates/rounding/deduplication, authorization, audience/account filtering, sorting, validation, transactions/locks, persistence and repository resolution remain in services. Input-preparation helpers deliberately remain where they calculate or resolve values. SharedDailyAccessImpl, GroupDailyAccessImpl and GroupMembershipServiceImpl contain authorization or domain creation/default-consent responsibilities, not response mapping, and remain unchanged. API fields, null handling, ordering and private-field exposure are preserved. Existing integration tests/harness received only required mapper registrations; existing assertions were retained.
+
+Exact sixteen-path refactor manifest digest: `b78bb1d8109aa61798881429d7d2efdfd27ff670a3fa8b353941d92f0a6b5f8f`. Pre-refactor manifest digest: `a95b02037127ae120915944111dda36ff313e17d1ca5f0e833ae76f34c07b01b`. Source/generated-mapping inspection, regression tests, hash checks and comparison against the original source establish technical acceptance; unrelated application bytes were preserved.
+
+```text
+888a2b4fb29bf412c5d71547c61e6862ebcdc085de6d65817604b613d61c36f1  apps/api/src/main/java/me/nghlong3004/olympic/daily/evidence/mapper/EvidenceMapper.java
+c5d7b3b6d7f6531c01c0382a92974e1cdd36a232f762fbb6d552d36722130707  apps/api/src/main/java/me/nghlong3004/olympic/daily/evidence/service/impl/EvidenceServiceImpl.java
+bd024dd37d7f98e2c77555be169f5ec0340ec3631a873c4d7504a1c67d884bbe  apps/api/src/main/java/me/nghlong3004/olympic/daily/feedback/mapper/DailyFeedbackMapper.java
+3afb1dd4f1450790dcb6eec877643a467ef8bcc4a63d686a56b1bf8657b4192b  apps/api/src/main/java/me/nghlong3004/olympic/daily/feedback/service/impl/DailyFeedbackServiceImpl.java
+91ea209a35f60330f3a24c0eb716f2206670db8d66120d9d250553b78e81eea7  apps/api/src/main/java/me/nghlong3004/olympic/daily/mapper/DailyMapper.java
+cfae993d33e28964f8c8a63b75291f57c10905eba0974c304ea1425ddcd021af  apps/api/src/main/java/me/nghlong3004/olympic/daily/service/impl/DailyServiceImpl.java
+1272d9d833a6bf49bc547a580f98cce290bc4484d4156260d34ca699a08fc77f  apps/api/src/main/java/me/nghlong3004/olympic/daily/sharing/mapper/SharedDailyMapper.java
+5304af84d43916aab44df16ac53c00ee2bd32794c2946c221fd6f663a9fd2935  apps/api/src/main/java/me/nghlong3004/olympic/daily/sharing/service/impl/SharedDailyServiceImpl.java
+f1eebec5848a6d2761eb21c99192a45e8b7730d11d3441dc54c4700889cf97fb  apps/api/src/main/java/me/nghlong3004/olympic/group/mapper/GroupMapper.java
+ce423bfe52e8b1eceab481d8ce7ab12472a406fb777d97244ccb1a276259e249  apps/api/src/main/java/me/nghlong3004/olympic/group/service/impl/GroupServiceImpl.java
+d665ffdb9f9a0deeedcceb0f90eb6ce2c8c25da315142b558a895bbac351ce85  apps/api/src/test/java/me/nghlong3004/olympic/authoring/AuthoringBrowserHarness.java
+a474b6283904a1ad96f72e31f23dcd6026113279a1567b438614865fb3ec14b5  apps/api/src/test/java/me/nghlong3004/olympic/daily/DailyIntegrationTest.java
+fe674f16b7d4efdb034a2ce82e93f4e22ec12dd0972282dd9f8684b3db928621  apps/api/src/test/java/me/nghlong3004/olympic/daily/evidence/EvidenceIntegrationTest.java
+78b098ec286f32db40a8c405e6d16e40449706c83c7f4a5faf634014853fb682  apps/api/src/test/java/me/nghlong3004/olympic/daily/mapper/DailyMappingTest.java
+3bedf36edaa7e2fbb835e81a1eb2d564cc655e2287c8c059c3b4d5aef0ac8657  apps/api/src/test/java/me/nghlong3004/olympic/daily/sharing/DailyGroupMvpIntegrationTest.java
+18070825842b3c7ce1f0e977c860c6ac69892fafdd29b364b3a5b09031f42690  apps/api/src/test/java/me/nghlong3004/olympic/group/mapper/GroupMappingTest.java
+```
+
+#### Verification evidence and limits
+
+Verification used Java 25.0.3, Docker 29.6.1 and disposable PostgreSQL 16.15 with Flyway V1–V21. Completed refactor checks:
+
+| Suite | Passed |
+| --- | --- |
+| DailyMappingTest | 10 |
+| GroupMappingTest | 5 |
+| DailyCalendarTest | 3 |
+| DailyIntegrationTest | 7 |
+| DailyGroupMvpIntegrationTest | 12 |
+| EvidenceIntegrationTest | 7 |
+| EvidenceControllerTest | 6 |
+| GroupDailyAccessIntegrationTest | 4 |
+| GroupDailyAccessTest | 7 |
+| AuthoringBrowserHarness (separate HTTP smoke run) | 1 |
+
+The focused run completed BUILD SUCCESS with 61 tests; the separate bounded real HTTP fixture run completed BUILD SUCCESS with one test. Total 62, zero failures/errors/skips. Existing test assertions cover persistence, owner/shared shape parity, consent, historical access/revocation, contributor filtering, evidence and concurrent/version behavior. Mapping tests additionally cover every projected field, nullable reviews/rates/file-link fields, name fallback, caller-selected ordering, explicit-null NOT_SHARED JSON and defensive byte copying. Reports are under `apps/api/target/surefire-reports/`. Exact source hashes and whitespace checks passed.
+
+Before the mapping-only refactor, the complete MVP verification passed 47 API tests, 29 focused Node owner/auth/evidence/group policy tests, pnpm build and lint, and a real browser-to-HTTP/security/controllers/services/PostgreSQL flow with 51 recorded checks and no recorded browser errors. All recorded group responses were no-store. Final browser artifact: `/tmp/daily-group-http-1791118548384/results.json`, SHA256 `402bbf3866f37ebfbbfb7d45ba877123af6ade726d27f9c02ae23a0a11f6898e`.
+
+That browser flow verified owner save/upload/file+link, invitation accept/decline/forgery/default-OFF, selected historical dashboards/day/week reads, exact-byte attachment download, identified contributions, failed PUT draft retention, concurrent 409/reload/edit, own delete/recreate and weekly feedback. OFF, deselection, viewer leave and owner leave denied subsequent historical reviews/feedback/metadata/byte requests. Contributor access loss removed text/identity/count; recipients could not write own feedback; rejoin required a fresh invitation and stayed OFF; terminal replay did not re-grant membership; personal plan JSON stayed identical. Dirty-leave cancel preserved draft/membership and confirmed leave navigated. Desktop/mobile light/dark captures were inspected; keyboard focus, overflow and reduced-motion checks passed.
+
+Earlier failed/partial compile, fixture-startup and browser checks remain distinct from successful reruns; only corrected-source completed runs establish the results above. Prior SQL transaction and TypeScript inference issues, cached invitation status and dirty-leave navigation were repaired before final MVP acceptance. No failed or unknown result is counted as a pass.
+
+Limits: production cryptographically signed JWT issuance/refresh/server logout is unverified; fixture authentication is not proof of that lifecycle. The full repository suite and fresh browser UI checks were not rerun for the backend-only mapping refactor, and no new verification campaign accompanies this commit. Existing compiler/runtime warnings concern Lombok Unsafe, unchecked code, Mockito dynamic agents and deprecated Jackson test configuration, not test failures. No production/live-data/deployment acceptance, outbound notifications, generated reviews, leaderboard or remote erasure is claimed.
+
+Reproduce focused API checks from `apps/api` with Java 25 and Docker available:
+
+```sh
+./mvnw -Dlogging.level.org.hibernate.SQL=OFF -Dtest=DailyMappingTest,GroupMappingTest,DailyCalendarTest,DailyIntegrationTest,DailyGroupMvpIntegrationTest,EvidenceIntegrationTest,EvidenceControllerTest,GroupDailyAccessIntegrationTest,GroupDailyAccessTest test
+AUTHORING_BROWSER=true ./mvnw -Dlogging.level.org.hibernate.SQL=OFF -Dtest=AuthoringBrowserHarness -Dauthoring.browser.port=0 -Dauthoring.browser.seconds=1 test
+```
+
+Commit scope is the full local project increment together: backend foundations and mappers, migrations, web, tests, HTTP harness and this project-facing acceptance summary. Push, merge and deployment are outside this local commit.
+
 Local handoff checkpoint — 04/10/2026: Harness21089 completed exit0 BUILD SUCCESS at07:21:10UTC, 1test/0failures/0errors/0skips; suite936.057s, bounded hold900.584s. Durable AuthoringBrowserHarness Surefire XML confirms readiness and completed hold; no restart or session termination. Both bounded browser paths below remain ACCEPTED with their stated limits. Lead ACCEPTED the three AGENTS.md guide additions at base cac1b83912be7cf12eda538807cbe148ae72aa61 with verified module, draft-edit, figure-limit, immutable-row and route corrections; documentation scope closed, mandatory instructions/references preserved. Local commit covers the accepted question/exam increment, accepted mapper maintenance, source tests/browser scenarios and these guides only; generated evidence/private/operator material excluded. Daily remains queued for Human decisions below. A universal09:00 cutoff is not recommended: it measures morning availability rather than a person's planning commitment. Personal deadline, calendar, formulas, recurring identity and minimal feedback proposals require confirmation before affected implementation.
 
 Explicit end-to-end acceptance — 04/10/2026,07:12UTC: Lead ACCEPT manual question author/save/reopen path and prepared exam assemble/preview/publish/scheduled student read path in the disposable local Chromium → real HTTP/security/controllers/services → PostgreSQL16/Flyway16 environment. These are usable browser results, not compile-only acceptance. No known blocker remains on these two bounded paths. Existing owners/drafts/sessions preserved; no push/deployment/live-data/external service changes.
@@ -104,13 +211,23 @@ Recovery checkpoint — 04/10/2026: runner39823 recovered with BUILD SUCCESS, 37
 
 Additional authorized mapper maintenance — 04/10/2026: parallel bounded audit/refactors do not replace/delay current question/exam paths or start queued Daily. Lead inspected dirty state/current agents/existing MapStruct mappers and service conversions. Exclusive Grok ownership: a0e4a353 recognition main/tests; 101a3d5d studyroom main/tests; 37483e51 auth/user/admin/document/post/topic/storage/assessment main/tests (importer behavior/legacy validation excluded). Prior read-only assignments for first two are CLOSED, now separate implementation briefs. Question/exam/current web/common/POM/migrations/status remain outside maintenance writes; current owners/drafts preserved. Read root/API AGENTS/backend skill, reuse mapper convention, preserve API shape/nulls/order/lazy loading/auth/privacy; keep business policy/validation/transactions/repository/storage calls in services. Recognition privileged evidence masking and studyroom lease/phase/request permissions must not become mapper decisions. No unnecessary per-feature mapper, dependency/schema/framework/architecture rewrite/format sweep. Direct English convention/dependency discussion permitted, no peer reassignment/ownership expansion. Return per-module evidence/intentionally retained rationale/full candidate/base/changed paths/focused checks/limits; Lead applies if patch tool unavailable, coordinates shared Maven target, integrates and explicitly disposes. Existing operational permissions/external-effect/cost boundaries unchanged; no blanket destructive/external authority.
 
-Queued authorized next feature — Daily Accountability (04/10/2026): DO NOT implement or dispatch until both current question author/save/reopen and exam assemble/preview/publish/scheduled-read paths are completed and explicitly accepted with promised privacy/persistence evidence. Lead returns closure evidence/transition readiness, then inspects current contracts/group/auth/storage capabilities and proposes bounded vertical delivery with independent ownership, delegated implementation and proportionate consequential read-only review. Current owners/drafts are preserved; queued scope must not delay current work.
+Daily Accountability — local delivery accepted (04/10/2026): the question author/save/reopen and exam assemble/preview/publish/scheduled-read prerequisites were accepted at d1dc0d5. The Daily product decisions below are settled; the completed bounded Daily feature and its acceptance evidence are recorded above. Production authentication and deployment remain outside that local acceptance.
 
 Daily queue binding scope: Daily belongs to User, never Group; backend/database unique user/calendar-day plan shared across all groups. Group membership grants no access by itself. New membership share_daily=false; Vietnamese toggle “Chia sẻ Daily của tôi với nhóm” OFF. Current owner/group settings (GROUP or SELECTED_MEMBERS of owner-selected active members) apply independently per group to all historical/current Daily/tasks/evidence/Daily Reviews/Weekly Reviews; ON exposes permitted history, OFF immediately revokes metadata and bytes, no per-day consent/snapshots. Owner allowed; every other request/nested resource requires active same-group membership, owner sharing ON and GROUP/selected authorization. No admin/group-privilege bypass; prevent ID/path/group/owner mismatch IDOR. Private evidence image/screenshot/file/link must not expose unprotected storage URLs bypassing revocation. Dashboard chosen day only returns permitted submission/count/rate/Must data; nonshared label must not reveal whether private Daily exists.
 
 Daily tasks priorities MUST/SHOULD/COULD, statuses TODO/IN_PROGRESS/COMPLETED (TODO/COMPLETED allowed MVP); optional Start/Finish Evidence. Overall completed/total/rate and Must completed/total shown separately, no weighted score. Daily Review belongs to plan/inherits sharing and summarizes completion plus owner reasons/what went well/tomorrow adjustment. Weekly Review belongs to user/aggregates Daily plans (days planned/on-time, average completion, Must, recurring incomplete tasks/issues) plus owner reflection/next-week changes; same CURRENT group sharing revokes old reviews too. Conceptual ownership: Users -> Daily Plans -> Tasks -> Evidence/Daily Review; Users -> Weekly Reviews; Group Membership(group_id,user_id,share_daily,sharing_mode); selected mapping(owner_id,group_id,viewer_id). MVP: existing Auth integration, Groups/Memberships, Daily Plans/Tasks/Evidence, Daily/Weekly Reviews, Group Sharing/Feedback. Flow Plan -> Do -> Evidence -> Complete -> Daily Review -> Weekly Review -> Group Feedback. No leaderboard/gamification/public feed; streak/comments/reactions/notifications/completion history/statistics deferred.
 
-Before affected Daily implementation, Human decision required on timezone/calendar-day/week boundary, submission/on-time cutoff, weekly average denominator/Must calculation, recurring task/issues definition and minimum Group Feedback. Lead returns concise recommended defaults/consequences; do not silently invent deadlines or broaden Feedback into deferred comments/reactions. All agent communication/system code/names/enums/database/API English; all user-visible UI Vietnamese (including priorities/statuses/review prompts/sharing modes). No push/deploy/provisioning/live-data mutation/external effects/new material costs without approval. Queue does not authorize those effects.
+Daily product decisions — settled 04/10/2026:
+
+- Calendar: one platform timezone Asia/Ho_Chi_Minh (UTC+7), midnight day boundaries, Monday–Sunday weeks. Calendar conversion is centralized for future extension, but no user/location timezone selection in MVP.
+- Submission: first explicit plan submission records one server timestamp for the personal plan across all groups. On-time means submission at or before that plan date's07:30 platform cutoff; edits do not reset it. Late plans remain usable. No personal/group deadline settings.
+- Weekly figures: arithmetic mean of daily completed/total rates over nonempty planned days; show planned days/7 separately. MUST rate pools completed/total MUST tasks; zero MUST is N/A. No weighted score or extra statistics. Recurring unfinished work/issues are owner-authored weekly reflection, not inferred analysis, generated tasks or required structured links.
+- Feedback: authors always identified to the recipient; one flexible text contribution can contain observations, suggestions or both, including multiple points. No mandatory paired fields, minimum response count, anonymous input, threads or general comments. Beneath a shared review show identified contributors and distinct contributing-person count. Current sharing/active-membership rules protect feedback and historical review metadata/bytes too; no privileged bypass.
+- Bounded technical presentation: one editable contribution per author per review per group, enforced uniquely; multiline text, contributor list/count, no append stream. This does not require repeated submissions. Feedback remains attached to the group context so different audiences cannot leak each other's contributions. Reopen only if that interaction conflicts with the intended review use, not to re-ask the five resolved decisions.
+
+Daily module boundary: study_room_members are lease/presence records, not consent membership. The accountability group foundation is separate from study rooms. Personal plans and reviews are user-owned; schema uniqueness is user/date and user/week, never group. Private evidence stays behind authenticated authorization with no-store, not public Cloudinary links. Code/names/enums/database/API use English; user-visible UI uses Vietnamese.
+
+Completed bounded outcome: owner plan/tasks/evidence/save/reopen/submit/daily-and-weekly reflection, identified member feedback, explicit group invitation consent and current group/selected/history access with metadata-and-byte revocation are locally accepted through browser and real HTTP/PostgreSQL evidence above. Source tests and browser drivers remain available for reproduction; production-auth verification is a separate remaining limit.
 
 1. **Manual authoring and exam assembly:** implementation authorized for the bounded increment below. Student attempts/submissions, grading and results/history remain pending; scheduled read-only exam access is not an attempt workflow.
 2. **OAuth:** đã gỡ nút khỏi màn đăng nhập vì luồng callback/đăng nhập chưa hoàn chỉnh. Cần triển khai và kiểm tra backend trước khi mở lại.

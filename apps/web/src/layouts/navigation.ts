@@ -1,6 +1,7 @@
 import {
   BookOpen,
   Calculator,
+  CalendarCheck,
   FileText,
   FileUp,
   FolderTree,
@@ -122,6 +123,8 @@ export function getNavigationGroups(role?: string): NavigationGroup[] {
           icon: LayoutDashboard,
         },
         { label: "Hồ sơ & bảo mật", href: ROUTES.PROFILE, icon: User },
+        { label: "Daily của tôi", href: ROUTES.DAILY, icon: CalendarCheck },
+        { label: "Nhóm Daily", href: ROUTES.DAILY_GROUPS, icon: CalendarCheck },
         ...(role === "STUDENT" ? [{ label: "Thành tích của tôi", href: ROUTES.MY_ACHIEVEMENTS, icon: Award }] : []),
       ],
     });

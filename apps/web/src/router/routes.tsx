@@ -34,6 +34,10 @@ const DashboardPage = lazy(() => import("@/pages/dashboard-page"));
 const ProfilePage = lazy(() => import("@/pages/profile-page"));
 const PracticePage = lazy(() => import("@/pages/practice-page"));
 const HistoryPage = lazy(() => import("@/pages/history-page"));
+const DailyOwnerPage = lazy(() => import("@/pages/daily-owner-page").then((m) => ({ default: m.DailyOwnerPage })));
+const DailyWeekPage = lazy(() => import("@/pages/daily-week-page").then((m) => ({ default: m.DailyWeekPage })));
+const DailyGroupsPage = lazy(() => import("@/pages/daily-groups-page").then((m) => ({ default: m.DailyGroupsPage })));
+const DailySharedReviewPage = lazy(() => import("@/pages/daily-shared-review-page").then((m) => ({ default: m.DailySharedReviewPage })));
 const AssessmentImportPage = lazy(() => import("@/pages/assessment-import-page"));
 const QuestionBankPage = lazy(() => import("@/pages/question-bank-page"));
 const QuestionDetailPage = lazy(() => import("@/pages/question-detail-page"));
@@ -205,6 +209,11 @@ export const router = createBrowserRouter([
       {
         element: <DashboardLayout />,
         children: [
+          { path: ROUTES.DAILY, element: <RouteSuspense><DailyOwnerPage /></RouteSuspense> },
+          { path: ROUTES.DAILY_WEEK, element: <RouteSuspense><DailyWeekPage /></RouteSuspense> },
+          { path: ROUTES.DAILY_GROUPS, element: <RouteSuspense><DailyGroupsPage /></RouteSuspense> },
+          { path: ROUTES.DAILY_GROUPS + "/:groupId", element: <RouteSuspense><DailyGroupsPage /></RouteSuspense> },
+          { path: ROUTES.DAILY_GROUPS + "/:groupId/reviews/:ownerId", element: <RouteSuspense><DailySharedReviewPage /></RouteSuspense> },
           {
             path: ROUTES.PROFILE,
             element: (
