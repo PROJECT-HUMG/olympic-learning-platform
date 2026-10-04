@@ -1,18 +1,20 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Download, FileText, Link as LinkIcon, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { dailyEvidenceKey, evidenceErrorMessage, evidenceHttpUrl, evidenceLabel, evidenceTargetReady, type EvidenceRecord, type EvidenceScope, type EvidenceStage } from "./evidence-contract";
 import { evidenceRoom, evidenceScopeKey, evidenceUploadIssue } from "./evidence-policy";
 import { evidenceService, type SavedEvidenceScope } from "./evidence.service";
+import { StudyEmpty } from "../ui/study-notebook";
 
 const STAGES = { START: "Trước khi làm", FINISH: "Sau khi làm" } as const;
 
 // The keyed child drops local selections, requests and private lists on account/resource changes.
 export function EvidencePanel(props: EvidenceScope & { disabled?: boolean; readOnly?: boolean }) {
   const { disabled = false, readOnly = props.groupId !== null } = props;
-  if (!evidenceTargetReady(props)) return <p className="text-sm text-muted-foreground">Lưu kế hoạch trước khi thêm minh chứng cho việc này.</p>;
+  if (!evidenceTargetReady(props)) return <p className="study-note flex items-center gap-2"><Paperclip size={16} aria-hidden="true" />Lưu kế hoạch trước khi thêm minh chứng cho việc này.</p>;
   return <SavedPanel key={evidenceScopeKey(props.userId, props.planId, props.taskId, props.groupId)}
     scope={props} disabled={disabled} readOnly={readOnly} />;
 }
@@ -20,8 +22,8 @@ export function EvidencePanel(props: EvidenceScope & { disabled?: boolean; readO
 function SavedPanel({ scope, disabled, readOnly }: { scope: SavedEvidenceScope; disabled: boolean; readOnly: boolean }) {
   const [open, setOpen] = useState(false);
   const [visited, setVisited] = useState(false);
-  return <details className="min-w-0 border-t pt-3" onToggle={(event) => { setOpen(event.currentTarget.open); if (event.currentTarget.open) setVisited(true); }}>
-    <summary className="cursor-pointer py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2">Minh chứng của việc này</summary>
+  return <details className="study-evidence" onToggle={(event) => { setOpen(event.currentTarget.open); if (event.currentTarget.open) setVisited(true); }}>
+    <summary><Paperclip size={16} aria-hidden="true" />Minh chứng của việc này</summary>
     {visited ? <div hidden={!open}><EvidenceControls scope={scope} disabled={disabled} readOnly={readOnly} open={open} /></div> : null}
   </details>;
 }
@@ -119,23 +121,24 @@ function EvidenceControls({ scope, disabled, readOnly, open }: { scope: SavedEvi
     });
   }
 
-  return <div className="min-w-0 space-y-4 py-3" data-evidence-task={scope.taskId}
+  return <div className="study-evidence__content space-y-4" data-evidence-task={scope.taskId}
     onKeyDown={(event) => { if (event.key === "Enter" && event.target instanceof HTMLInputElement && ["text", "url"].includes(event.target.type)) event.preventDefault(); }}>
-    <p className="max-w-prose text-sm text-muted-foreground">Minh chứng lưu riêng, không thay đổi bản kế hoạch đang nhập. Tối đa 10 mục, mỗi tệp 5 MiB.</p>
+    <p className="study-note">{readOnly ? "Minh chứng chỉ đọc theo quyền chia sẻ hiện tại. Tệp được tải qua nền tảng, không có bản xem trước công khai." : "Minh chứng lưu riêng, không thay đổi bản kế hoạch đang nhập. Tối đa 10 mục, mỗi tệp 5 MiB."}</p>
     {busy ? <p role="status" className="text-sm">Đang xử lý minh chứng…</p> : null}
-    {notice ? <p role="status" className="text-sm">{notice}</p> : null}
-    {failure ? <p role="alert" className="text-sm">{failure} Mục đang chọn chưa bị xóa.</p> : null}
+    {notice ? <p role="status" className="study-context">{notice}</p> : null}
+    {failure ? <p role="alert" className="study-notice">{failure} {!readOnly ? "Mục đang chọn chưa bị xóa." : "Bạn có thể kiểm tra quyền và thử lại."}</p> : null}
     {query.isFetching ? <p role="status" className="text-sm">Đang kiểm tra minh chứng trên máy chủ…</p> : null}
     {query.isError ? <div className="space-y-2"><p role="alert" className="text-sm">{evidenceErrorMessage(query.error)}</p><Button type="button" variant="outline" disabled={blocked} onClick={() => void run(refresh)}>Thử lại minh chứng</Button></div> : null}
-    {query.isSuccess && !query.isFetching && !rows.length ? <p className="text-sm">Chưa có minh chứng đã lưu.</p> : null}
+    {query.isSuccess && !query.isFetching && !rows.length ? <StudyEmpty title="Chưa có minh chứng đã lưu.">{readOnly ? "Chỉ các minh chứng được chia sẻ hiện tại xuất hiện ở đây." : "Thêm tệp hoặc liên kết để ghi lại việc bạn đã làm."}</StudyEmpty> : null}
     {(["START", "FINISH"] as const).map((value) => <div key={value} className="space-y-2">
       <h4 className="text-sm font-medium">{STAGES[value]}</h4>
-      <ul className="space-y-2">{rows.filter((item) => item.stage === value).map((item) => <li key={item.id} className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-b pb-2">
-        <div className="min-w-0 flex-1 break-words text-sm">
+      <ul>{rows.filter((item) => item.stage === value).map((item) => <li key={item.id} className="study-evidence__item">
+        <div className="flex min-w-0 flex-1 items-start gap-2 break-words text-sm">
+          {item.kind === "LINK" ? <LinkIcon size={16} className="mt-1 shrink-0 text-primary" aria-hidden="true" /> : <FileText size={16} className="mt-1 shrink-0 text-primary" aria-hidden="true" />}
           {item.kind === "LINK" ? <a className="inline-block max-w-full break-all text-primary underline" href={item.url!} target="_blank" rel="noreferrer noopener">{item.label}</a> : <span>{item.originalName} ({formatBytes(item.sizeBytes!)})</span>}
         </div>
         <div className="flex flex-wrap gap-2">
-          {item.kind === "FILE" ? <Button type="button" variant="outline" disabled={blocked} onClick={() => download(item)} aria-label={`Tải ${item.originalName}`}>Tải tệp</Button> : null}
+          {item.kind === "FILE" ? <Button type="button" variant="outline" disabled={blocked} onClick={() => download(item)} aria-label={`Tải ${item.originalName}`}><Download size={16} aria-hidden="true" />Tải tệp</Button> : null}
           {!readOnly ? <Button type="button" variant="outline" disabled={blocked} onClick={() => remove(item)} aria-label={`Gỡ minh chứng ${item.originalName ?? item.label}`}>Gỡ</Button> : null}
         </div>
       </li>)}</ul>
@@ -145,15 +148,18 @@ function EvidenceControls({ scope, disabled, readOnly, open }: { scope: SavedEvi
       <div className="space-y-2"><Label htmlFor={`${prefix}-stage`}>Thời điểm</Label><select id={`${prefix}-stage`} className="h-11 w-full rounded-lg border bg-background px-3" value={stage} onChange={(event) => setStage(event.target.value as EvidenceStage)}>
         <option value="START">Trước khi làm</option><option value="FINISH">Sau khi làm</option>
       </select></div>
-      <div className="space-y-2"><Label htmlFor={`${prefix}-file`}>Tệp minh chứng</Label><Input ref={fileInput} id={`${prefix}-file`} type="file" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setFailure(null); }} />
+      <div className="space-y-2"><h4 className="text-sm font-medium">Thêm tệp</h4><Label htmlFor={`${prefix}-file`}>Tệp minh chứng</Label><Input ref={fileInput} id={`${prefix}-file`} type="file" aria-describedby={`${prefix}-file-help`} onChange={(event) => { setFile(event.target.files?.[0] ?? null); setFailure(null); }} />
+        <p id={`${prefix}-file-help`} className="study-note">Tệp tối đa 5 MiB. Chọn tệp rồi bấm lưu. Chỉ thông báo lưu thành công mới xác nhận tệp đã được giữ trên máy chủ.</p>
         <Button type="button" onClick={upload} disabled={!file}>Lưu tệp minh chứng</Button></div>
+      <h4 className="text-sm font-medium">Thêm liên kết</h4>
+      <p id={`${prefix}-link-help`} className="study-note">URL http/https không chứa thông tin đăng nhập. Liên kết mở bên ngoài, không có bản xem trước.</p>
       <div className="grid min-w-0 gap-3 sm:grid-cols-2">
         <div className="min-w-0 space-y-2"><Label htmlFor={`${prefix}-label`}>Tên liên kết</Label><Input id={`${prefix}-label`} type="text" value={label} maxLength={200} onChange={(event) => setLabel(event.target.value)} /></div>
-        <div className="min-w-0 space-y-2"><Label htmlFor={`${prefix}-url`}>URL liên kết</Label><Input id={`${prefix}-url`} type="url" value={url} maxLength={2048} onChange={(event) => setUrl(event.target.value)} /></div>
+        <div className="min-w-0 space-y-2"><Label htmlFor={`${prefix}-url`}>URL liên kết</Label><Input id={`${prefix}-url`} type="url" aria-describedby={`${prefix}-link-help`} value={url} maxLength={2048} onChange={(event) => setUrl(event.target.value)} /></div>
       </div>
       <Button type="button" variant="outline" onClick={saveLink} disabled={!url || !label}>Lưu liên kết minh chứng</Button>
     </fieldset> : null}
-    {query.isSuccess && !query.isFetching && !evidenceRoom(rows.length) ? <p className="text-sm">Đã đủ 10 mục. Gỡ một mục trước khi thêm.</p> : null}
+    {!readOnly && query.isSuccess && !query.isFetching && !evidenceRoom(rows.length) ? <p className="study-note">Đã đủ 10 mục. Gỡ một mục trước khi thêm.</p> : null}
     <p className="max-w-prose text-sm text-muted-foreground">Liên kết mở trang bên ngoài. Quyền truy cập và bản đã tải xuống không thể được thu hồi bởi nền tảng.</p>
   </div>;
 }

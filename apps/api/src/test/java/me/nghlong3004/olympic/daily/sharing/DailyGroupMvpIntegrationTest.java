@@ -3,6 +3,9 @@ package me.nghlong3004.olympic.daily.sharing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.Clock;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import javax.imageio.ImageIO;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -42,6 +45,10 @@ import me.nghlong3004.olympic.group.request.CreateGroupRequest;
 import me.nghlong3004.olympic.group.request.CreateGroupInvitationRequest;
 import me.nghlong3004.olympic.group.request.ReplaceGroupSharingRequest;
 import me.nghlong3004.olympic.group.service.GroupService;
+import me.nghlong3004.olympic.group.service.GroupAvatarService;
+import me.nghlong3004.olympic.group.service.impl.GroupAvatarServiceImpl;
+import me.nghlong3004.olympic.group.request.UpdateGroupAvatarCropRequest;
+import me.nghlong3004.olympic.question.service.impl.QuestionFigurePolicy;
 import me.nghlong3004.olympic.group.service.impl.GroupServiceImpl;
 import me.nghlong3004.olympic.group.service.impl.GroupDailyAccessImpl;
 import me.nghlong3004.olympic.group.service.impl.GroupMembershipServiceImpl;
@@ -78,6 +85,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
   SharedDailyAccessImpl.class, SharedDailyServiceImpl.class, DailyFeedbackServiceImpl.class,
   DailyServiceImpl.class, EvidenceServiceImpl.class, DailyMapperImpl.class, EvidenceMapperImpl.class,
   DailyFeedbackMapperImpl.class, SharedDailyMapperImpl.class, GroupMapperImpl.class,
+  GroupAvatarServiceImpl.class, QuestionFigurePolicy.class,
   DailyGroupMvpIntegrationTest.Dependencies.class})
 class DailyGroupMvpIntegrationTest {
   @Container @ServiceConnection static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
@@ -87,6 +95,7 @@ class DailyGroupMvpIntegrationTest {
   private static final UUID ADMIN = UUID.fromString("00000000-0000-0000-0000-00000000f104");
   private static final LocalDate DATE = LocalDate.of(2026, 9, 7);
   @Autowired GroupService groups;
+  @Autowired GroupAvatarService avatars;
   @Autowired SharedDailyService shared;
   @Autowired DailyFeedbackService feedback;
   @Autowired DailyService daily;
@@ -127,6 +136,49 @@ class DailyGroupMvpIntegrationTest {
     assertThat(settings.selectedViewerIds()).isEmpty();
     assertThat(shared.dashboard(group, DATE).members().stream().filter(m -> OWNER.equals(m.userId())).findFirst().orElseThrow().summary()).isNull();
     expect(ErrorCode.ACCESS_DENIED, () -> shared.readPlan(group, OWNER, DATE));
+  }
+
+  @Test void groupAvatarOriginalBytesFramingOwnershipAndRevocation() throws Exception {
+    var output = new ByteArrayOutputStream();
+    ImageIO.write(new BufferedImage(3, 2, BufferedImage.TYPE_INT_RGB), "png", output);
+    var bytes = output.toByteArray();
+    var file = new MockMultipartFile("image", "group.png", "image/png", bytes);
+    var crop = new UpdateGroupAvatarCropRequest(.3, .6, 1.5);
+    var saved = avatars.upload(group, file, crop);
+    assertThat(groups.list().getFirst().avatar()).isEqualTo(saved);
+    assertThat(groups.detail(group).avatar()).isEqualTo(saved);
+    assertThat(avatars.read(group, saved.id()).content()).isEqualTo(bytes);
+    assertThat(avatars.read(group, saved.id()).mediaType()).isEqualTo("image/png");
+    assertThat(groups.detail(group).mySharing().shareDaily()).isFalse();
+    var invite = groups.invite(group, new CreateGroupInvitationRequest(username(VIEWER)));
+    as(VIEWER);
+    expect(ErrorCode.ACCESS_DENIED, () -> avatars.read(group, saved.id()));
+    groups.accept(invite.id());
+    assertThat(avatars.read(group, saved.id()).content()).isEqualTo(bytes);
+    expect(ErrorCode.ACCESS_DENIED, () -> avatars.upload(group, file, crop));
+    expect(ErrorCode.ACCESS_DENIED, () -> avatars.crop(group, saved.id(), crop));
+    expect(ErrorCode.ACCESS_DENIED, () -> avatars.remove(group, saved.id()));
+    groups.leave(group);
+    expect(ErrorCode.ACCESS_DENIED, () -> avatars.read(group, saved.id()));
+    as(ADMIN);
+    expect(ErrorCode.ACCESS_DENIED, () -> avatars.read(group, saved.id()));
+    expect(ErrorCode.ACCESS_DENIED, () -> avatars.upload(group, file, crop));
+    as(OWNER);
+    var reframed = avatars.crop(group, saved.id(), new UpdateGroupAvatarCropRequest(.7, .4, 2.0));
+    assertThat(reframed.id()).isEqualTo(saved.id());
+    assertThat(reframed.crop().zoom()).isEqualTo(2);
+    assertThat(avatars.read(group, saved.id()).content()).isEqualTo(bytes);
+    expect(ErrorCode.VALIDATION_ERROR, () -> avatars.crop(group, saved.id(), new UpdateGroupAvatarCropRequest(Double.NaN, .5, 1.0)));
+    expect(ErrorCode.FILE_TYPE_NOT_ALLOWED, () -> avatars.upload(group, new MockMultipartFile("image", "spoof.png", "image/png", "<svg/>".getBytes()), crop));
+    var replacement = avatars.upload(group, file, crop);
+    expect(ErrorCode.RESOURCE_NOT_FOUND, () -> avatars.read(group, saved.id()));
+    expect(ErrorCode.RESOURCE_STATE_CONFLICT, () -> avatars.crop(group, saved.id(), crop));
+    expect(ErrorCode.RESOURCE_STATE_CONFLICT, () -> avatars.remove(group, saved.id()));
+    avatars.remove(group, replacement.id());
+    assertThat(groups.detail(group).avatar()).isNull();
+    expect(ErrorCode.RESOURCE_NOT_FOUND, () -> avatars.read(group, replacement.id()));
+    groups.leave(group);
+    expect(ErrorCode.ACCESS_DENIED, () -> avatars.upload(group, file, crop));
   }
 
   @Test void declineTerminalCannotAcceptAndDepartedFounderCannotGrant() {

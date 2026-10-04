@@ -2,6 +2,7 @@ package me.nghlong3004.olympic.group.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,6 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.nghlong3004.olympic.user.entity.User;
+import me.nghlong3004.olympic.user.entity.AvatarCrop;
 
 /**
  * Durable consent group. Membership here is not a study-room lease.
@@ -43,6 +45,12 @@ public class AccountabilityGroup {
 
   @Column(name = "name", nullable = false, length = 120)
   private String name;
+
+  @Column(name = "avatar_id")
+  private UUID avatarId;
+
+  @Embedded
+  private AvatarCrop avatarCrop;
 
   @Column(name = "created_at", nullable = false)
   private OffsetDateTime createdAt;

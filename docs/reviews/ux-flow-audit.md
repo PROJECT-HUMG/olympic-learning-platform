@@ -32,6 +32,26 @@ Checkpoint trước khi sửa UX: `ecbfb14` — `feat: add study rooms and refre
 
 ## Những phần vẫn cần hoàn thiện
 
+### Daily/Group UI/UX improvement — accepted delivery (05/10/2026)
+
+The friendly shared-study-notebook presentation, calendar-based navigation, section disclosures and group avatars increment is technically accepted for local use. Baseline: `45013bd202310e0e6bb0a95e1caf8d3969ca57d1`.
+
+#### Delivered behavior
+- **Navigation flow**: Personal Daily opens calendar week list -> seven-day list -> day detail. Group detail opens members -> each member's weeks -> days. Sections expand/collapse without unmounting drafts. Removed the prominent previous/next/current-week toolbar; historical date URLs and compact calendar chooser are retained.
+- **Group avatar**: Migration V22 adds crop coordinates to `accountability_groups` and creates the `group_avatars` table (bytea raster storage up to 5 MiB, JPEG/PNG/WebP). API `/api/v1/groups/{groupId}/avatar` provides upload, crop reframing, delete (active founder only) and private authenticated byte reads (`no-store`, `nosniff`) for active group members. The frontend reuses the profile crop dialog/math and avatar image presentation with explicit preview/save/cancel.
+- **Study notebook foundation**: `StudyAreaNav`, `StudyProgress`, `StudyIdentity`, `StudyEmpty` and `StudyDisclosure` establish shared typography, progress indicators, access-aware member identities and accessible disclosures.
+
+#### Verification record
+- `pnpm build` (`tsc -b && vite build`): 0 errors.
+- `pnpm lint` (`oxlint`): 0 errors.
+- Web unit/policy tests (`daily-study-ui.test.ts`, `daily-group-policy.test.ts`): 13/13 passed.
+- Backend tests (`mvn test -Dtest=GroupMappingTest,DailyGroupMvpIntegrationTest`): 18/18 passed (V22 migration applied, Testcontainers PostgreSQL).
+- Disposable HTTP/CDP browser checks:
+  - `daily-group-http-browser-check.mjs`: 0 errors (avatar crop/save/reframing/deletion, member disclosure, review, feedback revalidation/recovery, leave and revocation).
+  - `daily-evidence-http-browser-check.mjs`: 0 errors (file upload, link, retry, download original bytes, logout cleanup).
+  - `daily-http-browser-check.mjs`: 0 errors (plan editor, submission timing, conflict retention, weekly reflection).
+
+
 ### Daily MVP — accepted local delivery (04/10/2026)
 
 The personal Daily, evidence, accountability-group, shared-review and identified-feedback increment is technically accepted for local use. Original base: `d1dc0d5ea43ca0ebccfbe89cfccefd722da021f5`. Backend migrations V17–V21, authenticated API routes, Vietnamese web screens, persistence, current-access checks and original-byte revocation are delivered. No known implementation blocker remains for this bounded path. Local technical acceptance is not production-auth or deployment acceptance.

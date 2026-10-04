@@ -13,7 +13,9 @@ import { useDailyWeek, useSaveDailyWeek } from "../hooks/use-daily";
 import { dailyErrorMessage, isDailyConflict } from "../lib/daily-contract";
 import { dailyDraftFailure, dailyLeaveBlocked, shouldApplyCompletedFetch } from "../lib/daily-lifecycle";
 import { editorFromWeek, emptyWeekEditor, formatWeekSummary, shouldApplyServerDaily, weekSaveBody, type WeekEditor } from "../lib/plan-editor";
-import { addPlatformDays, parsePlatformDate, platformDateKey, weekDates } from "../lib/platform-calendar";
+import { parsePlatformDate, platformDateKey, weekDates } from "../lib/platform-calendar";
+import { StudyAreaNav, StudyDisclosure, StudyProgress } from "../ui/study-notebook";
+import { StudyDayList } from "../ui/study-calendar";
 
 const DATE_GUARD = "Hãy lưu hoặc tải lại trước khi đổi ngày.";
 
@@ -31,8 +33,6 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
   const [form, setForm] = useState<WeekEditor>(() => emptyWeekEditor(weekStart));
   const [notice, setNotice] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
-  const parsed = parsePlatformDate(weekStart);
-  const days = parsed ? weekDates(parsed).map(platformDateKey) : [];
 
   useEffect(() => {
     if (!week.isSuccess || !week.data || !shouldApplyServerDaily({
@@ -72,11 +72,6 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
       return;
     }
     onWeek(monday);
-  }
-
-  function shift(days: number) {
-    if (!parsed) return;
-    go(platformDateKey(addPlatformDays(parsed, days)));
   }
 
   async function fetchServer(replace: boolean) {
@@ -130,21 +125,29 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
 
   const showNotice = Boolean(notice || draft.dirty || draft.conflict || failure === "inline" || blocker.state === "blocked");
 
-  return <div className="page-shell">
+  return <div className="page-shell study-notebook">
+    <StudyAreaNav area="daily" onNavigate={guardNavigation} />
     <DailyAccountWarning show={accountWarning} onRetry={onRetryAccount} />
-    <PageHeader title="Tuần của tôi" description="Từ thứ Hai đến chủ Nhật. Dòng số liệu dưới đây là bản tổng hợp trên máy chủ." actions={<Link className="inline-flex h-11 items-center" to={`${ROUTES.DAILY}?date=${weekStart}`} onClick={guardNavigation}>Ngày đầu tuần</Link>} />
-    <div className="mb-4 flex flex-wrap items-end gap-2">
-      <Button type="button" variant="outline" disabled={draft.busy} onClick={() => shift(-7)}>Tuần trước</Button>
+    <PageHeader title={`Tuần từ ${weekStart}`} description="Mở một ngày để lập kế hoạch. Nhìn lại tuần ở bên dưới khi bạn cần." actions={<Link className="inline-flex h-11 items-center text-primary underline underline-offset-4" to={ROUTES.DAILY} onClick={guardNavigation}>Các tuần của tôi</Link>} />
+    <PageSection title="Các ngày trong tuần" description="Thứ Hai đến chủ Nhật. Bấm một ngày để mở chi tiết; ngày trên lịch không đồng nghĩa đã có kế hoạch.">
+      <StudyDayList weekStart={weekStart} href={day => `${ROUTES.DAILY}?date=${day}`} onNavigate={guardNavigation} />
+    </PageSection>
+    <StudyDisclosure title="Chọn tuần khác">
       <div className="space-y-2"><Label htmlFor="daily-week">Tuần</Label><Input id="daily-week" type="date" value={weekStart} disabled={draft.busy} onChange={(event) => go(event.target.value)} /></div>
-      <Button type="button" variant="outline" disabled={draft.busy} onClick={() => shift(7)}>Tuần sau</Button>
-    </div>
-    {week.data ? <p className="mb-4 text-sm">{formatWeekSummary(week.data)}</p> : null}
-    <div className="mb-4 flex flex-wrap gap-2">
-      {days.map((day) => <Link key={day} className="inline-flex min-h-11 items-center px-2 text-sm underline-offset-4 hover:underline" to={`${ROUTES.DAILY}?date=${day}`} onClick={guardNavigation}>{day}</Link>)}
-    </div>
-    {showNotice ? <div className="mb-4 space-y-3" role={draft.dirty || draft.conflict || failure === "inline" || blocker.state === "blocked" ? "alert" : "status"}>
+    </StudyDisclosure>
+    {week.data ? <StudyDisclosure title="Số liệu tuần đã ghi nhận" description={formatWeekSummary(week.data)}>
+      <div className="study-week-summary">
+        <div><h3 className="text-sm font-medium">Ngày có kế hoạch</h3><p>{week.data.plannedDays}/7 ngày</p><p className="study-note">Kể cả ngày đã lưu chưa có việc.</p></div>
+        <div><h3 className="text-sm font-medium">Ngày nộp đúng giờ</h3><p>{week.data.onTimeDays} ngày</p><p className="study-note">Theo mốc nộp đầu của mỗi ngày.</p></div>
+        <div><h3 className="text-sm font-medium">Hoàn thành trung bình</h3><p>{week.data.completionRate === null ? "Không áp dụng" : `${Math.round(week.data.completionRate * 100)}%`}</p><p className="study-note">Trung bình các ngày đã lưu có việc.</p></div>
+        <StudyProgress label="Việc bắt buộc trong tuần" completed={week.data.mustCompleted} total={week.data.mustTotal} rate={week.data.mustRate} caption="Gộp việc bắt buộc, không phải trung bình các ngày." />
+      </div>
+    </StudyDisclosure> : null}
+    {showNotice ? <div className="study-notice" role={draft.dirty || draft.conflict || failure === "inline" || blocker.state === "blocked" ? "alert" : "status"}>
       {blocker.state === "blocked" ? <p>{DATE_GUARD}</p> : null}
       {notice ? <p>{notice}</p> : null}
+      {draft.dirty ? <p>Bản đang nhập chưa được lưu.</p> : null}
+      {draft.conflict ? <p>Bản trên máy chủ đã đổi. Tải lại trước khi tiếp tục.</p> : null}
       {failure === "inline" && !notice ? <p>{dailyErrorMessage(week.error)} Bản đang nhập vẫn được giữ.</p> : null}
       {blocker.state === "blocked" ? <Button type="button" variant="outline" onClick={() => blocker.reset()}>Ở lại trang</Button> : null}
       {failure === "inline" ? <Button type="button" variant="outline" disabled={draft.busy} onClick={() => void fetchServer(false)}>Thử lại</Button> : null}
@@ -152,18 +155,18 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
     </div> : null}
     <form onSubmit={(event) => { event.preventDefault(); void save(); }}>
       <fieldset disabled={draft.busy} className="m-0 min-w-0 border-0 p-0">
-        <PageSection title="Nhìn lại tuần">
+        <StudyDisclosure title={draft.dirty ? "Nhìn lại tuần · Chưa lưu" : "Nhìn lại tuần"} description="Ghi điều bạn nhận ra và một thay đổi thực tế cho tuần sau. Thu gọn không làm mất bản đang nhập.">
           <WeekField id="week-unfinished" label="Việc còn dở" value={form.recurringUnfinished} onChange={(value) => edit((current) => ({ ...current, recurringUnfinished: value }))} />
           <WeekField id="week-issues" label="Vấn đề lặp lại" value={form.issues} onChange={(value) => edit((current) => ({ ...current, issues: value }))} />
           <WeekField id="week-reflection" label="Nhìn lại" value={form.reflection} onChange={(value) => edit((current) => ({ ...current, reflection: value }))} />
           <WeekField id="week-next" label="Tuần sau" value={form.nextWeekChanges} onChange={(value) => edit((current) => ({ ...current, nextWeekChanges: value }))} />
-        </PageSection>
-        <Button type="submit">Lưu nhìn lại</Button>
+        </StudyDisclosure>
+        <div className="study-actions"><Button type="submit">Lưu nhìn lại</Button><p className="study-note">Lưu phản hồi của bạn; không thay đổi số liệu kế hoạch ngày.</p></div>
       </fieldset>
     </form>
   </div>;
 }
 
 function WeekField({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (value: string) => void }) {
-  return <div className="space-y-2"><Label htmlFor={id}>{label}</Label><Textarea id={id} value={value} maxLength={4000} onChange={(event) => onChange(event.target.value)} /></div>;
+  return <div className="study-review-field space-y-2"><Label htmlFor={id}>{label}</Label><Textarea id={id} value={value} maxLength={4000} onChange={(event) => onChange(event.target.value)} /></div>;
 }

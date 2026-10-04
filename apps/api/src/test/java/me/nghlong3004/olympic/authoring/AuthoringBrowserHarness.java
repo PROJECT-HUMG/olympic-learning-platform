@@ -48,6 +48,8 @@ import me.nghlong3004.olympic.daily.sharing.mapper.SharedDailyMapperImpl;
 import me.nghlong3004.olympic.group.mapper.GroupMapperImpl;
 import me.nghlong3004.olympic.group.service.impl.GroupDailyAccessImpl;
 import me.nghlong3004.olympic.group.controller.GroupController;
+import me.nghlong3004.olympic.group.controller.GroupAvatarController;
+import me.nghlong3004.olympic.group.service.impl.GroupAvatarServiceImpl;
 import me.nghlong3004.olympic.group.controller.GroupPrivacyFilter;
 import me.nghlong3004.olympic.group.service.impl.GroupServiceImpl;
 import me.nghlong3004.olympic.group.service.impl.GroupMembershipServiceImpl;
@@ -385,6 +387,8 @@ class AuthoringBrowserHarness {
     EvidenceServiceImpl.class,
     GroupDailyAccessImpl.class,
     GroupController.class,
+    GroupAvatarController.class,
+    GroupAvatarServiceImpl.class,
     GroupPrivacyFilter.class,
     GroupServiceImpl.class,
     GroupMembershipServiceImpl.class,

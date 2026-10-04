@@ -124,7 +124,7 @@ export function getNavigationGroups(role?: string): NavigationGroup[] {
         },
         { label: "Hồ sơ & bảo mật", href: ROUTES.PROFILE, icon: User },
         { label: "Daily của tôi", href: ROUTES.DAILY, icon: CalendarCheck },
-        { label: "Nhóm Daily", href: ROUTES.DAILY_GROUPS, icon: CalendarCheck },
+        { label: "Nhóm Daily", href: ROUTES.DAILY_GROUPS, icon: Users },
         ...(role === "STUDENT" ? [{ label: "Thành tích của tôi", href: ROUTES.MY_ACHIEVEMENTS, icon: Award }] : []),
       ],
     });

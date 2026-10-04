@@ -10,6 +10,8 @@ import me.nghlong3004.olympic.group.response.GroupInvitationResponse;
 import me.nghlong3004.olympic.group.response.GroupMemberResponse;
 import me.nghlong3004.olympic.group.response.GroupSharingResponse;
 import me.nghlong3004.olympic.group.response.GroupSummaryResponse;
+import me.nghlong3004.olympic.group.response.GroupAvatarResponse;
+import me.nghlong3004.olympic.user.response.AvatarCropResponse;
 import me.nghlong3004.olympic.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -24,7 +26,13 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface GroupMapper {
   @Mapping(target = "ownerId", source = "owner.id")
+  @Mapping(target = "avatar", source = "group")
   GroupSummaryResponse toSummary(AccountabilityGroup group);
+
+  default GroupAvatarResponse toAvatar(AccountabilityGroup group) {
+    return group.getAvatarId() == null ? null : new GroupAvatarResponse(
+        group.getAvatarId(), AvatarCropResponse.fromEntity(group.getAvatarCrop()));
+  }
 
   default GroupMemberResponse toMember(User user) {
     return new GroupMemberResponse(user.getId(), displayName(user));
@@ -33,7 +41,7 @@ public interface GroupMapper {
   default GroupDetailResponse toDetail(
       AccountabilityGroup group, List<GroupMemberResponse> members, GroupSharingResponse sharing) {
     return new GroupDetailResponse(
-        group.getId(), group.getName(), group.getOwner().getId(), members, sharing);
+        group.getId(), group.getName(), group.getOwner().getId(), members, sharing, toAvatar(group));
   }
 
   default GroupSharingResponse toSharing(AccountabilityGroupMembership own, List<UUID> viewerIds) {

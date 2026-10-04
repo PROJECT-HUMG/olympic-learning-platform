@@ -1,4 +1,5 @@
 import { parseApiError } from "../../../lib/api-error.ts";
+import type { AvatarCrop } from "../../user/types/user.types";
 export const GROUP_CONTRACT = "Dữ liệu nhóm không đúng hợp đồng.";
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function groupId(value: unknown): value is string { return typeof value === "string" && ID.test(value); }
@@ -6,7 +7,8 @@ const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v ===
 const text = (v: unknown): v is string => typeof v === "string" && !!v.trim();
 const count = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v >= 0;
 const instant = (v: unknown): v is string => typeof v === "string" && /T.*(Z|[+-]\d\d:\d\d)$/.test(v) && Number.isFinite(Date.parse(v));
-export interface GroupSummary { id: string; name: string; ownerId: string }
+export interface GroupAvatar { id: string; crop: AvatarCrop }
+export interface GroupSummary { id: string; name: string; ownerId: string; avatar: GroupAvatar | null }
 export interface GroupSharing { shareDaily: boolean; sharingMode: "GROUP" | "SELECTED_MEMBERS"; selectedViewerIds: string[] }
 export interface GroupDetail extends GroupSummary { members: { userId: string; displayName: string }[]; mySharing: GroupSharing }
 export interface GroupInvitation { id: string; groupId: string; groupName: string; inviterId: string; inviterDisplayName: string; targetUserId: string; status: "PENDING" | "ACCEPTED" | "DECLINED"; createdAt: string }
@@ -16,7 +18,16 @@ export interface Contribution { id: string; authorId: string; authorDisplayName:
 export interface Feedback { contributions: Contribution[]; contributorCount: number }
 export function readGroup(v: unknown): GroupSummary {
   if (!object(v) || !groupId(v.id) || !text(v.name) || !groupId(v.ownerId)) throw new Error(GROUP_CONTRACT);
-  return { id:v.id, name:v.name, ownerId:v.ownerId };
+  return { id:v.id, name:v.name, ownerId:v.ownerId, avatar: readGroupAvatar(v.avatar) };
+}
+export function readGroupAvatar(value: unknown): GroupAvatar | null {
+  if (value === null || value === undefined) return null;
+  if (!object(value) || !groupId(value.id) || !object(value.crop)) throw new Error(GROUP_CONTRACT);
+  const { x, y, zoom } = value.crop;
+  if (typeof x !== "number" || !Number.isFinite(x) || x < 0 || x > 1
+      || typeof y !== "number" || !Number.isFinite(y) || y < 0 || y > 1
+      || typeof zoom !== "number" || !Number.isFinite(zoom) || zoom < 1 || zoom > 3) throw new Error(GROUP_CONTRACT);
+  return { id: value.id, crop: { x, y, zoom } };
 }
 export function readSharing(v: unknown): GroupSharing {
   if (!object(v) || typeof v.shareDaily !== "boolean" || !["GROUP","SELECTED_MEMBERS"].includes(String(v.sharingMode))
@@ -78,4 +89,3 @@ export function groupError(error: unknown) {
   if (status === 400) return "Kiểm tra nội dung, tên đăng nhập và danh sách người xem rồi thử lại.";
   return "Không thực hiện được. Hãy thử lại.";
 }
-

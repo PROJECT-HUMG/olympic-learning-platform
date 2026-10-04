@@ -12,4 +12,5 @@ public record GroupDetailResponse(
     String name,
     UUID ownerId,
     List<GroupMemberResponse> members,
-    GroupSharingResponse mySharing) {}
+    GroupSharingResponse mySharing,
+    GroupAvatarResponse avatar) {}

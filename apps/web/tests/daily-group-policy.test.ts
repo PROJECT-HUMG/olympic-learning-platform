@@ -1,10 +1,18 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { readGroupDetail, readSharing, readDashboard, readInvitation, readFeedback, groupAccessLost } from "../src/features/daily/groups/group-contract.ts";
+import { readGroupDetail, readGroupAvatar, readSharing, readDashboard, readInvitation, readFeedback, groupAccessLost } from "../src/features/daily/groups/group-contract.ts";
 const group="00000000-0000-0000-0000-000000000101";
 const owner="00000000-0000-0000-0000-000000000102";
 const viewer="00000000-0000-0000-0000-000000000103";
 const date="2026-09-07";
+it("group avatar metadata is bounded, optional for legacy responses, never a public URL", () => {
+  assert.equal(readGroupAvatar(undefined), null);
+  const avatar = { id: group, crop: { x: .5, y: .4, zoom: 2 } };
+  assert.deepEqual(readGroupAvatar(avatar), avatar);
+  assert.throws(() => readGroupAvatar({ ...avatar, id: "https://example.org/avatar" }));
+  assert.throws(() => readGroupAvatar({ ...avatar, crop: { x: NaN, y: .5, zoom: 1 } }));
+  assert.throws(() => readGroupAvatar({ ...avatar, crop: { x: .5, y: .5, zoom: 4 } }));
+});
 it("validates default-OFF own sharing and exact group identity",()=>{
   assert.deepEqual(readSharing({shareDaily:false,sharingMode:"GROUP",selectedViewerIds:[]}),{shareDaily:false,sharingMode:"GROUP",selectedViewerIds:[]});
   assert.throws(()=>readSharing({shareDaily:false,sharingMode:"GROUP",selectedViewerIds:[viewer,viewer]}));
@@ -39,4 +47,3 @@ it("permission loss is separate from transient failure",()=>{
   assert.equal(groupAccessLost({response:{status:403,data:{}}}),true);
   assert.equal(groupAccessLost({response:{status:503,data:{}}}),false);
 });
-

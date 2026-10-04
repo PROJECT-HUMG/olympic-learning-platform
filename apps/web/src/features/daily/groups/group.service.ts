@@ -1,12 +1,39 @@
 import { apiClient } from "@/lib/axios";
 import { alignedDailyPlan, alignedDailyWeek, readDailyPlan, readDailyWeek } from "../lib/daily-contract";
-import { GROUP_CONTRACT, groupId, readGroup, readGroupDetail, readSharing, readInvitation, readDashboard, readFeedback, readContribution, type GroupSharing } from "./group-contract";
+import { GROUP_CONTRACT, groupId, readGroup, readGroupDetail, readSharing, readInvitation, readDashboard, readFeedback, readContribution, readGroupAvatar, type GroupSharing } from "./group-contract";
+import type { AvatarCrop } from "@/features/user/types/user.types";
 function root(id: string) { if(!groupId(id))throw new Error(GROUP_CONTRACT); return `/groups/${id}`; }
 function reviewRoot(id:string,owner:string,kind:"plans"|"weeks",review:string) {
   if(!groupId(owner)||!groupId(review))throw new Error(GROUP_CONTRACT);
   return `${root(id)}/daily/${owner}/${kind}/${review}/feedback`;
 }
 export const groupService = {
+  async avatarBytes(id: string, avatarId: string, signal: AbortSignal) {
+    if (!groupId(avatarId)) throw new Error(GROUP_CONTRACT);
+    const { data } = await apiClient.get<Blob>(`${root(id)}/avatar/${avatarId}`, { signal, responseType: "blob" });
+    if (!(data instanceof Blob) || !["image/jpeg", "image/png", "image/webp"].includes(data.type)
+        || data.size < 1 || data.size > 5 * 1024 * 1024) throw new Error(GROUP_CONTRACT);
+    return data;
+  },
+  async uploadAvatar(id: string, image: File, crop: AvatarCrop, signal: AbortSignal) {
+    const body = new FormData();
+    body.append("image", image);
+    body.append("crop", new Blob([JSON.stringify(crop)], { type: "application/json" }));
+    const { data } = await apiClient.post(`${root(id)}/avatar`, body, { signal, headers: { "Content-Type": undefined } });
+    const avatar = readGroupAvatar(data);
+    if (!avatar) throw new Error(GROUP_CONTRACT);
+    return avatar;
+  },
+  async cropAvatar(id: string, avatarId: string, crop: AvatarCrop, signal: AbortSignal) {
+    if (!groupId(avatarId)) throw new Error(GROUP_CONTRACT);
+    const avatar = readGroupAvatar((await apiClient.put(`${root(id)}/avatar/${avatarId}/crop`, crop, { signal })).data);
+    if (!avatar || avatar.id !== avatarId) throw new Error(GROUP_CONTRACT);
+    return avatar;
+  },
+  async removeAvatar(id: string, avatarId: string, signal: AbortSignal) {
+    if (!groupId(avatarId)) throw new Error(GROUP_CONTRACT);
+    await apiClient.delete(`${root(id)}/avatar/${avatarId}`, { signal });
+  },
   async list(signal?:AbortSignal) {
     const {data}=await apiClient.get("/groups",{signal});
     if(!Array.isArray(data))throw new Error(GROUP_CONTRACT);
@@ -51,4 +78,3 @@ export const groupService = {
     await apiClient.delete(reviewRoot(id,owner,kind,review),{params:{expectedVersion},signal});
   }
 };
-

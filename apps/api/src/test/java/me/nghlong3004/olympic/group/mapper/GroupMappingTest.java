@@ -57,9 +57,9 @@ class GroupMappingTest {
     assertThat(sharing).isEqualTo(new GroupSharingResponse(false, SharingMode.SELECTED_MEMBERS, selected));
     assertThat(sharing.selectedViewerIds()).isSameAs(selected);
     var members = List.of(mapper.toMember(owner));
-    assertThat(mapper.toSummary(group)).isEqualTo(new GroupSummaryResponse(group.getId(), "Group", owner.getId()));
+    assertThat(mapper.toSummary(group)).isEqualTo(new GroupSummaryResponse(group.getId(), "Group", owner.getId(), null));
     var detail = mapper.toDetail(group, members, sharing);
-    assertThat(detail).isEqualTo(new GroupDetailResponse(group.getId(), "Group", owner.getId(), members, sharing));
+    assertThat(detail).isEqualTo(new GroupDetailResponse(group.getId(), "Group", owner.getId(), members, sharing, null));
     assertThat(detail.members()).isSameAs(members);
     assertThat(detail.mySharing()).isSameAs(sharing);
   }
