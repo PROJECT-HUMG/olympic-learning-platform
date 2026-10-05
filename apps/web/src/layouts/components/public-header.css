@@ -1,115 +1,33 @@
-.public-header {
-  position: sticky;
-  top: calc(.5rem + env(safe-area-inset-top));
-  z-index: 40;
-  margin: calc(.5rem + env(safe-area-inset-top)) .75rem 0;
-  border: 1px solid var(--border);
-  border-radius: 1.125rem;
-  background: var(--card);
-}
-
-.public-header[data-home="true"] { position: fixed; inset-inline: .75rem; margin: 0; }
-.public-header__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
-  width: 100%;
-  max-width: 80rem;
-  height: 3.5rem;
-  margin-inline: auto;
-  padding-inline: .75rem;
-}
-
-.public-header__logo {
-  position: relative;
-  flex-shrink: 0;
-  width: 4.5rem;
-  height: 2.75rem;
-  overflow: hidden;
-}
-
-.public-header__logo img {
-  position: absolute;
-  top: -.5rem;
-  left: 0;
-  width: 4.375rem;
-  height: 4.375rem;
-  max-width: none;
-}
-
-.dark .public-header__logo img { filter: brightness(1.25); }
-.public-header__nav { display: none; }
-.public-header__menu-trigger { width: auto; height: 2.75rem; gap: .4rem; padding-inline: .875rem; border-radius: 999px; background: var(--action); color: var(--action-foreground); font-size: .8125rem; font-weight: 500; }
-.public-menu-sheet { width: 100%; max-width: 42rem; height: min(85svh, 44rem); max-height: calc(100svh - env(safe-area-inset-top) - 1rem); margin-inline: auto; border-radius: 1.25rem 1.25rem 0 0; }
-.public-display-settings { padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
-.public-display-settings h2 { color: var(--muted-foreground); font-size: .75rem; font-weight: 500; }
-.public-display-settings__options { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin-top: .25rem; }
-.public-display-settings__options label { display: flex; align-items: center; justify-content: space-between; flex: 1 1 8rem; min-height: 2.75rem; gap: .5rem; font-size: .8125rem; font-weight: 400; cursor: pointer; }
-
+.public-header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border); background: var(--card); }
+.public-header[data-home="true"] { position: fixed; inset: 0 0 auto; }
+.public-header__inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; max-width: var(--page-width); min-height: 72px; margin-inline: auto; padding-inline: 2rem; }
+.public-header__nav { display: flex; align-items: center; gap: .25rem; }
+.public-header__link { position: relative; display: flex; align-items: center; justify-content: center; min-height: 44px; padding-inline: .625rem; color: var(--muted-foreground); font-size: .8125rem; font-weight: 500; white-space: nowrap; border-radius: .375rem; transition: background-color 180ms, color 180ms; }
+.public-header__link::after { content: ""; position: absolute; bottom: 1px; inset-inline: .625rem; height: 2px; border-radius: 2px; background: var(--primary); transform: scaleX(0); transform-origin: left; transition: transform 260ms cubic-bezier(.22,1,.36,1); }
+.public-header__link[aria-current="page"] { color: var(--primary); }
+.public-header__link[aria-current="page"]::after { transform: scaleX(1); }
+.public-header__actions { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+.public-header__cta { min-height: 44px; padding-inline: .875rem; border-radius: .5rem; box-shadow: none; font-size: .8125rem; }
 .public-header :is(a, button):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; box-shadow: none; }
-.public-header__actions { min-width: 0; }
-
-@media (min-width: 640px) { .public-header__inner { padding-inline: 1.5rem; } }
-@media (min-width: 1280px) {
-  .public-header {
-    position: fixed;
-    inset: 1rem max(1.5rem, calc((100% - 75rem) / 2)) auto;
-    height: 3.75rem;
-    margin: 0;
-    border: 1px solid var(--border);
-    border-radius: 1rem;
-    background: color-mix(in srgb, var(--background) 96%, transparent);
-    box-shadow: 0 10px 24px -22px color-mix(in srgb, var(--foreground) 25%, transparent);
-  }
-
-  .public-header[data-home="true"] { inset-inline: max(1.5rem, calc((100% - 75rem) / 2)); }
-  .public-header[data-scrolled="true"] { background: var(--background); }
-
-  .public-header__inner {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    gap: 1rem;
-    height: 100%;
-    padding-inline: 1.25rem;
-  }
-
-  .public-header__nav {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: .25rem;
-    width: 33rem;
-  }
-
-  .public-header__link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.75rem;
-    padding-inline: .5rem;
-    border-radius: .625rem;
-    color: var(--muted-foreground);
-    white-space: nowrap;
-    font-size: .8125rem;
-    font-weight: 500;
-  }
-
-  .public-header__link[aria-current="page"] { background: var(--accent); color: var(--primary); font-weight: 600; }
-  .public-header__actions { justify-self: end; }
-  .public-header__cta {
-    min-height: 2.75rem;
-    height: auto;
-    padding-inline: .875rem;
-    border: 1px solid var(--border);
-    border-radius: .75rem;
-    background: var(--action);
-    color: var(--action-foreground);
-    font-size: .8125rem;
-    box-shadow: none;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .public-header__link:hover { background: var(--accent); color: var(--foreground); }
-    .public-header__cta:hover { background: var(--action-hover); color: var(--action-foreground); }
-  }
+.public-header .shell-menu-trigger { border-left: 1px solid var(--border); border-radius: 0; padding-left: .75rem; }
+@media (min-width: 768px) and (max-width: 1199px) {
+  .public-header__inner { gap: .75rem; }
+  .public-header__nav { margin-left: auto; }
+  .public-header__actions { gap: .375rem; }
+  .public-header__actions > [aria-label="Đổi giao diện"] { display: none; }
 }
+@media (max-width: 767px) {
+  .public-header__inner { min-height: 64px; padding-inline: 1rem; gap: .5rem; }
+  .public-header .shell-brand { gap: .375rem; }
+  .public-header .shell-brand__name { font-size: .8125rem; }
+  .public-header .shell-brand__name > span { font-size: .625rem; }
+  .public-header__actions { gap: .5rem; }
+}
+@media (max-width: 359px) {
+  .public-header .shell-brand__name { display: none; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .public-header__link:hover { background: var(--accent); color: var(--primary); }
+  .public-header__link:hover::after { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) { .public-header__link, .public-header__link::after { transition: none; } }

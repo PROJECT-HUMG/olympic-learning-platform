@@ -12,7 +12,7 @@ export function ToolkitFeature() {
   return (
     <div className="page-shell page-shell--public toolkit-page">
       <PageHeader title="Tiện ích học tập" description="Giữ nhịp tập trung trong phòng học chung hoặc tính điểm và mục tiêu GPA." />
-      <Tabs value={tool} onValueChange={(value) => setParams((current) => { const next = new URLSearchParams(current); next.set("tool", value); return next; })} className="toolkit-workspace">
+      <Tabs value={tool} onValueChange={(value) => setParams((current) => { const next = new URLSearchParams(current); next.set("tool", value); return next; })} className={`toolkit-workspace${tool === "rooms" ? " toolkit-workspace--rooms" : ""}`}>
         <TabsList className="toolkit-workspace__tabs" aria-label="Chọn tiện ích">
           <TabsTrigger value="rooms"><Users aria-hidden="true" /> Phòng học chung</TabsTrigger>
           <TabsTrigger value="gpa"><Calculator aria-hidden="true" /> Tính GPA</TabsTrigger>

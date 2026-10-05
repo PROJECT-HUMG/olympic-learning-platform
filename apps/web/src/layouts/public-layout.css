@@ -1,10 +1,3 @@
-/* Resolve the page surface here so the video fades into either theme. */
-.home-public-layout {
-  --hero-surface: var(--background);
-}
-
-@media (min-width: 1280px) {
-  /* Reserve the floating header's space; the home hero already has its own inset. */
-  .public-layout:not(.home-public-layout) { padding-top: 5.75rem; }
-  .public-layout > main { scroll-margin-top: 6rem; }
-}
+/* Home already reserves its fixed header within the hero. Other routes use a sticky header in flow. */
+.home-public-layout { --hero-surface: var(--background); }
+.public-layout > main { scroll-margin-top: 5rem; }

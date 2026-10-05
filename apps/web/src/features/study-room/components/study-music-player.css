@@ -38,6 +38,9 @@
   border: 0;
 }
 
+.study-music-player__frame[hidden] { display: none; }
+.study-music-player__feedback { display: grid; gap: .875rem; }
+
 .study-music-player__controls {
   display: flex;
   flex-wrap: wrap;
@@ -71,10 +74,15 @@
   font-size: .8125rem;
 }
 
-.study-music-player__volume input {
+.study-music-player .study-music-player__volume input[type="range"] {
   width: 100%;
   min-width: 0;
-  min-height: 2rem;
+  min-height: 2.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   accent-color: var(--primary);
 }
 

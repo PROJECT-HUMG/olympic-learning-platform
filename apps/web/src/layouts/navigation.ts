@@ -16,7 +16,7 @@ import {
   Trophy,
   type LucideIcon,
 } from "lucide-react";
-import { ROUTES, getDashboardRoute } from "../router/route-constants";
+import { ROUTES, getDashboardRoute } from "../router/route-constants.ts";
 
 export interface NavigationItem {
   label: string;
@@ -151,4 +151,42 @@ export function getActiveNavigationItem(
       );
     })
     .sort((a, b) => b.href.length - a.href.length)[0];
+}
+
+/** Workspace tasks first; discovery stays available but has a separate hierarchy. */
+export function getWorkspaceNavigationGroups(role?: string): NavigationGroup[] {
+  const order = ["Cá nhân", "Quản lý nội dung", "Quản trị hệ thống"];
+  const groups = getNavigationGroups(role)
+    .filter(group => order.includes(group.label))
+    .sort((a, b) => order.indexOf(a.label) - order.indexOf(b.label))
+    .map(group => group.label !== "Cá nhân" ? group : {
+      ...group,
+      // Daily is a frequent task; profile settings stay after the work destinations.
+      items: [...group.items].sort((a, b) => Number(a.href === ROUTES.PROFILE) - Number(b.href === ROUTES.PROFILE)),
+    });
+  if (role !== "ADMIN" && role !== "LECTURER") return groups;
+  const personal = groups.find(group => group.label === "Cá nhân")!;
+  const overview = personal.items.filter(item => item.href === getDashboardRoute(role));
+  return [
+    { label: "", items: overview },
+    ...groups.filter(group => group.label !== "Cá nhân"),
+    { ...personal, items: personal.items.filter(item => item.href !== getDashboardRoute(role)) },
+  ];
+}
+
+export function getDrawerNavigationGroups(role?: string): NavigationGroup[] {
+  const groups = getNavigationGroups(role);
+  return [...getWorkspaceNavigationGroups(role), ...groups.filter(group => ["Học tập", "Thông tin"].includes(group.label))];
+}
+
+/** Labelled tablet/collapsed rail: full destinations are one Menu action away. */
+export function getWorkspaceShortcuts(role?: string): (NavigationItem & { shortLabel: string })[] {
+  const groups = getWorkspaceNavigationGroups(role);
+  const items = groups.flatMap(group => group.items);
+  const staff = role === "ADMIN" || role === "LECTURER";
+  const targets = [getDashboardRoute(role), ...(staff ? [`/${role.toLowerCase()}/documents`, `/${role.toLowerCase()}/questions`] : []), ROUTES.DAILY, ROUTES.DAILY_GROUPS];
+  return targets.flatMap(href => {
+    const item = items.find(item => item.href === href);
+    return item ? [{ ...item, shortLabel: href === ROUTES.DAILY ? "Daily" : href === ROUTES.DAILY_GROUPS ? "Nhóm Daily" : href.endsWith("/documents") ? "Tài liệu" : href.endsWith("/questions") ? "Câu hỏi" : "Tổng quan" }] : [];
+  });
 }

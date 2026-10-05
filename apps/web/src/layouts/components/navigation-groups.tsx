@@ -19,7 +19,7 @@ export function NavigationGroups({
     <nav aria-label="Các khu vực của website" className="navigation-groups">
       {groups.map((group) => (
         <section key={group.label}>
-          <h2>{group.label}</h2>
+          {group.label && <h2>{group.label}</h2>}
           <ul>
             {group.items.map((item) => (
               <li key={item.href}>

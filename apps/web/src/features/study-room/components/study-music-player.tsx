@@ -1,12 +1,13 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { ExternalLink, Pause, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { roomPlaybackIdentity } from "../lib/playback-selection";
+import type { LocalMusicStatus } from "../lib/room-world-layout";
 import "./study-music-player.css";
 
 type Playback = {
   videoId: string;
   title: string;
-  startedAt: string;
   version: number;
   isDefault: boolean;
 };
@@ -20,11 +21,7 @@ type YouTubePlayer = {
   isMuted: () => boolean;
   setVolume: (volume: number) => void;
   getVolume: () => number;
-  getCurrentTime: () => number;
-  getDuration: () => number;
-  getPlayerState: () => number;
   getIframe: () => HTMLIFrameElement;
-  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
 };
 
 type PlayerEvent = { target: YouTubePlayer; data: number };
@@ -98,35 +95,18 @@ function loadYouTubeApi(): Promise<YouTubeApi> {
   return apiPromise;
 }
 
-function playbackPosition(playback: Playback, serverOffsetMs: number) {
-  const startedAt = Date.parse(playback.startedAt);
-  return Number.isFinite(startedAt) && Number.isFinite(serverOffsetMs)
-    ? Math.max(0, (Date.now() + serverOffsetMs - startedAt) / 1000)
-    : 0;
-}
+type PlayerStatus = Exclude<LocalMusicStatus, "idle">;
 
-function syncPosition(player: YouTubePlayer, playback: Playback, serverOffsetMs: number) {
-  if (playback.isDefault) return;
-  const elapsed = playbackPosition(playback, serverOffsetMs);
-  const duration = player.getDuration();
-  const target = duration > 0 ? Math.min(elapsed, Math.max(0, duration - .25)) : elapsed;
-  if (Math.abs(player.getCurrentTime() - target) > 3) player.seekTo(target, true);
-}
-
-type PlayerStatus = "loading" | "ready" | "playing" | "paused" | "buffering" | "blocked" | "ended" | "error";
-
-export function StudyMusicPlayer({ playback, serverOffsetMs, isHost, onEnded }: {
+export function StudyMusicPlayer({ playback, onStatusChange }: {
   playback: Playback;
-  serverOffsetMs: number;
-  isHost: boolean;
-  onEnded: (expectedVersion: number) => void;
+  onStatusChange?: (status: PlayerStatus) => void;
 }) {
   const volumeId = useId();
   const mountRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
-  const latestRef = useRef({ playback, serverOffsetMs, isHost, onEnded });
+  const latestRef = useRef({ playback });
+  const identity = roomPlaybackIdentity(playback);
   const preferencesRef = useRef({ wantsPlay: true, muted: false, volume: 40 });
-  const endedVersionRef = useRef<number | null>(null);
   const [status, setStatus] = useState<PlayerStatus>("loading");
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
@@ -134,9 +114,12 @@ export function StudyMusicPlayer({ playback, serverOffsetMs, isHost, onEnded }: 
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(40);
 
+  useEffect(() => { onStatusChange?.(status); }, [status, onStatusChange]);
+
   useEffect(() => {
-    latestRef.current = { playback, serverOffsetMs, isHost, onEnded };
-  }, [playback, serverOffsetMs, isHost, onEnded]);
+    latestRef.current = { playback };
+    if (playerRef.current) playerRef.current.getIframe().title = `YouTube: ${playback.title}`;
+  }, [playback]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -147,10 +130,8 @@ export function StudyMusicPlayer({ playback, serverOffsetMs, isHost, onEnded }: 
     let player: YouTubePlayer | null = null;
     let interval: number | undefined;
     let readyTimeout: number | undefined;
-    const version = playback.version;
     const isCurrent = () => !disposed && !failed
-      && latestRef.current.playback.version === version
-      && latestRef.current.playback.videoId === playback.videoId;
+      && roomPlaybackIdentity(latestRef.current.playback) === identity;
     const fail = (message: string) => {
       if (!isCurrent()) return;
       failed = true;
@@ -184,7 +165,6 @@ export function StudyMusicPlayer({ playback, serverOffsetMs, isHost, onEnded }: 
           controls: 1,
           playsinline: 1,
           origin: window.location.origin,
-          ...(current.playback.isDefault ? {} : { start: Math.floor(playbackPosition(current.playback, current.serverOffsetMs)) }),
         },
         events: {
           onReady: ({ target }) => {
@@ -202,22 +182,18 @@ export function StudyMusicPlayer({ playback, serverOffsetMs, isHost, onEnded }: 
 
             interval = window.setInterval(() => {
               if (!isCurrent()) return;
-              const current = latestRef.current;
-              if (target.getPlayerState() === 1) syncPosition(target, current.playback, current.serverOffsetMs);
-              // Native YouTube controls and our controls share local preferences.
+              // Only mirror native audio controls. Position always belongs to this device.
               preferencesRef.current.volume = target.getVolume();
               preferencesRef.current.muted = target.isMuted();
               setVolume(preferencesRef.current.volume);
               setMuted(preferencesRef.current.muted);
             }, 3000);
           },
-          onStateChange: ({ target, data }) => {
+          onStateChange: ({ data }) => {
             if (!isCurrent()) return;
             if (data === 1) {
               preferencesRef.current.wantsPlay = true;
               setStatus("playing");
-              const current = latestRef.current;
-              syncPosition(target, current.playback, current.serverOffsetMs);
             } else if (data === 2) {
               preferencesRef.current.wantsPlay = false;
               setStatus("paused");
@@ -225,17 +201,14 @@ export function StudyMusicPlayer({ playback, serverOffsetMs, isHost, onEnded }: 
               setStatus("buffering");
             } else if (data === 0) {
               setStatus("ended");
-              const current = latestRef.current;
-              if (!current.playback.isDefault && current.isHost && endedVersionRef.current !== version) {
-                endedVersionRef.current = version;
-                current.onEnded(version);
-              }
             }
           },
           onAutoplayBlocked: () => {
             if (isCurrent()) setStatus("blocked");
           },
-          onError: ({ data }) => fail(data === 100 || data === 101 || data === 150
+          onError: ({ data }) => fail(data === 153
+            ? "YouTube chưa xác thực được trình phát này. Thử tải lại trang hoặc mở video trên YouTube."
+            : data === 100 || data === 101 || data === 150
             ? "Video này không còn khả dụng hoặc không cho phát trong phòng. Bạn vẫn có thể mở trên YouTube."
             : "Chưa phát được video từ YouTube. Bạn có thể thử lại hoặc mở trên YouTube."),
         },
@@ -256,7 +229,7 @@ export function StudyMusicPlayer({ playback, serverOffsetMs, isHost, onEnded }: 
       player?.destroy();
       mount.replaceChildren();
     };
-  }, [playback.videoId, playback.version, retry]);
+  }, [identity, retry]);
 
   const togglePlayback = () => {
     const player = playerRef.current;
@@ -266,7 +239,6 @@ export function StudyMusicPlayer({ playback, serverOffsetMs, isHost, onEnded }: 
       player.pauseVideo();
     } else {
       preferencesRef.current.wantsPlay = true;
-      syncPosition(player, playback, serverOffsetMs);
       player.playVideo();
     }
   };
@@ -290,41 +262,42 @@ export function StudyMusicPlayer({ playback, serverOffsetMs, isHost, onEnded }: 
 
   const isPlaying = status === "playing" || status === "buffering";
   const statusText = status === "loading" ? "Đang kết nối YouTube…"
-    : status === "playing" ? (playback.isDefault ? "Đang nghe trực tiếp cùng phòng." : "Đang nghe theo thời gian của phòng.")
+    : status === "playing" ? "Đang phát bài phòng chọn trên thiết bị này."
     : status === "buffering" ? "Đang tải nhạc…"
     : status === "paused" ? "Bạn đã tạm dừng trên thiết bị này."
-    : status === "ended" ? "Bài nhạc đã kết thúc."
+    : status === "ended" ? "Bài nhạc đã kết thúc trên thiết bị này. Bấm “Bật nhạc” để nghe lại."
     : "Bấm “Bật nhạc” nếu trình duyệt chưa cho phép tự phát.";
 
   return (
     <section className="study-music-player" aria-label="Nhạc trong phòng học">
       <div>
-        <p className="study-music-player__label">Nhạc trong phòng</p>
         <h3 className="study-music-player__title">{playback.title}</h3>
       </div>
-      <div ref={mountRef} className="study-music-player__frame" />
-      <p className="study-music-player__status" role={status === "error" ? "alert" : "status"}>
-        {status === "error" ? error : statusText}
-      </p>
-      <div className="study-music-player__controls">
-        {status === "error" ? (
-          <Button type="button" variant="outline" onClick={() => setRetry((attempt) => attempt + 1)}>
-            <RotateCcw aria-hidden="true" /> Thử lại
+      <div ref={mountRef} className="study-music-player__frame" hidden={status === "error"} />
+      <div className="study-music-player__feedback">
+        <p className="study-music-player__status" role={status === "error" ? "alert" : "status"}>
+          {status === "error" ? error : statusText}
+        </p>
+        <div className="study-music-player__controls">
+          {status === "error" ? (
+            <Button type="button" variant="outline" onClick={() => setRetry((attempt) => attempt + 1)}>
+              <RotateCcw aria-hidden="true" /> Thử lại
+            </Button>
+          ) : (
+            <Button type="button" variant="secondary" onClick={togglePlayback} disabled={!ready}>
+              {isPlaying ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
+              {isPlaying ? "Tạm dừng" : "Bật nhạc"}
+            </Button>
+          )}
+          <Button type="button" variant="outline" onClick={toggleMute} disabled={!ready} aria-label={muted || volume === 0 ? "Bật âm thanh" : "Tắt âm thanh"} aria-pressed={muted || volume === 0}>
+            {muted || volume === 0 ? <VolumeX aria-hidden="true" /> : <Volume2 aria-hidden="true" />}
+            {muted || volume === 0 ? "Bật tiếng" : "Tắt tiếng"}
           </Button>
-        ) : (
-          <Button type="button" variant="secondary" onClick={togglePlayback} disabled={!ready}>
-            {isPlaying ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
-            {isPlaying ? "Tạm dừng" : "Bật nhạc"}
-          </Button>
-        )}
-        <Button type="button" variant="outline" onClick={toggleMute} disabled={!ready} aria-label={muted || volume === 0 ? "Bật âm thanh" : "Tắt âm thanh"} aria-pressed={muted || volume === 0}>
-          {muted || volume === 0 ? <VolumeX aria-hidden="true" /> : <Volume2 aria-hidden="true" />}
-          {muted || volume === 0 ? "Bật tiếng" : "Tắt tiếng"}
-        </Button>
-        <a className="study-music-player__external" href={`https://www.youtube.com/watch?v=${encodeURIComponent(playback.videoId)}`} target="_blank" rel="noopener noreferrer">
-          YouTube <ExternalLink size={14} aria-hidden="true" />
-          <span className="sr-only"> (mở trong tab mới)</span>
-        </a>
+          <a className="study-music-player__external" href={`https://www.youtube.com/watch?v=${encodeURIComponent(playback.videoId)}`} target="_blank" rel="noopener noreferrer">
+            YouTube <ExternalLink size={14} aria-hidden="true" />
+            <span className="sr-only"> (mở trong tab mới)</span>
+          </a>
+        </div>
       </div>
       <div className="study-music-player__volume">
         <label htmlFor={volumeId}>Âm lượng</label>
@@ -339,7 +312,7 @@ export function StudyMusicPlayer({ playback, serverOffsetMs, isHost, onEnded }: 
         }} />
         <output htmlFor={volumeId}>{volume}%</output>
       </div>
-      <p className="study-music-player__hint">Tạm dừng và âm lượng chỉ áp dụng cho bạn.</p>
+      <p className="study-music-player__hint">Phòng chọn bài chung. Phát, tạm dừng, tua và âm lượng chỉ áp dụng cho bạn.</p>
     </section>
   );
 }

@@ -79,7 +79,7 @@ export function UserDropdown({
       <DropdownMenuContent
         side={direction === "up" ? "top" : "bottom"}
         align="end"
-        className="w-64 max-w-[calc(100vw-2rem)] rounded-xl p-2"
+        className="shell-account-menu w-64 max-w-[calc(100vw-2rem)] rounded-xl p-2"
         sideOffset={8}
       >
         <DropdownMenuLabel className="min-w-0">
