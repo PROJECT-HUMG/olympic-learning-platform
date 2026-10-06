@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { ExternalLink, Pause, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { roomPlaybackIdentity } from "../lib/playback-selection";
@@ -96,10 +96,14 @@ function loadYouTubeApi(): Promise<YouTubeApi> {
 }
 
 type PlayerStatus = Exclude<LocalMusicStatus, "idle">;
+export interface LocalPlayerState { status: PlayerStatus; ready: boolean; muted: boolean; volume: number }
+export interface LocalPlayerControls { togglePlayback: () => void; toggleMute: () => void; setVolume: (value: number) => void }
 
-export function StudyMusicPlayer({ playback, onStatusChange }: {
+export function StudyMusicPlayer({ playback, onStatusChange, onLocalStateChange, controlsRef }: {
   playback: Playback;
   onStatusChange?: (status: PlayerStatus) => void;
+  onLocalStateChange?: (state: LocalPlayerState) => void;
+  controlsRef?: Ref<LocalPlayerControls>;
 }) {
   const volumeId = useId();
   const mountRef = useRef<HTMLDivElement>(null);
@@ -115,6 +119,7 @@ export function StudyMusicPlayer({ playback, onStatusChange }: {
   const [volume, setVolume] = useState(40);
 
   useEffect(() => { onStatusChange?.(status); }, [status, onStatusChange]);
+  useEffect(() => { onLocalStateChange?.({ status, ready, muted, volume }); }, [status, ready, muted, volume, onLocalStateChange]);
 
   useEffect(() => {
     latestRef.current = { playback };
@@ -260,6 +265,17 @@ export function StudyMusicPlayer({ playback, onStatusChange }: {
     }
   };
 
+  const setLocalVolume = (value: number) => {
+    if (!playerRef.current || !ready) return;
+    const nextVolume = Math.min(100, Math.max(0, value));
+    preferencesRef.current.volume = nextVolume;
+    preferencesRef.current.muted = false;
+    setVolume(nextVolume); setMuted(false);
+    playerRef.current.setVolume(nextVolume); playerRef.current.unMute();
+  };
+  // Multiple DOM control surfaces, exactly one player and one local audio state.
+  useImperativeHandle(controlsRef, () => ({ togglePlayback, toggleMute, setVolume: setLocalVolume }));
+
   const isPlaying = status === "playing" || status === "buffering";
   const statusText = status === "loading" ? "Đang kết nối YouTube…"
     : status === "playing" ? "Đang phát bài phòng chọn trên thiết bị này."
@@ -301,15 +317,7 @@ export function StudyMusicPlayer({ playback, onStatusChange }: {
       </div>
       <div className="study-music-player__volume">
         <label htmlFor={volumeId}>Âm lượng</label>
-        <input id={volumeId} type="range" min="0" max="100" step="1" value={volume} disabled={!ready} aria-valuetext={`${volume}%`} onChange={(event) => {
-          const nextVolume = Number(event.target.value);
-          preferencesRef.current.volume = nextVolume;
-          preferencesRef.current.muted = false;
-          setVolume(nextVolume);
-          setMuted(false);
-          playerRef.current?.setVolume(nextVolume);
-          playerRef.current?.unMute();
-        }} />
+        <input id={volumeId} type="range" min="0" max="100" step="1" value={volume} disabled={!ready} aria-valuetext={`${volume}%`} onChange={(event) => setLocalVolume(Number(event.target.value))} />
         <output htmlFor={volumeId}>{volume}%</output>
       </div>
       <p className="study-music-player__hint">Phòng chọn bài chung. Phát, tạm dừng, tua và âm lượng chỉ áp dụng cho bạn.</p>

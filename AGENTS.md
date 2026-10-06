@@ -1,21 +1,35 @@
-# Repository working guide
+# Repository Guidelines
 
-## Current state
+## Project Structure & Module Organization
 
-- This repository contains two applications: `apps/api` (Spring Boot 4.0.7, Java 25, Maven) and `apps/web` (React 19, TypeScript, Vite 8, Tailwind CSS 4, pnpm).
-- The API is organized into business modules under `me.nghlong3004.olympic`: auth, user, admin, document, post, topic, question, exam, assessment, recognition, studyroom, storage, and common. PostgreSQL is the primary data store, Flyway owns schema changes, and Redis supports token-related flows and the assessment import queue.
-- Manual questions are staff-authored `schemaVersion` 1 scientific content with private figure bytes at `/api/v1/questions`. Prepared exams keep an editable staff draft at `/api/v1/exams` and publish an immutable paper read at `/api/v1/exams/papers`. A student paper is available only at or after `releaseAt`, with no answer or explanation fields and no solution-only figure bytes. Web question screens are `/lecturer/questions` and `/admin/questions`; exam drafts are `/lecturer/exams` and `/admin/exams`; student papers are `/exams`. Limits are in the app guides.
-- The web app is a React Router SPA. TanStack Query owns server state, Zustand holds selected client state, and `src/lib/axios.ts` is the shared API client. It has public, auth, and role-specific dashboard areas.
-- `compose.dev.yml` runs PostgreSQL, Redis, and Mailpit; `compose.yml` also runs the API and web app. `docs/architecture` contains design documents that may be older than the implementation. Verify behavior against the current code and configuration.
-- The mounted home page reads documents and posts from the API. Legacy home components still reference `apps/web/src/features/home/data/home-mock-data.ts` but are not mounted by `HomePage`; do not present those samples as live platform data.
+- `apps/api`: Spring Boot 4.0.7/Java 25 API. Business modules live under `src/main/java/me/nghlong3004/olympic`; tests in `src/test/java`; Flyway migrations in `src/main/resources/db/migration`.
+- `apps/web`: React 19/TypeScript, Vite 8, Tailwind CSS 4. Organize screens under `src/features`, routes under `src/router`, shared UI under `src/components/ui`; tests in `tests`, assets in `src/assets` and `public`.
+- `docs/architecture`: design references; verify against implementation. See root and app READMEs for setup.
 
-## Working practices
+## Build, Test, and Development Commands
 
-1. Read the applicable `apps/api/AGENTS.md` or `apps/web/AGENTS.md` before changing an application. Before creating or modifying any Java file under `apps/api`, also read `.agents/skills/backend/SKILL.md`.
-2. Trace the relevant request, authorization, state, and data flow before changing behavior. Make the change in the owning module. Keep API contracts and routes stable unless the task requires a change.
-3. Inspect `git status` and the relevant diff before and after editing. Preserve unrelated uncommitted work. Never commit secrets; document environment variable names only.
-4. Add a new Flyway migration for schema changes; do not rewrite applied migrations. When changing an API contract, update the corresponding web service/types and documentation.
-5. Run the smallest meaningful verification: relevant API tests (or `./mvnw test`), and `pnpm build` plus `pnpm lint` for web changes. Report checks that could not run.
-6. Prefix shell commands with `rtk` as required by `/home/nghlong3004/.codex/RTK.md`; use `rtk proxy` when raw output is needed.
+Prefix shell commands with `rtk`; use `rtk proxy` for unsupported commands.
 
-For a new session or unfamiliar task, use `.agents/skills/olympic-context/SKILL.md` to locate the owning code and current sources. Setup details: [root README](README.md), [API README](apps/api/README.md), [web README](apps/web/README.md).
+- Root: `rtk proxy docker compose -f compose.dev.yml up -d` starts PostgreSQL, Redis, and Mailpit.
+- In `apps/api`: `rtk proxy ./mvnw spring-boot:run` starts the API; `rtk proxy ./mvnw test` runs tests; `rtk proxy ./mvnw package` tests and builds.
+- In `apps/web`: `rtk pnpm install --frozen-lockfile`, then `rtk pnpm dev` starts Vite. `rtk pnpm build` checks TypeScript and bundles; `rtk pnpm lint` runs Oxlint.
+
+## Coding Style & Naming Conventions
+
+Read the affected app's `AGENTS.md` first; read `.agents/skills/backend/SKILL.md` before any Java edit. Match nearby indentation; web components generally use two spaces. Use PascalCase classes/components, camelCase methods/functions, and kebab-case web filenames.
+
+Keep API business rules in services and expose request/response DTOs. Web server state belongs to TanStack Query; use the shared `src/lib/axios.ts` client. Reuse UI primitives and theme tokens; preserve accessibility, dark mode, and responsive layouts.
+
+## Testing Guidelines
+
+API tests use JUnit Jupiter and Spring testing; name classes `*Test.java`. Testcontainers integration tests require Docker. Select tests with `rtk proxy ./mvnw -Dtest=StudyRoomRulesTest test`.
+
+Web tests use Node's test runner: `rtk proxy node --test --test-isolation=none tests/*.test.ts` from `apps/web`. No numeric coverage gate is configured. Cover changed behavior and authorization failures; run web build/lint and report skipped checks.
+
+## Commit & Pull Request Guidelines
+
+Follow history's Conventional Commits, e.g. `feat(web): polish study controls`. Keep commits focused. PRs should explain behavior, link relevant issues, list validation, and include screenshots for UI changes.
+
+## Security & Contributor Workflow
+
+Inspect status/diffs; preserve unrelated work. Trace authorization and data flow before editing. Never commit secrets. Add migrations rather than rewriting applied ones; synchronize API contracts, web types/services, and documentation. Preserve frozen exam papers and release-time access restrictions. Never present mock content as live data. Use `.agents/skills/olympic-context/SKILL.md` for unfamiliar tasks. See the [workspace protocol](docs/WORKSPACE_PROTOCOL.md) for scope and evidence rules.

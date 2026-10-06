@@ -1,5 +1,6 @@
 import { AvatarImage } from "@/features/user/components/avatar-image";
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Crown, Headphones, Moon, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -21,9 +22,10 @@ function MemberAvatar({ member }: { member: StudyRoomMember }) {
   </span>;
 }
 
-export function StudyRoomScene({ room, currentUserId, synchronized, celebrating = false, onMusic, localMusicStatus = "idle", musicOpen = false }: {
+export function StudyRoomScene({ room, currentUserId, synchronized, celebrating = false, onMusic, localMusicStatus = "idle", musicOpen = false, hideNowPlaying = false, peopleHost, onShowPeople, obscured: otherDialog = false }: {
   room: StudyRoomSnapshot; currentUserId?: string; synchronized: boolean; celebrating?: boolean;
   onMusic?: (opener: HTMLElement) => void; localMusicStatus?: LocalMusicStatus; musicOpen?: boolean;
+  hideNowPlaying?: boolean; peopleHost?: HTMLElement | null; onShowPeople?: () => void; obscured?: boolean;
 }) {
   const headingId = useId();
   const sceneRef = useRef<HTMLElement>(null);
@@ -38,6 +40,12 @@ export function StudyRoomScene({ room, currentUserId, synchronized, celebrating 
     seats: reconcileSceneSeats([], room.members.map((member) => member.userId)) }));
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+  useEffect(() => {
+    const observer = new MutationObserver(() => setDark(document.documentElement.classList.contains("dark")));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
   let seats = seating.seats;
   if (seating.roomId !== room.id || seating.members !== room.members) {
     seats = reconcileSceneSeats(seating.roomId === room.id ? seats : [], room.members.map((member) => member.userId));
@@ -51,9 +59,9 @@ export function StudyRoomScene({ room, currentUserId, synchronized, celebrating 
   const visibleSeats = seats.slice(page * DESKS_PER_PAGE, (page + 1) * DESKS_PER_PAGE);
   const resting = room.phase !== "FOCUS";
   const statusOf = (member: StudyRoomMember) => !synchronized ? "Chờ đồng bộ" : !member.online ? "Tạm mất kết nối" : resting ? "Giờ nghỉ" : "Giờ tập trung";
-  const state: WorldState = { seats: visibleSeats.map(id => ({ id, online: !!(id && members.get(id)?.online) })), resting, synchronized, title: room.playback.title };
+  const state: WorldState = { seats: visibleSeats.map(id => ({ id, online: !!(id && members.get(id)?.online) })), resting, synchronized, title: room.playback.title, dark };
   const signature = JSON.stringify(state);
-  const obscured = musicOpen || !!selected;
+  const obscured = musicOpen || !!selected || otherDialog;
   const latest = useRef({ state, onMusic, obscured });
   useEffect(() => { latest.current = { state, onMusic, obscured }; });
 
@@ -75,7 +83,10 @@ export function StudyRoomScene({ room, currentUserId, synchronized, celebrating 
             if (musicRef.current) latest.current.onMusic?.(musicRef.current);
           } else {
             const button = memberButtons.current.get(pick.memberId);
-            if (button) { button.focus({ preventScroll: true }); button.click(); }
+            if (button) {
+              onShowPeople?.();
+              requestAnimationFrame(() => { if (button.isConnected) { button.focus({ preventScroll: true }); button.click(); } });
+            }
           }
         }, fallback);
         worldRef.current = world;
@@ -84,36 +95,16 @@ export function StudyRoomScene({ room, currentUserId, synchronized, celebrating 
       } catch { fallback(); }
     }).catch(fallback);
     return () => { disposed = true; world?.dispose(); worldRef.current = null; };
-  }, [room.id, worldAttempt]);
+  }, [room.id, worldAttempt, onShowPeople]);
 
   useEffect(() => { worldRef.current?.update(JSON.parse(signature) as WorldState); }, [signature]);
   useEffect(() => { worldRef.current?.setVisible(!obscured); }, [obscured]);
 
-  return <section ref={sceneRef} tabIndex={-1} className="room-scene" data-phase={resting ? "rest" : "focus"} data-synchronized={synchronized}
-    data-world={worldStatus} data-celebrating={celebrating || undefined} aria-labelledby={headingId}>
-    <header className="room-scene-heading">
-      <h2 id={headingId}>Bạn cùng bàn</h2>
-      <span className="room-scene-phase">{resting ? <Moon aria-hidden="true" /> : <Users aria-hidden="true" />}{!synchronized ? "Chờ đồng bộ" : resting ? "Giờ nghỉ" : `${room.activeMembers} đang có mặt`}</span>
-    </header>
-    <div className="room-scene-interior">
-      <div ref={hostRef} className="room-world" aria-hidden="true" />
-      {worldStatus !== "ready" && <div className="room-world-feedback" role="status">
-        <strong>{worldStatus === "loading" ? "Đang mở góc học 3D…" : "Góc học ở chế độ danh sách"}</strong>
-        <p>{worldStatus === "loading" ? "Bạn vẫn có thể dùng đồng hồ và xem thành viên." : "Thiết bị chưa mở được cảnh 3D. Thành viên, đồng hồ và nhạc vẫn sử dụng được."}</p>
-        {worldStatus === "fallback" && <Button type="button" variant="outline" onClick={() => setWorldAttempt(n => n + 1)}>Thử lại cảnh 3D</Button>}
-      </div>}
-    </div>
-    <div className="room-scene-now-playing">
-      {onMusic ? <button ref={musicRef} type="button" className="room-scene-music" aria-haspopup="dialog" aria-expanded={musicOpen} onClick={event => onMusic(event.currentTarget)}>
-        <span className="room-scene-music__icon" aria-hidden="true"><Headphones /></span>
-        <span><small>Nhạc phòng chọn</small><strong>{room.playback.title}</strong><span role="status">{LOCAL_MUSIC_LABELS[localMusicStatus]}</span></span>
-        <span className="room-scene-music__action">Mở nhạc</span>
-      </button> : <p className="room-scene-selected-track"><Headphones aria-hidden="true" /><span>Nhạc phòng chọn: <strong>{room.playback.title}</strong><small>Tham gia phòng để nghe trên thiết bị này.</small></span></p>}
-    </div>
-    <ul className="room-scene-seats" aria-label="Thành viên và chỗ trống · bố cục minh họa">
+  const people = <ul className="room-scene-seats" aria-label="Thành viên · chỗ ngồi chỉ là minh họa">
       {visibleSeats.map((id, index) => {
         const member = id ? members.get(id) : undefined;
         const slot = page * DESKS_PER_PAGE + index;
+        if (!member && hideNowPlaying) return null;
         return <li key={slot} className="room-scene-seat" data-state={!member ? "empty" : !synchronized ? "waiting" : !member.online ? "offline" : resting ? "rest" : "focus"}>
           {member ? <button ref={button => { if (button) memberButtons.current.set(member.userId, button); else memberButtons.current.delete(member.userId); }} type="button" className="room-scene-seat__button"
             onClick={event => { selectedButton.current = event.currentTarget; setSelectedId(member.userId); }}
@@ -123,7 +114,32 @@ export function StudyRoomScene({ room, currentUserId, synchronized, celebrating 
           </button> : <span className="room-scene-empty-seat">Bàn {slot + 1} · Trống</span>}
         </li>;
       })}
-    </ul>
+      {!room.members.length && hideNowPlaying && <li className="study-room-note">Chưa có thành viên trong phòng.</li>}
+    </ul>;
+
+  return <section ref={sceneRef} tabIndex={-1} className="room-scene" data-phase={resting ? "rest" : "focus"} data-synchronized={synchronized}
+    data-world={worldStatus} data-celebrating={celebrating || undefined} aria-labelledby={headingId}>
+    <header className="room-scene-heading">
+      <h2 id={headingId}>Không gian chung</h2>
+      {!hideNowPlaying && <span className="room-scene-phase">{resting ? <Moon aria-hidden="true" /> : <Users aria-hidden="true" />}{!synchronized ? "Chờ đồng bộ" : resting ? "Giờ nghỉ" : "Giờ tập trung"}</span>}
+      {hideNowPlaying && onMusic && <Button ref={musicRef} variant="ghost" aria-haspopup="dialog" aria-expanded={musicOpen} onClick={event => onMusic(event.currentTarget)}><Headphones aria-hidden="true" />Nhạc</Button>}
+    </header>
+    <div className="room-scene-interior">
+      <div ref={hostRef} className="room-world" aria-hidden="true" />
+      {worldStatus !== "ready" && <div className="room-world-feedback" role="status">
+        <strong>{worldStatus === "loading" ? "Đang mở góc học 3D…" : "Góc học ở chế độ danh sách"}</strong>
+        <p>{worldStatus === "loading" ? "Bạn vẫn có thể dùng đồng hồ và xem thành viên." : "Thiết bị chưa mở được cảnh 3D. Thành viên, đồng hồ và nhạc vẫn sử dụng được."}</p>
+        {worldStatus === "fallback" && <Button type="button" variant="outline" onClick={() => setWorldAttempt(n => n + 1)}>Thử lại cảnh 3D</Button>}
+      </div>}
+    </div>
+    {!hideNowPlaying && <div className="room-scene-now-playing">
+      {onMusic ? <button ref={musicRef} type="button" className="room-scene-music" aria-haspopup="dialog" aria-expanded={musicOpen} onClick={event => onMusic(event.currentTarget)}>
+        <span className="room-scene-music__icon" aria-hidden="true"><Headphones /></span>
+        <span><small>Nhạc phòng chọn</small><strong>{room.playback.title}</strong><span role="status">{LOCAL_MUSIC_LABELS[localMusicStatus]}</span></span>
+        <span className="room-scene-music__action">Mở nhạc</span>
+      </button> : <p className="room-scene-selected-track"><Headphones aria-hidden="true" /><span>Nhạc phòng chọn: <strong>{room.playback.title}</strong><small>Tham gia phòng để nghe trên thiết bị này.</small></span></p>}
+    </div>}
+    {peopleHost ? createPortal(people, peopleHost) : people}
     <footer className="room-scene-footer">
       <p>Bấm nhân vật hoặc tên để xem thông tin. Chỗ ngồi là bố cục minh họa.</p>
       {pages > 1 && <nav aria-label="Các bàn trong phòng">

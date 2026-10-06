@@ -53,11 +53,52 @@ Khi hết một nhịp học hoặc nghỉ, client hiện thông báo 7 giây c�
 
 ## Three.js room presentation (06/10/2026)
 
-The scene is an original procedural fantasy observatory: timber floor, woven rug, stone outlook, mountain silhouettes, bookshelves, lanterns and seated scholar characters. Three.js is lazy-loaded separately from the DOM controls. No remote art, copied characters, saved appearance, event system or backend contract is introduced. Appearance presets remain identity-derived; account avatar/name and recorded focus duration come from the existing snapshot.
+### Listening-first increment (in verification)
+
+The current frontend increment supersedes the timer-first visual composition below,
+not the room or playback contracts. Lead owns all implementation/integration scopes;
+no Peer writes remain. Product/design approval remains separate. Verification and
+exact candidate disposition live in `docs/reviews/ux-flow-audit.md`.
+
+Room identity, the selected track and device-local listening controls lead the page.
+Queue/People are adjacent on desktop and use tabs below the room on tablet/mobile.
+Study rhythm/accounting remain available in a compact band. Music/TV open the same
+persistent player dialog; the listening strip delegates to that one mounted player's
+local controls and mirrors its actual state. Mobile Play/Player/Volume use a single
+44px control row with an edge-bounded volume popover. First playback activation remains
+deliberate. Native YouTube seek/time remain in the player, with no room-clock coupling.
+Members retain local controls and see an explained unavailable shared Next action.
+Only the joined owner can explicitly change selection with the existing version.
+
+The scoped request dialog retains failed/cancelled input, clears only on success and
+stays open afterward. Add/settings/closure dismissal returns focus to the actual
+external opener. The **one outstanding queued track per account includes the
+owner and approved tracks**, so it must not promise repeated bulk adds. Approved and
+pending entries are separate; only approved order predicts the next shared selection.
+Requester names are available for queued entries, not necessarily the current track.
+Artist/artwork/listening counts/chat/reactions/search/reorder/repeat/shuffle are absent.
+
+The original procedural observatory is visually reworked with rounded stone/oak
+surfaces, an orbital window, calmer furniture/characters and theme-responsive lighting.
+Appearance and seats retain their existing presentation-only meaning. Geometry
+batching normalizes index formats; theme changes update materials/lights without
+recreating WebGL. Existing disposal, frame/DPR bounds, reduced motion, hidden/offscreen
+suspension, character/TV picking and DOM fallback remain required acceptance criteria.
+
+The original timber/mountain/bookshelf composition is superseded by the rounded
+stone/oak observatory above. Three.js remains lazy-loaded separately from DOM controls.
+No remote art, copied characters, saved appearance, event system or backend contract
+is introduced. Appearance presets remain identity-derived; account avatar/name and
+recorded focus duration come from the existing snapshot.
 
 Seats retain **local presentation meaning only**, stable across reordered polling snapshots. At least four desks are shown; larger rooms page at twelve desks, covering the existing fifty-member limit. Empty desks are not claimable. Character raycasts open the same details as keyboard/touch participant buttons, with avatar failure fallback and opener focus return. Presence/phase labels distinguish focus, rest, offline and stale data; posture is not verified attention or task completion.
 
-Desktop >=1200px aligns timer and scene edges with a 320px timer rail. Tablet uses a two-column timer/control band above the scene; mobile is timer-first. The participant surface replaces the duplicate lower roster. Shared rhythm, accounting, requests, moderation and lifecycle controls retain their hooks/endpoints.
+Desktop >=1200px aligns the listening strip, scene and compact timer band beside a
+19rem Queue/People companion. Tablet/mobile stack the stage then companion tabs;
+tablet rhythm has grouped reading/controls, while mobile stacks them. The participant
+surface is portalled into People rather than duplicating a lower roster. Preview
+retains an inline identity surface before deliberate Join. Shared rhythm, accounting,
+requests, moderation and lifecycle controls retain their hooks/endpoints.
 
 Rendering uses shared primitives/material batching, one shadow-casting light, a 1024px shadow map, 1.5 pixel-ratio cap and at most 24 render frames/s. Continuous frames stop offscreen, in a hidden document, behind Music/participant dialogs, with stale data/no online participants, or under OS reduced motion. Resize/state updates render on demand; reduced motion does not prohibit a necessary single redraw. The scheduling boundary also checks the preference and restores a neutral pose, without waiting for a media-change event. Pagehide/pageshow suspend and resume scheduling. Geometry, materials, textures, observers, listeners and context are disposed on unmount. Initialization/context loss exposes a compact participant-list fallback with retry, without blocking timer/music/room actions. SwiftShader evidence does not establish physical-device FPS, battery use or thermal behavior.
 

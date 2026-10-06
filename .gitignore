@@ -9,6 +9,9 @@ target/
 .env.*
 !.env.example
 
+### pnpm cache ###
+.pnpm-store/
+
 ### STS ###
 .apt_generated
 .classpath

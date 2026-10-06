@@ -1,20 +1,42 @@
-# API working guide
+# Repository Guidelines
 
-## Current state
+## Project Structure & Module Organization
 
-- Spring Boot 4.0.7, Java 25, and Maven. REST endpoints live under `/api/v1`; springdoc provides OpenAPI UI, and Actuator exposes health and Prometheus endpoints.
-- Source is organized by business module in `src/main/java/me/nghlong3004/olympic`. A typical module contains `controller`, `request`/`response`, `service` and `service/impl`, `repository`, `entity`, `mapper`, and domain exceptions. Shared configuration lives under `common`.
-- PostgreSQL and JPA persist data. Flyway migrations live in `src/main/resources/db/migration`; JPA uses `ddl-auto: validate`. Redis supports background flows. Assessment import uses PDFBox and an AI parser; the current storage implementation uses Cloudinary.
-- Configuration is split across `application.yaml`, `application-dev.yaml`, and `application-prod.yaml`. Integration tests may require Docker/Testcontainers.
-- `question` owns manual `schemaVersion` 1 drafts: `single_choice`, `multiple_choice`, `written`, and `written_multipart`. Scientific content stores text, math source, and figure references, not HTML or remote image URLs. Private figures are PostgreSQL `bytea` on an owned draft: JPEG, PNG, or WebP, at most 5 MiB, 20 figures, an 8,000 px edge, and 24 million pixels. Staff figure reads use `Cache-Control: no-store`. Lecturers see published questions plus their own rows; only drafts can be edited, by their owner or an admin, and a manual update requires `expectedVersion`. Do not store new figures through Cloudinary or `/api/v1/storage/upload`. The assessment importer is a separate path and does not prove that stored JSON passed manual validation.
-- `exam` keeps the staff draft editable and publishes the next frozen paper. `V16` rejects updates to paper, item, and figure rows. Publish copies the selected published questions and their private figure bytes. `GET /api/v1/exams/papers` and `/api/v1/exams/papers/{paperId}` are the scheduled list and read routes; draft ids are UUIDs so `/papers` stays literal. A student receives a paper only when `releaseAt` is at or before the application `Clock` (UTC in production). Student JSON has no answer or explanation, and solution-only figure bytes are not found. There is no attempt or grading flow.
+This API uses Spring Boot 4.0.7, Java 25, Maven, PostgreSQL/JPA, and Redis.
 
-## Working practices
+- `src/main/java/me/nghlong3004/olympic`: business modules with `controller`, `request`, `response`, `service/impl`, `repository`, `entity`, and `mapper`; shared infrastructure belongs in `common`.
+- `src/test/java`: tests mirroring source packages.
+- `src/main/resources`: `application*.yaml` profiles, mail assets, and `db/migration` Flyway scripts.
 
-1. **Before creating or changing any Java file**, read the repository's `.agents/skills/backend/SKILL.md`; it is the required backend style reference. Inspect a nearby module and `docs/architecture/backend-conventions.md` when relevant.
-2. Validate input at the request/trust boundary, enforce authorization in the appropriate security or service layer, and keep business rules in services. Do not expose JPA entities directly from the API; follow the existing request/response and mapper patterns.
-3. Use a new Flyway migration for schema changes. Account for existing data and rollback before changing columns or constraints. Keep `/api/v1` routes and the web contract consistent.
-4. For auth, permissions, imports, and uploads, check error cases, access rights, input size and format, and retry or concurrency behavior in the existing flow.
-5. Run relevant tests with `./mvnw test` (optionally `-Dtest=...`) and build when the change warrants it. Never put tokens, passwords, or API keys in tests or documentation.
+## Build, Test, and Development Commands
 
-See [README.md](README.md) for setup and configuration.
+Use `rtk`; run Maven commands from `apps/api` with Java 25.
+
+- From repository root: `rtk proxy docker compose -f compose.dev.yml up -d` starts PostgreSQL, Redis, and Mailpit.
+- `rtk proxy ./mvnw spring-boot:run`: starts the API on port 8080.
+- `rtk proxy ./mvnw test`: runs tests.
+- `rtk proxy ./mvnw package`: tests and builds the executable JAR.
+
+See [README.md](README.md) for environment setup.
+
+## Coding Style & Naming Conventions
+
+Before any Java edit, read [the backend style guide](../../.agents/skills/backend/SKILL.md). Match existing two-space Java indentation. Use PascalCase types, camelCase members, and role suffixes such as `QuestionServiceImpl`, `QuestionRepository`, and `CreateQuestionRequest`.
+
+Keep controllers thin; place business rules/transactions in services. Use constructor injection, record payloads, MapStruct, and shared `ErrorCode` handling; never expose JPA entities. Include required author/date headers and OpenAPI annotations. No formatter/linter plugin is configured in Maven.
+
+## Testing Guidelines
+
+Use JUnit Jupiter, Spring testing, and AssertJ. Name classes `*Test.java` and methods after behavior. Run focused tests with `rtk proxy ./mvnw -Dtest=StudyRoomRulesTest test`. PostgreSQL Testcontainers tests require Docker; skipped tests do not prove persistence. No numeric coverage gate is configured. Cover authorization, validation, concurrency, and failure cases; report skipped checks.
+
+## Commit & Pull Request Guidelines
+
+Follow Conventional Commits, e.g. `feat(auth): protect forms with Turnstile`. Keep commits focused. PRs should describe behavior, link relevant issues, and list verification, contract changes, and migration/rollback implications.
+
+## Security & Data Invariants
+
+Trace request/authorization/data flow; preserve unrelated work and `/api/v1` contracts. Validate boundary inputs and enforce ownership. Never commit/log secrets. Add migrations; never rewrite applied ones. Keep JPA schema validation and web types/services/documentation synchronized.
+
+Manual questions retain `schemaVersion` 1 scientific blocks, never HTML/remote images. Only owners/admins edit drafts, with `expectedVersion`. Store private JPEG/PNG/WebP figures in PostgreSQL, never Cloudinary: 5 MiB/file, 20 figures, 8,000 px edge, 24 million pixels; serve staff reads with `no-store`. Import validation is separate.
+
+Published exam papers/items/figures remain immutable. Student access requires `releaseAt <= Clock`; exclude answers, explanations, and solution-only figures. No attempt/grading flow exists.

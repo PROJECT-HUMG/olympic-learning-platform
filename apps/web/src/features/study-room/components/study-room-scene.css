@@ -56,3 +56,14 @@
   .room-scene-seats { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { .room-scene * { animation: none !important; transition: none !important; } }
+
+.room-stage .room-scene-heading { padding: .5rem 1rem; gap: .5rem; }
+.room-stage .room-scene-heading h2 { font-size: .875rem; margin-right: auto; }
+.room-stage .room-scene-interior { min-height: 24rem; }
+.room-stage .room-scene-footer { padding: .5rem 1rem; }
+.room-stage .room-scene-footer p { font-size: .7rem; }
+@media (max-width: 767px) {
+  .room-stage .room-scene-interior { min-height: 18rem; }
+  .room-stage .room-scene-heading { flex-wrap: wrap; }
+  .room-stage .room-scene-phase { font-size: .65rem; }
+}

@@ -1,22 +1,44 @@
-# Web working guide
+# Repository Guidelines
 
-## Current state
+## Project Structure & Module Organization
 
-- React 19, TypeScript, Vite 8, and Tailwind CSS 4. UI primitives live in `src/components/ui`, feature code in `src/features`, pages in `src/pages`, and shells in `src/layouts`.
-- Routes and guards live in `src/router`. `PublicLayout`, `AuthCardLayout`, and `DashboardLayout` separate the main surfaces. TanStack Query owns server state; `src/lib/axios.ts` is the shared API client; Zustand holds client state such as auth, theme, and UI preferences.
-- Theme tokens live in `src/index.css`, with light and dark modes. The mounted home page fetches documents and posts from the API; legacy sample sections referencing `home-mock-data.ts` are not mounted.
-- `src/layouts/navigation.ts` owns destinations, role-specific grouping, labelled workspace shortcuts and active-route matching. Public navigation uses an aligned header: full discovery links from 1200px, three primary links at 768–1199px, a compact header below 768px. Workspace uses an expanded/collapsible task sidebar from 1200px, a labelled shortcut rail at 768–1199px and a drawer below 768px. The shared `navigation-drawer.tsx` is available in every context; shell behavior/styles belong to `dashboard-layout.tsx`, `public-header.tsx` and `navigation.css`. Motion is automatically reduced by OS preference; no manual home-motion control remains.
-- The initial logo loader starts in `index.html`; `src/app/startup-preloader.ts` waits for initial route tasks, pending initial queries, fonts and the selected video before GSAP reveals the app. Later lazy routes use `RouteSuspense` and `PageLoading`. Video downloads are shared by `cinematic-media.ts`; mobile auth skips video. Cinematic scenes, including home, respect the automatic OS/browser reduced-motion preference; no visible manual motion control remains.
-- Available commands are `pnpm dev`, `pnpm build`, `pnpm lint`, and `pnpm preview`. Vite serves on port 3000 and proxies `/api` to port 8080.
-- Manual questions live in `src/features/questions` at `/lecturer/questions` and `/admin/questions`, with `/new` registered before `/:id`. Content is `schemaVersion` 1 scientific blocks and must not persist HTML or remote figure URLs. Figure bytes come from the authenticated question-figure request, not a public URL. Prepared exams live in `src/features/exams`: staff drafts and papers at `/lecturer/exams` and `/admin/exams`, student papers at `/exams`. A student paper stays unavailable until release and must not render answer fields or solution-only figures.
+This SPA uses React 19, TypeScript, Vite 8, and Tailwind CSS 4.
 
-## Working practices
+- `src/features`: feature components, hooks, services, and types; `src/pages`: route screens.
+- `src/router`: routes/guards; `src/layouts`: public, auth, and dashboard shells. `navigation.ts` owns destinations, role grouping, and active matching.
+- `src/components/ui`: shared primitives; `src/index.css`: theme tokens; `src/assets` and `public`: assets.
+- `tests`: Node regression tests and browser checks.
 
-1. Trace the flow from `route → page → feature component/hook → service → apiClient`. Keep fetching and mutations in the owning feature, and invalidate affected queries after server data changes.
-2. Reuse existing tokens and UI primitives where they fit. Functional screens share `PageHeader`, `PageSection` and `.page-shell`; see `docs/architecture/web-ui.md` from the repository root before defining page-specific typography or colors. Preserve routes, navigation labels, focus and keyboard behavior, dark mode, and responsive layouts. Never present sample content as live data.
-3. Motion should support the content, respect `prefers-reduced-motion`, and leave content visible when animation or JavaScript is limited. Prefer CSS over page-wide listeners or unnecessary continuous animation.
-4. Keep the access-token and refresh flow in the existing client/store. Avoid separate Axios calls that bypass it without a concrete reason. Do not hardcode production secrets or backend URLs.
-5. Run `pnpm build` and `pnpm lint` for frontend changes. When changing UI, inspect light/dark mode, mobile layout, keyboard navigation, and reduced motion where possible.
-6. Preserve URL filters, pagination and list return paths using `src/lib/list-navigation.ts`; keep login return targets in the existing router/auth flow. Distinguish empty data from request errors, and keep retry actions in the owning feature. Node tests live in `tests/*.test.ts`; see README for the command.
+## Build, Test, and Development Commands
 
-See [README.md](README.md) for setup and commands.
+Run from `apps/web` using Node.js 24 and pnpm; prefix commands with `rtk`.
+
+- `rtk pnpm install --frozen-lockfile`: installs locked dependencies.
+- `rtk pnpm dev`: serves port 3000; proxies `/api` to port 8080.
+- `rtk pnpm build`: checks TypeScript and bundles production assets.
+- `rtk pnpm lint`: runs Oxlint with `.oxlintrc.json`.
+- `rtk pnpm preview`: serves the production build locally.
+
+See [README.md](README.md) for setup and browser checks.
+
+## Coding Style & Naming Conventions
+
+Match nearby two-space indentation, quoting, and semicolons. Use PascalCase components/types, camelCase functions, `use*` hooks, and kebab-case filenames. Use `@/` imports where appropriate.
+
+Trace route → page → feature hook/service → shared `src/lib/axios.ts`. TanStack Query owns server state; invalidate affected queries after mutations. Zustand holds client state. Preserve the existing token/refresh flow; never hardcode secrets or production URLs.
+
+## Testing Guidelines
+
+Use Node's test runner; name regressions `tests/*.test.ts`. Run `rtk proxy node --test --test-isolation=none tests/*.test.ts`. No numeric coverage gate is configured. Run build/lint for frontend changes; check light/dark modes, mobile/tablet layouts, keyboard focus, and reduced motion for UI edits. Report skipped checks; mocked browser APIs do not prove backend authorization/persistence.
+
+## Commit & Pull Request Guidelines
+
+Follow Conventional Commits, e.g. `feat(web): polish study controls`. Keep commits focused. PRs should describe behavior, link relevant issues, list validation, and include UI screenshots.
+
+## UI & Data Invariants
+
+Read [web UI conventions](../../docs/architecture/web-ui.md) before defining typography/colors. Reuse `PageHeader`, `PageSection`, `.page-shell`, tokens, and navigation drawers. Respect `prefers-reduced-motion`; keep content visible if animation fails. Startup loading belongs in `src/app/startup-preloader.ts`; later routes use `RouteSuspense`/`PageLoading`, with shared cinematic downloads.
+
+Preserve filters/pagination/return paths through `src/lib/list-navigation.ts` and login targets through existing auth routing. Distinguish errors from empty data; provide feature-owned retries. Never present mock content as live data.
+
+Questions retain `schemaVersion` 1 blocks, authenticated figures, and `/new` before `/:id`; never persist HTML/remote figure URLs. Student exams remain unavailable until release and exclude answers, explanations, and solution-only figures. Preserve unrelated work and synchronize API contracts/types/documentation.

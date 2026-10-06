@@ -23,6 +23,9 @@ it("the local player has no room-clock offset, start position, correction or end
 it("mounted Next remains owner-only and versioned; no local-ended advance remains", () => {
   const source = readFileSync(new URL("../src/features/study-room/components/study-room-session.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(source, /endedVersion|trackEnded|onEnded=/);
-  assert.match(source, /isHost && <div className="room-music-next"><Button[^\n]*disabled=\{!canAct\}[^\n]*nextTrack\(room.playback.version\)/);
+  assert.match(source, /room\?\.me && !room.closed && room.ownerId === user.data\?\.id/);
+  assert.match(source, /next=\{\(\) => nextTrack\(room.playback.version\)\}/);
+  const bar = readFileSync(new URL("../src/features/study-room/components/room-listening-bar.tsx", import.meta.url), "utf8");
+  assert.match(bar, /disabled=\{!isHost \|\| !canAct\}/);
   assert.match(source, /run\(\{ type: "next", expectedVersion: version \}\)/);
 });

@@ -452,6 +452,38 @@ docs/reviews/ux-flow-audit.md
 
 Bounded backend Peer returned no candidate, claiming an instruction conflict and absent files. Lead **REJECTS that blocker**: target files exist and preserving existing hunks under exclusive ownership is consistent with project rules. Backend diff remained the original 26 lines. Assignment closed, no Peer write ownership remains; Lead takes the implementation scope. No downstream work depends on that response.
 
+### Listening-first room / visual rework — IN VERIFICATION (06/10/2026)
+
+Lead owns the bounded frontend hierarchy/player/renderer integration at base
+`618882653dd6ae5ed3cb382d985e9c7a5f497d82`. No backend/API, dependencies, shared
+timeline, gameplay, seating reservation, saved customization or external actions.
+Preserve deliberate Join/activation, one persistent player, independent device audio
+and positions, owner-explicit Next/no-ended-advance, request policy and one outstanding
+track per account (including owner), privacy/auth and focus accounting. Reflection
+countdown remains unrelated and undecided. Product/design approval stays open.
+
+Direction from frontend-design/project guidance: selected track/local controls lead,
+quiet Queue/People companion, compact rhythm; original rounded stone/oak observatory
+with an orbital window, clearer seated scholars and paired daylight/evening lighting.
+The bounded renderer report is **REJECTED**: no file diff/artifact was applied, so its
+claimed implementation/checks cannot be evidence. Scope is closed; Lead owns writes.
+The subsequent read-only lifecycle/permission report is also **REJECTED**: it supplied
+the 40-character HEAD as file SHA256 values, omitted requested scopes and inferred
+defects from controlled mounting/state updates. Actual source uses `open`-controlled
+dialogs, first-visit player mounting, conditional membership cleanup and slot-keyed
+furniture updates, not unconditional renderer rebuilds. No code changes are based on
+that report; the response loop is closed and Lead independently verifies the candidate.
+
+Early actual renders revealed missing walls/window rings from mixed indexed and
+non-indexed batch geometry. Lead corrected normalization; passing early screenshots
+are iteration evidence only, not final acceptance. Mobile review also identified an
+over-tall listening block, redundant action row and a wrapped 320px volume control;
+compact toolbar, deliberate three-control mobile row, edge-bounded local-volume
+popover and paired Next summary are being verified. Lead also added explicit opener
+focus return for external Add/settings/closure controls. Preserve failed harness/build
+results separately from eventual acceptance. Final matching source manifests, rendered
+matrix, interaction checks and required web checks must be recorded before disposition.
+
 ### Three.js study room — TECHNICALLY ACCEPTED (06/10/2026)
 
 Lead owns the renderer, scene/session/player integration, local evidence and technical disposition; no Peer owns a moving write scope. Replace the existing presentation-only scene with an original fantasy observatory, retaining existing membership/presence, timer/accounting, identity-derived looks and participant details. No shared seat claiming, saved customization, group association, gestures/events or backend changes. Music opens a focus-safe dialog with a single persistent player; selection remains room-owned, playback device-local and Next explicitly joined-owner-only. Acceptance requires current 3D and fallback renders, desktop/tablet/narrow/short layouts, music open/close stability and recovery, participant keyboard access, reduced motion, cleanup/hidden rendering bounds, existing behavior checks and required build/lint. Synthetic evidence is not live media/multiuser proof; product/design approval remains open.
