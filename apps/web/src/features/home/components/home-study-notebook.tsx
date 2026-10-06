@@ -179,7 +179,7 @@ function NotebookAnnouncements() {
 
 export function HomeStudyNotebook() {
   return (
-    <Tabs defaultValue="documents" className="study-notebook">
+    <Tabs defaultValue="documents" className="home-study-notebook">
       <TabsList className="study-notebook__tabs" aria-label="Các góc học tập">
         <TabsTrigger value="documents" className="study-notebook__tab">
           <BookOpen aria-hidden="true" /> Tài liệu

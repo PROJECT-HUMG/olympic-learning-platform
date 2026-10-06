@@ -11,7 +11,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const INSTANT = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d{1,9})?(Z|[+-]\d{2}:\d{2})$/;
 const FIELDS = ["id", "planId", "taskId", "stage", "kind", "originalName", "contentType", "sizeBytes", "url", "label", "createdAt"] as const;
 
-export type EvidenceStage = "START" | "FINISH";
+export type EvidenceStage = "START" | "FINISH" | "GENERAL";
 export type EvidenceKind = "FILE" | "LINK";
 
 export interface EvidenceRecord {
@@ -47,7 +47,7 @@ export function evidenceId(value: unknown): string | null {
 }
 
 export function evidenceStage(value: unknown): EvidenceStage | null {
-  return value === "START" || value === "FINISH" ? value : null;
+  return value === "START" || value === "FINISH" || value === "GENERAL" ? value : null;
 }
 
 export function evidenceKind(value: unknown): EvidenceKind | null {

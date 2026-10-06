@@ -40,6 +40,18 @@ Phòng học chung dùng `/api/v1/study-rooms`, yêu cầu JWT và tài khoản 
 ./mvnw -Dtest=StudyRoomRulesTest,StudyRoomIntegrationTest,StudyRoomControllerTest test
 ```
 
+## Daily task append and neutral evidence
+
+`POST /api/v1/daily/plans/tasks?date=YYYY-MM-DD` appends one task for the authenticated ACTIVE owner. Body: `{taskId, expectedVersion, title, priority, status}`. `taskId` is a stable client UUID for transport retries; `expectedVersion` is the saved version, null only for a missing plan. Existing plans are locked/version-checked; identical retries at the immediately resulting version return the saved plan without duplicating the task. Stale/changed retries or foreign task UUIDs conflict. At most 50 tasks; existing tasks, reflection, first submission and sharing are not replaced. Other edits still use plan Save, and Submit is separate. `GET /api/v1/daily/plans/dates` returns only the owner's saved dates, including empty saved plans, newest first.
+
+Deploy-compatible schema preparation requires new Flyway **V23** (V22 already owns group avatars), never a rewrite of V19. Evidence file uploads default to GENERAL when `stage` is absent. START/FINISH records, bytes and legacy link APIs remain intact. Existing owned/shared read checks and revocation still apply to metadata and bytes, with no-store private downloads; no public storage URL is introduced. The web upload UI is file-only and retains the existing 10 items × 5 MiB/task limits. Reflection questions/saving are unchanged; the only current timed Daily rule is the Vietnam-local 07:30 first-submission cutoff, not a reflection deadline.
+
+Focused local verification (Docker is required for disposable PostgreSQL; skipped integration tests are not persistence proof):
+
+```bash
+./mvnw -Dtest=DailyIntegrationTest,DailyCalendarTest,DailyMappingTest,EvidenceControllerTest,EvidenceIntegrationTest,GroupDailyAccessTest,GroupDailyAccessIntegrationTest,DailyGroupMvpIntegrationTest test
+```
+
 ## Khung avatar và ảnh gốc
 
 Ảnh gốc giữ nguyên trong storage; vị trí/độ phóng lưu riêng ở user qua migration V12. Upload avatar nhận thêm part JSON crop tùy chọn; PATCH /api/v1/users/me/avatar/crop chỉnh lại khung mà không upload ảnh. API trả avatarCrop cùng avatarUrl cho frontend. Xem [contract khung avatar](../../docs/architecture/avatar-framing.md).

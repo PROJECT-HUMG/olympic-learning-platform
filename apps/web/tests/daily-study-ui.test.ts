@@ -13,30 +13,97 @@ const review = source("pages/daily-shared-review-page.tsx");
 const feedback = source("features/daily/groups/feedback-panel.tsx");
 const evidence = source("features/daily/evidence/evidence-panel.tsx");
 
-it("completion is a labelled draft edit inside the disabled fieldset, preserving wire selectors", () => {
+it("completion retains both wire states without a redundant row status selector", () => {
   assert.match(day, /<fieldset disabled=\{draft.busy\}/);
   assert.match(day, /type="checkbox" aria-label=\{`Đánh dấu xong việc/);
   assert.match(day, /event.target.checked \? "COMPLETED" : "TODO"/);
   assert.match(day, /onChange\(\(current\) => \(\{ \.\.\.current, status \}\)\)/);
-  assert.match(day, /daily-status-\$\{task.key\}/);
+  assert.doesNotMatch(day, /daily-status-\$\{task.key\}/);
+  assert.match(day, /aria-label=\{`Đưa việc \$\{index \+ 1\} lên trước`\}/);
+  assert.doesNotMatch(day, /Tùy chọn việc/);
   assert.match(day, /draft.edit\(\(\) => setForm\(update\)\)/);
 });
 
-it("week-first entry and day lists retain deep links and draft navigation guards", () => {
+it("today entry and compact date controls retain day/week/history links and guards", () => {
   for (const screen of [day, week]) {
     assert.match(screen, /onNavigate=\{guardNavigation\}/);
   }
-  assert.match(entry, /if \(raw === null\)/);
+  assert.match(entry, /dailyEntryDate\(requestedDate, today\)/);
+  assert.match(entry, /params.get\("view"\) === "history" \|\| params.has\("week"\)/);
   assert.match(entry, /StudyWeekList/);
-  assert.match(week, /StudyDayList weekStart=\{weekStart\}/);
+  assert.doesNotMatch(week, /StudyDayList/);
   assert.match(calendar, /aria-label=\{`\$\{index === 6 \? "Chủ Nhật"/);
-  assert.match(week, /href=\{day => `\$\{ROUTES.DAILY\}\?date=\$\{day\}`\}/);
+  assert.match(week, /\$\{ROUTES.DAILY\}\?date=\$\{chosen\}/);
   assert.doesNotMatch(week, />Tuần trước<|>Tuần sau<|>Tuần này</);
-  assert.match(group, /StudyDisclosure title=\{<StudyIdentity name=\{m.displayName\}/);
-  assert.match(group, /reviews\/\$\{m.userId\}\?date=\$\{start\}&view=week/);
-  assert.match(review, /StudyDayList weekStart=\{weekStart\}/);
-  assert.match(day, /StudyDisclosure title="Nhìn lại ngày"/);
+  assert.doesNotMatch(group, /StudyWeekList/);
+  assert.match(group, /reviews\/\$\{m.userId\}\?date=\$\{date\}&view=week/);
+  assert.doesNotMatch(review, /StudyDayList/);
+  for (const screen of [day, week, group, review]) assert.match(screen, /StudyDatePicker/);
+  assert.match(day, /DialogTitle>Nhìn lại ngày/);
   assert.match(week, /Nhìn lại tuần · Chưa lưu/);
+});
+
+it("save/submit and submission status stay outside collapsed reflection", () => {
+  assert.match(day, /className="study-savebar"/);
+  assert.match(day, /type="submit" form="daily-plan-form" disabled=\{draft.busy\}/);
+  assert.match(day, /className="study-submit-status" role="status"/);
+  assert.match(day, /disabled=\{!canSubmit\}/);
+  assert.match(day, /Nộp không bật chia sẻ/);
+  assert.match(day, /study-day-workspace/);
+  assert.match(day, /daily-reflection-layout/);
+  assert.match(day, /DropdownMenuItem disabled=\{index === 0\}/);
+  assert.match(day, /DropdownMenuItem disabled=\{last\}/);
+  assert.match(day, /variant="destructive" onSelect=\{remove\}/);
+  assert.match(day, /requestAnimationFrame\(\(\) => target.focus\(\)\)/);
+});
+
+it("weekly reflection leads the workspace while all recorded figures and definitions remain available", () => {
+  const ui = source("features/daily/ui/study-notebook.tsx");
+  assert.match(week, /<StudyWeekStats \{\.\.\.week.data\}/);
+  assert.ok(week.indexOf('id="week-review"') < week.indexOf('<StudyWeekStats'));
+  for (const field of ["plannedDays", "onTimeDays", "completionRate", "mustCompleted", "mustTotal", "mustRate"]) assert.ok(ui.includes(field));
+  assert.match(ui, /Cách tính số liệu/);
+  assert.match(week, /form="daily-week-form" disabled=\{draft.busy\}/);
+});
+
+it("task entry is temporary until server-confirmed append, without saving unrelated edits", () => {
+  const opening = day.slice(day.indexOf("function openAddTaskModal"), day.indexOf("async function persistTask"));
+  assert.match(opening, /setActiveModalTask\(blankTask\(\)\)/);
+  assert.doesNotMatch(opening, /edit\(|setForm/);
+  assert.match(day, /addTask.mutateAsync/);
+  assert.match(day, /rebaseAddedTask/);
+  assert.match(day, /draft.finish\("save", revision, "keep"\)/);
+  assert.match(day, /Thêm và lưu việc/);
+  assert.match(day, /DialogContent className="daily-dialog daily-add-dialog"/);
+});
+
+it("history has distinct loading/error/success and on-demand sharing preserves selections", () => {
+  assert.match(entry, /planDatesQuery.isPending/);
+  assert.match(entry, /planDatesQuery.isError/);
+  assert.match(entry, /planDatesQuery.isSuccess \? <StudyWeekList/);
+  const consent = source("features/daily/groups/group-controls.tsx");
+  assert.match(consent, /hidden=\{settings.sharingMode !== "SELECTED_MEMBERS"\}/);
+  assert.match(consent, /id="group-sharing"/);
+  assert.match(group, /openStudySection\("group-sharing"\)/);
+});
+
+it("nested calendars fit their container and motion has a reduced-motion override", () => {
+  const css = source("features/daily/ui/study-notebook.css");
+  assert.match(css, /minmax\(min\(100%, 280px\), 1fr\)/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
+  assert.match(css, /animation: none !important; transition: none !important/);
+  assert.match(review, /openStudySection\("shared-feedback"\)/);
+  assert.match(week, /title=\{draft.dirty \? "Nhìn lại tuần · Chưa lưu" : "Nhìn lại tuần"\} defaultOpen/);
+});
+
+it("date popover retains grid semantics, roving focus and owner-approved selection", () => {
+  const picker = source("features/daily/ui/study-date-picker.tsx");
+  assert.match(picker, /role="grid"/);
+  assert.match(picker, /aria-selected=\{key === date\}/);
+  assert.match(picker, /tabIndex=\{key === focused \? 0 : -1\}/);
+  assert.match(picker, /if \(!onSelect\(next\)\)/);
+  assert.match(picker, /PageUp/);
+  assert.match(picker, /onOpenAutoFocus/);
 });
 
 it("group avatar reuses profile crop and image controls, never profile mutations", () => {
@@ -64,10 +131,13 @@ it("feedback draft survives transient checks but is hidden, and denied access un
   assert.match(feedback, /aria-describedby="daily-feedback-guidance daily-feedback-length"/);
 });
 
-it("evidence disclosure retains visited inputs without previews or nested forms", () => {
-  assert.match(evidence, /visited \? <div hidden=\{!open\}/);
-  assert.match(evidence, /aria-describedby=\{`\$\{prefix\}-file-help`\}/);
-  assert.match(evidence, /aria-describedby=\{`\$\{prefix\}-link-help`\}/);
+it("evidence uses file-only dialogs and bounded authorized previews, not nested forms", () => {
+  assert.match(evidence, /daily-evidence-dialog/);
+  assert.match(evidence, /aria-describedby=\{prefix \+ "-file-help"\}/);
+  assert.match(evidence, /images.slice\(0, 2\)/);
+  assert.match(evidence, /evidenceService.download/);
+  assert.match(evidence, /URL.revokeObjectURL/);
+  assert.doesNotMatch(evidence, /saveLink|setStage|type="url"|Trước khi làm|Sau khi làm/);
   assert.match(evidence, /rel="noreferrer noopener"/);
   assert.doesNotMatch(evidence, /<form|<iframe|<embed/);
 });

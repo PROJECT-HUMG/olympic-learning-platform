@@ -10,6 +10,25 @@ export interface EditorTask {
   status: DailyEditorStatus;
 }
 
+export interface AddDailyTaskBody {
+  taskId: string;
+  expectedVersion: number | null;
+  title: string;
+  priority: TaskPriority;
+  status: DailyEditorStatus;
+}
+
+/** Only an append is rebased: local edits/deletions/order/reflection remain untouched. */
+export function rebaseAddedTask(current: PlanEditor, saved: DailyPlan, taskId: string): PlanEditor {
+  const added = saved.tasks.find(task => task.id === taskId);
+  if (!added || saved.planDate !== current.planDate) throw new Error("Không xác nhận được việc vừa lưu. Hãy kiểm tra lại bản trên máy chủ.");
+  return {
+    ...current, id: saved.id, version: saved.version,
+    firstSubmittedAt: saved.firstSubmittedAt, onTime: saved.onTime,
+    tasks: current.tasks.some(task => task.id === taskId) ? current.tasks : [...current.tasks, { ...added, key: added.id }],
+  };
+}
+
 export interface PlanEditor {
   id: string | null;
   version: number | null;
@@ -32,7 +51,7 @@ export interface WeekEditor {
   nextWeekChanges: string;
 }
 
-export type SaveReady<T> = { ok: true; body: T } | { ok: false; message: string };
+export type SaveReady<T> = { ok: true; body: T; message?: undefined } | { ok: false; message: string; body?: undefined };
 
 export function emptyPlanEditor(planDate: string): PlanEditor {
   return {

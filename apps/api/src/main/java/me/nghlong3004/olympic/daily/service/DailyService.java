@@ -1,8 +1,10 @@
 package me.nghlong3004.olympic.daily.service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import me.nghlong3004.olympic.daily.request.SaveDailyPlanRequest;
+import me.nghlong3004.olympic.daily.request.AddDailyTaskRequest;
 import me.nghlong3004.olympic.daily.request.SaveDailyWeekRequest;
 import me.nghlong3004.olympic.daily.response.DailyPlanResponse;
 import me.nghlong3004.olympic.daily.response.DailyWeekResponse;
@@ -14,6 +16,16 @@ import me.nghlong3004.olympic.daily.response.DailyWeekResponse;
  * @since 10/4/2026
  */
 public interface DailyService {
+
+  /**
+   * Appends one task to the caller's plan without replacing tasks/reflection or submitting.
+   * An identical retry is accepted only while the resulting version remains unchanged.
+   *
+   * @param date platform calendar date
+   * @param request stable task identity, saved version and validated task fields
+   * @return saved owned plan
+   */
+  DailyPlanResponse addTask(LocalDate date, AddDailyTaskRequest request);
 
   /**
    * Returns the caller's plan for the platform date.
@@ -57,4 +69,11 @@ public interface DailyService {
    * @return week read model
    */
   DailyWeekResponse saveWeek(LocalDate date, SaveDailyWeekRequest request);
+
+  /**
+   * Returns all distinct platform dates where the caller has created/saved a daily plan.
+   *
+   * @return list of planned dates ordered descending
+   */
+  List<LocalDate> getPlanDates();
 }

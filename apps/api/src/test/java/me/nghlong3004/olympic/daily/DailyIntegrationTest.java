@@ -13,6 +13,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -26,6 +27,7 @@ import me.nghlong3004.olympic.common.security.CurrentUserProvider;
 import me.nghlong3004.olympic.daily.enums.DailyTaskPriority;
 import me.nghlong3004.olympic.daily.enums.DailyTaskStatus;
 import me.nghlong3004.olympic.daily.request.DailyTaskRequest;
+import me.nghlong3004.olympic.daily.request.AddDailyTaskRequest;
 import me.nghlong3004.olympic.daily.request.SaveDailyPlanRequest;
 import me.nghlong3004.olympic.daily.request.SaveDailyWeekRequest;
 import me.nghlong3004.olympic.daily.response.DailyPlanResponse;
@@ -62,6 +64,71 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @Testcontainers(disabledWithoutDocker = true)
 @TestPropertySource(properties = "spring.jpa.open-in-view=false")
 class DailyIntegrationTest {
+  @Test
+  void plannedDatesAreOwnerScopedOrderedAndIncludeEmptySavedPlans() {
+    service.savePlan(MONDAY, plan(null));
+    service.savePlan(MONDAY.plusDays(2), plan(null));
+    assertThat(service.getPlanDates()).containsExactly(MONDAY.plusDays(2), MONDAY);
+    users.id.set(OTHER);
+    assertThat(service.getPlanDates()).isEmpty();
+  }
+  @Test
+  void appendCreatesImmediatelyReopensAndRetriesWithoutSubmitting() {
+    var id = UUID.randomUUID();
+    var request = new AddDailyTaskRequest(id, null, " First task ", DailyTaskPriority.SHOULD, DailyTaskStatus.TODO);
+    var created = service.addTask(MONDAY, request);
+    assertThat(created.firstSubmittedAt()).isNull();
+    assertThat(created.tasks()).hasSize(1);
+    assertThat(created.tasks().getFirst().id()).isEqualTo(id);
+    assertThat(created.tasks().getFirst().title()).isEqualTo("First task");
+    assertThat(service.getPlan(MONDAY).tasks()).isEqualTo(created.tasks());
+    assertThat(service.addTask(MONDAY, request)).isEqualTo(created);
+    assertThat(jdbc.queryForObject("select count(*) from daily_tasks where id = ?", Integer.class, id)).isEqualTo(1);
+  }
+
+  @Test
+  void appendKeepsExistingTasksReflectionAndFirstSubmission() {
+    var initial = service.savePlan(MONDAY, new SaveDailyPlanRequest(null, "Reasons", "Well", "Tomorrow",
+        List.of(task(null, "Existing", DailyTaskPriority.MUST, DailyTaskStatus.COMPLETED))));
+    var saved = service.submitPlan(initial.id());
+    var request = new AddDailyTaskRequest(UUID.randomUUID(), saved.version(), "Append", DailyTaskPriority.COULD, DailyTaskStatus.TODO);
+    var added = service.addTask(MONDAY, request);
+    assertThat(added.tasks()).hasSize(2);
+    assertThat(added.tasks().getFirst()).isEqualTo(saved.tasks().getFirst());
+    assertThat(added.reviewReasons()).isEqualTo("Reasons");
+    assertThat(added.reviewWentWell()).isEqualTo("Well");
+    assertThat(added.reviewTomorrow()).isEqualTo("Tomorrow");
+    assertThat(added.firstSubmittedAt()).isEqualTo(saved.firstSubmittedAt());
+    assertThat(added.version()).isEqualTo(saved.version() + 1);
+    assertThat(service.addTask(MONDAY, request)).isEqualTo(added);
+    assertThat(service.getPlan(MONDAY)).isEqualTo(added);
+    assertThatThrownBy(() -> service.addTask(MONDAY, new AddDailyTaskRequest(UUID.randomUUID(), saved.version(), "Stale", DailyTaskPriority.MUST, DailyTaskStatus.TODO)))
+        .isInstanceOf(ApiException.class);
+  }
+
+  @Test
+  void appendRejectsChangedRetryOrAnotherOwnersIdentityWithoutOverwriting() {
+    var id = UUID.randomUUID();
+    var original = service.addTask(MONDAY, new AddDailyTaskRequest(id, null, "Owned", DailyTaskPriority.MUST, DailyTaskStatus.TODO));
+    assertThatThrownBy(() -> service.addTask(MONDAY, new AddDailyTaskRequest(id, null, "Changed retry", DailyTaskPriority.MUST, DailyTaskStatus.TODO)))
+        .isInstanceOf(ApiException.class);
+    users.id.set(OTHER);
+    assertThatThrownBy(() -> service.addTask(MONDAY, new AddDailyTaskRequest(id, null, "Foreign", DailyTaskPriority.MUST, DailyTaskStatus.TODO)))
+        .isInstanceOf(ApiException.class);
+    users.id.set(OWNER);
+    assertThat(service.getPlan(MONDAY)).isEqualTo(original);
+  }
+
+  @Test
+  void appendHonorsMaxTasksAndRejectsInvalidOrStaleRequests() {
+    var tasks = new ArrayList<DailyTaskRequest>();
+    for (int i = 0; i < 50; i++) tasks.add(task(null, "Task " + i, DailyTaskPriority.SHOULD, DailyTaskStatus.TODO));
+    var full = service.savePlan(MONDAY, new SaveDailyPlanRequest(null, null, null, null, tasks));
+    assertThatThrownBy(() -> service.addTask(MONDAY, new AddDailyTaskRequest(UUID.randomUUID(), full.version(), "Over limit", DailyTaskPriority.MUST, DailyTaskStatus.TODO))).isInstanceOf(ApiException.class);
+    assertThatThrownBy(() -> service.addTask(MONDAY.plusDays(1), new AddDailyTaskRequest(UUID.randomUUID(), null, " ", DailyTaskPriority.MUST, DailyTaskStatus.TODO))).isInstanceOf(ApiException.class);
+    assertThatThrownBy(() -> service.addTask(MONDAY.plusDays(1), new AddDailyTaskRequest(UUID.randomUUID(), 3L, "Stale", DailyTaskPriority.MUST, DailyTaskStatus.TODO))).isInstanceOf(ApiException.class);
+    assertThat(service.getPlan(MONDAY).tasks()).hasSize(50);
+  }
   @Container @ServiceConnection
   static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
   private static final UUID OWNER = UUID.fromString("00000000-0000-0000-0000-00000000d101");

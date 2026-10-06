@@ -18,6 +18,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface DailyPlanRepository extends JpaRepository<DailyPlan, UUID> {
+  @Query("select count(task) > 0 from DailyTask task where task.id = :id")
+  boolean taskIdExists(@Param("id") UUID id);
   Optional<DailyPlan> findByOwnerIdAndPlanDate(UUID ownerId, LocalDate planDate);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -37,4 +39,7 @@ public interface DailyPlanRepository extends JpaRepository<DailyPlan, UUID> {
       """)
   List<DailyPlan> findOwnedBetween(
       @Param("ownerId") UUID ownerId, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
+  @Query("select distinct plan.planDate from DailyPlan plan where plan.ownerId = :ownerId order by plan.planDate desc")
+  List<LocalDate> findDistinctPlanDatesByOwnerId(@Param("ownerId") UUID ownerId);
 }

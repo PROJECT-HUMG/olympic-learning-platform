@@ -2,6 +2,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { dailyPlanKey, dailyWeekAccountKey, dailyWeekKey, type SaveDailyPlanBody, type SaveDailyWeekBody } from "../lib/daily-contract";
 import { dailyService } from "../services/daily.service";
+import type { AddDailyTaskBody } from "../lib/plan-editor";
+
+export function useAddDailyTask(userId: string, date: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: AddDailyTaskBody) => dailyService.addTask(userId, date, body),
+    retry: false,
+    onSuccess: plan => {
+      client.setQueryData(dailyPlanKey(userId, date), plan);
+      void client.invalidateQueries({ queryKey: dailyWeekAccountKey(userId) });
+      void client.invalidateQueries({ queryKey: ["daily-plans", userId, "dates"] });
+    },
+  });
+}
 
 export function useDailyAccount() {
   const query = useCurrentUser();
@@ -25,7 +39,18 @@ export function useSaveDailyPlan(userId: string, date: string) {
     onSuccess: (plan) => {
       client.setQueryData(dailyPlanKey(userId, plan.planDate), plan);
       void client.invalidateQueries({ queryKey: dailyWeekAccountKey(userId) });
+      void client.invalidateQueries({ queryKey: ["daily-plans", userId, "dates"] });
     },
+  });
+}
+
+export function useDailyPlanDates(userId: string | null) {
+  return useQuery({
+    queryKey: ["daily-plans", userId, "dates"],
+    queryFn: ({ signal }) => dailyService.getPlanDates(userId ?? "", signal),
+    enabled: Boolean(userId),
+    staleTime: 60_000,
+    retry: false,
   });
 }
 

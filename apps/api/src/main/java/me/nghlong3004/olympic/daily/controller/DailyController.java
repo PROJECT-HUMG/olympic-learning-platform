@@ -5,9 +5,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import me.nghlong3004.olympic.daily.request.SaveDailyPlanRequest;
+import me.nghlong3004.olympic.daily.request.AddDailyTaskRequest;
 import me.nghlong3004.olympic.daily.request.SaveDailyWeekRequest;
 import me.nghlong3004.olympic.daily.response.DailyPlanResponse;
 import me.nghlong3004.olympic.daily.response.DailyWeekResponse;
@@ -35,6 +37,15 @@ public class DailyController {
 
   private final DailyService service;
 
+  @PostMapping("/plans/tasks")
+  @Operation(summary = "Append one owned task without saving other edits or submitting the plan")
+  @ApiResponse(responseCode = "200", description = "Saved plan including the appended task")
+  @ApiResponse(responseCode = "409", description = "Stale plan, changed retry or task identity collision")
+  public DailyPlanResponse addTask(
+      @RequestParam LocalDate date, @Valid @RequestBody AddDailyTaskRequest request) {
+    return service.addTask(date, request);
+  }
+
   @GetMapping("/plans")
   @Operation(summary = "Read the authenticated owner's plan for a platform date")
   @ApiResponse(responseCode = "200", description = "Owned plan")
@@ -60,6 +71,13 @@ public class DailyController {
   @ApiResponse(responseCode = "403", description = "Plan belongs to another owner")
   public DailyPlanResponse submit(@PathVariable UUID planId) {
     return service.submitPlan(planId);
+  }
+
+  @GetMapping("/plans/dates")
+  @Operation(summary = "List all distinct dates that have a plan for the authenticated owner")
+  @ApiResponse(responseCode = "200", description = "List of platform dates")
+  public List<LocalDate> planDates() {
+    return service.getPlanDates();
   }
 
   @GetMapping("/weeks")

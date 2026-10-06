@@ -32,6 +32,102 @@ Checkpoint trước khi sửa UX: `ecbfb14` — `feat: add study rooms and refre
 
 ## Những phần vẫn cần hoàn thiện
 
+### Daily task/dialog increment — TECHNICALLY ACCEPTED; countdown PENDING (06/10/2026)
+
+Lead owns the integrated Daily/backend candidate and existing unfinished alignment correction. Local commit `86e827f` contains completed room/navigation work; Daily implementation, Home selector isolation and Daily-only dashboard-title hunk were excluded. Retained room/player/navigation manifests match disk; a fresh web build/lint and 14 targeted Node checks passed before that commit. No unrelated staged changes existed.
+
+Current direction: owner-only versioned/idempotent task append persists one task without submitting or replacing unrelated local/saved edits; file-only upload in a shadcn dialog with neutral stage and backward-compatible legacy records; authorized private image previews and all-items gallery; reflection dialog with existing questions and task context. Existing Home/Daily isolation and empty/group alignment criteria are technically accepted with the fresh same-document evidence below, superseding the earlier unfinished checkpoint. The reflection countdown target is undecided: current code defines only a 07:30 first-submission cutoff, not a reflection boundary. Product owner must choose an optional reminder time or explicitly a time-remaining-in-day indicator; no deadline or lock is inferred.
+
+Reopened task/evidence presentation: the previous desktop layout reserved `minmax(240px, 38%)` for evidence while title/priority/menu occupied separate left-side rows. This produced a disconnected horizontal gap, roughly 313px evidence-bearing rows and 134px evidence-free rows. The integrated revision instead uses one completion/title/priority/menu/upload header and associated evidence cards immediately below. Title measure is bounded at 52ch; previews align with the title's content edge on desktop, with deliberate action wrapping and full-width evidence grouping on narrow screens. Two preview photos, a truthful document/legacy-link card and all-items access remain. Current measured desktop rows are 189px with evidence and 69px without, with matching title/preview x=348px at 1440px. Read-only shared tasks use the same stacked association, not an auto-column split.
+
+`olympic-context`, `frontend-design` and existing project visual guidance informed this task-led grouping: retain platform palette/type, use task dividers instead of redundant enclosing cards, keep attachment previews meaningful and bounded, and reserve dialogs for upload/gallery/reflection rather than primary task controls. Reflection keeps existing questions with keyboard-scrollable task context, side-by-side at desktop/tablet and stacked on mobile; short-mobile context is bounded at 88px, with a sticky Close header and scrollable question/save content. This is visual reimplementation, not a new data model.
+
+The append/privacy read-only Peer response is **ACCEPTED as bounded supporting source-inspection evidence only**. Lead inspected its actual response and verified the cited append/version/locking/retry, local draft rebase and private-byte lifecycle scope. It did not run runtime tests and does not prove concurrency, production auth, visual quality or full candidate acceptance; later presentation bytes supersede its frozen editor/evidence snapshot. The disposition was sent and acknowledged; scope CLOSED, no writer/review owner remains. Lead owns every moving write scope and integration.
+
+Lead disposition: **ACCEPT the bounded integrated technical increment**, base `86e827ff3439c0410d0d838ea86ccf32fd70af49` plus the exact frozen application/test manifests below. The rejected rigid split is not accepted. Fresh desktop/tablet/mobile renders demonstrate associated task/evidence grouping, flat aligned Daily entry after Home, compact empty/group states and usable dialogs without changing persistence/privacy/draft semantics. This permits the authorized second scoped local commit, not release or product/design approval. **The complete requested scope is not achieved: reflection countdown remains pending the product owner's target decision.** Return to that criterion when the target is explicitly chosen; do not repurpose submission timing.
+
+| Verification | Result and exact evidence |
+| --- | --- |
+| Current mounted UI, synthetic auth/API | `/tmp/daily-ux-03nzx2/results.json`: **106 checks, zero errors**, matching 39-entry start/end manifest, independently rehashed against disk with zero mismatches. SHA256 of `JSON.stringify(candidateEnd)`: `a530e6e48d368c71ccdb9688a4bb31188c595a4f674e305f97f67f5be18ca9b5`. Includes Add pending/failure/retry, Save≠Submit, upload failure/retry, two-image/+N/all-items/file/legacy gallery, opener focus/Escape and scrolled short-screen controls, reflection drafts, custom confirmation, today/explicit/invalid date and dirty/busy safety, truthful history, group sharing ON/OFF/audience retention and read-only review, direct and actual mounted-link Home→Daily empty/populated composition. |
+| Additional focused composition | `/tmp/daily-ux-TGC85a/results.json`: **37 checks, zero errors**, identical application bytes; only the subsequently improved browser runner differs. Supplements 491px/tablet/dark/short same-document and invitation states. Not an exact final runner snapshot. |
+| Actual local HTTP/SQL persistence | `/tmp/daily-http-nliJfZ/results.json`: **4 groups, zero errors**, production Daily/evidence services with disposable PostgreSQL. Immediate task Add without Save/Submit, preservation of unrelated drafts, reflection Save/full reload, neutral and retained legacy evidence, actual multipart upload/reopen, original private bytes/no-store and unrelated-account denial. Its 16-entry manifest is stable; only notebook CSS differs from final disk (later short-reflection presentation). All functional entries match. Not final visual proof or production cookie/token/provider authentication proof; fixture login adapts refresh requests. Harness finished normally, `/tmp/daily-final-http-harness.log` BUILD SUCCESS. |
+| Backend tests | `/tmp/daily-final-api.log`: **64 tests, zero failures/errors/skips**, disposable PostgreSQL, Daily/calendar/mapping/evidence/group access/sharing. Owning backend bytes retained from the verified functional candidate. |
+| Shared-shell regression | `/tmp/navigation-after-mCEcXL/results.json`: **32 checks, zero errors**, stable 19-entry manifest, all entries still match disk. Synthetic public/authenticated and role-specific workspace navigation, tablet/mobile/short/dark/account/focus/draft blocker; not real-backend authorization proof. |
+| Required web checks | `/tmp/daily-accepted-build.log`: TypeScript/Vite PASS; retained >500kB chunk warning. `/tmp/daily-accepted-lint.log`: PASS, zero errors/40 inherited warnings. `/tmp/daily-verified-node.log`: **162 tests PASS**, zero failures/skips. `git diff --check` PASS. |
+
+Lead inspected full-size current screenshots, not the image-viewer framing of a desktop capture. UI matrix: 1440x900, 1024x900, 768x1024, 491x850, 390x844, 320x568 and 320x360; relevant light/dark, gallery/upload/error/reflection and empty/populated/group/shared/week states. The isolated Home notebook retains its 1px border/14px radius and keyboard tabs before/after Daily styles load; Daily root has 0px border/radius/padding on direct and same-document entry, with header/status/task/nav edges aligned. Invitation pending/loading/error/retry/accept/decline stay direct and do not enable sharing. Empty-plan Save and separate Submit remain usable without zero/N/A metrics.
+
+Current screenshot comparisons (ephemeral local evidence):
+
+- [Rejected desktop split](/tmp/daily-ux-3nVSiw/day-gallery-desktop-light.png) → [unified header and evidence variants](/tmp/daily-ux-03nzx2/task-ribbon-desktop-variants.png), [1024px grouping](/tmp/daily-ux-03nzx2/task-ribbon-1024x900-light.png), [768px grouping](/tmp/daily-ux-03nzx2/task-ribbon-768x1024-light.png), [390px](/tmp/daily-ux-03nzx2/task-ribbon-390x844-light.png), [320px](/tmp/daily-ux-03nzx2/task-ribbon-320x568-light.png).
+- [Earlier leaked Home frame](/tmp/daily-ux-OhNNor/home-to-empty-day-1440.png) → [flat Home→Daily empty day](/tmp/daily-ux-03nzx2/aligned-spa-empty-day-1440x900-light.png). [Earlier sparse framed groups](/tmp/daily-ux-OhNNor/home-to-empty-groups-491.png) → [compact 491px groups](/tmp/daily-ux-03nzx2/aligned-spa-empty-groups-491x850-light.png), [dark groups](/tmp/daily-ux-03nzx2/aligned-spa-empty-groups-390x844-dark.png), [Home retained](/tmp/daily-ux-03nzx2/home-notebook-1440x900-light.png).
+- [Desktop reflection](/tmp/daily-ux-03nzx2/reflection-1440x900-light.png), [tablet reflection](/tmp/daily-ux-03nzx2/reflection-768x1024-light.png), [short reflection](/tmp/daily-ux-03nzx2/reflection-320x360-light.png), [dark reflection](/tmp/daily-ux-03nzx2/reflection-desktop-dark.png), [short gallery controls](/tmp/daily-ux-03nzx2/gallery-controls-320x360-light.png), [read-only shared evidence](/tmp/daily-ux-03nzx2/shared-evidence-768.png).
+
+Failed runs remain excluded from final acceptance: `/tmp/daily-ux-flAmOC` failed because the test toggled an already-selected audience member on the second viewport; `/tmp/daily-ux-wghBi2` completed 95 checks then timed out on a drawer during route transition (driver readiness accepted the previous document's shell); `/tmp/daily-ux-ej7NHS` failed a test-only top-level variable redeclaration in newly added scrolled-gallery capture. The runner now waits for a new-document identity and committed SPA effects, uses scoped evaluation variables and selects the audience deterministically. Earlier route/query/Enter-driver failures and stale-layout evidence are not converted into passes; no application regression is inferred solely from a capture/driver failure. Final manifest includes the corrected runner.
+
+Limits/downstream use: `/daily` → today or explicit date → immediate Add → direct draft controls → upload/gallery/reflection dialogs → explicit Save/Submit. API must include the append endpoint and **new V23** before this web contract is used; V19/V22 and legacy bytes/records are untouched. Screenshot evidence uses local Chromium and synthetic responses with external assets blocked; no physical-device/Safari/WebKit, production login, remote storage or exhaustive concurrent-browser proof is claimed. Short screens scroll rather than fitting every control above the fold. The dev-only query launcher is visible in development captures and can overlap bottom content. Room/player/independent positions/owner-explicit Next and shared navigation production bytes remain as the first commit. No external action occurred. Product/design approval and the reflection countdown decision remain open.
+
+Exact task-owned paths for this Daily commit (no unrelated staged changes at reconciliation):
+
+```text
+apps/api/README.md
+apps/api/src/main/java/me/nghlong3004/olympic/daily/controller/DailyController.java
+apps/api/src/main/java/me/nghlong3004/olympic/daily/evidence/controller/EvidenceController.java
+apps/api/src/main/java/me/nghlong3004/olympic/daily/evidence/enums/EvidenceStage.java
+apps/api/src/main/java/me/nghlong3004/olympic/daily/evidence/service/impl/EvidenceServiceImpl.java
+apps/api/src/main/java/me/nghlong3004/olympic/daily/repository/DailyPlanRepository.java
+apps/api/src/main/java/me/nghlong3004/olympic/daily/request/AddDailyTaskRequest.java
+apps/api/src/main/java/me/nghlong3004/olympic/daily/service/DailyService.java
+apps/api/src/main/java/me/nghlong3004/olympic/daily/service/impl/DailyServiceImpl.java
+apps/api/src/main/resources/db/migration/V23__neutral_daily_evidence.sql
+apps/api/src/test/java/me/nghlong3004/olympic/daily/DailyIntegrationTest.java
+apps/api/src/test/java/me/nghlong3004/olympic/daily/evidence/EvidenceControllerTest.java
+apps/api/src/test/java/me/nghlong3004/olympic/daily/evidence/EvidenceIntegrationTest.java
+apps/web/README.md
+apps/web/src/features/daily/components/daily-plan-editor.tsx
+apps/web/src/features/daily/components/daily-week-editor.tsx
+apps/web/src/features/daily/evidence/evidence-contract.ts
+apps/web/src/features/daily/evidence/evidence-panel.tsx
+apps/web/src/features/daily/evidence/evidence-preview.ts
+apps/web/src/features/daily/groups/feedback-panel.tsx
+apps/web/src/features/daily/groups/group-avatar.tsx
+apps/web/src/features/daily/groups/group-controls.tsx
+apps/web/src/features/daily/groups/groups.css
+apps/web/src/features/daily/hooks/use-daily-editor.ts
+apps/web/src/features/daily/hooks/use-daily.ts
+apps/web/src/features/daily/lib/calendar-presentation.ts
+apps/web/src/features/daily/lib/daily-contract.ts
+apps/web/src/features/daily/lib/date-selection.ts
+apps/web/src/features/daily/lib/plan-editor.ts
+apps/web/src/features/daily/services/daily.service.ts
+apps/web/src/features/daily/ui/daily-dialog-header.tsx
+apps/web/src/features/daily/ui/study-calendar.tsx
+apps/web/src/features/daily/ui/study-date-picker.tsx
+apps/web/src/features/daily/ui/study-notebook.css
+apps/web/src/features/daily/ui/study-notebook.tsx
+apps/web/src/features/daily/ui/study-section.ts
+apps/web/src/features/daily/ui/use-daily-confirm.tsx
+apps/web/src/features/home/components/home-hero-section.css
+apps/web/src/features/home/components/home-study-notebook.tsx
+apps/web/src/layouts/dashboard-layout.tsx
+apps/web/src/pages/daily-groups-page.tsx
+apps/web/src/pages/daily-owner-page.tsx
+apps/web/src/pages/daily-shared-review-page.tsx
+apps/web/src/pages/daily-week-page.tsx
+apps/web/tests/daily-alignment.test.ts
+apps/web/tests/daily-calendar-presentation.test.ts
+apps/web/tests/daily-immediate.test.ts
+apps/web/tests/daily-persistence-http-browser-check.mjs
+apps/web/tests/daily-study-ui.test.ts
+apps/web/tests/daily-ux-browser-check.mjs
+apps/web/tests/daily-wire.test.ts
+apps/web/tests/navigation-browser-check.mjs
+docs/architecture/web-ui.md
+docs/reviews/ux-flow-audit.md
+```
+
+Bounded backend Peer returned no candidate, claiming an instruction conflict and absent files. Lead **REJECTS that blocker**: target files exist and preserving existing hunks under exclusive ownership is consistent with project rules. Backend diff remained the original 26 lines. Assignment closed, no Peer write ownership remains; Lead takes the implementation scope. No downstream work depends on that response.
+
 ### Three.js study room — TECHNICALLY ACCEPTED (06/10/2026)
 
 Lead owns the renderer, scene/session/player integration, local evidence and technical disposition; no Peer owns a moving write scope. Replace the existing presentation-only scene with an original fantasy observatory, retaining existing membership/presence, timer/accounting, identity-derived looks and participant details. No shared seat claiming, saved customization, group association, gestures/events or backend changes. Music opens a focus-safe dialog with a single persistent player; selection remains room-owned, playback device-local and Next explicitly joined-owner-only. Acceptance requires current 3D and fallback renders, desktop/tablet/narrow/short layouts, music open/close stability and recovery, participant keyboard access, reduced motion, cleanup/hidden rendering bounds, existing behavior checks and required build/lint. Synthetic evidence is not live media/multiuser proof; product/design approval remains open.
@@ -95,15 +191,15 @@ Performance/resource limits: lazy room chunk is approximately 547.07kB minified 
 
 Usable downstream path: discovery → explicit room preview/join → shared timer/3D characters and accessible details → header/TV/now-playing Music dialog → independent local controls and authorized explicit Next. Open/close does not recreate the iframe; absent WebGL retains participants/timer/music and retry. No saved appearance, authoritative seat choice, free roaming, shared gestures or Daily-group integration was added. Product/design evaluation can now use the current screenshots; no deployment is authorized.
 
-The Daily alignment correction below is deferred, **unfinished and unaccepted**. Its last focused browser run `/tmp/daily-ux-ynEwwE` passed direct empty desktop composition checks but timed out entering Home; same-document Home → Daily proof remains missing. Lead retains ownership and will return after the room increment or a priority change. Preserve those implementation bytes; no room success closes Daily acceptance.
+At the room checkpoint, the Daily alignment correction below was deferred, **unfinished and unaccepted**. Its then-latest focused browser run `/tmp/daily-ux-ynEwwE` passed direct empty desktop composition checks but timed out entering Home. Room success did not close Daily acceptance; the resumed Daily section above owns the subsequent implementation/evidence/disposition.
 
-### Daily alignment and route-style isolation — ACTIVE (06/10/2026)
+### Daily alignment and route-style isolation — TECHNICALLY ACCEPTED above (06/10/2026)
 
 Lead owns this bounded correction; no Peer is dispatched. The previous Daily technical acceptance did not establish consistent cross-route composition: populated direct-entry captures omitted empty tasks/groups and Home → Daily stylesheet persistence. Fresh reconciliation at `/tmp/daily-ux-OhNNor` reproduced a 1px/14px outer frame after Home while direct entry had no frame, using the same Daily source bytes. The owning Home stylesheet and Daily reused the global `.study-notebook` class. Prior claims of consistently resolved alignment are superseded by this finding; functional checks remain evidence only for their tested paths. Product/design approval remains open.
 
 Direction: give Home its own `.home-study-notebook` root without changing its notebook values; keep Daily as a flat page canvas with aligned header/work/reflection edges, not compensating root padding. Local area links show Cá nhân/Nhóm with preserved full accessible names/routes; only Daily routes use generic Góc học tập shell context so the primary title is not repeated in the topbar. Empty tasks omit zero/N/A progress but retain direct Add, reflection, empty-plan Save and separate Submit. Group invitation states become direct: pending/loading/error before the group list, quiet empty status after it; accept/decline and explicit consent remain unchanged. Existing tokens, motion, role guards, date/deep-link selection and draft behavior remain.
 
-Acceptance requires direct and same-document Home → Daily renders for empty/populated day/group screens at desktop/tablet/mobile/short widths and relevant light/dark modes, computed alignment and identity checks rather than overflow alone, Home appearance/keyboard and unrelated shell regression checks, empty Save/Submit and invitation state/action checks, existing Daily behavior plus required local web verification. The expanded Daily browser manifest includes Home/shared-shell/base styles; synthetic API/auth evidence is not real-backend proof. No backend/API/schema/dependency or study-room implementation scope is reopened. No commits, push, merge, deployment, remote installation or external effects.
+Acceptance requires direct and same-document Home → Daily renders for empty/populated day/group screens at desktop/tablet/mobile/short widths and relevant light/dark modes, computed alignment and identity checks rather than overflow alone, Home appearance/keyboard and unrelated shell regression checks, empty Save/Submit and invitation state/action checks, existing Daily behavior plus required local web verification. The expanded Daily browser manifest includes Home/shared-shell/base styles; synthetic API/auth evidence is not real-backend proof. This alignment correction does not itself reopen backend/dependency/study-room scope; the separate immediate-task/neutral-evidence increment above owns its necessary API/V23 changes. Scoped local Daily staging/commit is authorized after bounded technical acceptance, preserving the earlier room/navigation commit; no push, merge, deployment, remote installation or external effects.
 
 ### Scoped study-room visual corrections — TECHNICALLY ACCEPTED (05/10/2026)
 

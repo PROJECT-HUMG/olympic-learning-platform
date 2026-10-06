@@ -142,6 +142,22 @@ class EvidenceIntegrationTest {
   }
 
   @Test
+  void neutralFilesCoexistWithLegacyEvidenceAndPreserveOriginalBytes() {
+    var before = daily.getPlan(DATE);
+    var legacy = file();
+    var neutral = evidence.createFile(planId, taskId, EvidenceStage.GENERAL,
+        new MockMultipartFile("file", "work.txt", "text/plain", BYTES));
+    assertThat(neutral.stage()).isEqualTo(EvidenceStage.GENERAL);
+    assertThat(evidence.list(planId, taskId, null)).extracting(item -> item.stage())
+        .contains(EvidenceStage.START, EvidenceStage.GENERAL);
+    assertThat(evidence.download(planId, taskId, legacy.id(), null).content()).containsExactly(BYTES);
+    assertThat(evidence.download(planId, taskId, neutral.id(), null).content()).containsExactly(BYTES);
+    assertThat(daily.getPlan(DATE)).isEqualTo(before);
+    actors.id.set(ADMIN);
+    expect(ErrorCode.ACCESS_DENIED, () -> evidence.download(planId, taskId, neutral.id(), null));
+  }
+
+  @Test
   void currentGroupOffDeselectionAndEitherMembershipLossRevokeOldMetadataAndBytes() {
     var item = file();
     actors.id.set(VIEWER);

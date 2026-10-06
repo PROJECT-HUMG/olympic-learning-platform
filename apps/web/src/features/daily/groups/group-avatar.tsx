@@ -1,3 +1,4 @@
+import { useDailyConfirm } from "../ui/use-daily-confirm";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AvatarCropDialog } from "@/features/user/components/avatar-crop-dialog";
@@ -40,6 +41,7 @@ interface Selection { file: File | null; url: string; crop?: AvatarCrop; avatarI
 export function GroupAvatarEditor({ group, refresh }: { group: GroupSummary; refresh: () => Promise<unknown> }) {
   const input = useRef<HTMLInputElement>(null);
   const actionRef = useRef<HTMLButtonElement>(null);
+  const { confirm, confirmation } = useDailyConfirm();
   const action = useGroupAction();
   const [revision, setRevision] = useState(0);
   const savedUrl = useGroupImage(group, revision);
@@ -77,6 +79,7 @@ export function GroupAvatarEditor({ group, refresh }: { group: GroupSummary; ref
     });
   }
   return <StudyDisclosure title="Ảnh đại diện nhóm" description="Chỉ chủ nhóm được đổi ảnh. Dùng cùng cách chọn khung với hồ sơ cá nhân; ảnh gốc được giữ nguyên.">
+    {confirmation}
     <div className="study-group-avatar-editor">
       <span className="study-group-avatar-editor__image">
         {preview ? <AvatarImage src={preview.url} crop={preview.crop} alt="Ảnh nhóm đang xem trước" />
@@ -96,8 +99,8 @@ export function GroupAvatarEditor({ group, refresh }: { group: GroupSummary; ref
             {savedUrl ? <Button type="button" variant="outline" disabled={action.busy} onClick={editCrop}>Chỉnh khung</Button> : null}
             {group.avatar ? <>
               <Button type="button" variant="ghost" disabled={action.busy} onClick={() => setRevision(value => value + 1)}>Tải lại ảnh</Button>
-              <Button type="button" variant="outline" disabled={action.busy} onClick={() => {
-                if (!group.avatar || !window.confirm("Xóa ảnh đại diện nhóm? Ảnh cá nhân và Daily không thay đổi.")) return;
+              <Button type="button" variant="outline" disabled={action.busy} onClick={async () => {
+                if (!group.avatar || !await confirm("Xóa ảnh đại diện nhóm? Ảnh cá nhân và Daily không thay đổi.")) return;
                 const id = group.avatar.id;
                 void action.run(async signal => { await groupService.removeAvatar(group.id, id, signal); if (!signal.aborted) await refresh(); return "Đã xóa ảnh nhóm."; });
               }}>Xóa ảnh nhóm</Button>

@@ -289,7 +289,11 @@ it("keeps the service boundary typed and the screens inside Daily", () => {
   assert.ok(planEditor.indexOf('draft.begin(operation)') < planEditor.indexOf("await plan.refetch()"));
   assert.equal(weekEditor.includes("weeklyFigures"), false);
   assert.equal(weekEditor.includes("nonemptyDays"), false);
-  assert.equal(weekEditor.includes("formatWeekSummary"), true);
+  for (const field of ["plannedDays", "onTimeDays", "completionRate", "mustCompleted", "mustTotal", "mustRate"]) {
+    const studyUi = readFileSync(new URL("../src/features/daily/ui/study-notebook.tsx", import.meta.url), "utf8");
+    assert.equal(weekEditor.includes("<StudyWeekStats {...week.data}"), true);
+    assert.equal(studyUi.includes(field), true, `Shared weekly statistics must retain ${field}`);
+  }
   assert.equal(weekEditor.includes("shouldApplyServerDaily"), true);
   assert.equal(weekEditor.includes("dailyDraftFailure"), true);
   assert.equal(weekEditor.includes("useDailyDraftLeave"), true);
@@ -301,6 +305,8 @@ it("keeps the service boundary typed and the screens inside Daily", () => {
   assert.ok(weekSave.indexOf('draft.finish("save"') < weekSave.indexOf("setForm(editorFromWeek(saved))"));
   assert.ok(weekEditor.indexOf('draft.begin(operation)') < weekEditor.indexOf("await week.refetch()"));
   assert.equal(session.includes("useBlocker"), true);
+  assert.equal(session.includes("resolved.current === blocker"), true);
+  assert.equal(session.includes("resolved.current = blocker; blocker.reset()"), true);
   assert.equal(session.includes("beforeunload"), true);
   assert.equal(session.includes("beginDailyOperation"), true);
   assert.equal(session.includes("isDailyAccountLeave"), true);

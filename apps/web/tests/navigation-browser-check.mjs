@@ -140,9 +140,13 @@ try {
     await viewport(390, 844);
     assert.ok(await js("[...document.querySelectorAll('.shell-menu-trigger__label')].some(e=>e.textContent==='Menu'&&getComputedStyle(e).display!=='none')"));
     checks.push('visible mobile Menu label retained');
+    await js("[...document.querySelectorAll('button')].find(b=>b.textContent==='Nhìn lại ngày').click()");await wait("!!document.querySelector('#daily-tomorrow')");
     await js("(()=>{const e=document.querySelector('#daily-tomorrow');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,'Keep this draft');e.dispatchEvent(new Event('input',{bubbles:true}))})()");
+    await key('Escape','Escape',27);await wait("!document.querySelector('.daily-reflection-dialog')");
     await openMenu(); await js("document.querySelector('[data-slot=sheet-content] a[href=\"/documents\"]').click()");
-    await wait("!document.querySelector('[data-slot=sheet-content]')"); assert.equal(await js('location.pathname'), '/daily'); assert.equal(await js("document.querySelector('#daily-tomorrow').value"), 'Keep this draft');
+    await wait("!document.querySelector('[data-slot=sheet-content]')"); assert.equal(await js('location.pathname'), '/daily');
+    await js("[...document.querySelectorAll('button')].find(b=>b.textContent==='Nhìn lại ngày').click()");await wait("!!document.querySelector('#daily-tomorrow')");
+    assert.equal(await js("document.querySelector('#daily-tomorrow').value"), 'Keep this draft');await key('Escape','Escape',27);await wait("!document.querySelector('.daily-reflection-dialog')");
     checks.push('drawer navigation honors existing Daily draft blocker');
     await navigate('/dashboard');
     await js("document.querySelector('[aria-label=\"Mở menu tài khoản\"]').focus()"); await key('Enter', 'Enter', 13); await wait("!!document.querySelector('[role=menu]')"); await shot('account-menu-mobile'); await key('Escape', 'Escape', 27); await wait("!document.querySelector('[role=menu]')"); assert.equal(await js("document.activeElement.getAttribute('aria-label')"), 'Mở menu tài khoản');

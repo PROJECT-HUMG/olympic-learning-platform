@@ -58,7 +58,7 @@ public class EvidenceController {
   public ResponseEntity<EvidenceMetadataResponse> file(
       @PathVariable UUID planId,
       @PathVariable UUID taskId,
-      @RequestParam EvidenceStage stage,
+      @RequestParam(defaultValue = "GENERAL") EvidenceStage stage,
       @RequestPart MultipartFile file) {
     return ResponseEntity.status(HttpStatus.CREATED)
         .cacheControl(CacheControl.noStore())

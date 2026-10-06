@@ -237,6 +237,10 @@ export function alignedDailyWeek(week: DailyWeek, weekStart: string): DailyWeek 
 }
 
 /** Typed account and civil date, checked before a plan request is sent. */
+export function requireDailyAccount(accountId: string): void {
+  if (!uuid(accountId)) throw new Error(DAILY_CONTRACT);
+}
+
 export function requireDailyAccountDate(accountId: string, date: string): void {
   if (!uuid(accountId) || !parsePlatformDate(date)) throw new Error(DAILY_CONTRACT);
 }

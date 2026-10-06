@@ -73,6 +73,9 @@ export function useDailyDraftLeave(session: { readonly current: DailyEditorSessi
       nextKey: nextLocation.pathname + nextLocation.search,
     });
   });
+  // Router state changes synchronously; an already scheduled React effect may still
+  // hold the old blocked object after Stay/Proceed. Consume each request only once.
+  const resolved = useRef<typeof blocker | null>(null);
   useEffect(() => {
     function onUnload(event: BeforeUnloadEvent) {
       const current = session.current;
@@ -84,7 +87,7 @@ export function useDailyDraftLeave(session: { readonly current: DailyEditorSessi
     return () => window.removeEventListener("beforeunload", onUnload);
   }, [session]);
   useEffect(() => {
-    if (blocker.state !== "blocked") return;
+    if (blocker.state !== "blocked" || resolved.current === blocker) return;
     const current = session.current;
     if (dailyLeaveBlocked({
       dirty: current.dirty,
@@ -92,7 +95,16 @@ export function useDailyDraftLeave(session: { readonly current: DailyEditorSessi
       busy: current.gate.operation !== "idle",
       accountLeave: isDailyAccountLeave(blocker.location.pathname, ACCOUNT_LEAVE),
     })) return;
+    resolved.current = blocker;
     blocker.proceed();
   }, [blocker, session, snapshot]);
-  return blocker;
+  return blocker.state === "blocked" ? {
+    ...blocker,
+    reset: () => { resolved.current = blocker; blocker.reset(); },
+    proceed: () => {
+      if (resolved.current === blocker) return;
+      resolved.current = blocker;
+      blocker.proceed();
+    },
+  } : blocker;
 }

@@ -1,5 +1,6 @@
 package me.nghlong3004.olympic.daily.service.impl;
 
+import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
@@ -26,6 +27,7 @@ import me.nghlong3004.olympic.daily.mapper.DailyMapper;
 import me.nghlong3004.olympic.daily.repository.DailyPlanRepository;
 import me.nghlong3004.olympic.daily.repository.DailyWeeklyReviewRepository;
 import me.nghlong3004.olympic.daily.request.DailyTaskRequest;
+import me.nghlong3004.olympic.daily.request.AddDailyTaskRequest;
 import me.nghlong3004.olympic.daily.request.SaveDailyPlanRequest;
 import me.nghlong3004.olympic.daily.request.SaveDailyWeekRequest;
 import me.nghlong3004.olympic.daily.response.DailyPlanResponse;
@@ -55,6 +57,77 @@ public class DailyServiceImpl implements DailyService {
   private final DailyWeeklyReviewRepository weeks;
   private final DailyMapper mapper;
   private final Clock clock;
+  private final EntityManager entityManager;
+
+  @Override
+  @Transactional
+  public DailyPlanResponse addTask(LocalDate date, AddDailyTaskRequest request) {
+    var owner = actor();
+    var planDate = requireDate(date);
+    if (request == null || request.taskId() == null || request.priority() == null
+        || request.status() == null || !StringUtils.hasText(request.title())
+        || request.title().length() > 200
+        || request.expectedVersion() != null && request.expectedVersion() < 0) {
+      throw ErrorCode.VALIDATION_ERROR.throwIt("A valid task identity, title, priority and status are required");
+    }
+    var existing = plans.findForUpdateByOwnerIdAndPlanDate(owner.getId(), planDate);
+    var plan = existing.orElseGet(DailyPlan::new);
+    var title = request.title().trim();
+    var repeated = plan.getTasks().stream().filter(task -> request.taskId().equals(task.getId())).findFirst();
+    if (repeated.isPresent()) {
+      var task = repeated.get();
+      Long retryVersion = request.expectedVersion() == null ? 0L : request.expectedVersion() + 1;
+      if (retryVersion.equals(plan.getVersion()) && task.getTitle().equals(title)
+          && task.getPriority() == request.priority() && task.getStatus() == request.status()) {
+        return planResponse(plan);
+      }
+      throw ErrorCode.RESOURCE_STATE_CONFLICT.throwIt("The task or plan changed after this add operation");
+    }
+    if (existing.isPresent() && (request.expectedVersion() == null
+        || !request.expectedVersion().equals(plan.getVersion()))) {
+      throw ErrorCode.RESOURCE_STATE_CONFLICT.throwIt("Reload the plan before adding a task");
+    }
+    if (existing.isEmpty() && request.expectedVersion() != null) {
+      throw ErrorCode.RESOURCE_STATE_CONFLICT.throwIt("Reload the plan before adding a task");
+    }
+    if (plans.taskIdExists(request.taskId())) {
+      throw ErrorCode.RESOURCE_STATE_CONFLICT.throwIt("Task identity is already in use");
+    }
+    if (plan.getTasks().size() >= MAX_TASKS) {
+      throw ErrorCode.VALIDATION_ERROR.throwIt("A plan has at most 50 tasks");
+    }
+    var stamp = now();
+    if (existing.isEmpty()) {
+      plan.setId(UUID.randomUUID());
+      plan.setOwnerId(owner.getId());
+      plan.setPlanDate(planDate);
+      plan.setCreatedAt(stamp);
+      plan.setUpdatedAt(stamp);
+    } else {
+      plan.setUpdatedAt(monotonic(plan.getUpdatedAt(), stamp));
+    }
+    var task = new DailyTask();
+    task.setId(request.taskId());
+    task.setPlan(plan);
+    task.setPosition(plan.getTasks().size());
+    task.setTitle(title);
+    task.setPriority(request.priority());
+    task.setStatus(request.status());
+    plan.getTasks().add(task);
+    try {
+      // Explicit persist prevents merge from ever copying a colliding client UUID
+      // onto a task belonging to another plan. Managed parents keep their version.
+      if (existing.isEmpty()) entityManager.persist(plan);
+      else entityManager.persist(task);
+      plans.flush();
+    } catch (DataIntegrityViolationException exception) {
+      // A concurrent initial insert or global UUID collision is a retryable conflict,
+      // not permission to overwrite either plan. This transaction is rolled back.
+      throw ErrorCode.RESOURCE_STATE_CONFLICT.throwIt("Plan changed while adding; check the saved plan before retrying");
+    }
+    log.info("Daily task appended: planId={}, taskId={}", plan.getId(), task.getId());
+    return planResponse(plan);
+  }
 
   @Override
   @Transactional(readOnly = true)
@@ -336,5 +409,12 @@ public class DailyServiceImpl implements DailyService {
     if (message != null && message.contains(constraint))
       return ErrorCode.DUPLICATE_RESOURCE.throwIt(detail);
     return exception;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<LocalDate> getPlanDates() {
+    var owner = actor();
+    return plans.findDistinctPlanDatesByOwnerId(owner.getId());
   }
 }

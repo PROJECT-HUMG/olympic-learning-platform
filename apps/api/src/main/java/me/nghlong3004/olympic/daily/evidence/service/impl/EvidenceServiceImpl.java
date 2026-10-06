@@ -190,7 +190,7 @@ public class EvidenceServiceImpl implements EvidenceService {
   }
 
   private static void requireStage(EvidenceStage stage) {
-    if (stage == null) throw invalid("START or FINISH stage is required");
+    if (stage == null) throw invalid("A valid evidence stage is required");
   }
 
   private static String requireUrl(String value) {

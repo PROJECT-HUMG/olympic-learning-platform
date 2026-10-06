@@ -5,6 +5,7 @@ package me.nghlong3004.olympic.daily.evidence.enums;
  * @since 10/4/2026
  */
 public enum EvidenceStage {
+  GENERAL,
   START,
   FINISH
 }

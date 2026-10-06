@@ -30,7 +30,7 @@ export function DailyWeekPage() {
     const next = new URLSearchParams(current);
     next.set("weekStart", weekStart);
     return next;
-  })} />;
+  }, { state: { studyDateFocus: true } })} />;
 }
 
 function DailyWeekScreen({ weekStart, onWeek }: { weekStart: string; onWeek: (weekStart: string) => void }) {

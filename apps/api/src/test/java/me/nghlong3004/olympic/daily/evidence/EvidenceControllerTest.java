@@ -117,6 +117,17 @@ class EvidenceControllerTest {
   }
 
   @Test
+  void fileUploadDefaultsToNeutralStageWithoutRemovingLegacyStages() throws Exception {
+    when(service.createFile(eq(PLAN), eq(TASK), eq(EvidenceStage.GENERAL), any())).thenReturn(
+        new EvidenceMetadataResponse(ITEM, PLAN, TASK, EvidenceStage.GENERAL, EvidenceKind.FILE,
+            "notes.txt", "text/plain", 3L, null, null, CREATED));
+    mvc.perform(multipart(ROOT).file(new MockMultipartFile("file", "notes.txt", "text/plain", new byte[]{1, 2, 3}))
+        .header("Authorization", "Bearer owner-token"))
+        .andExpect(status().isCreated()).andExpect(header().string("Cache-Control", "no-store"))
+        .andExpect(jsonPath("$.stage").value("GENERAL"));
+  }
+
+  @Test
   void anonymousEvidenceDoesNotReachServiceAndIsNotCached() throws Exception {
     mvc.perform(get(ROOT)).andExpect(status().isUnauthorized()).andExpect(header().string("Cache-Control", "no-store"));
     mvc.perform(get(ROOT + "/" + ITEM + "/bytes")).andExpect(status().isUnauthorized());

@@ -1,4 +1,6 @@
 import { apiClient } from "@/lib/axios";
+import { parsePlatformDate } from "../lib/platform-calendar";
+import type { AddDailyTaskBody } from "../lib/plan-editor";
 import {
   DAILY_CONTRACT,
   alignedDailyPlan,
@@ -7,6 +9,7 @@ import {
   readDailyPlan,
   readDailyWeek,
   requireDailyAccountDate,
+  requireDailyAccount,
   requireDailySubmitTarget,
   requireDailyWeekRequest,
   type SaveDailyPlanBody,
@@ -28,6 +31,13 @@ function weekFromResponse(data: unknown, weekStart: string) {
 }
 
 export const dailyService = {
+  async addTask(accountId: string, date: string, body: AddDailyTaskBody) {
+    requireDailyAccountDate(accountId, date);
+    const response = await apiClient.post("/daily/plans/tasks", body, { params: { date } });
+    const plan = planFromResponse(response.data, accountId, date);
+    if (!plan.tasks.some(task => task.id === body.taskId && task.title === body.title && task.priority === body.priority && task.status === body.status)) throw new Error(DAILY_CONTRACT);
+    return plan;
+  },
   async getPlan(accountId: string, date: string) {
     requireDailyAccountDate(accountId, date);
     try {
@@ -62,5 +72,12 @@ export const dailyService = {
     requireDailyWeekRequest(accountId, weekStart);
     const response = await apiClient.put("/daily/weeks", body, { params: { weekStart } });
     return weekFromResponse(response.data, weekStart);
+  },
+
+  async getPlanDates(accountId: string, signal?: AbortSignal) {
+    requireDailyAccount(accountId);
+    const response = await apiClient.get<unknown>("/daily/plans/dates", { signal });
+    if (!Array.isArray(response.data) || !response.data.every(date => typeof date === "string" && parsePlatformDate(date))) throw new Error(DAILY_CONTRACT);
+    return response.data as string[];
   },
 };
