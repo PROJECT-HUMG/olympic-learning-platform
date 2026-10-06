@@ -68,6 +68,17 @@ export function editorFromPlan(plan: DailyPlan): PlanEditor {
   };
 }
 
+/** A completed batch acknowledges its version, never overwriting later local edits. */
+export function rebaseSyncedPlan(current: PlanEditor, saved: DailyPlan): PlanEditor {
+  if (current.planDate !== saved.planDate || (current.id !== null && current.id !== saved.id)) throw new Error("Không xác nhận được bản đã đồng bộ.");
+  return { ...current, id: saved.id, version: saved.version, firstSubmittedAt: saved.firstSubmittedAt, onTime: saved.onTime };
+}
+
+export function rebaseSyncedWeek(current: WeekEditor, saved: DailyWeek): WeekEditor {
+  if (current.weekStart !== saved.weekStart || (current.id !== null && current.id !== saved.id)) throw new Error("Không xác nhận được tuần đã đồng bộ.");
+  return { ...current, id: saved.id, version: saved.version };
+}
+
 export function emptyWeekEditor(weekStart: string): WeekEditor {
   return { id: null, version: null, weekStart, recurringUnfinished: "", issues: "", reflection: "", nextWeekChanges: "" };
 }
@@ -122,8 +133,8 @@ export function weekSaveBody(editor: WeekEditor): SaveReady<SaveDailyWeekBody> {
   };
 }
 
-export function submitAllowed(state: { dirty: boolean; planId: string | null; busy: boolean }): boolean {
-  return !state.dirty && state.planId !== null && !state.busy;
+export function submitAllowed(state: { dirty: boolean; planId: string | null; busy: boolean; allowEmpty?: boolean }): boolean {
+  return !state.dirty && (state.planId !== null || state.allowEmpty === true) && !state.busy;
 }
 
 export function shouldApplyServerDaily(state: { dirty: boolean; conflict: boolean; busy?: boolean }): boolean {

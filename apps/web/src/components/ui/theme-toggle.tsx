@@ -4,7 +4,7 @@ import { useThemeStore } from "@/stores/use-theme-store";
 import { cn } from "@/lib/utils";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   const setTheme = useThemeStore((state) => state.setTheme);
   const theme = useResolvedTheme();
 
@@ -22,7 +22,7 @@ export function ThemeToggle() {
       aria-label="Đổi giao diện"
       aria-pressed={theme === "dark"}
       title={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"}
-      className="size-11 rounded-full relative overflow-hidden group border-border/80 shadow-xs"
+      className={cn("size-11 rounded-full relative overflow-hidden group border-border/80 shadow-xs", className)}
     >
       <Icon 
         key={theme} 

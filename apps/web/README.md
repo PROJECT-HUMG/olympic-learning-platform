@@ -101,11 +101,11 @@ Override `NAV_WEB_URL` or `NAV_CHROME_PATH` for a different local Vite/installed
 
 Daily UI hierarchy: `/daily` opens today's editor using the existing UTC+7 civil-date contract; the entry date stays fixed during edits/refetches, including across midnight. Explicit `?date=YYYY-MM-DD` and intentional selections are retained; invalid explicit dates never silently become today. Saved-week history is at `/daily?view=history` (existing `?week=` links still work). Day/week/group/shared screens use one click-open calendar with arrow/Home/End/Page Up/Down navigation, a date jump, Today and contextual day/week/history access. Dirty, busy or conflicting edits block date/navigation changes; sharing and feedback offer explicit Stay/discard choices, never implicit discard.
 
-Daily is a flat task-led work surface with no enclosing Home notebook frame, including after same-document Home navigation. Header/status/task headings share an edge; empty days omit zero/N/A progress while retaining Add, empty-plan Save, separate Submit and reflection. The shell uses Góc học tập context instead of repeating the primary page title. Group invitations distinguish pending/loading/error/empty without a large second empty panel. Save/Submit and first-submission status remain accessible; completion/title/priority stay direct and reorder/delete remain in the task menu.
+Daily is a flat task-led work surface with no enclosing Home notebook frame, including after same-document Home navigation. Header/status/task headings share an edge; empty days omit zero/N/A progress while retaining Add, explicit empty Submit and reflection. Merely visiting creates no empty plan. The shell uses Góc học tập context instead of repeating the primary page title. Group invitations distinguish pending/loading/error/empty without a large second empty panel. Synchronization state, explicit Submit and first-submission status remain accessible; completion/title/priority stay direct and reorder/delete remain in the task menu.
 
-Confirming “Thêm và lưu việc” immediately persists just that task through the versioned append endpoint. Cancel does not persist. Pending disables dismissal, failure retains the input/stable retry UUID, and unrelated local edits remain unsaved. Existing edits/deletions still use Save; Submit alone records first submission. Adding to an already-submitted plan preserves its original submission stamp. Each task has a unified completion/title/priority/menu/upload header and an associated evidence-card ribbon below, not a reserved right-hand column; evidence-free rows remain compact. Tablet/mobile wrap controls deliberately. File-only evidence uses a custom shadcn dialog, neutral GENERAL stage, two private raster previews plus +N and an all-items gallery. Other files have truthful file cards; legacy before/after records and links remain accessible, without offering new manual URL entry. Uploads do not save the plan or enable sharing. Private byte URLs are aborted/revoked on scope change/unmount; original authorized downloads remain available.
+Confirming “Thêm và lưu việc” immediately persists just that task through the versioned append endpoint. Cancel does not persist. Pending disables dismissal and failure retains the input/stable retry UUID. Other task/title/priority/completion/order and day/week reflection edits auto-sync after an 800 ms pause; the Add dialog pauses that batching until closed. There is no manual draft Save. Fields stay editable during an automatic request; newer edits survive its response and use the acknowledged version for the next batch. Pending/saved/error/retry are visible. Invalid intermediate values stay local; connection errors stop automatic retries, and 409 conflicts require a confirmed reload rather than overwriting another device. Navigation/unload guards protect genuinely unsynchronized edits. Task deletion has an explicit confirmation warning that associated evidence records are removed. Submit alone records first submission; adding/editing an already-submitted plan preserves its original stamp. Each task has a unified completion/title/priority/menu/upload header and an associated evidence-card ribbon below, not a reserved right-hand column; evidence-free rows remain compact. Tablet/mobile wrap controls deliberately. File-only evidence uses a custom shadcn dialog, neutral GENERAL stage, two private raster previews plus +N and an all-items gallery. Other files have truthful file cards; legacy before/after records and links remain accessible, without offering new manual URL entry. Uploads do not submit or enable sharing. Private byte URLs are aborted/revoked on scope change/unmount; original authorized downloads remain available.
 
-“Nhìn lại ngày” opens a custom shadcn dialog with the existing three questions and completed/pending task context from the current draft. Closing retains unsaved fields; its Save explicitly saves the whole current plan/reflection without submitting. Today's reflection countdown is **not implemented pending a product target**: existing rules specify only the 07:30 first-submission cutoff, not a reflection deadline. Past days have no misleading today countdown, and reflection remains open at any time. Changed Daily confirmations use shadcn AlertDialog; the browser-required tab-unload warning is retained. Group member summaries, on-demand calendar history, weekly reflection/statistics, identified feedback and explicit sharing consent/revocation remain. Motion follows OS preference. Technical acceptance is separate from product/design approval; see the current audit.
+“Nhìn lại ngày” opens a custom shadcn dialog with the existing three questions and completed/pending task context. Closing retains edits and auto-sync continues; the dialog shows the same synchronization/error/retry state as the page. Today's reflection countdown is **not implemented pending a product target**: existing rules specify only the 07:30 first-submission cutoff, not a reflection deadline. Past days have no misleading today countdown, and reflection remains open at any time. Changed Daily confirmations use shadcn AlertDialog; the browser-required tab-unload warning is retained. Group member summaries, on-demand calendar history, weekly reflection/statistics, identified feedback publication and explicit sharing consent/revocation remain. Publishing feedback/sharing is not silently automated. Motion follows OS preference. Technical acceptance is separate from product/design approval; see the current audit.
 
 Current rendered checks with **synthetic API responses**, not backend/auth/privacy persistence acceptance:
 
@@ -125,13 +125,44 @@ For actual local persistence/private bytes, explicitly start the opt-in **dispos
 DAILY_HTTP_HARNESS=disposable node tests/daily-persistence-http-browser-check.mjs
 ```
 
-This uses production Daily/evidence services and disposable PostgreSQL, checks immediate Add without Save, unrelated drafts, full-reload persistence, original bytes and foreign-account denial. The harness uses fixture identities and adapts refresh requests to its fixture login endpoint; it does not prove production cookie/token/provider behavior. A fresh `DAILY_HTTP_DATE=YYYY-MM-DD` allows another run without clearing existing rows; the runner refuses an existing plan. No live API/account is authorized. Older HTTP screenshots do not validate the current layout.
+This uses production Daily/evidence services and disposable PostgreSQL, checks immediate Add, automatic task/reflection/weekly persistence and full-reload reopen, original bytes and foreign-account denial. The harness uses fixture identities and adapts refresh requests to its fixture login endpoint; it does not prove production cookie/token/provider behavior. A fresh `DAILY_HTTP_DATE=YYYY-MM-DD` allows another run without clearing existing rows; the runner refuses an existing plan. No live API/account is authorized. Older HTTP screenshots do not validate the current layout.
+
+Automatic persistence regression runner (local built preview is supported):
+
+```bash
+DAILY_WEB_URL=http://127.0.0.1:3001 node tests/daily-auto-sync-browser-check.mjs
+```
+
+It blocks external traffic and uses deterministic versioned API fixtures to cover batching, in-flight edits, validation, failure/retry, lost-success response/409 protection, confirmed reload/deletion, day/week/reflection reopen, explicit empty Submit, desktop/tablet/narrow/short and light/dark screenshots. Results/source manifests are written under `/tmp/daily-auto-sync-*`; these fixtures are not SQL or production authorization proof. The older `daily-http-browser-check.mjs`, `daily-group-http-browser-check.mjs` and `daily-evidence-http-browser-check.mjs` retain pre-immediate-Add/manual-save assumptions and are historical, not current auto-sync acceptance runners. Use the current persistence and UI runners above.
 
 ```bash
 pnpm build
 pnpm lint
 pnpm preview
 ```
+
+### Native scrolling and application prompt checks
+
+Page/panel/dialog/gallery scrollers share token-based native scrollbar colors;
+forced-colors uses browser defaults. The mounted post editor's link entry uses a
+shadcn dialog with selection retention, validation and cancel/focus return. Native
+file pickers, permissions/security prompts and Daily tab-unload protection remain.
+
+```bash
+# Local Chromium + intercepted synthetic APIs, external traffic blocked.
+node tests/scroll-dialog-browser-check.mjs
+# Type-aware inventory, including aliases and indexed browser globals.
+node --test --test-isolation=none tests/native-prompts.test.ts
+# Focused Daily interaction regressions; works with dev or local built preview.
+DAILY_CHECK_SCOPE=interactions node tests/daily-ux-browser-check.mjs
+```
+
+The browser check writes source hashes, screenshots and results to
+`/tmp/scroll-dialog-*`. It exercises light/dark desktop/tablet/narrow/short dialogs,
+link confirm/cancel/validation and parent-form isolation, destructive confirmation,
+native wheel/keyboard and emulated touch scrolling, forced-colors and OS reduced
+motion. This is frontend evidence, not production auth/persistence or real-device
+proof. Existing Daily/navigation/player browser checks remain relevant regressions.
 
 `pnpm build` gồm kiểm tra TypeScript và bundle Vite. Xem [AGENTS.md](AGENTS.md) trước khi sửa web; giữ responsive, dark mode, keyboard focus và reduced motion khi chỉnh UI.
 

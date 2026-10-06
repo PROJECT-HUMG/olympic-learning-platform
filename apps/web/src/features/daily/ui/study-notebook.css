@@ -66,9 +66,13 @@
 .study-task__main > input:hover { border-color: var(--border); }
 .study-task__main > input:focus-visible { border-color: var(--ring); background: var(--background); }
 .study-task__complete { display: inline-flex; align-items: center; justify-content: center; width: 44px; min-height: 44px; cursor: pointer; border-radius: .5rem; }
-.study-task__complete:hover { background: var(--muted); }
-.study-task__complete input, .study-selection input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
-.study-task__complete:has(input:focus-visible) { outline: 2px solid var(--ring); outline-offset: -2px; }
+.study-task__complete:not([data-disabled="true"]):hover { background: var(--muted); }
+.study-task__complete[data-disabled="true"] { cursor: not-allowed; }
+.study-task__complete [data-slot="checkbox"] { width: 20px; height: 20px; cursor: pointer; box-shadow: none; }
+.study-task__complete [data-slot="checkbox"]:focus-visible { outline: none; }
+.study-task__complete [data-slot="checkbox"]:disabled { cursor: not-allowed; }
+.study-task__complete:has([data-slot="checkbox"]:focus-visible) { outline: 2px solid var(--ring); outline-offset: -2px; }
+.study-selection input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
 .study-task__controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding-inline-start: 52px; }
 .study-task__controls > label.sr-only { position: absolute; }
 .study-select { min-height: 44px; max-width: 100%; min-width: 0; border: 1px solid var(--border); border-radius: .5rem; background: var(--background); padding: .5rem .65rem; font-size: .8125rem; color: var(--foreground); }
@@ -302,4 +306,14 @@
   .daily-reflection-dialog { gap: .75rem; }
   .daily-reflection-context { padding-bottom: .75rem; }
   .daily-reflection-context ul { max-height: 88px; margin-top: .5rem; gap: .5rem; }
+}
+.daily-sync-status { min-width: 0; display: grid; gap: 8px; }
+.daily-sync-status > p:first-child { display: flex; align-items: center; gap: 8px; margin: 0; font-size: .875rem; font-weight: 600; }
+.daily-sync-status svg { flex: none; }
+.daily-sync-status[data-error="true"] > p:first-child { color: var(--destructive); }
+.daily-sync-status > button { justify-self: start; }
+.daily-reflection-dialog .daily-dialog-actions { display: grid; justify-content: stretch; gap: .375rem; }
+/* Leave editing space on short screens / when a mobile keyboard reduces height. */
+@media (max-height: 500px) {
+  .study-savebar { position: static; }
 }

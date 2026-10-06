@@ -36,7 +36,7 @@ export function PublicHeader({ cinematic = false }: { cinematic?: boolean }) {
           aria-current={active?.href === item.href ? "page" : undefined} className="public-header__link">{item.label}</Link>)}
       </nav>}
       <div className="public-header__actions">
-        {isTablet && <ThemeToggle />}
+        {isTablet && <ThemeToggle className="shell-icon-control" />}
         {(!user || isTablet) && <Button asChild className="public-header__cta" variant={user ? "outline" : "default"}>
           <Link to={user ? getDashboardRoute(user.role) : ROUTES.LOGIN} state={user ? undefined : loginState}>
             {user ? user.role === "STUDENT" ? "Góc học tập" : "Quản lý" : "Đăng nhập"}

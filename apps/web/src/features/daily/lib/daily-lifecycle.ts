@@ -1,4 +1,4 @@
-export type DailyOperationName = "save" | "submit" | "reload" | "retry";
+export type DailyOperationName = "autosync" | "save" | "submit" | "reload" | "retry";
 
 export interface DailyOperationGate {
   operation: "idle" | DailyOperationName;
@@ -19,10 +19,10 @@ export function beginDailyOperation(gate: DailyOperationGate, operation: DailyOp
   return { gate: { operation, revision: gate.revision }, revision: gate.revision };
 }
 
-/** Records a local edit. Edits during an operation are rejected and do not move the revision. */
+/** Only automatic persistence permits new edits; explicit transitions stay serialized. */
 export function noteDailyEdit(gate: DailyOperationGate): DailyOperationGate | null {
-  if (gate.operation !== "idle") return null;
-  return { operation: "idle", revision: gate.revision + 1 };
+  if (gate.operation !== "idle" && gate.operation !== "autosync") return null;
+  return { ...gate, revision: gate.revision + 1 };
 }
 
 /**

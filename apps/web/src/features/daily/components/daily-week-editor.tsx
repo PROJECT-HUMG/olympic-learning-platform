@@ -1,5 +1,5 @@
 import { useDailyConfirm } from "../ui/use-daily-confirm";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -8,15 +8,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { ROUTES } from "@/router/route-constants";
 import { DailyAccountWarning } from "./daily-account-gate";
 import { useDailyEditorSession, useDailyDraftLeave } from "../hooks/use-daily-editor";
+import { useDailyAutoSync } from "../hooks/use-daily-auto-sync";
+import { DailySyncStatus } from "../ui/daily-sync-status";
 import { useDailyWeek, useSaveDailyWeek } from "../hooks/use-daily";
-import { dailyErrorMessage, isDailyConflict } from "../lib/daily-contract";
+import { dailyErrorMessage } from "../lib/daily-contract";
 import { dailyDraftFailure, dailyLeaveBlocked, shouldApplyCompletedFetch } from "../lib/daily-lifecycle";
-import { editorFromWeek, emptyWeekEditor, shouldApplyServerDaily, weekSaveBody, type WeekEditor } from "../lib/plan-editor";
+import { editorFromWeek, emptyWeekEditor, rebaseSyncedWeek, shouldApplyServerDaily, weekSaveBody, type WeekEditor } from "../lib/plan-editor";
 import { parsePlatformDate, platformDateKey, weekDates } from "../lib/platform-calendar";
 import { StudyAreaNav, StudyDisclosure, StudyWeekStats } from "../ui/study-notebook";
 import { StudyDatePicker } from "../ui/study-date-picker";
 
-const DATE_GUARD = "Hãy lưu hoặc tải lại trước khi đổi ngày.";
+const DATE_GUARD = "Thay đổi chưa đồng bộ. Chờ đồng bộ xong hoặc xử lý lỗi trước khi đổi tuần.";
 
 export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onRetryAccount }: {
   userId: string;
@@ -31,8 +33,16 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
   const draft = useDailyEditorSession();
   const blocker = useDailyDraftLeave(draft.session, draft.snapshot);
   const [form, setForm] = useState<WeekEditor>(() => emptyWeekEditor(weekStart));
+  const formRef = useRef(form);
+  function replaceForm(next: WeekEditor) { formRef.current = next; setForm(next); }
   const [notice, setNotice] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const sync = useDailyAutoSync({
+    draft, ready, read: () => formRef.current, write: replaceForm,
+    validate: weekSaveBody, persist: body => saveWeek.mutateAsync(body),
+    replace: editorFromWeek, rebase: rebaseSyncedWeek,
+  });
+  const editingLocked = draft.busy && !sync.syncing;
 
   useEffect(() => {
     if (!week.isSuccess || !week.data || !shouldApplyServerDaily({
@@ -40,12 +50,14 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
       conflict: draft.session.current.conflict,
       busy: draft.session.current.gate.operation !== "idle",
     })) return;
-    setForm(editorFromWeek(week.data));
+    const next = editorFromWeek(week.data);
+    formRef.current = next;
+    setForm(next);
     setReady(true);
   }, [week.isSuccess, week.data, draft.session]);
 
   function edit(update: (current: WeekEditor) => WeekEditor) {
-    if (draft.edit(() => setForm(update))) setNotice(null);
+    if (draft.edit(() => replaceForm(update(formRef.current)))) setNotice(null);
   }
 
   function blocked() {
@@ -94,28 +106,10 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
       if (!draft.session.current.conflict) setNotice(null);
       return;
     }
-    setForm(editorFromWeek(result.data));
+    replaceForm(editorFromWeek(result.data));
+    sync.reset();
     setReady(true);
     setNotice(null);
-  }
-
-  async function save() {
-    const readyBody = weekSaveBody(form);
-    if (!readyBody.ok) {
-      setNotice(readyBody.message);
-      return;
-    }
-    const revision = draft.begin("save");
-    if (revision === null) return;
-    try {
-      const saved = await saveWeek.mutateAsync(readyBody.body);
-      if (!draft.finish("save", revision, "apply")) return;
-      setForm(editorFromWeek(saved));
-      setNotice("Đã lưu nhìn lại tuần.");
-    } catch (error) {
-      draft.finish("save", revision, "keep", isDailyConflict(error) ? true : undefined);
-      setNotice(dailyErrorMessage(error));
-    }
   }
 
   const failure = dailyDraftFailure({ ready, error: week.isError });
@@ -135,7 +129,7 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
       description="Nhận ra điều đã hiệu quả. Chọn điều chỉnh cho tuần tới."
       actions={
         <div className="study-toolbar">
-          <StudyDatePicker date={weekStart} onSelect={go} disabled={draft.busy} label="Chọn tuần">{chosen => <>
+          <StudyDatePicker date={weekStart} onSelect={go} disabled={draft.busy} label="Chọn tuần" blockedMessage={DATE_GUARD}>{chosen => <>
             <Link to={`${ROUTES.DAILY}?date=${chosen}`} onClick={guardNavigation}>Mở ngày trên lịch</Link>
             <Link to={`${ROUTES.DAILY}?view=history`} onClick={guardNavigation}>Các tuần đã lưu</Link>
           </>}</StudyDatePicker>
@@ -154,9 +148,9 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
       {(draft.dirty || draft.conflict) ? <Button type="button" variant="outline" disabled={draft.busy} onClick={async () => { if (!draft.dirty || await confirm("Thay bản đang nhập bằng nhìn lại tuần trên máy chủ?")) void fetchServer(true); }}>Tải bản trên máy chủ</Button> : null}
     </div> : null}
     <div className="study-week-workspace">
-    <form id="daily-week-form" className="study-work-surface" onSubmit={(event) => { event.preventDefault(); void save(); }}>
-      <fieldset disabled={draft.busy} className="m-0 min-w-0 border-0 p-0">
-        <StudyDisclosure id="week-review" title={draft.dirty ? "Nhìn lại tuần · Chưa lưu" : "Nhìn lại tuần"} defaultOpen>
+    <form id="daily-week-form" className="study-work-surface" onSubmit={(event) => { event.preventDefault(); }}>
+      <fieldset disabled={editingLocked} className="m-0 min-w-0 border-0 p-0">
+        <StudyDisclosure id="week-review" title="Nhìn lại tuần" defaultOpen>
           <WeekField id="week-unfinished" label="Việc còn dở" value={form.recurringUnfinished} onChange={(value) => edit((current) => ({ ...current, recurringUnfinished: value }))} />
           <WeekField id="week-issues" label="Vấn đề lặp lại" value={form.issues} onChange={(value) => edit((current) => ({ ...current, issues: value }))} />
           <WeekField id="week-reflection" label="Nhìn lại" value={form.reflection} onChange={(value) => edit((current) => ({ ...current, reflection: value }))} />
@@ -169,9 +163,8 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
       {draft.dirty && !showNotice ? <Button type="button" variant="ghost" disabled={draft.busy} onClick={async () => { if (await confirm("Thay bản đang nhập bằng nhìn lại tuần trên máy chủ?")) void fetchServer(true); }}>Tải bản trên máy chủ</Button> : null}
     </aside>
     </div>
-    <div className="study-savebar" aria-label="Lưu nhìn lại tuần">
-      <div><p className="text-sm font-medium" role="status">{draft.busy ? "Đang xử lý…" : draft.dirty ? "Bản nháp chưa lưu" : form.id ? "Nhìn lại đã lưu" : "Chưa có nhận xét đã lưu"}</p><p className="study-note">Lưu nhận xét; không đổi số liệu ngày.</p></div>
-      <Button type="submit" form="daily-week-form" disabled={draft.busy}>Lưu nhìn lại</Button>
+    <div className="study-savebar" aria-label="Đồng bộ nhìn lại tuần">
+      <div><DailySyncStatus dirty={draft.dirty} busy={draft.busy} syncing={sync.syncing} saved={Boolean(form.id)} issue={sync.issue} conflict={draft.conflict} onRetry={sync.retry} /><p className="study-note">Nhận xét tự động lưu; không đổi số liệu ngày.</p></div>
     </div>
   </div>;
 }

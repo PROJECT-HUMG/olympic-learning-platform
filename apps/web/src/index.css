@@ -142,6 +142,38 @@
   }
 }
 
+/* Native scrolling, themed chrome. Keep normal-width handles and leave high
+   contrast mode to the browser; no scroll interception or hidden tracks. */
+@media not (forced-colors: active) {
+  :where(html, body, *) {
+    scrollbar-color: var(--muted-foreground) transparent;
+  }
+
+  /* Fallback for engines without CSS Scrollbars support. Modern Chromium and
+     Firefox use scrollbar-color above with their platform-native dimensions. */
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: padding-box;
+    min-height: 32px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--foreground); }
+  ::-webkit-scrollbar-corner { background: transparent; }
+}
+
+/* Open-state utility variants can outrank motion-reduce utilities. Suppress
+   both presence animations and transitions for every shared modal state. */
+@media (prefers-reduced-motion: reduce) {
+  :is([data-slot="dialog-content"], [data-slot="dialog-overlay"],
+      [data-slot="alert-dialog-content"], [data-slot="alert-dialog-overlay"]) {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 /* Keep cinematic copy readable against the matching day/night sky. */
 .cinematic-theme {
   --font-display: "Instrument Serif", serif;

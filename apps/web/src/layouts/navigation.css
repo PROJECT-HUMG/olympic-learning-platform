@@ -7,7 +7,12 @@
 .dark .shell-brand__logo img { filter: brightness(1.25); }
 .shell-brand__name { font-size: .9375rem; font-weight: 650; letter-spacing: -.025em; line-height: 1.2; }
 .shell-brand__name > span { display: block; font-size: .6875rem; font-weight: 500; letter-spacing: .04em; color: var(--muted-foreground); margin-top: .2rem; }
-.shell-account { width: 44px; height: 44px; padding: 0; border-radius: 50%; }
+/* The frame is the control: avatar and theme share one visible 44px silhouette. */
+.shell-account, .shell-icon-control { display: inline-flex; flex: 0 0 44px; align-items: center; justify-content: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border: 1px solid var(--border); border-radius: 50%; background: var(--card); color: var(--foreground); box-shadow: none; }
+.shell-account > span { width: 100%; height: 100%; }
+.shell-account [data-slot="account-avatar"] { width: 100%; height: 100%; border: 0; background: transparent; }
+.shell-icon-control > svg { width: 20px; height: 20px; }
+.shell-account:hover, .shell-account[aria-expanded="true"], .shell-icon-control:hover { background: var(--muted); }
 .shell-menu-trigger { min-width: 44px; height: 44px; width: auto; padding-inline: .75rem; gap: .5rem; border-radius: .5rem; }
 .shell-menu-trigger__label { font-size: .8125rem; }
 .navigation-groups { display: grid; gap: 1.5rem; }
@@ -88,6 +93,6 @@
 @keyframes navigation-group-in { from { opacity: .25; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes navigation-account-in { from { opacity: 0; transform: translateY(-8px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @media (prefers-reduced-motion: reduce) {
-  .workspace-sidebar, .navigation-groups__link, .navigation-groups__link::before, .navigation-groups__link svg, .workspace-rail__link { transition: none; }
+  .shell-account, .shell-icon-control, .workspace-sidebar, .navigation-groups__link, .navigation-groups__link::before, .navigation-groups__link svg, .workspace-rail__link { transition: none; }
   .navigation-drawer[data-slot="sheet-content"], .navigation-drawer .navigation-groups > section, .shell-account-menu { animation: none !important; transition: none !important; }
 }

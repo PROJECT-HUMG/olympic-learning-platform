@@ -10,9 +10,10 @@ import { addPlatformDays, mondayIndex, parsePlatformDate, platformDate, platform
 import "./study-notebook.css";
 
 /** One calendar surface. The owner must approve selection before any draft/URL changes. */
-export function StudyDatePicker({ date, onSelect, disabled = false, label = "Chọn ngày", children }: {
+export function StudyDatePicker({ date, onSelect, disabled = false, label = "Chọn ngày", blockedMessage = "Hoàn tất hoặc xử lý các thay đổi trước khi đổi ngày.", children }: {
   date: string;
   onSelect: (date: string) => boolean;
+  blockedMessage?: string;
   disabled?: boolean;
   label?: string;
   children?: ReactNode | ((date: string) => ReactNode);
@@ -39,7 +40,7 @@ export function StudyDatePicker({ date, onSelect, disabled = false, label = "Ch�
 
   function choose(next: string) {
     if (!parsePlatformDate(next)) { setNotice("Ngày không hợp lệ."); return; }
-    if (!onSelect(next)) { setNotice("Hãy lưu hoặc tải lại trước khi đổi ngày."); return; }
+    if (!onSelect(next)) { setNotice(blockedMessage); return; }
     setOpen(false);
   }
 

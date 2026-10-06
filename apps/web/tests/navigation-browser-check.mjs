@@ -11,10 +11,11 @@ const phase = process.env.NAV_PHASE ?? 'after';
 const dir = await mkdtemp(join(tmpdir(), `navigation-${phase}-`));
 const paths = [
   'src/layouts/dashboard-layout.tsx', 'src/layouts/public-layout.tsx',
+  'src/index.css',
   'src/layouts/navigation.ts', 'src/layouts/navigation.css', 'src/layouts/public-layout.css',
   'src/layouts/components/public-header.tsx', 'src/layouts/components/public-header.css',
   'src/layouts/components/navigation-groups.tsx', 'src/layouts/components/public-display-settings.tsx',
-  'src/features/auth/components/user-dropdown.tsx', 'src/features/home/hooks/use-home-motion.ts',
+  'src/features/auth/components/user-dropdown.tsx', 'src/components/ui/theme-toggle.tsx', 'src/features/home/hooks/use-home-motion.ts',
   'src/router/routes.tsx', 'src/router/guards/role-guard.tsx', 'src/router/guards/protected-route.tsx',
   'src/layouts/components/navigation-drawer.tsx', 'tests/navigation-browser-check.mjs', 'tests/navigation.test.ts',
   'src/features/home/components/home-motion-toggle.tsx', 'src/stores/use-home-motion-store.ts',
@@ -24,7 +25,7 @@ const manifest = async () => Object.fromEntries(await Promise.all(paths.map(asyn
   catch (e) { if (e.code === 'ENOENT') return [p, null]; throw e; }
 })));
 const candidateStart = await manifest();
-let role = null, acceptDialog = false;
+let role = null, acceptDialog = false, failDailySave = false, avatarUrl = null;
 const requests = [], errors = [], checks = [];
 const uid = '00000000-0000-0000-0000-000000000001';
 const plan = { id: uid, ownerId: uid, planDate: '2026-10-05', firstSubmittedAt: null, onTime: false,
@@ -57,10 +58,13 @@ try {
     requests.push({ role, path, method });
     let body = {}, status = 200;
     if (method === 'OPTIONS') body = {};
-    else if (path === '/users/me') { body = role ? { id: uid, username: 'navigation-fixture', fullName: 'Nguyễn Minh Anh', email: 'fixture@example.test', role, status: 'ACTIVE', avatarUrl: null } : {}; if (!role) status = 401; }
+    else if (path === '/users/me') { body = role ? { id: uid, username: 'navigation-fixture', fullName: 'Nguyễn Minh Anh', email: 'fixture@example.test', role, status: 'ACTIVE', avatarUrl, avatarCrop: {x:.5,y:.5,zoom:1} } : {}; if (!role) status = 401; }
     else if (path === '/auth/refresh') { body = { accessToken: 'synthetic-navigation' }; if (!role) status = 401; }
     else if (path === '/auth/logout') { role = null; }
-    else if (path === '/daily/plans') body = { ...plan, planDate: u.searchParams.get('date') };
+    else if (path === '/daily/plans') {
+      if(method==='PUT'&&failDailySave){status=503;body={status:503};}
+      else body = { ...plan, planDate: u.searchParams.get('date') };
+    }
     else if (path === '/daily/plans/dates' || path === '/groups' || path === '/groups/invitations') body = [];
     else if (path === '/documents/metadata') body = { subjects: [], categories: [], tags: [] };
     else if (path === '/posts' || path === '/documents') body = { content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 };
@@ -76,11 +80,26 @@ try {
   };
   js = async expression => { const r = await call('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw Error(JSON.stringify(r.exceptionDetails)); return r.result.value; };
   const wait = async e => { for (let n = 0; n < 180; n++) { if (await js(e)) return; await new Promise(r => setTimeout(r, 100)); } throw Error(`Timeout: ${e}`); };
-  const viewport = (width, height = 900) => call('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width < 768 });
+  const viewport = async (width, height = 900) => {
+    await call('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width < 768 });
+    // CDP metrics acknowledgment is not a committed responsive layout. Wait for
+    // browser layout + matchMedia/React handoff before checking content edges.
+    await js('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))');
+  };
   const key = async (key, code, virtual, shift = false) => { await call('Input.dispatchKeyEvent', { type: 'rawKeyDown', key, code, windowsVirtualKeyCode: virtual, nativeVirtualKeyCode: virtual, modifiers: shift ? 8 : 0 }); await call('Input.dispatchKeyEvent', { type: 'keyUp', key, code, windowsVirtualKeyCode: virtual }); };
   const navigate = async path => { await call('Page.navigate', { url: web + path }); await wait("!!document.querySelector('header')&&!document.querySelector('#startup-loader')&&!document.querySelector('#root[inert]')"); };
   const shot = async name => { await js('new Promise(r=>setTimeout(r,450))'); await writeFile(join(dir, name + '.png'), Buffer.from((await call('Page.captureScreenshot', { captureBeyondViewport: false })).data, 'base64')); };
   const fit = async name => { assert.ok(await js('document.documentElement.scrollWidth<=innerWidth'), `${name}: overflow`); checks.push(`${name}: no horizontal overflow`); };
+  const headerControls = async name => {
+    const sizes=await js("(()=>{const a=document.querySelector('header .shell-account'),t=document.querySelector('header .shell-icon-control'),box=e=>{const b=e.getBoundingClientRect();return {w:b.width,h:b.height,cy:b.y+b.height/2}};return {avatar:a?box(a):null,theme:t?box(t):null}})()");
+    if(sizes.avatar){assert.equal(sizes.avatar.w,44);assert.equal(sizes.avatar.h,44);}
+    if(sizes.theme?.w){assert.equal(sizes.theme.w,44);assert.equal(sizes.theme.h,44);if(sizes.avatar)assert.deepEqual(sizes.theme,sizes.avatar);}
+    checks.push({name:`${name}: header control dimensions/centering`,sizes});
+  };
+  const darkTheme = async dark => {
+    await js(`(()=>{const b=document.querySelector('[aria-label="Đổi giao diện"]');if(b.getAttribute('aria-pressed')!==String(${dark}))b.click()})()`);
+    await wait(`document.documentElement.classList.contains('dark')===${dark}`);
+  };
   const openMenu = async () => { await js("(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.getAttribute('aria-label')==='Mở menu điều hướng'&&b.getBoundingClientRect().width>0);b.focus();b.click()})()"); await wait("!!document.querySelector('[data-slot=sheet-content]')"); };
   const closeMenu = async () => { await key('Escape', 'Escape', 27); await wait("!document.querySelector('[data-slot=sheet-content]')"); };
   await call('Page.enable'); await call('Runtime.enable'); await call('Fetch.enable', { patterns: [{ urlPattern: '*', requestStage: 'Request' }] });
@@ -112,7 +131,7 @@ try {
   for (const r of ['STUDENT', 'LECTURER', 'ADMIN']) {
     role = r; const dashboard = r === 'STUDENT' ? '/dashboard' : `/${r.toLowerCase()}/dashboard`;
     for (const width of [1440, 1024, 390]) {
-      await viewport(width); await navigate(dashboard); await wait("!!document.querySelector('.dashboard-shortcuts')"); await fit(`${r}-${width}`); await shot(`${r.toLowerCase()}-${width}-light`);
+      await viewport(width); await navigate(dashboard); await wait("!!document.querySelector('.dashboard-shortcuts')"); await fit(`${r}-${width}`); await headerControls(`${r}-${width}`); await shot(`${r.toLowerCase()}-${width}-light`);
       if (width < 1024 || (phase === 'after' && width === 1024)) { await openMenu(); await shot(`${r.toLowerCase()}-menu-${width}`);
         if (phase === 'after') {
           const links = await js("[...document.querySelectorAll('[data-slot=sheet-content] a')].map(a=>a.getAttribute('href'))");
@@ -123,13 +142,15 @@ try {
         await closeMenu();
         if (phase === 'after') assert.equal(await js("document.activeElement.getAttribute('aria-label')"), 'Mở menu điều hướng');
       }
-      await js("document.documentElement.classList.add('dark')"); await shot(`${r.toLowerCase()}-${width}-dark`); await js("document.documentElement.classList.remove('dark')");
+      await darkTheme(true); await shot(`${r.toLowerCase()}-${width}-dark`); await darkTheme(false);
     }
     if (phase === 'after') checks.push(`${r}: role-aware drawer visibility and actual opener focus return`);
-    await viewport(1440); await navigate('/about'); await shot(`${r.toLowerCase()}-public-1440`);
+    await viewport(1440); await navigate('/about'); await headerControls(`${r}-public-1440`); await shot(`${r.toLowerCase()}-public-1440`);
     await viewport(768); await fit(`${r}-public-768`); await shot(`${r.toLowerCase()}-public-768`); await openMenu(); await shot(`${r.toLowerCase()}-public-menu-768`); await closeMenu();
   }
   if (phase === 'after') {
+    avatarUrl='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" fill="#c5e5ef"/><circle cx="40" cy="29" r="14" fill="#35586b"/><path d="M12 80V66a28 28 0 0 1 56 0v14" fill="#00387b"/></svg>');
+    role='STUDENT';await viewport(390,844);await navigate('/dashboard');await wait("document.querySelector('.shell-account img')?.complete");await headerControls('image-avatar-mobile');await darkTheme(true);await shot('image-avatar-mobile-dark');avatarUrl=null;
     role = 'STUDENT'; await viewport(1440); await navigate('/daily?date=2026-10-05'); await wait("!!document.querySelector('.study-task')"); await shot('daily-shell-desktop');
     assert.equal(await js("document.querySelectorAll('.workspace-sidebar a[aria-current=page]').length"), 1);
     await js("document.querySelector('[aria-label=\"Thu gọn menu\"]').click()"); await wait("document.querySelector('.workspace-sidebar').getBoundingClientRect().width<100"); await shot('student-collapsed-desktop');
@@ -141,13 +162,14 @@ try {
     assert.ok(await js("[...document.querySelectorAll('.shell-menu-trigger__label')].some(e=>e.textContent==='Menu'&&getComputedStyle(e).display!=='none')"));
     checks.push('visible mobile Menu label retained');
     await js("[...document.querySelectorAll('button')].find(b=>b.textContent==='Nhìn lại ngày').click()");await wait("!!document.querySelector('#daily-tomorrow')");
+    failDailySave=true;
     await js("(()=>{const e=document.querySelector('#daily-tomorrow');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,'Keep this draft');e.dispatchEvent(new Event('input',{bubbles:true}))})()");
     await key('Escape','Escape',27);await wait("!document.querySelector('.daily-reflection-dialog')");
     await openMenu(); await js("document.querySelector('[data-slot=sheet-content] a[href=\"/documents\"]').click()");
     await wait("!document.querySelector('[data-slot=sheet-content]')"); assert.equal(await js('location.pathname'), '/daily');
     await js("[...document.querySelectorAll('button')].find(b=>b.textContent==='Nhìn lại ngày').click()");await wait("!!document.querySelector('#daily-tomorrow')");
     assert.equal(await js("document.querySelector('#daily-tomorrow').value"), 'Keep this draft');await key('Escape','Escape',27);await wait("!document.querySelector('.daily-reflection-dialog')");
-    checks.push('drawer navigation honors existing Daily draft blocker');
+    checks.push('drawer navigation honors genuinely unsynchronized Daily edits');failDailySave=false;
     await navigate('/dashboard');
     await js("document.querySelector('[aria-label=\"Mở menu tài khoản\"]').focus()"); await key('Enter', 'Enter', 13); await wait("!!document.querySelector('[role=menu]')"); await shot('account-menu-mobile'); await key('Escape', 'Escape', 27); await wait("!document.querySelector('[role=menu]')"); assert.equal(await js("document.activeElement.getAttribute('aria-label')"), 'Mở menu tài khoản');
     await key('Enter', 'Enter', 13); await wait("!!document.querySelector('[role=menu]')"); await js("[...document.querySelectorAll('[role=menuitem]')].find(e=>e.textContent.includes('Đăng xuất')).click()"); await wait("location.pathname==='/login'"); await shot('login-shell-mobile'); checks.push('keyboard account menu focus return; synthetic logout retains existing endpoint/login flow');
@@ -156,7 +178,7 @@ try {
     await openMenu(); assert.equal(await js("getComputedStyle(document.querySelector('[data-slot=sheet-content]')).animationName"), 'none'); await shot('tablet-reduced-motion'); await closeMenu();
     role = null; await navigate('/'); assert.equal(await js("document.querySelector('.home-hero').dataset.motion"), 'false'); checks.push('OS reduced motion disables shell animation and home motion without visible toggle');
     await shot('home-reduced-motion-tablet');
-    await viewport(1440); await navigate('/about'); await js("document.documentElement.classList.add('dark')"); await shot('public-desktop-dark');
+    await viewport(1440); await navigate('/about'); await darkTheme(true); await shot('public-desktop-dark');
     await viewport(390, 844); await shot('public-mobile-dark');
   }
   assert.deepEqual(await manifest(), candidateStart, 'Candidate changed during browser checks'); assert.equal(errors.length, 0, JSON.stringify(errors));

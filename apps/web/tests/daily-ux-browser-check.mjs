@@ -8,11 +8,12 @@ import { join } from "node:path";
 
 const web = process.env.DAILY_WEB_URL ?? "http://127.0.0.1:3000";
 const layoutOnly = process.env.DAILY_CHECK_SCOPE === "layout";
+const interactionsOnly = process.env.DAILY_CHECK_SCOPE === "interactions";
 const dir = await mkdtemp(join(tmpdir(), "daily-ux-"));
 const candidatePaths = [
   "components/daily-plan-editor.tsx", "components/daily-week-editor.tsx",
   "groups/feedback-panel.tsx", "groups/group-controls.tsx", "groups/groups.css",
-  "hooks/use-daily.ts", "hooks/use-daily-editor.ts", "lib/calendar-presentation.ts", "lib/daily-contract.ts",
+  "hooks/use-daily.ts", "hooks/use-daily-editor.ts", "hooks/use-daily-auto-sync.ts", "ui/daily-sync-status.tsx", "lib/daily-lifecycle.ts", "lib/calendar-presentation.ts", "lib/daily-contract.ts",
   "lib/plan-editor.ts", "services/daily.service.ts", "ui/study-calendar.tsx",
   "lib/date-selection.ts", "ui/study-date-picker.tsx", "evidence/evidence-panel.tsx", "evidence/evidence-contract.ts", "evidence/evidence-preview.ts", "evidence/evidence.service.ts", "ui/use-daily-confirm.tsx", "ui/daily-dialog-header.tsx",
   "ui/study-notebook.css", "ui/study-notebook.tsx", "ui/study-section.ts",
@@ -24,6 +25,7 @@ const candidatePaths = [
   "src/features/home/components/home-study-notebook.tsx", "src/features/home/components/home-hero-section.css",
   "src/pages/home-page.css", "src/layouts/dashboard-layout.tsx", "src/layouts/navigation.css",
   "src/components/ui/page-layout.css", "src/index.css", "tests/daily-alignment.test.ts",
+  "src/components/ui/dialog.tsx", "src/components/ui/alert-dialog.tsx",
 ]);
 const manifest = async () => Object.fromEntries(await Promise.all(candidatePaths.map(async path => [path, createHash("sha256").update(await readFile(new URL(`../${path}`, import.meta.url))).digest("hex")])));
 const candidateStart = await manifest();
@@ -194,6 +196,7 @@ try {
     await fill(".study-task__main > input","Unrelated unsaved task title");
     await click("Nhìn lại ngày");await wait("!!document.querySelector('#daily-tomorrow')");
     await fill("#daily-tomorrow","Unrelated unsaved reflection");await key("Escape","Escape",27);
+    await wait("document.querySelector('.study-savebar').textContent.includes('Đã đồng bộ')");
     await click("Thêm việc");await wait("!!document.querySelector('.daily-add-dialog')");
     await fill("#daily-task-modal-input","Immediately saved task");
     failAdd=true;await click("Thêm và lưu việc");await wait("document.querySelector('.daily-add-dialog')?.textContent.includes('Chưa xác nhận')");
@@ -204,15 +207,14 @@ try {
     heldAdd=false;releaseAdd();
     await wait("document.querySelectorAll('.study-task').length===13&&!document.querySelector('.daily-add-dialog')");
     assert.equal(requests.findLast(r=>r.path==="/daily/plans/tasks"&&r.method==="POST").input.taskId,retryId);
-    assert.equal(plan.tasks[0].title,"Ôn tập chuyên đề 1");assert.equal(plan.reviewTomorrow,"");
+    assert.equal(plan.tasks[0].title,"Unrelated unsaved task title");assert.equal(plan.reviewTomorrow,"Unrelated unsaved reflection");
     assert.equal(plan.firstSubmittedAt,null);assert.equal(await js("document.querySelector('.study-task__main > input').value"),"Unrelated unsaved task title");
     await click("Nhìn lại ngày");await wait("!!document.querySelector('#daily-tomorrow')");
     assert.equal(await js("document.querySelector('#daily-tomorrow').value"),"Unrelated unsaved reflection");await key("Escape","Escape",27);
-    assert.ok(await js("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Nộp kế hoạch').disabled"));
-    await click("Lưu kế hoạch");await wait("document.body.innerText.includes('Đã lưu kế hoạch.')");
+    await wait("document.querySelector('.study-savebar').textContent.includes('Đã đồng bộ')");
     assert.equal(plan.reviewTomorrow,"Unrelated unsaved reflection");assert.equal(plan.firstSubmittedAt,null);
     await click("Nộp kế hoạch");await wait("document.querySelector('.study-submit-status').textContent.includes('Đúng hạn')");
-    checks.push("append failure/pending/retry uses stable UUID, preserves unrelated draft, and Save remains separate from Submit");
+    checks.push("append failure/pending/retry uses stable UUID, retains automatically saved edits, and sync remains separate from Submit");
     await navigate("/daily?date="+date);await wait("document.querySelectorAll('.study-task').length===13");
     assert.equal(await js("document.querySelector('.study-task__main > input').value"),"Unrelated unsaved task title");
     checks.push("synthetic add/save/reopen roundtrip; no real server persistence claim");
@@ -280,12 +282,14 @@ try {
     await shot("day-desktop-dark");await click("Nhìn lại ngày");await wait("!!document.querySelector('.daily-reflection-dialog')");await shot("reflection-desktop-dark");
     assert.equal(await js("getComputedStyle(document.querySelector('.daily-reflection-dialog')).animationName"),"none");
     await key("Escape","Escape",27);
-    await fill(".study-task__main > input","Keep local before reload");
+    failSave=true;await fill(".study-task__main > input","Keep local before reload");
+    await wait("document.querySelector('.daily-sync-status').textContent.includes('Bản máy chủ đã đổi')");
     await click("Tải bản trên máy chủ");await wait("!!document.querySelector('[role=alertdialog]')");
     await click("Giữ nguyên");assert.equal(await js("document.querySelector('.study-task__main > input').value"),"Keep local before reload");
     await click("Tải bản trên máy chủ");await wait("!!document.querySelector('[role=alertdialog]')");
     await shot("custom-reload-confirmation");await click("Xác nhận");
     await wait("document.querySelector('.study-task__main > input').value==='Unrelated unsaved task title'&&!document.querySelector('[role=alertdialog]')");
+    failSave=false;
     checks.push("custom reload confirmation cancel retains drafts; explicit confirmation reloads");
     await openCalendar();await calendarFit("calendar-desktop-keyboard");
     await key("ArrowRight","ArrowRight",39);await wait("document.activeElement.dataset.calendarDate==='2026-10-06'");
@@ -298,14 +302,14 @@ try {
     checks.push("today default, explicit historic date, invalid date and keyboard compact picker retained");
     await fill(".study-task__main > input","Keep when choosing another date");
     await openCalendar();await selectDate('2026-09-22');
-    await wait("document.querySelector('.study-date-popover [role=alert]')?.textContent.includes('Hãy lưu')");
+    await wait("document.querySelector('.study-date-popover [role=alert]')?.textContent.includes('chưa đồng bộ')");
     assert.equal(await js("document.querySelector('.study-task__main > input').value"),"Keep when choosing another date");
     assert.equal(await js("new URLSearchParams(location.search).get('date')"),'2026-09-21');
-    await key('Escape','Escape',27);await click('Lưu kế hoạch');await wait("document.body.innerText.includes('Đã lưu kế hoạch.')");
-    heldSave=true;await click('Lưu kế hoạch');await wait("document.querySelector('.study-savebar').textContent.includes('Đang xử lý')");
+    await key('Escape','Escape',27);await wait("document.querySelector('.study-savebar').textContent.includes('Đã đồng bộ')");
+    heldSave=true;await fill('.study-task__main > input','Keep during auto-sync');await wait("document.querySelector('.study-savebar').textContent.includes('Đang đồng bộ')");
     assert.equal(await js("document.querySelector('.study-date-trigger').disabled"),true);
     heldSave=false;releaseSave();await wait("!document.querySelector('.study-date-trigger').disabled");
-    checks.push('dirty and pending Save prevent date changes without losing task edits');
+    checks.push('dirty and pending synchronization prevent date changes without losing task edits');
     await openCalendar();await js("[...document.querySelectorAll('.study-calendar-links a')].find(a=>a.textContent==='Các tuần đã lưu').click()");await wait("document.body.innerText.includes('Đang tải lịch sử')");
     assert.equal(await js("document.querySelectorAll('.study-week-card').length"),0);await shot('history-loading-desktop');
     historyMode='error';releaseHistory();await wait("document.body.innerText.includes('Thử lại lịch sử')");
@@ -333,6 +337,7 @@ try {
     }
   }
   // Route-history and empty-state composition are separate from populated flow checks.
+  if (!interactionsOnly) {
   sharing = {shareDaily:false,sharingMode:"GROUP",selectedViewerIds:[]};
   const spa = async path => {
     await js("new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))");
@@ -399,15 +404,15 @@ try {
       checks.push(`${width}x${height}-${theme}: Home appearance/keyboard retained across Daily stylesheet load`);
     }
   }
-  // Missing plans may still be saved/submitted with zero tasks; only redundant presentation is omitted.
+  // Visiting creates no plan; explicit empty Submit creates then submits it.
   await viewport(390,844);plan={...structuredClone(initialPlan),tasks:[]};missingPlan=true;
-  await navigate('/daily');await wait("!!document.querySelector('.study-empty')&&document.querySelector('.study-savebar').textContent.includes('Chưa có kế hoạch')");
+  await navigate('/daily');await wait("!!document.querySelector('.study-empty')&&document.querySelector('.study-savebar').textContent.includes('Tự động lưu khi chỉnh sửa')");
   assert.equal(await js("document.querySelector('.study-date-trigger').getAttribute('aria-label')"),`Chọn ngày: ${date}`);
-  await click('Lưu kế hoạch');await wait("document.querySelector('.study-savebar').textContent.includes('Kế hoạch đã lưu')");
+  await click('Nộp kế hoạch');await wait("document.querySelector('.study-submit-status').textContent.includes('Đúng hạn')");
   assert.equal(requests.findLast(r=>r.path==='/daily/plans'&&r.method==='PUT').input.tasks.length,0);
-  assert.equal(plan.firstSubmittedAt,null);await click('Nộp kế hoạch');await wait("document.querySelector('.study-submit-status').textContent.includes('Đúng hạn')");
+  assert.ok(plan.firstSubmittedAt);
   assert.equal(await js("!!document.querySelector('.study-progress-grid')"),false);await shot('aligned-empty-saved-submitted-390');
-  checks.push('fresh missing plan defaults to today; empty Save then separate Submit retained without zero/N/A metrics');
+  checks.push('fresh missing plan defaults to today; explicit empty Submit retained without zero/N/A metrics');
   emptyGroups=true;invitationMode='loading';await js("import('/src/lib/query-client.ts').then(({queryClient})=>queryClient.removeQueries({queryKey:['daily-groups']}))");await spa('/daily/groups');await wait("document.querySelector('#invitations-section')?.textContent.includes('Đang kiểm tra')");
   await new Promise(resolve=>setTimeout(resolve,100));assert.equal(typeof releaseInvitations,'function');
   await shot('invitations-loading-390');invitationMode='error';releaseInvitations();
@@ -424,6 +429,7 @@ try {
   assert.ok(requests.slice(responseStart).some(r=>r.path.endsWith('/accept')&&r.method==='POST'));
   assert.equal(requests.slice(responseStart).some(r=>r.path.endsWith('/sharing')&&r.method==='PUT'),false);
   await shot('invitations-accepted-320');checks.push('invitation loading/error/retry/pending/empty explicit; decline/accept remain direct and do not enable sharing');
+  }
   assert.deepEqual(errors, []);
   assert.deepEqual(await manifest(), candidateStart, "Candidate changed during rendered verification");
 } catch (error) {
@@ -431,7 +437,7 @@ try {
   if (call && js) { try { await writeFile(join(dir, "failure.png"), Buffer.from((await call("Page.captureScreenshot")).data, "base64")); await writeFile(join(dir, "failure.txt"), await js("document.body.innerText")); } catch {} }
   process.exitCode = 1;
 } finally {
-  await writeFile(join(dir, "results.json"), JSON.stringify({ scope:layoutOnly?'layout':'full', layoutMetrics, checks, errors, requests, canceledRequests, dialogFocusTrace, candidateStart, candidateEnd: await manifest(), limits: ["Synthetic API fixtures, not backend persistence/auth/revocation proof", "External media blocked; Chromium only, not physical mobile or WebKit"] }, null, 2));
+  await writeFile(join(dir, "results.json"), JSON.stringify({ scope:layoutOnly?'layout':interactionsOnly?'interactions':'full', layoutMetrics, checks, errors, requests, canceledRequests, dialogFocusTrace, candidateStart, candidateEnd: await manifest(), limits: ["Synthetic API fixtures, not backend persistence/auth/revocation proof", "External media blocked; Chromium only, not physical mobile or WebKit"] }, null, 2));
   console.log(JSON.stringify({ dir, checks, errors }, null, 2));
   socket?.close(); chrome.kill();
 }

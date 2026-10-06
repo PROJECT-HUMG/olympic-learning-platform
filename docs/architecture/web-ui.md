@@ -16,11 +16,50 @@ Room music copy distinguishes shared track selection from personal playback: pla
 
 Daily alignment correction (06/10/2026): Home owns `.home-study-notebook`; its border/radius must never apply to the Daily `.study-notebook` root after SPA navigation. Daily uses flat work regions and one shared content axis for page headers, status and task headings; do not add root padding to mask a cross-feature selector leak. Keep one primary page title; Daily-only shell context is Góc học tập, with local Cá nhân/Nhóm links retaining full accessible names and unchanged destinations. Empty days omit redundant zero/N/A progress but still allow saving/submitting an empty plan. Group invitation pending/loading/error states are direct above the list, while the empty invitation status is compact below it. Accept/decline never implicitly enables sharing. Verify route history as well as direct entry; source manifests and populated screenshots alone are insufficient.
 
-Daily interaction decision (06/10/2026) supersedes earlier add-to-draft/inline-reflection/before-after evidence presentation: Add confirms immediate task-only persistence; other edits still Save and submission remains explicit. One task header groups completion/title, priority/menu and upload; associated evidence cards form a compact ribbon immediately below, aligned with the title on desktop. Do not reserve a disconnected right-hand evidence column or empty evidence region. Bound the editable title measure; wrap controls deliberately on tablet/mobile. Use two image previews/+N with an accessible all-items viewer and honest non-image file cards. Upload accepts files only with neutral GENERAL metadata; retain legacy records/links/private authorization. Reflection is an explicit shadcn dialog with current task context and the three existing questions. Its Save labels the whole-plan save scope; closing retains drafts. Feature dialogs have reachable Close, short-viewport internal scrolling and OS reduced motion. Today's unsaved-reflection countdown still requires a product target; 07:30 is a submission cutoff, not a reflection deadline. Do not invent a lock or deadline.
+Daily interaction decision (06/10/2026) supersedes earlier add-to-draft/inline-reflection/before-after evidence presentation: Add confirms immediate task-only persistence. Routine task/title/priority/completion/order and day/week reflection edits now auto-sync in debounced versioned batches; no manual draft Save is required. Submission remains explicit. Task removal requires an explicit warning/confirmation before automatic persistence deletes the task and associated evidence records. One task header groups completion/title, priority/menu and upload; associated evidence cards form a compact ribbon immediately below, aligned with the title on desktop. Do not reserve a disconnected right-hand evidence column or empty evidence region. Bound the editable title measure; wrap controls deliberately on tablet/mobile. Use two image previews/+N with an accessible all-items viewer and honest non-image file cards. Upload accepts files only with neutral GENERAL metadata; retain legacy records/links/private authorization. Reflection is an explicit shadcn dialog with current task context and the three existing questions; closing retains edits and synchronization continues. Feature dialogs have reachable Close, short-viewport internal scrolling and OS reduced motion. Today's unsaved-reflection countdown still requires a product target; 07:30 is a submission cutoff, not a reflection deadline. Do not invent a lock or deadline.
+
+Daily auto-sync contract: wait 800 ms after edits and serialize a single PUT at a time. Routine fields remain editable during that PUT. If a newer edit exists, acknowledge only identity/version/submission metadata, keep the newer local values and send another batch; background fetches never replace dirty/conflicting editors. Invalid intermediate values stay local and resume once corrected. Network/unknown-outcome failures stop automatic retries and expose an explicit retry; a 409 pauses for explicit, confirmed server reload rather than silently adopting a newer version and overwriting another device. Navigation/unload guards remain while unsynchronized/busy/conflicting, and release once synchronized. Add pauses batching while its entry dialog is open and appends independently with the existing idempotent UUID. Visiting an empty day creates no server plan; explicitly submitting it saves an empty plan then invokes the separate Submit endpoint. Auto-sync never calls Submit or changes sharing consent. Sharing settings, identified group feedback publication and evidence upload/removal remain explicit operations.
 
 Màn học tập và quản lý dùng cùng hệ giao diện, phù hợp với nền tảng Olympic và giữ màu/font hiện có. Profile là màn tham chiếu cho bố cục thông tin và form.
 
+### Bounded header / Daily completion polish (06/10/2026)
+
+Header account and theme controls share a visible 44px circular frame, identical
+border/card background, centered content and the existing compact action gap.
+Account images fill the 42px interior without a second border; the theme glyph is
+20px. Scope this treatment to the public/workspace shell, not all account or theme
+controls. Keep current responsive visibility and account/theme actions unchanged.
+
+Daily task completion uses the shadcn-style Checkbox backed by the already-installed
+`radix-ui` package. The 20px box and 14px tick sit inside the existing 44px label
+target, centered beside the editable title. Use one focus outline around that
+target, not competing inner/shell outlines. Preserve TODO/COMPLETED, Space handling,
+explicit-operation disabled state and editable completion during automatic batches.
+No dependency, persistence, Submit, sharing or room contract changes are required.
+`olympic-context` and `frontend-design` guided scope isolation, the shared circular
+silhouette and restrained checklist styling; this is not a broader page redesign.
+
 ## Màu và chữ
+
+Native scrolling and application questions (06/10/2026): keep platform-native wheel,
+keyboard, touch and scrollbar dimensions. Theme scroll thumbs using the existing
+muted-foreground token with transparent tracks across page, panel, modal and gallery
+scrollers; older WebKit uses a rounded 12px fallback. Do not replace scroll physics,
+hide tracks globally or add a scroll library. Forced-colors retains browser colors.
+Existing deliberately thin navigation scrollers keep their dimensions.
+
+The mounted post editor's link entry uses a labelled shadcn Dialog rather than
+window.prompt. Capture the existing editor selection, validate using the current
+Tiptap URI policy, and apply only on explicit insertion. Cancel/Escape leaves text
+unchanged and returns focus to the toolbar; the portal form must not submit its
+owning PostForm. Shared Dialog/AlertDialog retain short-viewport scrolling, subtle
+150ms open/close presence and an explicit OS reduced-motion override that outranks
+open-state utilities. Alert actions pass class overrides through Button's merge so
+destructive intent is not accidentally replaced by the default primary treatment.
+Existing custom Daily/management confirmations are retained, not replaced twice.
+Styled HTML room/group dialogs are already application-owned; preserve the room's
+persistent player lifecycle. Native tab-unload protection and file/permission/security
+UI remain browser/OS responsibilities. No reflection countdown target is inferred.
 
 | Vai trò | Sáng | Tối |
 | --- | --- | --- |

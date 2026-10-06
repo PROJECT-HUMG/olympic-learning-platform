@@ -32,6 +32,330 @@ Checkpoint trước khi sửa UX: `ecbfb14` — `feat: add study rooms and refre
 
 ## Những phần vẫn cần hoàn thiện
 
+### Local commit packaging checkpoint (06/10/2026)
+
+Package the three completed technical increments below together: themed native
+scrollbars/custom animated application dialogs, Daily automatic persistence and
+matching header controls/shadcn completion. Their shared Daily/test/documentation
+paths make one integrated local commit preferable to artificial partial snapshots.
+The historical no-commit statements below describe acceptance-time authority;
+this checkpoint records subsequent authorization for local packaging only.
+
+All 31 changed/new paths were reviewed against their owning increments; the index
+was initially empty. No unrelated/inherited work, environment files, dependencies,
+backend changes, build output, browser profiles or screenshots enter this package.
+The scoped sensitive-filename/common-secret-pattern check found no suspected secrets;
+this is not a claim of exhaustive secret detection.
+
+Current code/test bytes reproduce the final 72-entry polish identity recorded below.
+The earlier 80-entry automatic-persistence identity also reproduces when including
+its disposable-backend evidence, while later polish changes are accounted for by
+the newer manifest. No implementation discrepancy remains. Fresh `pnpm build`
+and `pnpm lint` PASS (existing large-chunk and 40 inherited lint warnings), all
+**168 Node tests PASS**, and the diff whitespace check is clean. Carry forward
+the matching local browser evidence: 32 automatic-persistence/polish, 45 navigation,
+41 Daily interaction, 28 scrollbar/dialog and 20 simulated-player checks. Prior
+real SQL persistence evidence is retained with its recorded fixture-auth limits;
+neither real-backend nor actual YouTube/live-multiuser verification was rerun here.
+
+Technical acceptance does not assert product/design approval or completion of the
+original full Daily request. Reflection countdown remains **unimplemented pending
+the product target**. Explicit Submit, sharing consent/auth, unsynchronized-draft
+protection, independent local room playback and owner-explicit Next remain unchanged.
+No push, merge, deployment, spending, installation or external action is authorized.
+
+### Header / Daily Checkbox polish — TECHNICALLY ACCEPTED (06/10/2026)
+
+Bounded outcome: public/workspace header account and theme buttons now have equal
+visible 44px circular frames, consistent vertical centers, borders/card backgrounds
+and existing action gaps. Avatar images fill the 42px interior; the theme icon is
+20px. The earlier mobile render showed a 36px visible avatar inside an otherwise
+unframed target beside a 44px theme circle; these are application controls, not
+image-viewer or phone chrome. Responsive visibility, menu/account/logout and theme contracts stay
+unchanged; the scope-specific styling does not reshape other account controls.
+
+Personal Daily completion now uses the standard shadcn-style Checkbox with the
+already-installed `radix-ui` package, a 20px visual box/14px tick and a 44px labelled
+touch area. One outline marks keyboard focus around that area. Space and label/click
+toggle TODO/COMPLETED; Enter does not submit. Completion still auto-syncs through
+the existing debounced versioned editor, stays editable during automatic batches
+and is disabled during explicit locked operations. Confirmed deletion hands focus
+to the remaining Radix checkbox, not its hidden form input. Read-only/shared views,
+explicit Submit, sharing consent, errors/retry and draft guards remain unchanged.
+No dependency, API, backend, room playback or ownership contract was changed.
+
+Lead disposition: **ACCEPT this bounded technical candidate** after source review,
+actual current render inspection and the results below. Base remains
+`d6905eec8071c1507e41dba0de9120c234b4d529`. Candidate identity is the sorted absolute
+path union of the four final start/end source manifests below, plus the HTTP
+persistence runner's compatibility selector update. Encode as `{base,sources}`:
+**72 entries**, SHA256
+`65a59f773a40f954d769acc75db76a23bbc40c845501aadf5702eee7581e0458`.
+All start/end manifests match; every entry was rechecked against disk after
+resumption. The HTTP runner's SHA256 is
+`61e33613e3bc0d6f19ad1fdffd4b8244b1c24ef30ba58533662c9ee0da408c3c`.
+Documentation is outside that code/test identity. A separate comparison of 74
+earlier accepted manifest entries found no unexpected change outside this scope.
+Lead is the sole write owner; no new Peer dispatch or inherited-scope reopening
+was needed. Existing unstaged Daily/scrollbar/dialog work is preserved.
+
+| Evidence | Actual result / limits |
+| --- | --- |
+| `pnpm build`, `pnpm lint`, Node suite, diff check | PASS; existing large-chunk build warnings and 40 inherited lint warnings; **168 Node tests PASS**, diff check clean. |
+| `/tmp/daily-auto-sync-W6bNE1/results.json` | **32 checks**, zero runtime/native-dialog errors, max one active save. Actual built-preview controls: click/Space/reopen, checked/unchecked, 44px hit area, completion during in-flight edits, explicit-Submit disabled state, delete focus return, batching/retry/conflict/navigation, explicit empty Submit and reflection/week regressions. Header/checkbox bounds measured at 1440×900, 768×1024, 390×844 and 320×568 in both themes, plus 320×360 dark. Uses synthetic versioned APIs, not SQL persistence proof. |
+| `/tmp/navigation-after-vMNmzs/results.json` | **45 checks**, zero errors. Mounted guest/public, authenticated public and student/lecturer/admin shells; header dimensions/centers, image and initial avatars, account-menu Escape/focus/logout, tablet/mobile/short drawer, draft guard and OS reduced motion. Synthetic auth/API, not backend authorization proof. |
+| `/tmp/daily-ux-ecS0tv/results.json` | **41 checks**, zero errors. Preserved immediate Add, gallery/file-only upload, reflection, dates/history, weekly/group/shared contexts and explicit consent ON/OFF. Current desktop/tablet/mobile/short captures; synthetic APIs. |
+| `/tmp/study-player-local-cwhtNX/results.json` | **20 checks**, zero errors. Unchanged mounted player lifecycle, independent local positions/controls and explicit owner Next semantics with simulated players; not actual YouTube or live multiuser proof. |
+| HTTP runner compatibility | Completion selector now targets `[role=checkbox]`, not Radix's hidden native input. Syntax check PASS. The disposable real-backend harness was not rerun for this visual-only increment; earlier HTTP persistence evidence is not re-labelled as current primitive/runtime proof. |
+
+Viewed before/after evidence:
+
+- [Before: 36px visible initial avatar versus theme circle](/tmp/daily-auto-sync-rG2zPZ/day-synced-390x844-dark.png)
+- [After: equal mobile dark header frames / checked task](/tmp/daily-auto-sync-W6bNE1/polish-390x844-dark.png)
+- [Desktop light checked/unchecked and one keyboard outline](/tmp/daily-auto-sync-W6bNE1/checkbox-keyboard-checked-desktop.png)
+- [Tablet light alignment](/tmp/daily-auto-sync-W6bNE1/polish-768x1024-light.png)
+- [Narrow/short editing remains reachable](/tmp/daily-auto-sync-W6bNE1/short-screen-editing-reachable.png)
+- [Explicit Submit disables completion without altering status](/tmp/daily-auto-sync-W6bNE1/checkbox-disabled-during-explicit-submit.png)
+- [Image avatar in the same mobile header frame](/tmp/navigation-after-vMNmzs/image-avatar-mobile-dark.png)
+- [Authenticated public desktop header](/tmp/navigation-after-vMNmzs/student-public-1440.png)
+
+The current captures are local Chromium renders, not physical-device proof. Final
+theme checks use application state/OS preference, not only a manual root class.
+Failed/partial runs are not passes: `/tmp/daily-auto-sync-yUvhol` caught a style
+measurement during a theme transition and the first render revealed a redundant
+checkbox outline; both were corrected. `/tmp/daily-auto-sync-PbJ9l0` reused identical
+fixture text across themes, correctly producing no new save, so its error expectation
+was invalid. `/tmp/daily-auto-sync-YSuNUC` sent an incomplete CDP Enter event to a
+native button; the final runner includes the Enter text event and verifies real
+activation. Their partial results do not replace the final frozen run.
+
+Exact increment paths (overlapping earlier unstaged files are not wholly claimed):
+
+- `apps/web/src/components/ui/checkbox.tsx` (new)
+- `apps/web/src/components/ui/theme-toggle.tsx`
+- `apps/web/src/features/auth/components/user-dropdown.tsx`
+- `apps/web/src/layouts/components/public-header.tsx`
+- `apps/web/src/layouts/dashboard-layout.tsx`
+- `apps/web/src/layouts/navigation.css`
+- `apps/web/src/features/daily/components/daily-plan-editor.tsx`
+- `apps/web/src/features/daily/ui/study-notebook.css`
+- `apps/web/tests/daily-study-ui.test.ts`
+- `apps/web/tests/daily-auto-sync-browser-check.mjs`
+- `apps/web/tests/daily-persistence-http-browser-check.mjs`
+- `apps/web/tests/navigation-browser-check.mjs`
+- `docs/architecture/web-ui.md`
+- `docs/reviews/ux-flow-audit.md`
+
+Usable handoff: completion is direct and automatically saved; header controls retain
+their existing actions with a consistent silhouette. `olympic-context` and
+`frontend-design` informed owning-scope isolation and visual restraint. Product/design
+approval remains separate. Reflection countdown is still **unimplemented pending
+the product target**, not resolved by this polish. No staging/commit, push, deployment,
+installation, spending or external action occurred.
+
+### Daily automatic persistence — TECHNICALLY ACCEPTED (06/10/2026)
+
+This decision supersedes the manual day/week/reflection Save criteria in earlier
+Daily acceptance records, not their separate Submit/privacy requirements. Manual
+Save previously batched full-plan edits and separated versioned persistence from
+first submission. Those consistency constraints require serialization/conflict
+handling, not a user-operated Save button. Existing APIs already support the new
+behavior; no backend, schema, auth, submission deadline or sharing contract changed.
+
+Usable outcome: personal task titles, priority, completion, ordering and day/week
+reflection auto-sync after an 800 ms pause. One versioned batch runs at a time;
+typing remains available during it. A response with newer local edits acknowledges
+only metadata/version; subsequent edits remain dirty and form the next batch.
+Add remains an immediate idempotent append, pausing other batches while its dialog
+is open. Task deletion remains explicit: a custom destructive confirmation warns
+that saving the removal deletes the task and associated evidence records. Evidence
+upload/removal, identified group feedback publication and sharing consent/revocation
+retain their explicit flows. No automatic Submit occurs. A clean empty day is not
+created on entry; explicit empty Submit creates a plan then calls Submit separately.
+Reflection on an otherwise empty day also persists normally without submitting it.
+
+Day/week/reflection show pending/saved/error and retry without a manual draft Save.
+Invalid intermediate text stays local and resumes after correction. Network or
+unknown-result errors retain edits and pause automatic requests until explicit retry.
+409 pauses without silently adopting another device's version. A confirmed reload
+can replace the draft; cancel retains it. A lost successful response can therefore
+require conflict/reload reconciliation, not automatic merging. Date, route and
+beforeunload guards remain while dirty/busy/conflicting; blocked route navigation
+proceeds once synchronized. Account exits retain the existing exception. No private
+drafts are newly stored in localStorage; closing a tab while unsynchronized still
+requires the browser-controlled warning and is not durable offline storage.
+
+Rendered iteration: remove the redundant Save button, keep explicit Submit primary,
+align reflection sync feedback with the dialog content edge, and use a normal-flow
+sync bar below 500px viewport height so an expanded error does not occupy nearly
+all editing space under the header. Desktop/tablet/mobile, 320×360, light/dark,
+keyboard/dialog focus and OS reduced motion were checked using current renders.
+The existing flat task/evidence ribbon and Home selector isolation remain intact.
+`olympic-context` and `frontend-design` guided the owning-flow trace and restrained
+feedback composition, not a new page redesign.
+
+Lead disposition: **ACCEPT this bounded technical auto-sync increment**, base
+`d6905eec8071c1507e41dba0de9120c234b4d529` plus the exact manifests below.
+Their sorted, absolute-path source union including `daily-auto-sync.test.ts` has
+80 entries; encoded as `{base,sources}` it has SHA256
+`bab72ddb84fc0e5823168b0c1a4bfed44ff41cfbc2b1cd477a280e351e9988a6`.
+Every start/end manifest was equal and each entry matched disk at acceptance.
+The union includes preserved scrollbar/dialog/navigation/player sources to identify
+the integrated candidate; those unrelated implementations were not rewritten.
+Documentation changes are outside this code/test manifest. No staging/commit,
+push, deployment, dependency addition or external coordination occurred.
+
+| Evidence | Actual result and scope |
+| --- | --- |
+| `pnpm build`, `pnpm lint`, Node suite, diff check | Build PASS (existing large-chunk warnings), lint PASS / 40 inherited warnings, **167 tests PASS**, diff check clean. |
+| `/tmp/daily-auto-sync-rG2zPZ/results.json` | **16 checks**, zero runtime/native-dialog errors, maximum one active save. Rapid-edit batching, newer in-flight edits, retry/error/validation/409/lost response, guarded route auto-proceed, confirmed delete/reload, reflection/week reopen, explicit empty Submit; actual mounted production-preview UI with synthetic versioned APIs. |
+| `/tmp/daily-ux-IncknW/results.json` | **41 checks**, zero errors: Add pending/failure/retry, Save≠Submit policy (now auto-sync≠Submit), gallery/upload/file/legacy focus, date/history, day/week/group/shared contexts and consent ON/OFF. Desktop 1440/1024, tablet 768, 390/320 mobile, short 320×360. Synthetic APIs. |
+| `/tmp/daily-ux-f2alw5/results.json` | **44 checks**, zero errors: direct versus same-document Home→Daily, populated/empty day/groups, invitations and Home keyboard/appearance. 1440×900 and 390×844 light/dark, 768×1024 and 320×360 light. Synthetic APIs on local Vite. |
+| `/tmp/daily-http-s0pl3o/results.json` | **5 groups**, zero errors: immediate Add; automatic title/reflection/priority/completion persistence and full-document reopen; weekly auto-sync/reopen; original private bytes, gallery/upload and unrelated-account 403. Production Daily/evidence services, Flyway V1–V23 and disposable PostgreSQL; fixture identities/login adaptation, not production cookie/token/provider proof. |
+| `/tmp/scroll-dialog-FtEtOG/results.json` | **28 checks**, zero errors; preserved themed native scrolling and custom editor/destructive-dialog behavior. Synthetic APIs. |
+| `/tmp/navigation-after-dwLF56/results.json` | **32 checks**, zero errors; preserved public/authenticated/role-specific responsive shell and genuinely unsynchronized Daily navigation guard. Synthetic auth/API. |
+| `/tmp/study-player-local-Y6VToY/results.json` | **20 checks**, zero errors; unchanged independent local player lifecycle/control behavior. Simulated players, not actual YouTube or live multiuser proof. |
+
+Current viewed screenshots include
+[reflection and aligned sync footer](/tmp/daily-auto-sync-rG2zPZ/reflection-desktop.png),
+[short-screen retained editing](/tmp/daily-auto-sync-rG2zPZ/short-screen-editing-reachable.png),
+[mobile dark synchronized state](/tmp/daily-auto-sync-rG2zPZ/day-synced-390x844-dark.png),
+[tablet weekly reflection](/tmp/daily-auto-sync-rG2zPZ/week-tablet.png),
+[task/evidence ribbon](/tmp/daily-ux-IncknW/task-ribbon-desktop-variants.png) and
+[Home→Daily empty desktop](/tmp/daily-ux-f2alw5/aligned-spa-empty-day-1440x900-light.png).
+These are current generated local renders, not physical-device screenshots.
+
+Ownership / exact increment paths (Lead owns all writes):
+
+- `apps/web/src/features/daily/components/{daily-plan-editor,daily-week-editor}.tsx`
+- `apps/web/src/features/daily/hooks/use-daily-auto-sync.ts` (new)
+- `apps/web/src/features/daily/lib/{daily-lifecycle,plan-editor}.ts`
+- `apps/web/src/features/daily/ui/{daily-sync-status.tsx,study-date-picker.tsx,study-notebook.css,use-daily-confirm.tsx}` (`daily-sync-status.tsx` new)
+- `apps/web/tests/{daily-auto-sync.test.ts,daily-auto-sync-browser-check.mjs}` (new)
+- `apps/web/tests/{daily-study-ui.test.ts,daily-wire.test.ts,daily-ux-browser-check.mjs,daily-persistence-http-browser-check.mjs,navigation-browser-check.mjs}`
+- `apps/web/README.md`, `docs/architecture/web-ui.md`, this existing audit.
+
+The bounded read-only Peer response was **REJECTED as evidence**: it repeated the
+review questions without causal findings/line-level support and quoted an altered
+hook hash while claiming a match. The disposition was sent, its scope closed and
+no dependent candidate accepted from it. Lead independently inspected the sources,
+revision/rebase tests, rendered results and actual HTTP persistence evidence.
+
+Failed/partial runs remain separate: `/tmp/daily-auto-sync-NHqB4f` had an incomplete
+API fixture missing required counts; `/tmp/daily-auto-sync-qqhB55` used a synthetic
+click that did not open the Radix menu (fixed to keyboard interaction).
+`/tmp/daily-ux-DA4i2Z` caught the obsolete date-guard copy, now corrected.
+The first HTTP rerun hit an unhandled cancelled CDP interception, now handled;
+the initial Java invocation lacked the configured JAVA_HOME and was retried with
+the installed JDK. `/tmp/navigation-after-WJFMMb` encountered a missing preview
+document during rebuild; rerun on the stable build passed. `/tmp/daily-auto-sync-XJlPZl`
+terminated with exit 143 without a final result; it is not acceptance evidence.
+`/tmp/daily-ux-Tif9zW` was a malformed viewport environment argument, not a product
+failure; the corrected matrix passed. Earlier successful runs before the final
+short-screen/footer style correction do not replace the final manifests above.
+
+Limits: no production/live-account auth, real multiuser concurrency, physical
+phone/keyboard, Safari/WebKit or offline durable-draft recovery proof. Version
+conflicts are intentionally not auto-merged. Older manual-Save HTTP runners are
+historical and not current acceptance criteria (see README). **The reflection
+countdown target remains undecided and unimplemented**, owned by the product owner;
+resume that separate criterion when a target is chosen. This increment is accepted
+technically, not product/design approval or completion of that outstanding scope.
+
+### Native scrollbar/dialog increment — TECHNICALLY ACCEPTED (06/10/2026)
+
+Base `d6905eec8071c1507e41dba0de9120c234b4d529`, initially clean worktree.
+Lead owns all current writes: global scrollbar/motion styling, shared shadcn
+Dialog/AlertDialog, mounted post-editor link entry, focused tests and existing docs.
+No API, room player, Daily persistence or countdown contract changes. No new commit
+or external effect is part of this increment.
+
+Delegation disposition: the bounded editor writer's claimed candidate was rejected
+because no patch existed and its hash/consumer/check claims contradicted disk. The
+separate read-only inventory and its follow-up were rejected as inadequate and
+internally inconsistent evidence. Both scopes are explicitly closed and relinquished;
+Lead implemented the actual patch and verifies actual source/rendered artifacts.
+Neither report is used as acceptance evidence.
+
+Lead source trace: routes `/admin/posts` and `/lecturer/posts` mount
+PostManagementPage → PostManagementFeature → PostForm → RichTextEditor/MenuBar.
+The only browser-native question call was its link URL prompt. Daily's `confirm`
+identifiers resolve to useDailyConfirm/AlertDialog, not window.confirm. Other management
+confirmations already use custom primitives; room close confirmation is inline.
+Room Music and group creation use styled HTML dialogs with their own DOM controls,
+not browser-generated question boxes. Retain native Daily beforeunload (tab close/reload
+cannot be safely replaced), OS file chooser and browser permission/security UI.
+Question data named `prompt` and ARIA `role=alert` are not native prompt calls.
+
+Current implemented behavior: platform-native scrollbars use existing theme tokens,
+with no wheel/touch interception or added dependency; forced-colors defers to the UA.
+Post link insertion captures selected text/range, uses the existing Tiptap URI safety
+policy, isolates portal form submission from PostForm, and cancels without mutation.
+Shared modal animation is 150ms with explicit reduced-motion precedence; alerts have
+short/narrow viewport bounds and scrollable content. Alert action/cancel class merging
+is corrected so existing destructive colors/control overrides actually apply.
+
+Lead disposition: **ACCEPT** the actual bounded application/test candidate. The four
+current browser manifests were independently rehashed against disk with no mismatches.
+Their sorted 70-entry union, serialized as `{base,sources}` with base above, has SHA256
+`5c2f6ee783f4cd8d45dc1be9f8a6550acce43af5982bf4faaedcceb968eb5f82`.
+Documentation is status metadata outside that application/test snapshot. Product/design
+approval is separate; no stage/commit/push/deployment was performed.
+
+Exact changed paths for this increment (all Lead-owned, no inherited changes):
+`apps/web/src/index.css`, `apps/web/src/components/ui/dialog.tsx`,
+`apps/web/src/components/ui/alert-dialog.tsx`, `apps/web/src/components/ui/rich-text-editor.tsx`,
+`apps/web/tests/native-prompts.test.ts`, `apps/web/tests/scroll-dialog-browser-check.mjs`,
+`apps/web/tests/daily-ux-browser-check.mjs`, `apps/web/tests/navigation-browser-check.mjs`,
+`apps/web/README.md`, `docs/architecture/web-ui.md`, `docs/reviews/ux-flow-audit.md`.
+
+| Verification | Actual result / evidence |
+| --- | --- |
+| Mounted increment, production preview on loopback 3001, synthetic APIs | `/tmp/scroll-dialog-fmYiXc/results.json`: **28 checks, zero errors/native question dialogs**, stable 9-entry manifest, SHA256 of `JSON.stringify(candidateEnd)` `ffa2933d07230cd9b15e972c67b88edeeb1aaa6c6f95770409cb100d6b253952`. 1440×900/768×1024 light, 390×844 dark, 320×360 light: selected text retained, URI validation, Enter insertion without parent post submission, cancel/Escape/focus trap/return, destructive styling and explicit DELETE only, open/closing presence, actual reduced-motion suppression, forced-colors defaults, wheel/keyboard and emulated touch scrolling, short public drawer. |
+| Daily dialog/gallery regression, production preview, synthetic APIs | `/tmp/daily-ux-GN9aHm/results.json`: **41 checks, zero errors**, stable/current 41-entry manifest, SHA256 `4a0d6e69c54b48db7e3d2ad7201a82ef0a4f8ac955c1142214d6d49f6e5d58c7`. Add pending/failure/retry and unrelated drafts; Save≠Submit, upload/gallery/files/legacy evidence, reflection drafts/save context, reload confirmation, date/busy/draft safety, group sharing/revocation/audience and read-only evidence. This focused `interactions` scope excludes the unchanged Home route-history/empty-state matrix, not a new acceptance of every earlier Daily requirement. |
+| Shared-shell regression, production preview, synthetic auth | `/tmp/navigation-after-vwibZz/results.json`: **32 checks, zero errors**, stable/current 20-entry manifest including global CSS. Public and student/lecturer/admin shells, desktop/tablet/mobile/short/dark, role visibility, drawer/account/focus/draft blocker and breakpoint edges. |
+| Player regression, simulated YouTube API | `/tmp/study-player-local-zyFmL8/results.json`: **20 checks, zero errors**, current player manifest. No room/player/session application bytes changed. Not actual YouTube or live multiuser proof. |
+| Local web checks | `/tmp/scroll-final-build.log`: TypeScript/Vite PASS, retained >500kB chunk and plugin timing warnings. `/tmp/scroll-accepted-lint.log`: PASS, zero errors/40 inherited warnings. `/tmp/scroll-final-node.log`: **164 Node tests PASS**, including a type-resolved whole-src native-call inventory and a fixture proving alias/indexed/destructured globals are detected without flagging local confirm. `git diff --check` PASS. |
+
+Lead inspected current full-size screenshots, not merely overflow assertions:
+[desktop link dialog](/tmp/scroll-dialog-fmYiXc/link-1440x900-light.png),
+[tablet](/tmp/scroll-dialog-fmYiXc/link-768x1024-light.png),
+[dark phone](/tmp/scroll-dialog-fmYiXc/link-390x844-dark.png),
+[short phone](/tmp/scroll-dialog-fmYiXc/link-320x360-light.png),
+[short destructive confirmation](/tmp/scroll-dialog-fmYiXc/confirmation-320x360-light.png),
+[public drawer scroller](/tmp/scroll-dialog-fmYiXc/public-drawer-320x360.png),
+[short gallery controls](/tmp/daily-ux-GN9aHm/gallery-controls-320x360-light.png),
+[dark reflection scroller](/tmp/daily-ux-GN9aHm/reflection-desktop-dark.png),
+[Daily reload confirmation](/tmp/daily-ux-GN9aHm/custom-reload-confirmation.png).
+Dialogs remain bounded and controls reachable by native scrolling at short heights.
+
+Failed/incomplete runs remain excluded: `/tmp/scroll-dialog-4pPbIr` omitted Enter's
+text event; `/tmp/scroll-dialog-BtvYEH` selected the outer PostForm's Cancel instead of
+the nested link Cancel. `/tmp/scroll-dialog-jsZtDs` found the real reduced-motion
+precedence defect, corrected in global styling. `/tmp/scroll-dialog-89obCB` lacked
+synthetic CORS preflight headers; `/tmp/scroll-dialog-k8GRxp` encountered a document
+reload during dev/build activity. `/tmp/navigation-after-AdolFW` failed an immediate
+resize assertion; the final runner waits for layout/React handoff and passes with the
+same application bytes. No passing results are inferred from those failures.
+`/tmp/daily-ux-AJpoCo` and `/tmp/daily-ux-kJ6kOX` ended without a completed result;
+partial screenshots are not acceptance proof. Final focused Daily evidence is the
+completed stable production-preview run above. Browser helpers now include shared
+CSS/primitives in their snapshots and offer `interactions` mode without dev-only
+query imports; their default full Daily matrix remains available.
+
+Usable path: mounted staff post editor → select text → link toolbar → input → explicit
+Insert, or Cancel/Escape. Scrolling surfaces retain native physics and accessibility;
+no scroll library, dependency or new backend contract. Existing styled HTML room/group
+dialogs remain application-owned custom UI. The only retained browser-native app
+warning is Daily tab unload for unsaved drafts; OS file/security/permission UI is
+intentionally not replaceable. Whole-src type-aware/source inventory finds no native
+alert/confirm/prompt call; dynamic runtime code/browser extensions are outside that
+inventory. Safari/WebKit/Firefox/physical-device scrollbar and touch behavior are not
+rendered here; older-engine CSS is source-based, and overlay-scrollbar visibility is
+still controlled by OS/browser preferences. Synthetic auth/API is not backend privacy,
+persistence or authorization proof. Reflection countdown is still separately pending
+the product target; this increment does not resolve it or restore a visible motion toggle.
+
 ### Daily task/dialog increment — TECHNICALLY ACCEPTED; countdown PENDING (06/10/2026)
 
 Lead owns the integrated Daily/backend candidate and existing unfinished alignment correction. Local commit `86e827f` contains completed room/navigation work; Daily implementation, Home selector isolation and Daily-only dashboard-title hunk were excluded. Retained room/player/navigation manifests match disk; a fresh web build/lint and 14 targeted Node checks passed before that commit. No unrelated staged changes existed.

@@ -79,7 +79,7 @@ export function DashboardLayout() {
             {!hasRail && <Logo className="shell-brand__logo" />}
             <div className="workspace-topbar__context"><span>{roleLabel}</span><p>{dailyArea ? "Góc học tập" : active?.label ?? "Không gian cá nhân"}</p></div>
           </div>
-          <div className="workspace-topbar__actions"><ThemeToggle /><UserDropdown direction="down" compact className="shell-account" avatarClassName="size-9" /></div>
+          <div className="workspace-topbar__actions"><ThemeToggle className="shell-icon-control" /><UserDropdown direction="down" compact className="shell-account" avatarClassName="size-9" /></div>
         </header>
         <div className="workspace-content" id="workspace-content" tabIndex={-1}><Outlet /></div>
       </main>

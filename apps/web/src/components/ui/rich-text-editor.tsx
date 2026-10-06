@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useId } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
-import Link from "@tiptap/extension-link";
+import Link, { isAllowedUri } from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Button } from "@/components/ui/button";
@@ -166,6 +166,13 @@ function ImageInsertDialog({ open, onOpenChange, onInsert }: ImageInsertDialogPr
 
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
   const [isImageDialogOpen, setImageDialogOpen] = useState(false);
+  const [isLinkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkError, setLinkError] = useState("");
+  const linkSelection = useRef<{ from: number; to: number } | null>(null);
+  const linkTrigger = useRef<HTMLButtonElement>(null);
+  const linkInputId = useId();
+  const linkErrorId = useId();
 
   if (!editor) {
     return null;
@@ -186,10 +193,29 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
   };
 
   const addLink = () => {
-    const url = window.prompt("URL:");
-    if (url) {
-      editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    const { from, to } = editor.state.selection;
+    linkSelection.current = { from, to };
+    setLinkUrl(editor.getAttributes("link").href ?? "");
+    setLinkError("");
+    setLinkDialogOpen(true);
+  };
+
+  const insertLink = () => {
+    const href = linkUrl.trim();
+    // Match the existing Link extension's URI safety policy (including mailto,
+    // tel and relative links). Do not turn an unsafe URI into silent success.
+    if (!href || !isAllowedUri(href)) {
+      setLinkError("Nhập liên kết hợp lệ. Không hỗ trợ địa chỉ script hoặc dữ liệu.");
+      return;
     }
+    if (editor.isDestroyed || !linkSelection.current) return;
+    const inserted = editor.chain().focus().setTextSelection(linkSelection.current)
+      .extendMarkRange("link").setLink({ href }).run();
+    if (!inserted) {
+      setLinkError("Chưa chèn được liên kết. Kiểm tra địa chỉ và thử lại.");
+      return;
+    }
+    setLinkDialogOpen(false);
   };
 
   const addImage = () => {
@@ -360,8 +386,12 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
           size="icon"
           className={`h-8 w-8 ${editor.isActive("link") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={addLink}
+          ref={linkTrigger}
           type="button"
           title="Chèn Link"
+          aria-label="Chèn liên kết"
+          aria-haspopup="dialog"
+          aria-expanded={isLinkDialogOpen}
         >
           <LinkIcon className="h-4 w-4" />
         </Button>
@@ -410,6 +440,36 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         onOpenChange={setImageDialogOpen} 
         onInsert={(url) => editor.chain().focus().setImage({ src: url }).run()} 
       />
+      <Dialog open={isLinkDialogOpen} onOpenChange={setLinkDialogOpen}>
+        <DialogContent onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          linkTrigger.current?.focus();
+        }}>
+          <DialogHeader>
+            <DialogTitle>Chèn liên kết</DialogTitle>
+            <DialogDescription>Áp dụng địa chỉ cho phần văn bản đang chọn. Hủy giữ nguyên nội dung.</DialogDescription>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={(event) => {
+            event.preventDefault();
+            // Portals still bubble through React: never submit the PostForm.
+            event.stopPropagation();
+            insertLink();
+          }}>
+            <div className="space-y-2">
+              <label htmlFor={linkInputId} className="text-sm font-medium">Địa chỉ liên kết</label>
+              <Input id={linkInputId} value={linkUrl} autoComplete="off" inputMode="url"
+                placeholder="https://…" aria-invalid={!!linkError}
+                aria-describedby={linkError ? linkErrorId : undefined}
+                onChange={(event) => { setLinkUrl(event.target.value); setLinkError(""); }} />
+              {linkError ? <p id={linkErrorId} role="alert" className="text-sm text-destructive">{linkError}</p> : null}
+            </div>
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setLinkDialogOpen(false)}>Hủy</Button>
+              <Button type="submit" disabled={!linkUrl.trim()}>Chèn liên kết</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

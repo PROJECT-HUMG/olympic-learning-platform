@@ -16,6 +16,7 @@ const dir=await mkdtemp(join(tmpdir(),"daily-http-"));
 const checks=[],errors=[],requests=[];
 const sourcePaths=["src/features/daily/components/daily-plan-editor.tsx","src/features/daily/evidence/evidence-panel.tsx","src/features/daily/evidence/evidence-preview.ts","src/features/daily/evidence/evidence-contract.ts","src/features/daily/evidence/evidence.service.ts","src/features/daily/ui/study-notebook.css","src/features/daily/ui/use-daily-confirm.tsx","src/features/daily/hooks/use-daily.ts","src/features/daily/lib/plan-editor.ts","src/features/daily/services/daily.service.ts","tests/daily-persistence-http-browser-check.mjs",
   "src/features/daily/ui/daily-dialog-header.tsx","../api/src/main/java/me/nghlong3004/olympic/daily/service/impl/DailyServiceImpl.java","../api/src/main/java/me/nghlong3004/olympic/daily/controller/DailyController.java","../api/src/main/java/me/nghlong3004/olympic/daily/evidence/controller/EvidenceController.java","../api/src/main/resources/db/migration/V23__neutral_daily_evidence.sql"];
+sourcePaths.push("src/features/daily/hooks/use-daily-auto-sync.ts","src/features/daily/hooks/use-daily-editor.ts","src/features/daily/lib/daily-lifecycle.ts","src/features/daily/ui/daily-sync-status.tsx","src/features/daily/components/daily-week-editor.tsx");
 const manifest=async()=>Object.fromEntries(await Promise.all(sourcePaths.map(async p=>[p,createHash("sha256").update(await readFile(p)).digest("hex")])));
 const candidateStart=await manifest();
 async function request(path,method="GET",body,actor=token) {
@@ -42,9 +43,9 @@ try {
       const refresh=u.pathname.endsWith("/auth/refresh");
       // The opt-in harness has no refresh-cookie endpoint. Use its real fixture
       // login response at this auth boundary only; never claim production auth proof.
-      void call("Fetch.continueRequest",{requestId:e.requestId,url:refresh?api+"/auth/login":api+u.pathname.slice(7)+u.search,...(refresh&&e.request.method!=="OPTIONS"?{postData:Buffer.from(JSON.stringify({identifier:"authoring-lecturer",password:"authoring-browser"})).toString("base64")}: {})}).catch(x=>errors.push(x.message));
-    }else if(u.origin===web)void call("Fetch.continueRequest",{requestId:e.requestId});
-    else void call("Fetch.fulfillRequest",{requestId:e.requestId,responseCode:404});
+      void call("Fetch.continueRequest",{requestId:e.requestId,url:refresh?api+"/auth/login":api+u.pathname.slice(7)+u.search,...(refresh&&e.request.method!=="OPTIONS"?{postData:Buffer.from(JSON.stringify({identifier:"authoring-lecturer",password:"authoring-browser"})).toString("base64")}: {})}).catch(x=>{if(!x.message.includes("Invalid InterceptionId"))errors.push(x.message);});
+    }else if(u.origin===web)void call("Fetch.continueRequest",{requestId:e.requestId}).catch(x=>{if(!x.message.includes("Invalid InterceptionId"))errors.push(x.message);});
+    else void call("Fetch.fulfillRequest",{requestId:e.requestId,responseCode:404}).catch(x=>{if(!x.message.includes("Invalid InterceptionId"))errors.push(x.message);});
   }if(m.method==="Runtime.exceptionThrown")errors.push(m.params.exceptionDetails.text);
     if(m.method==="Page.javascriptDialogOpening"){errors.push("Unexpected native dialog");void call("Page.handleJavaScriptDialog",{accept:false})}
     if(m.id){const p=pending.get(m.id);pending.delete(m.id);if(m.error)p.reject(Error(JSON.stringify(m.error)));else p.resolve(m.result)}
@@ -61,23 +62,25 @@ try {
   await call("Page.navigate",{url:web+"/daily?date="+date});await wait("!!document.querySelector('#daily-plan-form')&&!document.querySelector('#startup-loader')");
   await click("Thêm việc");await wait("!!document.querySelector('#daily-task-modal-input')");
   await fill("#daily-task-modal-input","Task persisted without extra Save");await click("Thêm và lưu việc");
-  await wait("document.querySelectorAll('.study-task').length===1");
+  await wait("document.querySelectorAll('.study-task').length===1&&!document.querySelector('.daily-add-dialog')");
   let saved=json(await request("/daily/plans?date="+date));
   assert.equal(saved.tasks[0].title,"Task persisted without extra Save");assert.equal(saved.firstSubmittedAt,null);
   const firstId=saved.tasks[0].id;
   checks.push("mounted Add confirms real server/SQL persistence without extra Save or Submit");
-  await fill(".study-task__main > input","Unrelated local edit");
-  await click("Nhìn lại ngày");await wait("!!document.querySelector('#daily-tomorrow')");await fill("#daily-tomorrow","Unsaved reflection preserved");await escape();
+  await fill(".study-task__main > input","Automatically persisted task edit");
+  await click("Nhìn lại ngày");await wait("!!document.querySelector('#daily-tomorrow')");await fill("#daily-tomorrow","Automatically persisted reflection");await escape();
+  await wait("document.querySelector('.study-savebar').textContent.includes('Đã đồng bộ')");
   await click("Thêm việc");await wait("!!document.querySelector('#daily-task-modal-input')");await fill("#daily-task-modal-input","Second persisted task");await click("Thêm và lưu việc");await wait("document.querySelectorAll('.study-task').length===2");
   saved=json(await request("/daily/plans?date="+date));
-  assert.equal(saved.tasks.length,2);assert.equal(saved.tasks[0].title,"Task persisted without extra Save");assert.equal(saved.reviewTomorrow,null);assert.equal(saved.firstSubmittedAt,null);
-  assert.equal(await js("document.querySelector('.study-task__main > input').value"),"Unrelated local edit");
-  await click("Nhìn lại ngày");await wait("!!document.querySelector('#daily-tomorrow')");assert.equal(await js("document.querySelector('#daily-tomorrow').value"),"Unsaved reflection preserved");
-  await click("Lưu kế hoạch và nhìn lại");await wait("!document.querySelector('.daily-reflection-dialog')");
-  saved=json(await request("/daily/plans?date="+date));assert.equal(saved.reviewTomorrow,"Unsaved reflection preserved");assert.equal(saved.tasks[0].title,"Unrelated local edit");assert.equal(saved.firstSubmittedAt,null);
+  assert.equal(saved.tasks.length,2);assert.equal(saved.tasks[0].title,"Automatically persisted task edit");assert.equal(saved.reviewTomorrow,"Automatically persisted reflection");assert.equal(saved.firstSubmittedAt,null);
+  assert.equal(await js("document.querySelector('.study-task__main > input').value"),"Automatically persisted task edit");
+  await click("Nhìn lại ngày");await wait("!!document.querySelector('#daily-tomorrow')");assert.equal(await js("document.querySelector('#daily-tomorrow').value"),"Automatically persisted reflection");await escape();await wait("!document.querySelector('.daily-reflection-dialog')");
   await call("Page.reload");await wait("document.querySelectorAll('.study-task').length===2&&!document.querySelector('#startup-loader')");
-  assert.equal(await js("document.querySelector('.study-task__main > input').value"),"Unrelated local edit");
-  checks.push("real append preserves unrelated task/reflection drafts; explicit reflection Save and full reload reopen");
+  assert.equal(await js("document.querySelector('.study-task__main > input').value"),"Automatically persisted task edit");
+  await js("document.querySelector('.study-task__complete [role=checkbox]').click();document.querySelector('.study-task__controls select').value='COULD';document.querySelector('.study-task__controls select').dispatchEvent(new Event('change',{bubbles:true}))");
+  await wait("document.querySelector('.study-savebar').textContent.includes('Đã đồng bộ')");
+  saved=json(await request("/daily/plans?date="+date));assert.equal(saved.tasks[0].status,"COMPLETED");assert.equal(saved.tasks[0].priority,"COULD");assert.equal(saved.firstSubmittedAt,null);
+  checks.push("production services/SQL auto-persist title, reflection, completion and priority; fresh document reopens without Save/Submit");
   const root="/daily/plans/"+saved.id+"/tasks/"+firstId+"/evidence",planBefore=saved;
   const png=await readFile("public/social-icons/youtube.png");
   for(let i=0;i<4;i++){const body=new FormData();body.append("file",new Blob([png],{type:"image/png"}),"notes-"+i+".png");if(i===0)body.append("stage","START");const r=await request(root,"POST",body);assert.equal(r.status,201);assert.equal(json(r).stage,i===0?"START":"GENERAL")}
@@ -102,6 +105,13 @@ try {
   await escape();await call("Page.reload");await wait("document.querySelector('.daily-evidence-all')?.textContent.includes('(7)')");
   await call("Emulation.setDeviceMetricsOverride",{width:320,height:568,deviceScaleFactor:1,mobile:true});await shot("real-http-reopen-320");
   checks.push("mounted file upload uses actual multipart endpoint; private SQL bytes survive full reload");
+  const weekStart="2026-10-12";
+  const weeklyText="Weekly automatic persistence over real HTTP "+date;
+  await call("Page.navigate",{url:web+"/daily/week?weekStart="+weekStart});await wait("!!document.querySelector('#week-reflection')");
+  await fill("#week-reflection",weeklyText);await wait("document.querySelector('.study-savebar').textContent.includes('Đã đồng bộ')");
+  assert.equal(json(await request("/daily/weeks?weekStart="+weekStart)).reflection,weeklyText);
+  await call("Page.reload");await wait(`document.querySelector('#week-reflection')?.value===${JSON.stringify(weeklyText)}`);
+  checks.push("weekly reflection auto-sync and fresh-document reopen use real production services and disposable SQL");
   assert.equal(requests.some(r=>r.path.endsWith("/sharing")&&r.method==="PUT"),false);
   assert.deepEqual(errors,[]);assert.deepEqual(await manifest(),candidateStart);
 }catch(error){errors.push(error.stack);process.exitCode=1;if(call&&js){try{await writeFile(join(dir,"failure.txt"),await js("document.body.innerText"));await writeFile(join(dir,"failure.png"),Buffer.from((await call("Page.captureScreenshot")).data,"base64"))}catch{}}}

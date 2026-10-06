@@ -49,7 +49,7 @@ export function UserDropdown({
           className={cn("flex min-h-11 items-center gap-3 rounded-xl p-1.5 hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring", collapsed ? "justify-center" : "w-full justify-between", className)}
         >
           <span className="flex min-w-0 items-center gap-3">
-            <span className={cn("flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-semibold", avatarClassName)}>
+            <span data-slot="account-avatar" className={cn("flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-semibold", avatarClassName)}>
               {user.avatarUrl ? (
                 <AvatarImage crop={user.avatarCrop}
                   src={user.avatarUrl}

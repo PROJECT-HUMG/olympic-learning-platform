@@ -14,14 +14,30 @@ const feedback = source("features/daily/groups/feedback-panel.tsx");
 const evidence = source("features/daily/evidence/evidence-panel.tsx");
 
 it("completion retains both wire states without a redundant row status selector", () => {
-  assert.match(day, /<fieldset disabled=\{draft.busy\}/);
-  assert.match(day, /type="checkbox" aria-label=\{`Đánh dấu xong việc/);
-  assert.match(day, /event.target.checked \? "COMPLETED" : "TODO"/);
+  assert.match(day, /<fieldset disabled=\{editingLocked\}/);
+  assert.match(day, /<Checkbox id=\{`daily-complete-\$\{task.key\}`\} aria-label=\{`Đánh dấu xong việc/);
+  assert.match(day, /disabled=\{editingLocked\} onChange=/);
+  assert.match(day, /disabled=\{disabled\} checked=\{isComplete\}/);
+  assert.match(day, /checked === true \? "COMPLETED" : "TODO"/);
+  assert.match(day, /querySelector<HTMLButtonElement>\('\[data-slot="checkbox"\]'/);
   assert.match(day, /onChange\(\(current\) => \(\{ \.\.\.current, status \}\)\)/);
   assert.doesNotMatch(day, /daily-status-\$\{task.key\}/);
   assert.match(day, /aria-label=\{`Đưa việc \$\{index \+ 1\} lên trước`\}/);
   assert.doesNotMatch(day, /Tùy chọn việc/);
-  assert.match(day, /draft.edit\(\(\) => setForm\(update\)\)/);
+  assert.match(day, /draft.edit\(\(\) => replaceForm\(update\(formRef.current\)\)\)/);
+});
+
+it("completion reuses the installed Radix shadcn primitive with a full focusable hit area", () => {
+  const checkbox = source("components/ui/checkbox.tsx");
+  const css = source("features/daily/ui/study-notebook.css");
+  assert.match(checkbox, /Checkbox as CheckboxPrimitive.*from "radix-ui"/);
+  assert.match(checkbox, /CheckboxPrimitive.Root/);
+  assert.match(checkbox, /CheckboxPrimitive.Indicator/);
+  assert.match(checkbox, /data-\[state=checked\]:bg-primary/);
+  assert.match(checkbox, /disabled:opacity-50/);
+  assert.match(css, /study-task__complete.*width: 44px; min-height: 44px/);
+  assert.match(css, /:has\(\[data-slot="checkbox"\]:focus-visible\)/);
+  assert.match(css, /\[data-slot="checkbox"\]:focus-visible \{ outline: none; \}/);
 });
 
 it("today entry and compact date controls retain day/week/history links and guards", () => {
@@ -40,21 +56,23 @@ it("today entry and compact date controls retain day/week/history links and guar
   assert.doesNotMatch(review, /StudyDayList/);
   for (const screen of [day, week, group, review]) assert.match(screen, /StudyDatePicker/);
   assert.match(day, /DialogTitle>Nhìn lại ngày/);
-  assert.match(week, /Nhìn lại tuần · Chưa lưu/);
+  assert.match(week, /DailySyncStatus/);
 });
 
-it("save/submit and submission status stay outside collapsed reflection", () => {
+it("automatic persistence and explicit Submit status remain readily available", () => {
   assert.match(day, /className="study-savebar"/);
-  assert.match(day, /type="submit" form="daily-plan-form" disabled=\{draft.busy\}/);
+  assert.doesNotMatch(day, /type="submit" form="daily-plan-form"|Lưu kế hoạch và nhìn lại/);
+  assert.match(day, /DailySyncStatus/);
   assert.match(day, /className="study-submit-status" role="status"/);
   assert.match(day, /disabled=\{!canSubmit\}/);
-  assert.match(day, /Nộp không bật chia sẻ/);
+  assert.match(day, /Nộp là thao tác riêng, không bật chia sẻ/);
   assert.match(day, /study-day-workspace/);
   assert.match(day, /daily-reflection-layout/);
   assert.match(day, /DropdownMenuItem disabled=\{index === 0\}/);
   assert.match(day, /DropdownMenuItem disabled=\{last\}/);
-  assert.match(day, /variant="destructive" onSelect=\{remove\}/);
-  assert.match(day, /requestAnimationFrame\(\(\) => target.focus\(\)\)/);
+  assert.match(day, /variant="destructive" onSelect=/);
+  assert.match(day, /destructive: true/);
+  assert.match(day, /requestAnimationFrame\(\(\) => target\?\.focus\(\)\)/);
 });
 
 it("weekly reflection leads the workspace while all recorded figures and definitions remain available", () => {
@@ -63,7 +81,8 @@ it("weekly reflection leads the workspace while all recorded figures and definit
   assert.ok(week.indexOf('id="week-review"') < week.indexOf('<StudyWeekStats'));
   for (const field of ["plannedDays", "onTimeDays", "completionRate", "mustCompleted", "mustTotal", "mustRate"]) assert.ok(ui.includes(field));
   assert.match(ui, /Cách tính số liệu/);
-  assert.match(week, /form="daily-week-form" disabled=\{draft.busy\}/);
+  assert.match(week, /DailySyncStatus/);
+  assert.doesNotMatch(week, /type="submit" form="daily-week-form"/);
 });
 
 it("task entry is temporary until server-confirmed append, without saving unrelated edits", () => {
@@ -93,7 +112,7 @@ it("nested calendars fit their container and motion has a reduced-motion overrid
   assert.match(css, /prefers-reduced-motion: reduce/);
   assert.match(css, /animation: none !important; transition: none !important/);
   assert.match(review, /openStudySection\("shared-feedback"\)/);
-  assert.match(week, /title=\{draft.dirty \? "Nhìn lại tuần · Chưa lưu" : "Nhìn lại tuần"\} defaultOpen/);
+  assert.match(week, /title="Nhìn lại tuần" defaultOpen/);
 });
 
 it("date popover retains grid semantics, roving focus and owner-approved selection", () => {
