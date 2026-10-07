@@ -228,7 +228,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       {/* Kiểu chữ */}
       <div className="flex-shrink-0">
         <Select value={currentHeadingLevel} onValueChange={handleHeadingChange}>
-          <SelectTrigger className="h-8 w-[170px] max-w-full bg-background text-sm font-medium">
+          <SelectTrigger size="sm" className="w-[170px] max-w-full bg-background text-sm font-medium">
             <SelectValue placeholder="Kiểu chữ" />
           </SelectTrigger>
           <SelectContent>

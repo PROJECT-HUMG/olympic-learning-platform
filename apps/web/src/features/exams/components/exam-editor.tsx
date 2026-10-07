@@ -1,3 +1,5 @@
+import { AppPagination } from "@/components/ui/app-pagination";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -101,11 +103,11 @@ function ExamForm({ examId, initial, reload, listPath, papersPath, back }: { exa
       <PageSection title="Thông tin đề"><div className="space-y-4">
         <div className="space-y-2"><Label htmlFor="exam-title">Tiêu đề</Label><Input id="exam-title" value={form.title} maxLength={300} onChange={(event) => edit((current) => ({ ...current, title: event.target.value }))} /></div>
         <div className="space-y-2"><Label htmlFor="exam-subject">Môn học</Label>
-          <select id="exam-subject" className="h-11 w-full rounded-lg border bg-background px-3" value={form.subjectId} onChange={(event) => {
+          <NativeSelect id="exam-subject" value={form.subjectId} onChange={(event) => {
             const subjectId = event.target.value;
             if (subjectId !== form.subjectId && form.items.length > 0) setNotice("Đã gỡ các câu khỏi đề vì môn học đã đổi.");
             edit((current) => ({ ...current, subjectId, items: subjectId === current.subjectId ? current.items : [] }));
-          }}><option value="">Chọn môn học</option>{metadata.data?.subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}</select>
+          }}><option value="">Chọn môn học</option>{metadata.data?.subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}</NativeSelect>
         </div>
         <div className="space-y-2"><Label htmlFor="exam-instructions">Hướng dẫn</Label><Textarea id="exam-instructions" value={form.instructions} maxLength={4000} onChange={(event) => edit((current) => ({ ...current, instructions: event.target.value }))} /></div>
         <div className="space-y-2"><Label htmlFor="exam-release">Giờ mở đề</Label><Input id="exam-release" type="datetime-local" value={form.releaseLocal} onChange={(event) => edit((current) => ({ ...current, releaseLocal: event.target.value }))} /><p className="text-sm">{zoneLabel()}</p><p className="text-sm">Giờ này được đổi sang múi giờ đang dùng trên trình duyệt. Đề không có giờ đóng.</p><p className="text-sm">{formatRelease(localInputToOffsetDateTime(form.releaseLocal))}</p></div>
@@ -166,6 +168,6 @@ function PublishedBank({ subjectId, onAdd }: { subjectId: string; onAdd: (questi
     {query.isError ? <ExamProblem message={examErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : null}
     {query.data && query.data.content.length === 0 ? <p>Không có câu đã xuất bản cho môn này.</p> : null}
     <ul className="space-y-3">{query.data?.content.map((question) => <li key={question.id} className="flex flex-wrap items-center justify-between gap-3"><span>{questionBankLabel(question.content)}</span><Button type="button" variant="outline" size="sm" onClick={() => onAdd(question)}>Thêm vào đề</Button></li>)}</ul>
-    {query.data && query.data.totalPages > 1 ? <div className="flex gap-2"><Button type="button" variant="outline" size="sm" disabled={page <= 0} onClick={() => setPage((value) => value - 1)}>Trang trước</Button><Button type="button" variant="outline" size="sm" disabled={page + 1 >= query.data.totalPages} onClick={() => setPage((value) => value + 1)}>Trang sau</Button></div> : null}
+    {query.data && <AppPagination variant="compact" currentPage={page + 1} totalPages={query.data.totalPages} onPageChange={next => setPage(next - 1)} />}
   </div>;
 }

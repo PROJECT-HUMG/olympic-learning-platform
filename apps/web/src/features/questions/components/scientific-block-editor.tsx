@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 import { PageSection } from "@/components/ui/page-section";
 import type {
   FigureGroupBlock,
@@ -394,7 +395,7 @@ export function ScientificBlockEditor({
                 <>
                   <label className="scientific-field">
                     <span>Bố cục</span>
-                    <select
+                    <NativeSelect
                       value={block.layout}
                       disabled={disabled}
                       aria-label={`${label}, bố cục nhóm hình ${position}`}
@@ -405,7 +406,7 @@ export function ScientificBlockEditor({
                     >
                       <option value="full_width">Toàn chiều rộng</option>
                       <option value="side_by_side">Hai cột</option>
-                    </select>
+                    </NativeSelect>
                   </label>
                   {keysFor(block).map((figureKey, figureIndex) => {
                     const figure = block.figures[figureIndex];

@@ -4,8 +4,7 @@
 .recognition-filters { align-items:end; margin-bottom:24px; }
 .recognition-field { display:flex; flex-direction:column; gap:8px; min-width:0; }
 .recognition-filters .recognition-field { flex:1; min-width:min(180px,100%); max-width:320px; }
-.recognition-select { width:100%; min-height:44px; border:1px solid var(--input); border-radius:8px; padding:8px 12px; background:var(--card); color:var(--foreground); font:inherit; }
-.recognition-select:focus-visible, .recognition-checkbox input:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }
+.recognition-checkbox input:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }
 .recognition-hint,.recognition-field .recognition-hint { color:var(--muted-foreground); font-size:13px; line-height:1.7; overflow-wrap:anywhere; }
 .recognition-feedback { padding:32px 0; display:flex; flex-direction:column; align-items:start; gap:16px; color:var(--muted-foreground); }
 .recognition-gallery { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:32px 24px; }

@@ -92,6 +92,32 @@ Màn dashboard, quản lý tài liệu/bài viết/người dùng/danh mục/câ
 
 ## Nguyên tắc áp dụng
 
+Shared control contracts (07/10/2026): `NativeSelect` keeps native values, options,
+events and form semantics; its default height is 44px and `controlSize="sm"` is
+36px. Radix `SelectTrigger` defaults to 44px/full width; `size="sm"` retains a
+32px compact toolbar control. Floating `FormField` keeps its 52px notch geometry.
+`Combobox.className` styles layout; `inputClassName` styles the visible input.
+`Button.loading` adds the shared spinner/`aria-busy` and always disables the
+native button while retaining any caller-owned disabled condition. Pagination
+uses explicit `type="button"`, stays one-based, and offers the existing numbered
+layout or a compact previous/status/next layout; zero-based API adapters belong
+to features. Use existing RHF `FormLabel`/`FormControl`/`FormMessage` for associated
+field labels/errors. Shared search/empty presentation does not own query state;
+feature retries, content-shaped skeletons and specialized layouts remain local.
+
+Loading contracts (07/10/2026): `Skeleton` is decorative by default and stops
+pulsing with reduced motion. Each composition owns one meaningful pending text
+or name, `role="status"` and `aria-busy`; do not create a live region per cell.
+Protected/role auth pending uses the neutral `SessionLoading`, with authorized
+children withheld until guards resolve. Query-fetch retry stays distinct from
+restarting a failed import job. Preserve cached content where the feature's
+permission/lifecycle rules allow it; private Daily revalidation hiding remains
+intentional. Profile editors stay mounted on ordinary same-account refresh
+errors, reset on user ID changes, and are hidden on 401/403/404/expiry. Login cancels
+the previous current-user query before publishing the new account identity.
+Document skeletons follow the card's 160px image, body and footer; optional text
+and actions mean final card height is content-dependent.
+
 Ưu tiên nhận diện thật và các thao tác đã có; không thêm số liệu hoạt động, ngày đổi mật khẩu hoặc tính năng chưa có API. Border chia nhiệm vụ; không thêm gradient, shadow và icon trang trí trước mọi tiêu đề. Mobile, tên/email dài, bàn phím, theme và giảm chuyển động phải hoạt động. Các thay đổi về bố cục giữ query, phân trang, quyền và contract API hiện có. Ô nhập với nhãn nổi giữ chiều cao 52px để đủ chỗ cho notch và chữ; không ép về 44px như input thường. Trang chi tiết bài viết giới hạn chiều rộng phần đọc thay vì kéo văn bản dài hết chiều ngang.
 
 Khi thêm màn mới, dùng lại `PageHeader`/`PageSection`, tokens và UI primitives. Không tự khai báo lại font/size tiêu đề hoặc tạo bảng màu riêng cho màn chức năng.

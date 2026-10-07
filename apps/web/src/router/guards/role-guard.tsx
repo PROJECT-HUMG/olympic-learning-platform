@@ -2,7 +2,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { ROUTES, getDashboardRoute } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import type { Role } from "@/features/auth/types/auth.types";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SessionLoading } from "./session-loading";
 import { useSpinDelay } from "@/hooks/use-spin-delay";
 import { parseApiError } from "@/lib/api-error";
 import { SessionError } from "./session-error";
@@ -25,12 +25,7 @@ export function RoleGuard({ allowedRoles, fallbackPath }: RoleGuardProps) {
   const showSkeleton = useSpinDelay(isLoading, { delay: 50, minDuration: 0 });
 
   if (isLoading) {
-    if (!showSkeleton) return null;
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Skeleton className="h-12 w-12 rounded-full" />
-      </div>
-    );
+    return showSkeleton ? <SessionLoading /> : null;
   }
 
   if (!user && isError && ![401, 403].includes(parseApiError(error).status)) {

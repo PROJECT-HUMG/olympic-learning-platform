@@ -1,3 +1,4 @@
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,9 +27,9 @@ export function GpaCalculator() {
       </div>
       <div className="toolkit-gpa__scale">
         <label htmlFor="gpa-scale">Thang điểm</label>
-        <select id="gpa-scale" value={state.scale} onChange={(event) => setState((current) => ({ ...current, scale: event.target.value === "10" ? 10 : 4 }))}>
+        <NativeSelect className="w-auto" id="gpa-scale" value={state.scale} onChange={(event) => setState((current) => ({ ...current, scale: event.target.value === "10" ? 10 : 4 }))}>
           <option value="4">Hệ 4</option><option value="10">Hệ 10</option>
-        </select>
+        </NativeSelect>
         <p>Khi đổi thang điểm, hãy nhập lại điểm tương ứng. Công cụ giữ nguyên số đã nhập, không tự quy đổi điểm chữ hoặc áp dụng quy chế riêng của trường.</p>
       </div>
       <div className="toolkit-gpa__rows">

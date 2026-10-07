@@ -1,3 +1,4 @@
+import { NativeSelect } from "@/components/ui/native-select";
 import { useDailyConfirm } from "../ui/use-daily-confirm";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -212,9 +213,9 @@ export function GroupConsent({userId,group,refresh}:{userId:string;group:GroupDe
         <fieldset disabled={draft.busy} className="space-y-4">
           <label className="study-selection"><input type="checkbox" checked={settings.shareDaily} onChange={e=>draft.edit(()=>setSettings({...settings,shareDaily:e.target.checked}))}/>Cho phép xem Daily của tôi trong nhóm</label>
           <Label htmlFor="group-sharing-mode">Người được xem</Label>
-          <select id="group-sharing-mode" className="h-11 w-full rounded-lg border bg-background px-3" value={settings.sharingMode} onChange={e=>draft.edit(()=>setSettings({...settings,sharingMode:e.target.value as GroupSharing["sharingMode"]}))}>
+          <NativeSelect id="group-sharing-mode" value={settings.sharingMode} onChange={e=>draft.edit(()=>setSettings({...settings,sharingMode:e.target.value as GroupSharing["sharingMode"]}))}>
             <option value="GROUP">Tất cả thành viên đang tham gia</option><option value="SELECTED_MEMBERS">Chỉ người tôi chọn</option>
-          </select>
+          </NativeSelect>
           <fieldset hidden={settings.sharingMode !== "SELECTED_MEMBERS"} className="space-y-1"><legend className="text-sm font-medium">Danh sách người xem đã chọn</legend>
             <p className="text-sm text-muted-foreground">Danh sách này chỉ cấp quyền khi chọn "Chỉ người tôi chọn" và bật chia sẻ.</p>
             {group.members.filter(m=>m.userId!==userId).map(m=><label key={m.userId} className="study-selection">

@@ -13,7 +13,10 @@ export function useAuth() {
 
   async function login(identifier: string, password: string) {
     const response = await authService.login({ identifier, password });
-    
+
+    // Discard an old account's in-flight /me result before replacing its identity.
+    await queryClient.cancelQueries({ queryKey: QUERY_KEY_CURRENT_USER });
+
     // Set token for interceptors
     setAccessToken(response.data.accessToken);
     

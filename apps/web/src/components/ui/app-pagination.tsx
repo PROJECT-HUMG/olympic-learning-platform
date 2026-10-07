@@ -12,6 +12,7 @@ interface AppPaginationProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   siblingCount?: number;
+  variant?: "default" | "compact";
 }
 
 export function AppPagination({
@@ -19,8 +20,27 @@ export function AppPagination({
   totalPages,
   onPageChange,
   siblingCount = 1,
+  variant = "default",
 }: AppPaginationProps) {
   if (totalPages <= 1) return null;
+
+  if (variant === "compact") {
+    return (
+      <Pagination aria-label="Phân trang">
+        <PaginationContent className="max-w-full flex-wrap gap-3">
+          <PaginationItem>
+            <Button type="button" variant="outline" disabled={currentPage <= 1} onClick={() => onPageChange(currentPage - 1)}>Trước</Button>
+          </PaginationItem>
+          <PaginationItem className="text-sm text-muted-foreground" aria-live="polite">
+            Trang {currentPage} / {totalPages}
+          </PaginationItem>
+          <PaginationItem>
+            <Button type="button" variant="outline" disabled={currentPage >= totalPages} onClick={() => onPageChange(currentPage + 1)}>Sau</Button>
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  }
 
   // Generate pagination range
   const paginationRange = () => {
@@ -72,6 +92,7 @@ export function AppPagination({
       <PaginationContent className="max-w-full flex-wrap">
         <PaginationItem>
           <Button
+            type="button"
             variant="ghost"
             className="min-h-11 min-w-11"
             aria-label="Trang trước"
@@ -94,6 +115,7 @@ export function AppPagination({
               <PaginationEllipsis />
             ) : (
               <Button
+                type="button"
                 variant={page === currentPage ? "outline" : "ghost"}
                 size="icon"
                 className="size-11"
@@ -108,6 +130,7 @@ export function AppPagination({
         ))}
         <PaginationItem>
           <Button
+            type="button"
             variant="ghost"
             className="min-h-11 min-w-11"
             aria-label="Trang sau"

@@ -111,7 +111,7 @@ export function DocumentFilters() {
               placeholder={metadata.isLoading ? "Đang tải…" : label}
               emptyText={`Không tìm thấy ${label.toLowerCase()}`}
               disabled={metadata.isLoading || metadata.isError}
-              className="h-11 w-full rounded-full"
+              inputClassName="rounded-full"
             />
           </div>
         ))}

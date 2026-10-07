@@ -1,3 +1,4 @@
+import { NativeSelect } from "@/components/ui/native-select";
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,10 +27,10 @@ export function TransferRoomOwnership({ room, disabled, onTransfer }: {
             <DialogDescription>Chủ phòng mới có thể duyệt nhạc, đổi quy định và kết thúc buổi học. Sau khi chuyển, bạn sẽ trở thành thành viên.</DialogDescription>
           </DialogHeader>
           <label htmlFor={selectId}>Chủ phòng mới</label>
-          <select id={selectId} className="w-full min-h-11 rounded-md border border-input bg-background px-3 text-foreground" value={selectedId} disabled={disabled} onChange={(event) => setSelectedId(event.target.value)}>
+          <NativeSelect id={selectId} value={selectedId} disabled={disabled} onChange={(event) => setSelectedId(event.target.value)}>
             <option value="">Chọn thành viên đang có mặt</option>
             {candidates.map((member) => <option key={member.userId} value={member.userId}>{member.displayName}</option>)}
-          </select>
+          </NativeSelect>
           {selected && <p className="text-sm text-muted-foreground">Xác nhận giao phòng cho {selected.displayName}?</p>}
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>Hủy</Button>

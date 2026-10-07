@@ -99,7 +99,7 @@ function wrapText(text: string): Record<string, unknown> {
 
 function QuestionDetailSkeleton() {
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="space-y-6" role="status" aria-label="Đang tải câu hỏi" aria-busy="true">
       <Skeleton className="h-8 w-48" />
       <Skeleton className="h-6 w-32" />
       <Card>
@@ -504,8 +504,17 @@ export default function QuestionDetailPage() {
   const manualQuestion = question != null && isSchemaVersionOne(question.content) ? question : null;
   const manual = !id || manualQuestion != null || (handoffHere && question == null);
 
+  const pending = (
+    <div className="page-shell">
+      <div><Button type="button" variant="ghost" size="sm" className="-ml-2" onClick={() => navigate(backPath)}>
+        <ArrowLeft aria-hidden="true" className="size-4" />Quay lại
+      </Button></div>
+      <QuestionDetailSkeleton />
+    </div>
+  );
+
   if (manual) {
-    if (id && !handoffHere && isLoading) return <QuestionDetailSkeleton />;
+    if (id && !handoffHere && isLoading) return pending;
     return (
       <div className="page-shell">
         <div><Button variant="ghost" size="sm" className="-ml-2" onClick={() => navigate(backPath)}>
@@ -524,7 +533,7 @@ export default function QuestionDetailPage() {
     );
   }
 
-  if (isLoading) return <QuestionDetailSkeleton />;
+  if (isLoading) return pending;
 
   if (isError || !question) {
     return (

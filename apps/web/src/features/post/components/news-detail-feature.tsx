@@ -49,14 +49,14 @@ function calculateReadingTime(text: string): number {
 
 function NewsDetailSkeleton() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" role="status" aria-label="Đang tải bài viết" aria-busy="true">
       {/* Breadcrumb skeleton */}
       <div className="mx-auto max-w-5xl px-4 pt-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center gap-2">
           <Skeleton className="h-4 w-16" />
-          <span className="text-muted-foreground/30">/</span>
+          <span className="text-muted-foreground/30" aria-hidden="true">/</span>
           <Skeleton className="h-4 w-32" />
-          <span className="text-muted-foreground/30">/</span>
+          <span className="text-muted-foreground/30" aria-hidden="true">/</span>
           <Skeleton className="h-4 w-48" />
         </div>
       </div>

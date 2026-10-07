@@ -1,3 +1,4 @@
+import { NativeSelect } from "@/components/ui/native-select";
 import { useState } from "react";
 import { Check, Image as ImageIcon, Save, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -51,22 +52,22 @@ function AssessmentDraftCard({ draft, importId }: { draft: AssessmentQuestionDra
         <CardTitle className="text-base">Câu {draft.ordinal}</CardTitle>
         <span className="text-xs text-muted-foreground">Trang {draft.sourcePage ?? "?"} · confidence {confidence}%</span>
       </CardHeader>
-      <CardContent className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_220px]">
-        <div className="space-y-3">
+      <CardContent className="grid grid-cols-1 gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_220px]">
+        <div className="min-w-0 space-y-3">
           <Textarea value={text} onChange={(event) => { setText(event.target.value); }} rows={5} aria-label={`Nội dung câu ${draft.ordinal}`} />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="space-y-1 text-xs text-muted-foreground">Môn
-              <select className="h-9 w-full rounded-lg border border-input bg-background px-2 text-sm text-foreground" value={subjectId} onChange={(event) => { setSubjectId(event.target.value); setTopicId(""); }}>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="min-w-0 space-y-1 text-xs text-muted-foreground">Môn
+              <NativeSelect controlSize="sm" value={subjectId} onChange={(event) => { setSubjectId(event.target.value); setTopicId(""); }}>
                 <option value="">Chọn môn</option>{metadata.data?.subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}
-              </select>
+              </NativeSelect>
             </label>
-            <label className="space-y-1 text-xs text-muted-foreground">Chủ đề
-              <select className="h-9 w-full rounded-lg border border-input bg-background px-2 text-sm text-foreground" value={topicId} onChange={(event) => { setTopicId(event.target.value); }} disabled={!subjectId}>
+            <label className="min-w-0 space-y-1 text-xs text-muted-foreground">Chủ đề
+              <NativeSelect controlSize="sm" value={topicId} onChange={(event) => { setTopicId(event.target.value); }} disabled={!subjectId}>
                 <option value="">Chọn chủ đề</option>{topics.data?.map((topic) => <option key={topic.id} value={topic.id}>{topic.name}</option>)}
-              </select>
+              </NativeSelect>
             </label>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <label className="text-xs text-muted-foreground" htmlFor={`confidence-${draft.id}`}>Độ tin cậy</label>
             <Input id={`confidence-${draft.id}`} className="w-24" value={confidence} onChange={(event) => { setConfidence(event.target.value); }} inputMode="numeric" />
             <Button size="sm" loading={updateDraft.isPending} onClick={() => void save()}><Save className="size-4" />Lưu</Button>
@@ -75,7 +76,7 @@ function AssessmentDraftCard({ draft, importId }: { draft: AssessmentQuestionDra
           </div>
           {draft.warnings.length > 0 && <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">{draft.warnings.join(" · ")}</p>}
         </div>
-        <div className="space-y-3">
+        <div className="min-w-0 space-y-3">
           {draft.sourcePageUrl && <figure className="overflow-hidden rounded-xl border border-border bg-muted/20"><img src={draft.sourcePageUrl} alt={`Trang gốc của câu ${draft.ordinal}`} className="max-h-72 w-full object-contain" /><figcaption className="px-3 py-2 text-xs text-muted-foreground">Trang gốc để đối chiếu</figcaption></figure>}
           {draft.assets.length === 0 ? <div className="flex min-h-32 items-center justify-center rounded-xl border border-dashed border-border text-xs text-muted-foreground">Không có hình minh họa</div> : draft.assets.map((asset) => <figure key={asset.id} className="overflow-hidden rounded-xl border border-border bg-muted/20"><img src={asset.url} alt={asset.altText ?? `Hình của câu ${draft.ordinal}`} className="max-h-56 w-full object-contain" /><figcaption className="flex items-center gap-1 px-3 py-2 text-xs text-muted-foreground"><ImageIcon className="size-3.5" />{asset.role}</figcaption></figure>)}
           {draft.status === "APPROVED" && <span className="flex items-center gap-1 text-xs text-emerald-600"><Check className="size-3.5" />Đã duyệt</span>}

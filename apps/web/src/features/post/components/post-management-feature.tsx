@@ -1,8 +1,8 @@
+import { SearchInput } from "@/components/ui/search-input";
 import { PageHeader } from "@/components/ui/page-header";
 import { useState, useEffect } from "react";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { AppPagination } from "@/components/ui/app-pagination";
 import {
   useManagementPosts,
@@ -148,8 +148,7 @@ export function PostManagementFeature() {
 
       <div className="page-toolbar">
         <div className="relative max-w-sm w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
+          <SearchInput aria-label="Tìm kiếm bài viết"
             placeholder="Tìm kiếm bài viết..."
             className="pl-9 h-11 bg-background"
             value={keyword}

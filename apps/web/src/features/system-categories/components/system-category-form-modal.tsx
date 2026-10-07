@@ -12,7 +12,6 @@ import {
 import { FormField } from "@/components/ui/form-field";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 import { generateCodeFromName } from "@/lib/string-utils";
 
 const formSchema = z.object({
@@ -150,8 +149,7 @@ export function SystemCategoryFormModal({
             >
               Hủy
             </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" loading={isPending}>
               Lưu
             </Button>
           </DialogFooter>

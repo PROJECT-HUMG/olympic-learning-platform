@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FolderTree, Book, Tags, Plus, Loader2 } from "lucide-react";
+import { FolderTree, Book, Tags, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -34,7 +34,13 @@ import type {
 } from "@/features/system-categories/types/system-categories.types";
 
 export default function AdminCategoriesPage() {
-  const { data: metadata, isLoading: isMetadataLoading } = useDocumentMetadata();
+  const {
+    data: metadata,
+    isLoading: isMetadataLoading,
+    isError: isMetadataError,
+    refetch: refetchMetadata,
+    isFetching: isMetadataFetching,
+  } = useDocumentMetadata();
 
   const [activeTab, setActiveTab] = useState<"categories" | "subjects" | "tags">("categories");
   const [modalOpen, setModalOpen] = useState(false);
@@ -224,38 +230,77 @@ export default function AdminCategoriesPage() {
           </Button>
         </div>
 
-        <TabsContent value="categories" className="m-0">
-          <SystemCategoryDataTable
-            data={metadata?.categories}
-            isLoading={isMetadataLoading}
-            columns={columns}
-            onEdit={handleOpenModal}
-            onDelete={(item: CategorySummaryResponse) => handleDelete(item.id, item.name)}
-            deletePending={deleteCategory.isPending}
-          />
-        </TabsContent>
+        {isMetadataError && !metadata ? (
+          <div
+            role="alert"
+            className="space-y-3 rounded-xl border border-border p-8 text-center"
+          >
+            <p className="text-sm text-muted-foreground">
+              Không thể tải danh mục hệ thống.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              loading={isMetadataFetching}
+              onClick={() => void refetchMetadata()}
+            >
+              Thử lại
+            </Button>
+          </div>
+        ) : (
+          <>
+            {isMetadataError && (
+              <div
+                role="alert"
+                className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive"
+              >
+                <span>Không thể làm mới danh mục hệ thống.</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  loading={isMetadataFetching}
+                  onClick={() => void refetchMetadata()}
+                >
+                  Thử lại
+                </Button>
+              </div>
+            )}
 
-        <TabsContent value="subjects" className="m-0">
-          <SystemCategoryDataTable
-            data={metadata?.subjects}
-            isLoading={isMetadataLoading}
-            columns={columns}
-            onEdit={handleOpenModal}
-            onDelete={(item: SubjectSummaryResponse) => handleDelete(item.id, item.name)}
-            deletePending={deleteSubject.isPending}
-          />
-        </TabsContent>
+            <TabsContent value="categories" className="m-0">
+              <SystemCategoryDataTable
+                data={metadata?.categories}
+                isLoading={isMetadataLoading}
+                columns={columns}
+                onEdit={handleOpenModal}
+                onDelete={(item: CategorySummaryResponse) => handleDelete(item.id, item.name)}
+                deletePending={deleteCategory.isPending}
+              />
+            </TabsContent>
 
-        <TabsContent value="tags" className="m-0">
-          <SystemCategoryDataTable
-            data={metadata?.tags}
-            isLoading={isMetadataLoading}
-            columns={tagColumns}
-            onEdit={handleOpenModal}
-            onDelete={(item: TagSummaryResponse) => handleDelete(item.id, item.name)}
-            deletePending={deleteTag.isPending}
-          />
-        </TabsContent>
+            <TabsContent value="subjects" className="m-0">
+              <SystemCategoryDataTable
+                data={metadata?.subjects}
+                isLoading={isMetadataLoading}
+                columns={columns}
+                onEdit={handleOpenModal}
+                onDelete={(item: SubjectSummaryResponse) => handleDelete(item.id, item.name)}
+                deletePending={deleteSubject.isPending}
+              />
+            </TabsContent>
+
+            <TabsContent value="tags" className="m-0">
+              <SystemCategoryDataTable
+                data={metadata?.tags}
+                isLoading={isMetadataLoading}
+                columns={tagColumns}
+                onEdit={handleOpenModal}
+                onDelete={(item: TagSummaryResponse) => handleDelete(item.id, item.name)}
+                deletePending={deleteTag.isPending}
+              />
+            </TabsContent>
+          </>
+        )}
       </Tabs>
 
       <SystemCategoryFormModal
@@ -281,9 +326,8 @@ export default function AdminCategoriesPage() {
             <Button
               variant="destructive"
               onClick={confirmDelete}
-              disabled={isDeletePending}
+              loading={isDeletePending}
             >
-              {isDeletePending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Xóa
             </Button>
           </AlertDialogFooter>

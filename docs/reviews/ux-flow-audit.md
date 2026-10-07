@@ -4,6 +4,426 @@ Ngày: 01/10/2026. Phạm vi: các màn hiện có, điều hướng theo quyề
 
 Checkpoint trước khi sửa UX: `ecbfb14` — `feat: add study rooms and refresh student UI`. Các thay đổi bên dưới nằm sau checkpoint này.
 
+## Rendered UI breakage repair — accepted, 07/10/2026
+
+The local candidate repairs demonstrated narrow-layout failures; no redesign or
+new UI framework. Base remains `7e183c2a5c346bf02369f9f3d2aabfbc071ee1a4`.
+Entry `/tmp/ui-visual-entry-20261007.json` covered433 files, all matching on
+resumption. Prior accepted consolidation/loading and documentation-only closure
+were preserved. No old Peer identity was reused. Index remains unstaged.
+
+### Usable changes and exact task paths
+
+| Path under `apps/web/` | Before → after / preserved behavior |
+| --- | --- |
+| `src/features/assessment/components/assessment-draft-list.tsx` | At320, review controls extended to x450 and were clipped by the card despite page scrollWidth320. Explicit zero-min mobile tracks/items and wrapping action row keep textarea/native selects/confidence/Save/Approve/Reject within the card. Desktop220px source preview, events, payloads and approval/publication guards remain. |
+| `src/features/documents/components/dashboard-document-list.tsx` | Long category+subject metadata forced a1481px mobile content row and1514px page scroll width. Bound the column-flex row to the card; wrap bounded metadata badges with flexible height. Title truncation and description clamp, dates/counts/edit/delete remain. |
+| `src/features/documents/components/document-form.tsx` | Implicit mobile tracks stretched fields to657px in a304px dialog. Explicit single zero-min column and shrinkable field owner retain create/edit layouts, RHF wiring, payload, upload gate and pending behavior. |
+| `src/pages/dashboard/documents/documents-management-page.tsx` | The existing document dialog composition now owns an explicit single zero-min grid column; shared Dialog defaults and close/pending semantics unchanged. |
+| `src/components/ui/select.tsx` | Shared visible value uses min-width0 and truncation; conflicting flex/line-clamp styles removed. Full selected/option text remains in DOM/accessibility; existing Radix events, menu positioning and standard44/compact32 sizing remain. Mounted document menus wrap the full long option inside viewport. |
+| `tests/visual-risk-browser-check.mjs` | New mounted-route Chromium probe with explicitly synthetic stress data; separate requested/layout/visual/scale/PNG measurements, local/control bounds, keyboard and pending/payload assertions. All API/external requests intercepted; not live content. |
+
+The seventh task path is this status source, `docs/reviews/ux-flow-audit.md`.
+All other ENTRY files, including auth/expiry/Profile, Daily draft/private gates,
+room-player/canvas, question figure authorization and the remaining accepted
+loading changes, remain byte-identical. Complete integrated candidate (62 changed
+paths relative to HEAD), task delta/hashes and evidence identities:
+`/tmp/ui-visual-final-manifest-20261007.json`; archive
+`/tmp/ui-visual-final-candidate-20261007.tar.gz`. Lead ACCEPTS this integrated
+candidate after exact diff and rendered inspection; usable locally, uncommitted.
+
+### Viewport clarification and before/after evidence
+
+The original `/tmp/ui-visual-yYoUkI/results.json` labels described requested
+viewports, not necessarily the measured layout viewport. The richer
+`/tmp/ui-visual-TbgQcV/results.json` established documents' expanded layout viewport
+while visual viewport/PNG stayed320×640 at scale1. The fresh unchanged-source run
+`/tmp/ui-visual-XaNeqJ/results.json` reproduced this from
+`/tmp/ui-visual-before-runtime-20261007`, copied and verified against immutable
+`/tmp/ui-visual-source-before-20261007`/ENTRY. Final repaired run:
+`/tmp/ui-visual-Ltg2K0/results.json`. Same data, device metrics, DPR1, mobile flag,
+reduced motion and theme settings for matched observations; only the additional
+keyboard/pending proof adds interaction states. Explicit comparison and preserved
+source identities: `/tmp/ui-visual-before-after-20261007.json`.
+
+| 320-light measurement | Before | After |
+| --- | --- | --- |
+| Requested and PNG | 320×640 | 320×640 |
+| Document layout viewport / innerWidth | 1280×2560 /1280 | 320×640 /320 |
+| Document visual viewport / scale | 320×640 /1 | 320×640 /1 |
+| Document page scroll width | 1514 | 320 |
+| Dialog width / scroll width / grid column | 304 /689 /657.156 | 304 /304 /272 |
+| Open category menu width | 652.156, offscreen | 310, within320; full option wraps |
+
+Observed cause is content-driven layout expansion, not an observed zoom change.
+No universal1280px engine ceiling or media-query rule is claimed (390 baseline
+layout1514, mobile media still matched). No global overflow suppression added.
+Scroll position can differ naturally with repaired content size and focus; it is
+recorded separately. Desktop viewport metrics also record scrollbar deductions.
+
+### Actual Peer responses and Lead dispositions
+
+Fresh profile notes/settings materialized exactly as configured:
+`slp-agent-profile-muwz3aai-alhlbc9trsf/gemini-3.8-flash-high`, full-access,
+absent thinking/features overrides; actual runtime null thinking/features `[]`.
+Briefs, launches, verified identities/settings:
+`/tmp/ui-visual-peer-launches-20261007.json`.
+
+- Assessment writer `6b49f1c1-b0e5-406e-874e-81a37f9eab0e`: ACCEPT exact one-file
+  candidate `a88044c754bfd09ee861a7b7f74df06861c4c2fdd1272418b1370bfe06057dcc` after
+  ENTRY diff/copy/patch hash inspection. Only class names changed. Peer single-file
+  lint is evidence; Lead supplied actual rendering, action bounds/focus and save
+  proof. Estimated intrinsic-width formulas were not accepted as measured facts.
+  Exact response/disposition: `/tmp/ui-visual-assessment-peer-response-20261007.md`,
+  `/tmp/ui-visual-assessment-peer-disposition-20261007.md`. Closure acknowledged;
+  ownership fully relinquished.
+- Read-only document Peer `20f51428-2d75-4be9-8e56-db6814ca0aed`: ACCEPT source-
+  supported column-flex/metadata and implicit grid/value diagnosis. REJECT
+  universal1280px ceiling, inferred engine internals/media-query generalization
+  and confidence percentages; these were retracted. Optional overflow hiding and
+  shared Dialog/SelectContent redesign rejected as unnecessary; actual bounded
+  rendering passes. Exact response/disposition:
+  `/tmp/ui-visual-document-peer-response-20261007.md`,
+  `/tmp/ui-visual-document-peer-disposition-20261007.md`. Assignment closed with
+  read-only ownership relinquished. Lead owns integrated handoff; no active writer.
+
+### Validation and limits
+
+- Final mounted-route run:39 observations/14 explicit check records PASS, zero
+  runtime exceptions, no global/local horizontal overflow or clipped assessment
+  controls. Candidate source/test hashes identical across run. 320/390/768/1440,
+  light/dark and reduced motion; dialogs/drawers additionally320×360 dark. Rendered
+  assessment, document management/edit/category menu, recognition participant
+  editing/delete, manual question authoring, Profile, staff/student/guest drawers
+  and management empty/error/retry paths. No demonstrated additional material
+  defect on those sampled paths; this is bounded coverage, not all-screen proof.
+- Tab/Enter reaches visible document Edit/Select/Save/Close at320; category menu
+  opens, selected option accepted by Enter. One PUT with exact title/description/
+  category/subject/tag payload, pending Save/Cancel disabled; success closes,
+  reopen/close adds no mutation. At320×360 dark, save and close both reached by
+  keyboard and unobscured at their tested center points. Vertical content scroll
+  is intentional; no claim that all fields fit simultaneously.
+- Assessment Tab reaches visible Save; all three review action rectangles fit
+  horizontally and vertically after scroll. One PATCH, pending approve/publish
+  disabled. Before action right edges343.8/450.4 are repaired. Screenshot
+  `assessment-actions-320-light.png` shows all actions and visible focus.
+- Screenshot inspection: final assessment actions; document card, edit/menu and
+  save pending at320 light;390 dark edit;320×360 dark save. Screenshots and complete
+  metrics are adjacent to results JSON. Intermediate focused document proof
+  `/tmp/ui-visual-7RCYYM/results.json`; first integrated38-observation proof
+  `/tmp/ui-visual-As9z9M/results.json` preserved. Original driver-only localStorage
+  failure `/tmp/ui-visual-wL7hZX/failure.json` remains historical, not a product bug.
+- Existing consolidation browser regression:22 checks PASS, zero exceptions,
+  `/tmp/ui-consolidation-BJr40A/results.json`. Shared Button, pagers, native/Radix/
+  Combobox, compact sizing/notch, figure visibility, RHF error/label associations,
+  document validation/payload/upload/pending, category retry, destructive async
+  confirmation, search debounce and disallowed-role mount remain verified.
+- Existing Node suite:168 PASS, zero failure/skip, exec session24492 result recorded
+  in `/tmp/ui-visual-node-result-20261007.json`. Build PASS (TypeScript/Vite, existing
+  timing/chunk warnings); lint PASS, zero errors/40 existing warnings. Logs:
+  `/tmp/ui-visual-build-20261007.log`, `/tmp/ui-visual-lint-20261007.log`. Final runner
+  syntax/single-file lint and git diff check PASS.
+- All browser data/API/PDF is synthetic on real app paths or existing regression
+  fixture; no live backend/storage persistence or authorization proof. Chromium
+  emulation is not physical phone, virtual keyboard, Safari/WebKit/Firefox or
+  spoken assistive-technology proof. No measured CLS or timing claim. No additional
+  product decision required for this bounded candidate.
+- Owned browser profiles were cleaned by runners. Owned Vite3109 and isolated
+  before-source Vite3110 stopped after validation; no unrelated service removed.
+  No push/merge/deploy/dependency/external settings/destructive operations.
+
+## Skeleton/loading implementation — accepted, 07/10/2026
+
+The six accepted proposals from `/tmp/ui-skeleton-audit-consolidated-20261007.md`
+are implemented in the local uncommitted candidate. The original audit snapshot
+and corrected Peer dispositions remain historical inputs; the proposals are no
+longer pending implementation. Base remains
+`7e183c2a5c346bf02369f9f3d2aabfbc071ee1a4`. On entry, all 45 consolidation files
+matched the accepted review-closure manifest; the intervening closure delta was
+documentation only. Implementation entry manifest (429 files):
+`/tmp/ui-skeleton-implementation-entry-20261007.json`, SHA256
+`fa22bf974b64c12129407e666dedb40d31dd5c54c5412a50834350408fa78d37`.
+
+| Responsible owner / active consumers | Usable behavior and invariants |
+| --- | --- |
+| AssessmentImportPage; feature status/draft skeletons | Initial status/draft failures now show truthful feedback and GET refetch retry, retaining import ID/header. Initial retries move to a named busy region; cached failures keep actual progress/drafts alongside feedback. FAILED-job restart remains a separate POST, without re-upload. Status and draft placeholders describe their phases, with seven progress steps. Publish stays disabled during status/draft revalidation, errors, job retry or publication, and for empty/unapproved drafts. Existing validation/upload/approval guards remain. |
+| Shared Skeleton; question bank and existing compositions | Reduced motion removes pulse. Blocks are decorative by default; compatible bank rectangles now reuse this owner. One composition-level status/busy region announces meaningful text rather than each cell. |
+| Category table, document/news/question detail, assessment and Profile wrappers | Named pending regions or sr-only pending text, busy semantics, quiet decoration. Existing query error/empty branches remain distinct. No new skeletons for Daily, rooms, news rows or uploads. |
+| DocumentCardSkeleton, public document grid | 160px image region, actual body/footer spacing, borders/tokens and flexible sizing replace fixed280/180 geometry and the spurious body icon. Optional description/actions remain variable; no exact final-height or measured CLS guarantee. |
+| SessionLoading, ProtectedRoute and RoleGuard; question detail | Neutral initial auth status replaces a dashboard-shaped promise. Existing delay/error/redirect/role checks remain; no authorized shell is mounted before resolution. Authorized question pending retains safe page-shell/back navigation without mounting editor/private content. |
+| ProfilePage; existing useAuth login boundary | Same-account non-auth refresh failure retains the exact dirty editor DOM/value with inline GET retry. Identity ID key resets A's drafts for B; ordinary token rotation does not. 401/403/404/no-user hides editor/authorized actions; expiry uses existing cache cleanup/redirect. Login cancels pending current-user queries before replacing token/cache so a late successful A response cannot overwrite B. HTTP need not be aborted for completion discard. |
+
+### Ownership and exact dispositions
+
+Two useful bounded Peers used freshly refreshed configured Antigravity - Peer
+notes/settings: alias/model
+`slp-agent-profile-muwz3aai-alhlbc9trsf/gemini-3.8-flash-high`, full-access,
+absent thinking/features launch overrides; actual runtime null thinking and
+features `[]`. Exact briefs, launch requests and runtime identities:
+`/tmp/ui-skeleton-implementation-launches-20261007.json`. No Grok/native substitute.
+
+- Assessment Peer `d9d06f67-e6b2-46e7-babe-18b5a6702ec9`: ACCEPT completed two-file
+  candidate's source-supported error/retry/phase behavior after ownership was
+  relinquished. REJECT claim that its original publish gate blocked every status
+  refetch; Lead repaired that gate and consolidated page-local query error blocks,
+  responsive heading constraints and seven-step shape. The provider then errored:
+  **API error (attempt 1): INTERNAL (code 500): Internal error encountered.**
+  Affected delegation stopped; no follow-up/retry/replacement/settings change.
+  Completed artifact remained reviewable and usable for authorized integration.
+  Exact response/error/disposition: `/tmp/ui-loading-assessment-peer-response-20261007.md`,
+  `/tmp/ui-loading-assessment-runtime-error-20261007.json`,
+  `/tmp/ui-loading-assessment-disposition-20261007.md`.
+- Profile Peer `ffbeec1d-b3b1-41a6-8ac8-b7634c82b9aa`: ACCEPT one-file candidate
+  `02b35b2468f330d933843ecc4c0cbadfdd5b63d642260963addb3929e69718b2` for stable
+  editor slot, identity reset and auth-error hiding. ACCEPT its REOPEN_REQUEST
+  for the pending A response/login B cache race. Lead repaired the existing login
+  hook, added Profile pending busy semantics and owns browser proof. Final backend trace
+  (`UserServiceImpl.me:53`, `ErrorCode.USER_NOT_FOUND:45`) proves deleted accounts
+  return404; Lead rejected retaining the editor for that response and added404
+  to the page-owned unavailable-account condition with fresh browser proof. REJECT extra
+  logout work: failure to abort HTTP alone does not prove a removed query can
+  corrupt a new cache. No token-revision draft key or auth framework. Closure
+  acknowledged and ownership relinquished. Exact response/disposition:
+  `/tmp/ui-loading-profile-peer-response-20261007.md`,
+  `/tmp/ui-loading-profile-disposition-20261007.md`.
+
+Lead ACCEPTS the integrated candidate after source/ENTRY diff inspection and the
+checks below. Returned writer hashes are intermediate; final complete path/hash
+identity is `/tmp/ui-loading-final-manifest-20261007.json`, with archive
+`/tmp/ui-loading-final-candidate-20261007.tar.gz`. This includes prior accepted
+uncommitted work; the manifest separately identifies the 19-path implementation
+delta against ENTRY. Index remains unstaged; no push/merge/deploy/install/external
+settings changes. Lead owns the integrated handoff; both Peer write scopes closed.
+
+### Fresh verification and precise limits
+
+- Web build PASS (TypeScript/Vite8.1.5); existing large-chunk/plugin-timing warnings.
+  Lint PASS, zero errors/40 existing warnings, no new loading-fixture warnings.
+  Logs: `/tmp/ui-loading-build.log`, `/tmp/ui-loading-lint.log`. Diff check PASS.
+- Existing Node suite: 168 PASS, zero failure/skip,
+  `/tmp/ui-loading-node.log`. After login-boundary repair, relevant auth routes/
+  session-refresh tests additionally passed 10/10, zero skips,
+  `/tmp/ui-loading-auth-node.log`. Existing installed Node24.21.0/dependencies only.
+- Fresh `tests/loading-states-browser-check.mjs`: **21 check groups PASS**, zero
+  runtime exceptions; `/tmp/ui-loading-hRthBn/results.json`. All431 web source/test
+  file hashes unchanged across run. Intercepted API/PDF only, actual page/guard/
+  query/Axios/login/RHF code mounted in a fixture MemoryRouter.
+- Held initial status and draft errors -> keyboard GET retries -> recovery;
+  retained header/import ID/genuine progress; no retry POST/re-upload. NEEDS_REVIEW
+  disables publish; actual save/approve enables it. Cached status error prevents
+  unverified publish. FAILED-job retry uses distinct `/retry` POST. Phase-specific
+  pending semantics and mobile-dark draft placeholder have fresh proof.
+- Dirty Profile DOM/value survives503/recovery and token rotation. Actual
+  `useAuth.login` replaces A with B while A's /me response is held; A's HTTP response
+  then completes, and B remains in cache/editor with A's draft removed. 403 hides
+  cached editor;404/deleted-account fetch also removes account UI;401/rejected refresh invokes expiry and protected redirect.
+- Actual DashboardLayout withheld while auth pending and for disallowed student;
+  RoleGuard releases children only for allowed role. Question pending Back works
+  by keyboard, no editor/private data. Bank shared skeleton -> empty transition,
+  reduced motion, document/news detail names and decoration checked.
+- Chromium accessibility tree records status/live/busy and accessible pending
+  text; decorative blocks are hidden, no per-cell status. Keyboard Enter retry/
+  Back and visible focus use actual browser events. This is not proof of spoken
+  announcements on real screen-reader software.
+- Document cards at1440/390 light/dark and320 dark: actual/skeleton160px image,
+  footer border/token parity, optional/no-description cards and no horizontal
+  overflow. Screenshots reviewed for these surfaces, assessment feedback/dark
+  drafts, Profile dirty refresh, neutral guard and question/bank pending.
+- Failed driver evidence retained: `/tmp/ui-loading-Hh5K4w` expected an error-card
+  button to remain during initial refetch; `/tmp/ui-loading-Eqv4o4` omitted Enter's
+  character event and did not activate the button. Corrected driver verifies the
+  actual pending replacement and trusted keyboard activation. Intermediate19-group
+  pass `/tmp/ui-loading-zS6lMk` and20-group pass `/tmp/ui-loading-VISOFf` are
+  superseded by final21-group pass `/tmp/ui-loading-hRthBn`.
+
+Daily/room/player/privacy files still exactly match ENTRY, as do untouched prior
+consolidation files. No blanket keepPreviousData, news/table skeleton framework or
+private-refetch visibility change. All authorized skeleton proposals are delivered;
+no material product decision is pending. Live backend/storage/session policy,
+physical devices, Firefox/WebKit, screen-reader speech and measured CLS remain
+unverified. Cached draft-fetch failure is source-supported; fresh browser forcing
+covered initial draft failure and cached status failure, not every failure variant.
+Optional content means exact height/shift is not promised. Owned Vite/Chromium
+processes and temporary browser profiles are cleaned; evidence remains in /tmp.
+
+<details>
+<summary>Complete implementation delta against ENTRY (19 paths)</summary>
+
+```text
+apps/web/src/components/ui/skeleton.tsx
+apps/web/src/features/assessment/components/assessment-import-skeleton.tsx
+apps/web/src/features/auth/hooks/use-auth.ts
+apps/web/src/features/documents/components/document-card-skeleton.tsx
+apps/web/src/features/post/components/news-detail-feature.tsx
+apps/web/src/features/system-categories/components/system-category-data-table.tsx
+apps/web/src/pages/assessment-import-page.tsx
+apps/web/src/pages/document-detail-page.tsx
+apps/web/src/pages/profile-page.tsx
+apps/web/src/pages/question-bank-page.tsx
+apps/web/src/pages/question-detail-page.tsx
+apps/web/src/router/guards/protected-route.tsx
+apps/web/src/router/guards/role-guard.tsx
+apps/web/src/router/guards/session-loading.tsx
+apps/web/tests/fixtures/loading-states.html
+apps/web/tests/fixtures/loading-states.tsx
+apps/web/tests/loading-states-browser-check.mjs
+docs/architecture/web-ui.md
+docs/reviews/ux-flow-audit.md
+```
+
+</details>
+
+## Frontend UI consolidation — accepted local implementation, 07/10/2026
+
+Base: `7e183c2a5c346bf02369f9f3d2aabfbc071ee1a4`; clean tree on entry. The
+integrated uncommitted candidate is accepted after exact source/diff inspection,
+native checks and representative rendered behavior. No API, dependencies, profile
+settings, push, merge or deployment changes. Shared contracts are recorded in
+[web UI conventions](../architecture/web-ui.md).
+
+| Shared owner / behavior | Active consumers and before/after |
+| --- | --- |
+| Category query state, existing RHF `ui/form` helpers | Category management now separates initial failure from empty with retry; cached tables survive refresh failure with a retry banner. Document title/category/subject/tag/description use associated labels, error IDs and invalid state; description errors are visible. Schema, single `setValue(..., {shouldValidate:true})`, tag-array payload and upload gates stay intact. |
+| `ui/button` | Loading cannot be overridden by `disabled=false`; it retains caller disabled conditions, action text, one hidden spinner and `aria-busy`. Compatible document/post/category submits, category/document retry/delete, permission grant/revoke and honor delete use it. Async closure/confirmation semantics remain feature-owned. |
+| `ui/app-pagination` | Every button is explicitly non-submit; one-based default and compact previous/status/next variants share one owner. Recognition's feature adapter and exam PublishedBank convert zero-based pages at their existing boundary. Existing document/post/user/question consumers receive the safe semantics. |
+| `ui/native-select`, `ui/select`, `ui/combobox` | All previously native selects in active question/scientific authoring, question bank, exams, assessment drafts, Daily/groups, room policy/ownership, recognition and GPA now reuse native styling with unchanged events/options/guards. Standard controls are 44px; explicit compact native/Radix controls are 36px/32px. Editor typography remains compact; 52px floating notch unchanged. Combobox's `inputClassName` reaches the visible input; document filters use it for rounded controls. Common local select CSS removed; feature layout/priority styles retained. |
+| Questions `figure-notices` | Editor and viewer share pending/error/retry presentation. Existing resolver/authenticated asset access, visible figure filtering, student answer/solution restrictions and retry target remain unchanged. |
+| `ui/search-input`, `ui/empty-state` | Document/post/user management and question-bank searches share presentation only. Existing local debounce or explicit submission/URL contracts remain with the feature. Document/post management share matching status empty cards. Public pill/search and content-shaped skeleton layouts stay specialized; document list announces loading/empty/error and uses shared loading on retry. |
+
+The repaired bounded category/document candidate was accepted with exact SHA256
+`3e713cacaf3df52f51c892e18308e69fc282f39343d4ed7baa0d954ebe064a4d` and
+`6488dd5e530d69260e1c028b2deccab56db8e1abd2f5f2171aaa86d19cf28f7f` respectively.
+Ownership closed before integration migrated their loading presentation. These
+intermediate hashes are superseded by the integrated source/test hashes in the
+final browser manifest. Full changed-file snapshot and hashes:
+`/tmp/ui-consolidation-final-candidate.tar.gz`, `/tmp/ui-consolidation-final-manifest.json`.
+
+### Actual verification and evidence
+
+- Web `rtk pnpm build`: PASS (TypeScript + Vite 8.1.5); existing >500kB chunk
+  warning retained. `rtk pnpm lint`: PASS, zero errors, existing warnings retained.
+  `git diff --check`: PASS. Node 24.21.0, existing installed dependencies only.
+- `rtk proxy node --test --test-isolation=none tests/*.test.ts`: **168 PASS**,
+  zero failures/skips; `/tmp/ui-consolidation-node.log`.
+- `tests/ui-consolidation-browser-check.mjs`: **22 check groups PASS**, zero
+  runtime exceptions, unchanged 43-file web source/test manifest across run;
+  `/tmp/ui-consolidation-VQOTnb/results.json`. 1440px light / 390px dark component
+  renders cover sizes, 52px notch, native/Radix/Combobox keyboard behavior,
+  button disabled precedence, both pager variants inside a form without submission,
+  field associations and invalid/valid payloads, description validation,
+  completed-upload/create/clear gates and pending save/cancel. Mounted category
+  retry, recognition URL/API paging, held honor DELETE/Escape/success, management
+  empty/search and student route exclusion also passed. Search retains local
+  debounce where originally local; no new URL-state behavior is claimed.
+- Existing `scroll-dialog-browser-check.mjs`: **28 PASS**;
+  `/tmp/scroll-dialog-dCh7US/results.json`. Light/dark desktop/tablet/mobile and
+  320x360 dialogs, keyboard/focus/scroll, touch emulation, reduced motion,
+  destructive cancel/delete and no parent post submission.
+- Existing `daily-auto-sync-browser-check.mjs`: **32 PASS**, maximum one active
+  save; `/tmp/daily-auto-sync-Vk95fO/results.json`. Actual priority/completion edits,
+  versioned async guards, retained errors/conflict, explicit confirmations,
+  save/reopen and responsive/dark rendering preserved.
+- Existing `figure-resolution-browser-check.mjs`: PASS;
+  `/tmp/ui-consolidation-figure-resolution/results.json`. Existing authenticated
+  resolver/session/account transitions and hidden-answer restrictions exercised.
+- Screenshots reviewed: desktop/mobile shared controls and document errors,
+  category failure, focused scientific/room selectors, management empty/search,
+  pending honor deletion, mobile dark Daily, and mobile dark link dialog. Evidence
+  PNGs remain beside the above result manifests.
+
+Failed driver runs are excluded: fixture-only JSON overflow (DOM evidence identifies
+`output#figure-layout`), transient pager unmount during query fetching, premature
+Radix keyboard events before option focus, and an incorrect management-search URL
+expectation. Fixtures now wrap JSON, navigation waits for a new document/startup,
+keyboard checks wait for actual focus, and search asserts its existing local API
+contract. Failed artifacts remain at `/tmp/ui-consolidation-FdVGiR`, `-ldebmd`,
+`-R7xQcU`, `-uVxyHU`, `-neuRHC`; the final complete pass is `-VQOTnb`.
+
+### Limits and retained recommendations
+
+Independent post-implementation review closed on 07/10/2026. Reviewer
+`a35352de-bc58-4477-a70c-fb158aa9acb5` inspected all 45 integrated changed
+paths against the above base, archive and manifest SHA256
+`43ca8c6f4d298f54d2f9bb2fd461f78d1508071cfac25ef97cb5be0bf2690a34`;
+no drift was found. Lead ACCEPTS **no material introduced issue identified**,
+not a guarantee of zero bugs. No active consumer combines Button `asChild`
+with `loading`; that future contract concern is deferred until actual use.
+Redundant search padding and a hypothetical null empty-state icon do not
+justify repairs. No code changes or repeated checks followed this review.
+Complete response and dispositions: `/tmp/ui-consolidation-independent-review-20261007.md`.
+Existing browser/live-backend limits below remain; the original frozen manifest
+and archive are preserved. This closure entry is a documentation-only delta
+after review ownership was relinquished; frontend candidate bytes are unchanged.
+
+Browser evidence uses explicitly synthetic local auth/APIs, with external requests
+blocked. It proves client behavior, not live backend authorization, database/storage
+persistence or physical-device behavior. Chromium only; WebKit/Firefox and actual
+mobile keyboards remain unverified. Cached category refresh-error retention is
+source-verified but not separately forced in the browser. Representative control
+surfaces were exercised, not every populated consumer or screen-reader engine.
+
+Broader native-checkbox style consolidation, specialized search/empty/loading
+layouts, provider/popover relocation and inactive component cleanup remain
+unimplemented; they are not required for these matching behaviors. Preserve native
+checkbox semantics, Daily async confirmations, content-shaped skeletons and the
+room's persistent player lifecycle rather than force a uniform replacement.
+No material product decision blocks use of this scoped implementation. The owned
+Vite process and browser processes are stopped; temporary browser profiles are
+cleaned while result manifests/screenshots remain. Existing services are untouched.
+
+<details>
+<summary>Complete changed paths (45 files)</summary>
+
+```text
+apps/web/src/components/ui/app-pagination.tsx
+apps/web/src/components/ui/button.tsx
+apps/web/src/components/ui/combobox.tsx
+apps/web/src/components/ui/empty-state.tsx
+apps/web/src/components/ui/native-select.tsx
+apps/web/src/components/ui/rich-text-editor.tsx
+apps/web/src/components/ui/search-input.tsx
+apps/web/src/components/ui/select.tsx
+apps/web/src/features/assessment/components/assessment-draft-list.tsx
+apps/web/src/features/daily/components/daily-plan-editor.tsx
+apps/web/src/features/daily/groups/group-controls.tsx
+apps/web/src/features/daily/ui/study-notebook.css
+apps/web/src/features/documents/components/dashboard-document-list.tsx
+apps/web/src/features/documents/components/document-filters.tsx
+apps/web/src/features/documents/components/document-form.tsx
+apps/web/src/features/documents/components/document-list.tsx
+apps/web/src/features/exams/components/exam-editor.tsx
+apps/web/src/features/post/components/dashboard-post-list.tsx
+apps/web/src/features/post/components/post-form.tsx
+apps/web/src/features/post/components/post-management-feature.tsx
+apps/web/src/features/questions/components/figure-notices.tsx
+apps/web/src/features/questions/components/manual-question-form.tsx
+apps/web/src/features/questions/components/manual-question-viewer.tsx
+apps/web/src/features/questions/components/scientific-block-editor.tsx
+apps/web/src/features/questions/components/scientific-content.css
+apps/web/src/features/recognition/achievement-editor.tsx
+apps/web/src/features/recognition/admin-page.tsx
+apps/web/src/features/recognition/components.tsx
+apps/web/src/features/recognition/honor-editor.tsx
+apps/web/src/features/recognition/recognition.css
+apps/web/src/features/study-room/components/room-policy-fields.tsx
+apps/web/src/features/study-room/components/study-room.css
+apps/web/src/features/study-room/components/transfer-room-ownership.tsx
+apps/web/src/features/system-categories/components/system-category-form-modal.tsx
+apps/web/src/features/toolkit/components/gpa-calculator.tsx
+apps/web/src/features/toolkit/components/toolkit.css
+apps/web/src/pages/admin/users/admin-users-page.tsx
+apps/web/src/pages/dashboard/categories/admin-categories-page.tsx
+apps/web/src/pages/dashboard/documents/documents-management-page.tsx
+apps/web/src/pages/question-bank-page.tsx
+apps/web/tests/fixtures/ui-consolidation.html
+apps/web/tests/fixtures/ui-consolidation.tsx
+apps/web/tests/ui-consolidation-browser-check.mjs
+docs/architecture/web-ui.md
+docs/reviews/ux-flow-audit.md
+```
+
+</details>
+
 ## Các lỗi đã xử lý
 
 | Luồng | Vấn đề trước đây | Hành vi sau sửa |

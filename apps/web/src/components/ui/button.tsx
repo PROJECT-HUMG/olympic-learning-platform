@@ -63,14 +63,15 @@ function Button({
       data-variant={variant}
       data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
-      disabled={loading || props.disabled}
       {...props}
+      disabled={loading || props.disabled}
+      aria-busy={loading || props["aria-busy"]}
     >
       {asChild ? (
         children
       ) : (
         <>
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {loading && <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />}
           {children}
         </>
       )}

@@ -37,7 +37,7 @@ export function SystemCategoryDataTable<T extends { id: string }>({
 }: SystemCategoryDataTableProps<T>) {
   if (isLoading) {
     return (
-      <div className="rounded-md border">
+      <div className="rounded-md border" role="status" aria-label="Đang tải danh mục" aria-busy="true">
         <Table>
           <TableHeader>
             <TableRow>

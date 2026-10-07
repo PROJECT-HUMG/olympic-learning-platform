@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/ui/empty-state";
 import type { DocumentResponse } from "@/features/documents/types/documents.types";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, FileText, Calendar, Eye, Download } from "lucide-react";
@@ -15,17 +16,7 @@ interface DashboardDocumentListProps {
 
 export function DashboardDocumentList({ data, onDeleteClick, onEditClick }: DashboardDocumentListProps) {
   if (data.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center p-16 border border-dashed border-border/60 rounded-2xl bg-card/30 text-center">
-        <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-5 ring-8 ring-primary/5">
-          <FileText className="size-10 text-primary/40" />
-        </div>
-        <h3 className="text-xl font-semibold tracking-tight">Chưa có tài liệu nào</h3>
-        <p className="text-sm text-muted-foreground max-w-md mt-2">
-          Không tìm thấy tài liệu nào phù hợp. Hãy thử thay đổi bộ lọc hoặc thêm tài liệu mới vào hệ thống.
-        </p>
-      </div>
-    );
+    return <EmptyState title="Chưa có tài liệu nào" icon={<FileText />}>Không tìm thấy tài liệu nào phù hợp. Hãy thử thay đổi bộ lọc hoặc thêm tài liệu mới vào hệ thống.</EmptyState>;
   }
 
   return (
@@ -41,7 +32,7 @@ export function DashboardDocumentList({ data, onDeleteClick, onEditClick }: Dash
             key={doc.id} 
             className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border border-border/50 rounded-xl bg-card hover:bg-accent/20 transition-colors"
           >
-            <div className="flex items-start gap-4 flex-1 min-w-0">
+            <div className="flex items-start gap-4 flex-1 min-w-0 w-full sm:w-auto">
               <div className="shrink-0 pt-1 w-12 h-16 flex items-center justify-center bg-muted/30 rounded border border-border/50 overflow-hidden">
                 {doc.thumbnailUrl ? (
                   <img src={doc.thumbnailUrl} alt={doc.title} className="w-full h-full object-cover" />
@@ -63,14 +54,14 @@ export function DashboardDocumentList({ data, onDeleteClick, onEditClick }: Dash
                   </p>
                 )}
                 <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
-                  <div className="flex gap-2">
+                  <div className="flex min-w-0 max-w-full flex-wrap gap-2">
                     {doc.category && (
-                      <Badge variant="secondary" className="px-1.5 py-0 text-[10px] font-normal h-4">
+                      <Badge variant="secondary" className="max-w-full px-1.5 py-0 text-[10px] font-normal min-h-4 break-words">
                         {doc.category.name}
                       </Badge>
                     )}
                     {doc.subject && (
-                      <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-normal h-4">
+                      <Badge variant="outline" className="max-w-full px-1.5 py-0 text-[10px] font-normal min-h-4 break-words">
                         {doc.subject.name}
                       </Badge>
                     )}

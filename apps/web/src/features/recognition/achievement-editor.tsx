@@ -1,3 +1,4 @@
+import { NativeSelect } from "@/components/ui/native-select";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,11 +35,11 @@ export function AchievementEditor({ record, admin = false, onDone, onCancel }: {
     <fieldset disabled={mutation.isPending} className="recognition-form">
       {admin && <UserPicker selected={userId} studentOnly onChange={id => setUserId(id)} />}
       <Field title="Tên thành tích">{id => <Input id={id} value={input.title} required maxLength={200} onChange={e => update("title", e.target.value)} placeholder="Tên kỳ thi hoặc đề tài" />}</Field>
-      <div className="recognition-form-row"><Field title="Loại hoạt động">{id => <select id={id} className="recognition-select" value={input.category} onChange={e => {
+      <div className="recognition-form-row"><Field title="Loại hoạt động">{id => <NativeSelect id={id} value={input.category} onChange={e => {
         const category = e.target.value as Category;
         setInput(previous => ({ ...previous, category, includeParticipation: PARTICIPATION[category] ? previous.includeParticipation : false, award: !PARTICIPATION[category] && previous.award === "NONE" ? "FIRST" : previous.award }));
-      }}>{Object.entries(CATEGORIES).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</select>}</Field>
-      <Field title="Giải thưởng">{id => <select id={id} className="recognition-select" value={input.award} onChange={e => { const award = e.target.value as Award; setInput(previous => ({ ...previous, award, includeParticipation: award === "NONE" ? true : previous.includeParticipation })); }}>{Object.entries(AWARDS).filter(([key]) => key !== "NONE" || !!PARTICIPATION[input.category]).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</select>}</Field></div>
+      }}>{Object.entries(CATEGORIES).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</NativeSelect>}</Field>
+      <Field title="Giải thưởng">{id => <NativeSelect id={id} value={input.award} onChange={e => { const award = e.target.value as Award; setInput(previous => ({ ...previous, award, includeParticipation: award === "NONE" ? true : previous.includeParticipation })); }}>{Object.entries(AWARDS).filter(([key]) => key !== "NONE" || !!PARTICIPATION[input.category]).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</NativeSelect>}</Field></div>
       {!!PARTICIPATION[input.category] && <Checkbox title={`Ghi nhận tham gia (+${PARTICIPATION[input.category]} điểm, cộng thêm điểm giải nếu có)`} checked={input.includeParticipation} disabled={input.award === "NONE"} onChange={value => update("includeParticipation", value)} />}
       <Field title="Ngày đạt thành tích">{id => <Input id={id} type="date" required min="1900-01-01" max={today} value={input.achievedDate} onChange={e => update("achievedDate", e.target.value)} />}</Field>
       <Field title="Thông tin thêm" hint="Mô tả ngắn nội dung hoặc vai trò của bạn để người duyệt đối chiếu minh chứng.">{id => <Textarea id={id} value={input.description} maxLength={2000} onChange={e => update("description", e.target.value)} rows={3} />}</Field>

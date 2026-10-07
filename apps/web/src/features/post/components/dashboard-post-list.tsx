@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/ui/empty-state";
 import { AvatarImage } from "@/features/user/components/avatar-image";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, Newspaper, Calendar, Eye, Pin, Clock3 } from "lucide-react";
@@ -17,17 +18,7 @@ interface DashboardPostListProps {
 
 export function DashboardPostList({ data, onDeleteClick, onEditClick }: DashboardPostListProps) {
   if (data.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center px-4 py-12 border border-dashed border-border/60 rounded-2xl bg-card/30 text-center">
-        <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-5 ring-8 ring-primary/5">
-          <Newspaper className="size-10 text-primary/40" />
-        </div>
-        <h3 className="text-xl font-semibold tracking-tight">Chưa có bài viết nào</h3>
-        <p className="text-sm text-muted-foreground max-w-md mt-2">
-          Không tìm thấy bài viết nào phù hợp. Hãy thử thay đổi bộ lọc hoặc tạo bài viết mới.
-        </p>
-      </div>
-    );
+    return <EmptyState title="Chưa có bài viết nào" icon={<Newspaper />}>Không tìm thấy bài viết nào phù hợp. Hãy thử thay đổi bộ lọc hoặc tạo bài viết mới.</EmptyState>;
   }
 
   return (

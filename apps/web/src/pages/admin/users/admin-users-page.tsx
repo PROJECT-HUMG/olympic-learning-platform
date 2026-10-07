@@ -1,3 +1,4 @@
+import { SearchInput } from "@/components/ui/search-input";
 import { AvatarImage } from "@/features/user/components/avatar-image";
 import { PageHeader } from "@/components/ui/page-header";
 import { useState } from "react";
@@ -15,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Shield, ShieldAlert, Loader2, Search } from "lucide-react";
+import { Shield, ShieldAlert, Loader2 } from "lucide-react";
 import type { AdminUserResponse } from "@/features/admin/types/admin.types";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -54,8 +54,7 @@ export default function AdminUsersPage() {
 
       <div className="page-toolbar">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
+          <SearchInput aria-label="Tìm theo email, tên"
             placeholder="Tìm theo email, tên..."
             value={search}
             onChange={(e) => {
@@ -318,13 +317,11 @@ function PermissionDialog({
                     onClick={() =>
                       handleTogglePermission(permission.id, hasPermission)
                     }
-                    disabled={
+                    loading={
                       grantMutation.isPending || revokeMutation.isPending
                     }
                   >
-                    {grantMutation.isPending || revokeMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : hasPermission ? (
+                    {hasPermission ? (
                       "Thu hồi"
                     ) : (
                       "Cấp quyền"

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 export interface ComboboxOption {
   value: string;
@@ -14,6 +15,7 @@ interface ComboboxProps {
   placeholder?: string;
   emptyText?: string;
   className?: string;
+  inputClassName?: string;
   disabled?: boolean;
   "aria-label"?: string;
 }
@@ -25,6 +27,7 @@ export function Combobox({
   placeholder = "Select an option",
   emptyText = "No results found.",
   className,
+  inputClassName,
   disabled = false,
   "aria-label": ariaLabel,
 }: ComboboxProps) {
@@ -146,7 +149,7 @@ export function Combobox({
       onKeyDown={handleKeyDown}
     >
       <div className="relative">
-        <input
+        <Input
           ref={inputRef}
           type="text"
           role="combobox"
@@ -162,7 +165,8 @@ export function Combobox({
           onFocus={() => !disabled && setIsOpen(true)}
           placeholder={placeholder}
           className={cn(
-            "flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-12",
+            "bg-background pr-12",
+            inputClassName,
             isOpen && "rounded-b-none border-b-0"
           )}
         />

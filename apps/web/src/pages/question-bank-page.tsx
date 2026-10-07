@@ -1,14 +1,16 @@
+import { SearchInput } from "@/components/ui/search-input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useDocumentMetadata } from "@/features/documents/hooks/use-documents";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
-import { Archive, Copy, Eye, RotateCcw, Search } from "lucide-react";
+import { Archive, Copy, Eye, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { parseApiError } from "@/lib/api-error";
 import {
@@ -41,19 +43,12 @@ function QuestionSearch({
         onSearch(draft.trim());
       }}
     >
-      <div className="relative min-w-0 flex-1">
-        <Search
-          aria-hidden="true"
-          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-        />
-        <Input
-          aria-label="Tìm nội dung câu hỏi"
-          className="h-11 pl-9"
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          placeholder="Tìm nội dung câu hỏi…"
-        />
-      </div>
+      <SearchInput
+        aria-label="Tìm nội dung câu hỏi"
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        placeholder="Tìm nội dung câu hỏi…"
+      />
       <Button type="submit" variant="secondary" className="h-11">
         Tìm
       </Button>
@@ -125,8 +120,7 @@ export default function QuestionBankPage() {
       <div className="flex flex-wrap gap-3">
         <label className="flex min-w-48 flex-col gap-1 text-sm">
           Môn học
-          <select
-            className="h-11 rounded-lg border border-input bg-transparent px-3"
+          <NativeSelect
             value={params.get("subjectId") ?? ""}
             onChange={(event) => setParams((previous) => replaceQuestionBankParam(previous, "subjectId", event.target.value))}
           >
@@ -134,12 +128,11 @@ export default function QuestionBankPage() {
             {subjects.map((subject) => (
               <option key={subject.id} value={subject.id}>{subject.name}</option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         <label className="flex min-w-48 flex-col gap-1 text-sm">
           Trạng thái
-          <select
-            className="h-11 rounded-lg border border-input bg-transparent px-3"
+          <NativeSelect
             value={params.get("status") ?? ""}
             onChange={(event) => setParams((previous) => replaceQuestionBankParam(previous, "status", event.target.value))}
           >
@@ -147,14 +140,14 @@ export default function QuestionBankPage() {
             <option value="DRAFT">Bản nháp</option>
             <option value="PUBLISHED">Đã xuất bản</option>
             <option value="ARCHIVED">Lưu trữ</option>
-          </select>
+          </NativeSelect>
         </label>
       </div>
       {query.isLoading ? (
-        <div role="status" className="grid gap-4 md:grid-cols-2">
+        <div role="status" aria-busy="true" className="grid gap-4 md:grid-cols-2">
           <span className="sr-only">Đang tải câu hỏi…</span>
-          <div className="h-44 animate-pulse rounded-xl bg-muted" />
-          <div className="h-44 animate-pulse rounded-xl bg-muted" />
+          <Skeleton className="h-44 rounded-xl" />
+          <Skeleton className="h-44 rounded-xl" />
         </div>
       ) : query.isError ? (
         <div

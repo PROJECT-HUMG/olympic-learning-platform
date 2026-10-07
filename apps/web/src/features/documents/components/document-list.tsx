@@ -20,11 +20,11 @@ interface DocumentListProps {
 export function DocumentList({ documents, isLoading, isError, isEmpty, viewMode = "grid", onDownload, onRetry, retrying }: DocumentListProps) {
   if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-center text-destructive">
-        <FileQuestion className="w-12 h-12 mb-4 opacity-50" />
+      <div role="alert" className="flex flex-col items-center justify-center p-12 text-center text-destructive">
+        <FileQuestion aria-hidden="true" className="w-12 h-12 mb-4 opacity-50" />
         <p className="text-lg font-medium">Đã xảy ra lỗi khi tải dữ liệu.</p>
         <p className="text-sm opacity-80 mt-1">Hãy kiểm tra kết nối và thử lại.</p>
-        {onRetry && <Button variant="outline" className="mt-4" disabled={retrying} onClick={onRetry}>Thử lại</Button>}
+        {onRetry && <Button type="button" variant="outline" className="mt-4" loading={retrying} onClick={onRetry}>Thử lại</Button>}
       </div>
     );
   }
@@ -32,7 +32,8 @@ export function DocumentList({ documents, isLoading, isError, isEmpty, viewMode 
   if (isLoading) {
     if (viewMode === "list") {
       return (
-        <div className="flex flex-col">
+        <div role="status" className="flex flex-col">
+          <span className="sr-only">Đang tải tài liệu…</span>
           {/* Header */}
           <div className="flex items-center justify-between py-3 px-4 border-b border-border/60 text-sm font-medium text-muted-foreground">
             <div className="flex-1 pr-4">Tên</div>
@@ -48,7 +49,8 @@ export function DocumentList({ documents, isLoading, isError, isEmpty, viewMode 
     }
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+      <div role="status" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+        <span className="sr-only">Đang tải tài liệu…</span>
         {Array.from({ length: 10 }).map((_, i) => (
           <DocumentCardSkeleton key={i} />
         ))}
@@ -58,8 +60,8 @@ export function DocumentList({ documents, isLoading, isError, isEmpty, viewMode 
 
   if (isEmpty || !documents || documents.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center px-4 py-12 text-center text-muted-foreground border border-dashed rounded-xl bg-muted/20">
-        <FileQuestion className="w-16 h-16 mb-4 opacity-20" />
+      <div role="status" className="flex flex-col items-center justify-center px-4 py-12 text-center text-muted-foreground border border-dashed rounded-xl bg-muted/20">
+        <FileQuestion aria-hidden="true" className="w-16 h-16 mb-4 opacity-20" />
         <h3 className="text-xl font-medium text-foreground mb-2">Không tìm thấy tài liệu nào</h3>
         <p>Thử thay đổi từ khóa hoặc bộ lọc để tìm kiếm lại nhé.</p>
       </div>

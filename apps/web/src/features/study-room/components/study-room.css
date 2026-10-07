@@ -2,10 +2,10 @@
 :is(.study-room-page, .study-rooms-lobby) h2 { font-size: 1rem; font-weight: 600; line-height: 1.6; }
 :is(.study-room-page, .study-rooms-lobby) h3 { font-size: 1rem; font-weight: 500; line-height: 1.6; }
 :is(.study-room-page, .study-rooms-lobby, .study-room-access) button { min-height: 2.75rem; }
-:is(.study-room-page, .study-rooms-lobby) :is(input, select) { display: block; width: 100%; min-height: 2.75rem; padding: .6rem .8rem; border: 1px solid var(--input); border-radius: .5rem; background: var(--background); color: var(--foreground); font-size: .9375rem; }
+:is(.study-room-page, .study-rooms-lobby) input { display: block; width: 100%; min-height: 2.75rem; padding: .6rem .8rem; border: 1px solid var(--input); border-radius: .5rem; background: var(--background); color: var(--foreground); font-size: .9375rem; }
 :is(.study-room-page, .study-rooms-lobby) label { display: block; font-size: .8125rem; font-weight: 500; line-height: 1.6; }
 :is(.study-room-page, .study-rooms-lobby) label + :is(input, select) { margin-top: .5rem; }
-:is(.study-room-page, .study-rooms-lobby) :is(button, a, input, select, summary):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+:is(.study-room-page, .study-rooms-lobby) :is(button, a, input, summary):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
 .study-room-note { color: var(--muted-foreground); font-size: .8125rem; line-height: 1.8; }
 .study-room-error { padding: .9rem 1rem; margin-block: 1rem; border-left: 2px solid var(--destructive); color: var(--destructive); background: color-mix(in srgb, var(--destructive) 5%, var(--card)); font-size: .875rem; line-height: 1.7; }
 .study-room-feedback { padding: 1.5rem; margin-block: 1rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--card); line-height: 1.8; }
@@ -295,7 +295,7 @@
 .room-options-menu [role="menuitem"] { min-height: 44px; }
 .room-track-dialog, .room-settings-dialog { width: calc(100vw - 2rem); max-width: 34rem; max-height: calc(100dvh - 2rem); overflow-y: auto; }
 .room-track-form { display: grid; gap: .5rem; min-width: 0; }
-.room-track-form :is(input, select), .room-settings-dialog :is(input, select) { width: 100%; min-width: 0; min-height: 44px; padding: .65rem .8rem; border: 1px solid var(--input); border-radius: .5rem; color: var(--foreground); background: var(--background); }
+.room-track-form input, .room-settings-dialog input { width: 100%; min-width: 0; min-height: 44px; padding: .65rem .8rem; border: 1px solid var(--input); border-radius: .5rem; color: var(--foreground); background: var(--background); }
 .room-track-form label { font-size: .8125rem; margin-top: .25rem; }
 .room-track-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
 .room-track-actions button, .room-settings-dialog button { min-height: 44px; }

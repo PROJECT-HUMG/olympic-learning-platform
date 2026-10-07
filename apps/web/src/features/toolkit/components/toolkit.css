@@ -15,7 +15,6 @@
 
 .toolkit-gpa__scale { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-block: 1.5rem 2rem; }
 .toolkit-gpa__scale label { font-weight: 500; }
-.toolkit-gpa__scale select { min-height: 2.75rem; padding: .5rem 2rem .5rem .75rem; border: 1px solid var(--input); border-radius: .5rem; background: var(--background); color: var(--foreground); }
 .toolkit-gpa__scale p { flex-basis: 100%; max-width: 65ch; color: var(--muted-foreground); font-size: .8125rem; line-height: 1.7; }
 .toolkit-gpa__rows { display: grid; gap: 1.5rem; }
 .toolkit-gpa__row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 2.75rem; gap: 1rem; min-width: 0; }

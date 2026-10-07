@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ListTree, Loader2 } from "lucide-react";
+import { ListTree } from "lucide-react";
 import type { PostSummaryResponse, CreatePostRequest } from "../types/post.types";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { PostImageUpload } from "./post-image-upload";
@@ -258,8 +258,7 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
           }}>
             Lưu bản nháp
           </Button>}
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type="submit" loading={isLoading}>
             {initialData ? "Cập nhật bài viết" : "Xuất bản bài viết"}
           </Button>
         </div>

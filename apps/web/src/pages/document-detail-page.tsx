@@ -107,7 +107,7 @@ export default function DocumentDetailPage() {
 
   if (isLoading || !document) {
     return (
-      <div className="page-shell page-shell--public">
+      <div className="page-shell page-shell--public" role="status" aria-label="Đang tải tài liệu" aria-busy="true">
         <div>
           <Skeleton className="w-32 h-6" />
         </div>

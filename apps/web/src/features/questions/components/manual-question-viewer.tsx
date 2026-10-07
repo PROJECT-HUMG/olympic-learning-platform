@@ -1,3 +1,4 @@
+import { FigureNotices } from "./figure-notices";
 import type { FigureResolver, QuestionPart, ScientificAnswer, ScientificBlock, ScientificExplanation } from "../types/scientific-content.ts";
 import { optionLabel, partLabel } from "./manual-question.ts";
 import { ScientificBlockViewer } from "./scientific-block-viewer.tsx";
@@ -26,18 +27,10 @@ export function ManualQuestionViewer({
 }) {
   const visibleAnswer = visibleToViewer(showAnswer, answer);
   const visibleExplanation = visibleToViewer(showAnswer, explanation);
-  const pending = figures.filter((figure) => figure.phase !== "ready");
   return (
     <div className="space-y-4">
       {title ? <h2 className="text-lg font-semibold">{title}</h2> : null}
-      {pending.map((figure) => (
-        <p key={figure.assetId} className="flex flex-wrap items-center gap-2 text-sm" role={figure.phase === "error" ? "alert" : "status"}>
-          <span>{figure.message}</span>
-          {figure.phase === "error" && onRetry ? (
-            <button type="button" className="min-h-11 rounded-lg border px-3" onClick={() => onRetry(figure.assetId)}>Thử lại</button>
-          ) : null}
-        </p>
-      ))}
+      <FigureNotices figures={figures} onRetry={onRetry} />
       <ScientificBlockViewer blocks={stem} resolveFigure={resolveFigure} />
       <ol className="space-y-4">
         {parts.map((part, index) => {

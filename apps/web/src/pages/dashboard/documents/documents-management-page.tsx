@@ -1,8 +1,8 @@
+import { SearchInput } from "@/components/ui/search-input";
 import { PageHeader } from "@/components/ui/page-header";
 import { useState, useEffect } from "react";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import {
@@ -122,8 +122,7 @@ export default function DocumentsManagementPage() {
       {/* Toolbar */}
       <div className="page-toolbar">
         <div className="relative max-w-sm w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
+          <SearchInput aria-label="Tìm kiếm tài liệu"
             placeholder="Tìm kiếm tài liệu..."
             className="pl-9 h-11"
             value={keyword}
@@ -241,7 +240,7 @@ export default function DocumentsManagementPage() {
           }
         }}
       >
-        <DialogContent className="w-[95vw] max-w-5xl sm:max-w-5xl max-h-[90vh] overflow-y-auto sm:rounded-xl">
+        <DialogContent className="grid-cols-1 w-[95vw] max-w-5xl sm:max-w-5xl max-h-[90vh] overflow-y-auto sm:rounded-xl">
           <DialogHeader>
             <DialogTitle>
               {documentToEdit ? "Chỉnh sửa tài liệu" : "Thêm tài liệu mới"}

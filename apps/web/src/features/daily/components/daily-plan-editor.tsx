@@ -1,3 +1,4 @@
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -282,7 +283,7 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
                 <Label htmlFor={`daily-priority-modal-select`} className="text-xs font-medium">
                   Mức ưu tiên
                 </Label>
-                <select
+                <NativeSelect
                   id={`daily-priority-modal-select`}
                   className="study-select"
                   value={activeModalTask.priority}
@@ -294,14 +295,14 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
                       {PRIORITY_LABEL[priority]}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor={`daily-status-modal-select`} className="text-xs font-medium">
                   Trạng thái
                 </Label>
-                <select
+                <NativeSelect
                   id={`daily-status-modal-select`}
                   className="study-select"
                   value={activeModalTask.status}
@@ -310,7 +311,7 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
                 >
                   <option value="TODO">Chưa làm</option>
                   <option value="COMPLETED">Đã xong</option>
-                </select>
+                </NativeSelect>
               </div>
             </div>
           </div>
@@ -424,9 +425,9 @@ function TaskRow({ task, index, last, disabled, onChange, onMove, onRemove, chil
     </div>
     <div className="study-task__controls">
         <Label htmlFor={`daily-priority-${task.key}`} className="sr-only">Mức ưu tiên việc {index + 1}</Label>
-        <select id={`daily-priority-${task.key}`} className="study-select" data-priority={task.priority} value={task.priority} onChange={(event) => onChange((current) => ({ ...current, priority: event.target.value as TaskPriority }))}>
+        <NativeSelect id={`daily-priority-${task.key}`} className="study-select w-auto" data-priority={task.priority} value={task.priority} onChange={(event) => onChange((current) => ({ ...current, priority: event.target.value as TaskPriority }))}>
           {(["MUST", "SHOULD", "COULD"] as const).map(priority => <option key={priority} value={priority}>{PRIORITY_LABEL[priority]}</option>)}
-        </select>
+        </NativeSelect>
       <DropdownMenu>
         <DropdownMenuTrigger asChild><Button id={`daily-task-menu-${task.key}`} type="button" variant="ghost" size="icon" className="study-task__menu" aria-label={`Thao tác việc ${index + 1}`}><MoreHorizontal size={18} aria-hidden="true" /></Button></DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="study-task-menu">

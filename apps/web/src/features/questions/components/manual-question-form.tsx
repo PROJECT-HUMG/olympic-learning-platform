@@ -1,3 +1,5 @@
+import { FigureNotices } from "./figure-notices";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Archive, Copy, Eye, Pencil, RotateCcw, Save, Send } from "lucide-react";
@@ -56,11 +58,9 @@ import { ScientificBlockEditor } from "./scientific-block-editor.tsx";
 import { ManualQuestionViewer } from "./manual-question-viewer.tsx";
 import { collectFigureAssetIds, viewerFigureGroups } from "./figure-resolution.ts";
 import { usePrivateFigureResolver } from "./figure-resolution.tsx";
-import type { PrivateFigureState } from "./figure-resolution.ts";
 
 const LOSSY_NOTE = "Nội dung đã lưu không đọc lại đủ để ghi đè. Hãy tạo bản nháp mới nếu cần sửa.";
 const PENDING_NOTE = "Ảnh chưa tải lên chỉ được giữ trên trang này. Tải lại trang sẽ không còn những ảnh đó cho đến khi tải lên.";
-const controlClass = "h-11 w-full rounded-lg border border-input bg-transparent px-3 text-sm";
 const STATUS_LABEL: Record<QuestionStatus, string> = {
   DRAFT: "Nháp",
   PUBLISHED: "Đã xuất bản",
@@ -162,23 +162,6 @@ function IssueList({ issues }: { issues: ManualIssue[] }) {
       <ul className="list-disc space-y-1 pl-5">
         {issues.map((issue, index) => <li key={`${issue.path}:${index}`}>{issue.message}</li>)}
       </ul>
-    </div>
-  );
-}
-
-function FigureNotices({ figures, onRetry }: { figures: readonly PrivateFigureState[]; onRetry: (assetId: string) => void }) {
-  const pending = figures.filter((figure) => figure.phase !== "ready");
-  if (pending.length === 0) return null;
-  return (
-    <div className="space-y-2">
-      {pending.map((figure) => (
-        <p key={figure.assetId} className="flex flex-wrap items-center gap-2 text-sm" role={figure.phase === "error" ? "alert" : "status"}>
-          <span>{figure.message}</span>
-          {figure.phase === "error" ? (
-            <button type="button" className="min-h-11 rounded-lg border px-3" onClick={() => onRetry(figure.assetId)}>Thử lại</button>
-          ) : null}
-        </p>
-      ))}
     </div>
   );
 }
@@ -483,18 +466,18 @@ export function ManualQuestionWorkspace({
         <form id="manual-question-form" className="space-y-6" onSubmit={(event) => { event.preventDefault(); if (!canEdit || busy) return; void saveDraft(); }}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field id="manual-subject" label="Môn học">
-              <select id="manual-subject" className={controlClass} value={draft.subjectId} disabled={busy} onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, subjectId: event.target.value, topicId: "" }))}>
+              <NativeSelect id="manual-subject" value={draft.subjectId} disabled={busy} onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, subjectId: event.target.value, topicId: "" }))}>
                 <option value="">Chọn môn học</option>
                 {draft.subjectId && !subjects.some((subject) => subject.id === draft.subjectId) ? <option value={draft.subjectId}>{subjectName}</option> : null}
                 {subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}
-              </select>
+              </NativeSelect>
             </Field>
             <Field id="manual-topic" label="Chủ đề">
-              <select id="manual-topic" className={controlClass} value={draft.topicId} disabled={busy || !draft.subjectId || topics.isLoading} onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, topicId: event.target.value }))}>
+              <NativeSelect id="manual-topic" value={draft.topicId} disabled={busy || !draft.subjectId || topics.isLoading} onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, topicId: event.target.value }))}>
                 <option value="">{topics.isLoading ? "Đang tải..." : "Chọn chủ đề"}</option>
                 {draft.topicId && !topics.data?.some((topic) => topic.id === draft.topicId) ? <option value={draft.topicId}>{topicName}</option> : null}
                 {topics.data?.map((topic) => <option key={topic.id} value={topic.id}>{topic.name}</option>)}
-              </select>
+              </NativeSelect>
             </Field>
           </div>
           {activeId == null ? (
@@ -513,10 +496,10 @@ export function ManualQuestionWorkspace({
               <Input id="manual-title" value={draft.title} disabled={busy} placeholder="Tiêu đề câu hỏi" onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, title: event.target.value }))} />
             </Field>
             <Field id="manual-difficulty" label="Độ khó">
-              <select id="manual-difficulty" className={controlClass} value={draft.difficulty} disabled={busy} onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, difficulty: event.target.value }))}>
+              <NativeSelect id="manual-difficulty" value={draft.difficulty} disabled={busy} onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, difficulty: event.target.value }))}>
                 <option value="">Chưa đặt</option>
                 {DIFFICULTIES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-              </select>
+              </NativeSelect>
             </Field>
           </div>
           <FigureNotices figures={figures.figures} onRetry={figures.retry} />

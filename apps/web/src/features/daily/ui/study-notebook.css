@@ -75,11 +75,10 @@
 .study-selection input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
 .study-task__controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding-inline-start: 52px; }
 .study-task__controls > label.sr-only { position: absolute; }
-.study-select { min-height: 44px; max-width: 100%; min-width: 0; border: 1px solid var(--border); border-radius: .5rem; background: var(--background); padding: .5rem .65rem; font-size: .8125rem; color: var(--foreground); }
+.study-select { max-width: 100%; font-size: .8125rem; }
 .study-select[data-priority] { border-color: transparent; padding-inline-start: 0; background: transparent; color: var(--muted-foreground); }
 .study-select[data-priority="MUST"] { color: var(--primary); font-weight: 600; }
 .study-select:hover { background: var(--muted); }
-.study-select:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 .study-task__menu { width: 44px; height: 44px; color: var(--muted-foreground); margin-inline-start: auto; }
 .study-task-menu { min-width: 210px; }
 .study-task-menu [role="menuitem"] { min-height: 44px; padding-inline: .75rem; }

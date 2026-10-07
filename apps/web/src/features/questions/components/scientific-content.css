@@ -75,8 +75,7 @@
 }
 
 .scientific-editor input,
-.scientific-editor textarea,
-.scientific-editor select {
+.scientific-editor textarea {
   width: 100%;
   min-height: 44px;
   box-sizing: border-box;
@@ -100,8 +99,7 @@
 }
 
 .scientific-editor input:focus-visible,
-.scientific-editor textarea:focus-visible,
-.scientific-editor select:focus-visible {
+.scientific-editor textarea:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
