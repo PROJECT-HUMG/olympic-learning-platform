@@ -31,8 +31,9 @@
 .recognition-ranking strong { font-size:18px; white-space:nowrap; }
 .recognition-ranking strong small { font-size:12px; font-weight:400; text-align:right; }
 .recognition-pager { justify-content:center; margin-top:24px; }
-.recognition-rules { border-top:1px solid var(--border); padding-top:20px; }
+.recognition-rules { border-top:1px solid var(--border); padding-top:20px; min-width:0; }
 .recognition-rules summary { cursor:pointer; min-height:44px; font-weight:600; }
+.recognition-rules__content { min-width:0; }
 .recognition-rules p { margin-top:16px; color:var(--muted-foreground); }
 .recognition-table-scroll { max-width:100%; overflow:auto; }
 .recognition-table-scroll table { width:100%; text-align:left; border-collapse:collapse; min-width:600px; }
@@ -60,4 +61,6 @@
 .recognition-review-dialog { width:min(600px,calc(100% - 32px)); max-width:600px; }
 @media(max-width:900px) { .recognition-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:600px) { .recognition-gallery,.recognition-photo-grid,.recognition-form-row { grid-template-columns:1fr; } .recognition-editor-panel { padding:16px; } .recognition-ranking li { grid-template-columns:32px minmax(0,1fr) auto; gap:12px; } .recognition-rank { font-size:20px; } .recognition-ranking strong { font-size:16px; } .recognition-actions > button { max-width:100%; height:auto; min-height:44px; white-space:normal; overflow-wrap:anywhere; } }
-@media(prefers-reduced-motion:reduce) { .recognition-page *, .recognition-review-dialog { animation:none!important; transition:none!important; } }
+@media(prefers-reduced-motion:reduce) { .recognition-page *, .recognition-rules *, .recognition-review-dialog { animation:none!important; transition:none!important; } }
+
+@media(prefers-reduced-motion:reduce) { .recognition-rules__content { opacity:1!important; transform:none!important; } }

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import type { AssessmentImportStatusResponse } from "../types/assessment-import.types";
+import "./assessment-motion.css";
 
 const phases = [
   ["QUEUED", "Đã nhận file"],
@@ -45,7 +46,7 @@ export function AssessmentImportProgress({ status }: { status: AssessmentImportS
           const active = phase === status.phase;
           return (
             <div key={phase} className="flex items-center gap-2 text-xs sm:block">
-              <div className={cn("mb-2 flex size-7 items-center justify-center rounded-full border", done || active ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground")}>
+              <div className={cn("assessment-phase-marker mb-2 flex size-7 items-center justify-center rounded-full border", done || active ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground")}>
                 {done ? <Check className="size-3.5" /> : index + 1}
               </div>
               <span className={cn(active ? "font-medium text-foreground" : "text-muted-foreground")}>{label}</span>

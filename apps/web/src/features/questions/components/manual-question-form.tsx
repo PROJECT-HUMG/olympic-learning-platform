@@ -58,6 +58,7 @@ import { ScientificBlockEditor } from "./scientific-block-editor.tsx";
 import { ManualQuestionViewer } from "./manual-question-viewer.tsx";
 import { collectFigureAssetIds, viewerFigureGroups } from "./figure-resolution.ts";
 import { usePrivateFigureResolver } from "./figure-resolution.tsx";
+import "./manual-preview.css";
 
 const LOSSY_NOTE = "Nội dung đã lưu không đọc lại đủ để ghi đè. Hãy tạo bản nháp mới nếu cần sửa.";
 const PENDING_NOTE = "Ảnh chưa tải lên chỉ được giữ trên trang này. Tải lại trang sẽ không còn những ảnh đó cho đến khi tải lên.";
@@ -194,6 +195,7 @@ export function ManualQuestionWorkspace({
   const [notice, setNotice] = useState<string | null>(seed.notice);
   const [conflict, setConflict] = useState(false);
   const [editing, setEditing] = useState(routeId == null);
+  const [previewRevealing, setPreviewRevealing] = useState(false);
   const [issues, setIssues] = useState<ManualIssue[]>([]);
   const [createdId, setCreatedId] = useState<string | null>(question?.id ?? handoff?.questionId ?? null);
   const [reloading, setReloading] = useState(false);
@@ -273,6 +275,14 @@ export function ManualQuestionWorkspace({
   useEffect(() => {
     consumeManualHandoff();
   }, []);
+
+  useEffect(() => {
+    if (!previewRevealing) return;
+    const timer = window.setTimeout(() => {
+      setPreviewRevealing(false);
+    }, 200);
+    return () => window.clearTimeout(timer);
+  }, [previewRevealing]);
 
   useEffect(() => {
     if (!seed.fromHandoff || handoffArrivalSettled || question == null) return;
@@ -441,8 +451,8 @@ export function ManualQuestionWorkspace({
         title={routeId == null && createdId == null ? "Câu hỏi mới" : (draft.title.trim() || "Câu hỏi chưa có tiêu đề")}
         description={<><span>{subjectName} · {topicName}</span>{" "}<Badge variant={STATUS_VARIANT[badgeStatus]}>{STATUS_LABEL[badgeStatus]}</Badge></>}
         actions={<div className="flex flex-wrap items-center gap-2">
-          {canEdit && !showEditor ? <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={() => setEditing(true)}><Pencil className="size-4" />Chỉnh sửa</Button> : null}
-          {showEditor ? <Button type="button" variant="ghost" size="sm" className="min-h-11" onClick={() => setEditing(false)}><Eye className="size-4" />Xem</Button> : null}
+          {canEdit && !showEditor ? <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={() => { setPreviewRevealing(false); setEditing(true); }}><Pencil className="size-4" />Chỉnh sửa</Button> : null}
+          {showEditor ? <Button type="button" variant="ghost" size="sm" className="min-h-11" onClick={() => { setPreviewRevealing(true); setEditing(false); }}><Eye className="size-4" />Xem</Button> : null}
           {showEditor ? <Button type="submit" form="manual-question-form" size="sm" className="min-h-11" loading={createQuestion.isPending || updateQuestion.isPending} disabled={busy}><Save className="size-4" />Lưu bản nháp</Button> : null}
           {canPublish ? <Button type="button" size="sm" className="min-h-11" loading={publishQuestion.isPending} disabled={busy} onClick={() => void publish()}><Send className="size-4" />Xuất bản</Button> : null}
           {permissions.duplicate && activeId != null ? <Button type="button" variant="outline" size="sm" className="min-h-11" loading={duplicateQuestion.isPending} disabled={busy} onClick={() => void duplicate()}><Copy className="size-4" />Sao chép</Button> : null}
@@ -546,7 +556,10 @@ export function ManualQuestionWorkspace({
         </form>
       ) : null}
       {!current.isLoading && !showEditor ? (
-        <div className="space-y-4">
+        <div
+          className={`manual-question-preview space-y-4${previewRevealing ? " manual-preview--revealing" : ""}`}
+          onAnimationEnd={() => setPreviewRevealing(false)}
+        >
           <dl className="grid gap-4 sm:grid-cols-2 text-sm">
             <div><dt className="text-muted-foreground">Môn học</dt><dd>{subjectName}</dd></div>
             <div><dt className="text-muted-foreground">Chủ đề</dt><dd>{topicName}</dd></div>

@@ -1,13 +1,16 @@
 import { NativeSelect } from "@/components/ui/native-select";
 import { useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, Image as ImageIcon, Save, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import type { AssessmentQuestionDraft } from "../types/assessment-import.types";
 import { useAssessmentTopics, useDraftReviewAction, useUpdateAssessmentDraft } from "../hooks/use-assessment-import";
 import { useDocumentMetadata } from "@/features/documents/hooks/use-documents";
+import "./assessment-motion.css";
 
 function readText(value: Record<string, unknown>) {
   const text = value.text ?? value.value ?? value.question;
@@ -35,6 +38,7 @@ function AssessmentDraftCard({ draft, importId }: { draft: AssessmentQuestionDra
   const [subjectId, setSubjectId] = useState(typeof draft.content.subjectId === "string" ? draft.content.subjectId : "");
   const [topicId, setTopicId] = useState(typeof draft.content.topicId === "string" ? draft.content.topicId : "");
   const topics = useAssessmentTopics(subjectId);
+  const reducedMotion = useReducedMotion();
   const save = async () => {
     await updateDraft.mutateAsync({
       draftId: draft.id,
@@ -79,8 +83,22 @@ function AssessmentDraftCard({ draft, importId }: { draft: AssessmentQuestionDra
         <div className="min-w-0 space-y-3">
           {draft.sourcePageUrl && <figure className="overflow-hidden rounded-xl border border-border bg-muted/20"><img src={draft.sourcePageUrl} alt={`Trang gốc của câu ${draft.ordinal}`} className="max-h-72 w-full object-contain" /><figcaption className="px-3 py-2 text-xs text-muted-foreground">Trang gốc để đối chiếu</figcaption></figure>}
           {draft.assets.length === 0 ? <div className="flex min-h-32 items-center justify-center rounded-xl border border-dashed border-border text-xs text-muted-foreground">Không có hình minh họa</div> : draft.assets.map((asset) => <figure key={asset.id} className="overflow-hidden rounded-xl border border-border bg-muted/20"><img src={asset.url} alt={asset.altText ?? `Hình của câu ${draft.ordinal}`} className="max-h-56 w-full object-contain" /><figcaption className="flex items-center gap-1 px-3 py-2 text-xs text-muted-foreground"><ImageIcon className="size-3.5" />{asset.role}</figcaption></figure>)}
-          {draft.status === "APPROVED" && <span className="flex items-center gap-1 text-xs text-emerald-600"><Check className="size-3.5" />Đã duyệt</span>}
-          {draft.status === "REJECTED" && <span className="text-xs text-destructive">Đã từ chối</span>}
+          <AnimatePresence initial={false}>
+            {(draft.status === "APPROVED" || draft.status === "REJECTED") && (
+              <motion.span
+                key={draft.status}
+                initial={reducedMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: reducedMotion ? 0 : .15, ease: "easeOut" }}
+                className={cn(
+                  "assessment-review-status text-xs",
+                  draft.status === "APPROVED" ? "flex items-center gap-1 text-emerald-600" : "text-destructive",
+                )}
+              >
+                {draft.status === "APPROVED" ? <><Check className="size-3.5" />Đã duyệt</> : "Đã từ chối"}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
       </CardContent>
     </Card>

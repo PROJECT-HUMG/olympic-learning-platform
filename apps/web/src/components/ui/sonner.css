@@ -1,0 +1,134 @@
+/* Presentation only: Sonner owns positioning, stacking, timers and dismissal. */
+.olympic-toaster[data-sonner-toaster] [data-sonner-toast].olympic-toast[data-styled="true"] {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: start;
+  gap: .5rem .75rem;
+  padding: 1rem;
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgb(0 0 0 / .12);
+  font-family: var(--font-sans);
+  font-size: .875rem;
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-icon] {
+  grid-column: 1;
+  grid-row: 1;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--card));
+  border-radius: 50%;
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"][data-type="error"] [data-icon] {
+  color: var(--destructive);
+  background: color-mix(in srgb, var(--destructive) 12%, var(--card));
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-icon] svg {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-content] {
+  grid-column: 2;
+  min-width: 0;
+  gap: .25rem;
+  overflow-wrap: anywhere;
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-title] {
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:has([data-close-button]) [data-title] {
+  min-height: 28px;
+  padding-inline-end: 32px;
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-description] {
+  color: var(--muted-foreground);
+  font-size: .8125rem;
+  line-height: 1.6;
+}
+
+/* Actions use their own rows rather than reducing the message's reading width. */
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-button] {
+  grid-column: 2;
+  justify-self: start;
+  min-width: 44px;
+  min-height: 44px;
+  height: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: .5rem .75rem;
+  border-radius: .5rem;
+  font: inherit;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
+  background: var(--action);
+  color: var(--action-foreground);
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-button]:hover {
+  background: var(--action-hover);
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-button][data-cancel] {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-button][data-cancel]:hover {
+  background: var(--accent);
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-close-button] {
+  inset-inline-start: auto;
+  inset-inline-end: 4px;
+  top: 4px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin: 0;
+  transform: none;
+  border: 0;
+  border-radius: .5rem;
+  background: transparent;
+  color: var(--muted-foreground);
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-close-button] svg {
+  width: 18px;
+  height: 18px;
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-close-button]:hover {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:focus-visible,
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:not(:has([data-icon])) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:not(:has([data-icon])) :is([data-content], [data-button]) {
+  grid-column: 1;
+}

@@ -4,6 +4,243 @@ Ngày: 01/10/2026. Phạm vi: các màn hiện có, điều hướng theo quyề
 
 Checkpoint trước khi sửa UX: `ecbfb14` — `feat: add study rooms and refresh student UI`. Các thay đổi bên dưới nằm sau checkpoint này.
 
+## Secondary-screen interaction motion — accepted, 07/10/2026
+
+Integrated local candidate based on `9143b3acd67198a94e8dc29f3a29490c13a63e21`.
+Exact base/candidate SHA256 and paths: `/tmp/ui-secondary-motion-final-manifest-20261007.json`.
+Entry: `/tmp/ui-secondary-motion-entry-20261007.json`. Latest motion delta is nine
+paths: seven product paths below, `apps/web/tests/secondary-motion-browser-check.mjs`
+and this existing status source. Combined working tree has twelve changed paths,
+including the three preserved toast product/test paths; index remains empty. No
+new commit or dependency. Lead owns all integration scopes after relinquishment.
+
+| Usable effect / trigger | Responsible owner and rationale | Changed product paths |
+| --- | --- | --- |
+| Open/reopen native “Cách tính điểm thành tích” with pointer or summary Enter | Native `toggle` + Web Animations API reveals content opacity .7→1/tiny -3px settle in160ms. Cancels existing wrapper animations on close/reopen. No React open-state coordination, height animation or focus intervention; native disclosure/table scroll retained. Static visible fallback if animate unavailable. | `apps/web/src/features/recognition/components.tsx`, `apps/web/src/features/recognition/recognition.css` |
+| Assessment review receives confirmed APPROVED/REJECTED | Installed Framer Motion `AnimatePresence initial={false}` and keyed status label fade150ms. Library owns presence/replay/cleanup instead of previous-status state, transient flags/timers. Only label identity changes: mounted editors and draft keys untouched. Initial confirmed status and unchanged refetch stay still; pending mutation cannot imply success. | `apps/web/src/features/assessment/components/assessment-draft-list.tsx`, sibling `assessment-motion.css` |
+| Processing import receives a changed server phase | Direct150ms background/border/color CSS transitions are sufficient for existing marker state. No extra animation lifecycle or inferred progress; spinner/numeric progress/phase mapping unchanged. | `apps/web/src/features/assessment/components/assessment-import-progress.tsx`, sibling `assessment-motion.css` |
+| Explicit Manual question “Xem”, including repeated Edit→Xem | Small feature CSS opacity reveal150ms remains suitable: existing click owns a transient presentation intent, animationend/200ms cleanup clear it. No animation on initial view, routine query or permission-driven changes. No exit/height animation or interaction delay. Draft/permission/rendering/focus behavior retained. | `apps/web/src/features/questions/components/manual-question-form.tsx`, sibling `manual-preview.css` |
+
+Installed ownership was verified in `apps/web/package.json`: Framer Motion12.42.2,
+GSAP3.15.0 and tw-animate-css1.4.0 (declared ranges). Existing Framer owner is
+`components/ui/fade-in.tsx`; GSAP owns the startup timeline; tw-animate-css is
+imported by `src/index.css`. Neither a GSAP timeline nor generic entrance classes
+improve the phase color transition or explicit one-shot preview. Native WAAPI
+fits uncontrolled details better than wrapping disclosure state in a library.
+
+### Actual responses, disposition and repairs
+
+Fresh configured profiles/notes, original bounded briefs, launches and verified
+runtime identities: `/tmp/ui-secondary-motion-peer-launches-20261007.json`.
+All three used configured alias/model
+`slp-agent-profile-muwz3aai-alhlbc9trsf/gemini-3.8-flash-high`, full-access;
+thinking/features absent, actual provider antigravity and runtime null/[].
+No native/Grok substitute or profile setting change.
+
+- Recognition `4a646a65-91a2-4c39-901a-bf763188dea2`: complete actual hash-identified
+  handoff and relinquishment are preserved in
+  `/tmp/ui-secondary-motion-recognition-response-20261007.md`; immutable returned
+  files/patch in `/tmp/ui-scoring-rules-candidate-20261007/` reverified. Original
+  source acceptance did not establish runtime reopen reliability. Initial CSS
+  first-open passed but native reopen failed; Lead superseded that replay code
+  with native toggle/WAAPI after owning the relinquished scope. Exact original
+  and final candidate acceptance/scoped repair:
+  `/tmp/ui-secondary-motion-recognition-disposition-20261007.md`.
+- Assessment `e7aa6080-b971-495c-9996-feec8c73f24a`: actual response
+  `/tmp/ui-secondary-motion-assessment-response-20261007.md`; verified original
+  immutable three-file candidate `/tmp/ui-assessment-motion-candidate-20261007/`.
+  Explicit ACCEPT sent and actual closure acknowledgment received. Lead later
+  simplified status lifecycle to installed Framer Motion, retaining direct phase
+  CSS. Final refinement/disposition and exact hashes:
+  `/tmp/ui-secondary-motion-assessment-disposition-20261007.md`.
+- Manual `59a929c3-35d0-4fef-8988-712352876993`: actual response
+  `/tmp/ui-secondary-motion-manual-response-20261007.md`; immutable candidate
+  `/tmp/ui-manual-preview-candidate-20261007/` reverified; returned product bytes
+  unchanged. Explicit ACCEPT sent and closure/relinquishment acknowledged.
+  Integrated disposition: `/tmp/ui-secondary-motion-manual-disposition-20261007.md`.
+
+Recognition returned artifact and provider execution are separate. After its
+complete handoff, execution failed with status error/activeTurn null:
+`API error (attempt 1): request failed: Post "https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse": read tcp 172.21.45.104:43510->172.217.114.4:443: read: connection reset by peer`.
+No further dispatch/retry/prompt/settings change/substitution was made to that
+Peer. Its assignment/artifact loop is closed; provider failure remains a failed
+execution, not a successful Peer run. Ready Assessment/Manual work and authorized
+Lead-owned integration continued independently.
+
+### Actual verification and limits
+
+Final browser artifact `/tmp/ui-secondary-motion-jggTm6/results.json`: **44 checks
+pass**, six PNG observations, no runtime exceptions, product/test source hashes
+stable during the run and reverified against the final tree. Actual mounted
+routes use intercepted synthetic API/PDF data in headless Chromium, not live data.
+
+- Recognition: summary Enter opens/reopens and reveals each time at320×640 light
+  and1280×800 dark; unchanged-query refetch does not replay; final content visible,
+  summary focus retained. Native animate instrumentation forwards to the actual
+  browser API and records160ms frames. No claim of full table visual coverage in
+  the mobile screenshot where much of the table is below the fold.
+- Assessment320×640 light: initially approved and unchanged refetch still; held
+  actual approval/rejection requests remain unconfirmed until released; confirmed
+  label fades observed by intermediate opacity sampling, each once. Editor node,
+  unsaved text and input focus retained. Fresh processing job server phase advances
+  RENDERING_PAGES→PARSING_QUESTIONS, progress20→64; actual150ms marker transition
+  observed, unchanged-phase refetch does not restart it.
+- Manual1280×800 dark: initial editor has no reveal; explicit Xem repeats after
+  Edit, retains unsaved title; identity refetch retains preview node/focus and
+  does not replay. Role downgrade removes unauthorized editor without reveal;
+  no save/publish POST. Initial direct-view suppression is source-only.
+- Requested viewport, layout, visualViewport/scale and PNG dimensions recorded
+  separately. Mobile observations actually320×640, scale1, scrollWidth320; no
+  page overflow. Desktop visual width can exclude scrollbar (Recognition1265px
+  within1280px). Screenshots include Recognition, review, phases and Manual preview.
+
+Final build passed (session83891,3710 modules), lint passed (session99402, existing
+warnings only), diff check passed. Existing168 Node tests passed,0 failures/skips
+(session68767), before final native Recognition/Framer refinements; final browser,
+build and lint cover those refinements. No repeated Node run claimed.
+
+Preserved failed evidence: `/tmp/ui-secondary-motion-GKGx9m/results.json` and
+`/tmp/ui-secondary-motion-6ouc3a/results.json` demonstrate original CSS reopen gap;
+`/tmp/ui-secondary-motion-PUIHX9/results.json` shows abandoned ::details-content
+attempt without animation. `/tmp/ui-secondary-motion-2r8Xl9/results.json` passed26
+checks then stopped on a wrong driver selector, repaired in the runner; this was
+not a product defect. Failed probes are not relabeled passes.
+
+Reduced-motion immediate final states remain supported in code (native preference
+check/final CSS, Framer useReducedMotion/duration0, CSS reveal/transition suppression).
+Dedicated reduced-motion validation was removed by scope update and is
+**unverified**, not a runtime pass. Update was routed to assigned Peers. No new
+Safari/Firefox, physical-device, assistive-technology, live backend or performance
+proof. Narrow Manual viewport was not newly exercised. Captured exception checks
+do not assert absence of console warnings: Vite logged existing Manual PageHeader
+p/Badge div nesting warnings; both shared owners and that description were already
+present at base, unchanged in this scope.
+
+Preserved toast hashes: `sonner.tsx`35546cde6cf284d7adebf50d937d7a35fb000b7205e99fe92e95786930b3ac57;
+`sonner.css`bf1b1024e619465c3fc6e599ca7c9832ec21ba5e2f8d927d52d535debf6c14fe;
+`tests/toast-browser-check.mjs`ff6ce282b01378d0c4cea62ab1164794eb3586148d3ddb96a524a1f0372a7e73.
+This shared status source gained authorized motion documentation, so its older
+toast manifest hash is superseded. No identity/expiry/permission, Daily private
+revalidation/draft or room player changes. Owned Vite3112 session80637 stopped;
+port closure verified; browser runs cleaned their own profiles. Other runtimes,
+agent lifecycle and schedules untouched. All Peer write scopes closed; integrated
+candidate usable locally and remains unstaged/uncommitted.
+
+## Shared toast presentation — accepted, 07/10/2026
+
+Base/entry HEAD: `9143b3acd67198a94e8dc29f3a29490c13a63e21`, clean index and
+working tree at entry. Prior consolidation, loading and rendered repairs are
+committed at this base; older “unstaged/uncommitted” entries below describe their
+pre-commit checkpoints. Lead exclusively owned this toast repair; no Peer was
+dispatched and no shared scope changed ownership. This new candidate remains
+local and uncommitted, with an empty index.
+
+### Usable behavior and design decision
+
+The mounted shared owner is `apps/web/src/components/ui/sonner.tsx`, used once by
+`App.tsx:18` with Sonner 2.0.7, richColors, top-right placement and closeButton.
+The original next-themes hook did not follow the app's Zustand/resolved theme.
+Long notices also exposed mismatched icon slots and a vertically centered28px
+close target; supplied action/cancel buttons squeezed the mobile text column.
+The repair uses the existing resolved-theme hook and app card/font/color/radius
+tokens, top-aligned24px status badges with decorative16px glyphs, wrapping text,
+44px localized close/actions, visible keyboard focus and safe-area mobile
+gutters. Supplied actions occupy their own rows; cancel uses the muted surface.
+The loading glyph is quiet under reduced motion. No caller or App edits.
+
+Three treatments were considered against actual callers:
+
+- **Chosen: calm academic notice.** Neutral card, primary success/check glyph,
+  destructive error glyph and readable text suit profile/document saves and
+  auth/API errors without competing with study content. More restrained than
+  fully tinted cards; supplied actions make a notice taller when present.
+- **Tinted status card.** Stronger success/error color distinction, but more
+  visual noise for routine saves and more theme/contrast responsibility.
+- **Compact receipt.** Smaller for short saves, but long API/upload descriptions
+  would require another presentation variant. Deferred as unnecessary.
+
+Real consumer evidence: `features/user/hooks/use-update-profile.ts:15,19`
+(profile save/error), `features/auth/components/login-form.tsx:37,41`
+(login success/API error), `pages/dashboard/documents/documents-management-page.tsx:88–112`
+(document create/edit/delete results), `features/post/components/post-image-upload.tsx:25,32,54`
+(image-upload rejection descriptions), and `features/recognition/hooks.ts:9,13`
+(mutation success/error) plus `features/recognition/components.tsx:61` (evidence
+failure). Recognition notifications confirm changes; no live achievement event
+or celebration was invented. Current production callers do not supply Sonner
+action objects or use loading/promise/info/warning/custom APIs. Action and
+pending branches below are explicitly synthetic compatibility checks, not new
+product flows. No retry/undo buttons were added to callers.
+
+Messages, callbacks, permissions/error handling and notification policy remain
+feature-owned. Sonner retains stacking, dismissal/swipe, hotkey/focus handling,
+timers/default4000ms, promise lifecycle and same-ID updates. Its native loading
+toast remains non-dismissable. Auth/expiry, Daily drafts/private revalidation and
+room media/canvas files are unchanged.
+
+### Exact candidate and rendered evidence
+
+Changed paths: `apps/web/src/components/ui/sonner.tsx`, new sibling `sonner.css`,
+new `apps/web/tests/toast-browser-check.mjs`, and this status document. Exact base
+and candidate hashes/evidence identifiers:
+`/tmp/ui-toast-final-manifest-20261007.json`. Lead ACCEPTS these shared owner/style
+changes after diff inspection and rendered verification. Consumers can use the
+existing toast calls immediately; no dependency, API or migration change.
+
+Matched before/after record: `/tmp/ui-toast-before-after-20261007.json` compares
+the first16 observations from `/tmp/ui-toast-dX6kGl/results.json` with
+`/tmp/ui-toast-19cFua/results.json`. Baseline owner bytes match committed HEAD.
+Identical messages, OS light, reduced motion, explicit theme, DPR1 and viewport
+settings;320×640 mobile and1280×800 desktop, light/dark, success/error/loading/
+supplied actions. Requested, layout, visual viewport/scale and PNG dimensions
+are recorded separately and match; mobile is actually320px at scale1.
+
+| Matched320px evidence | Before | Accepted repair |
+| --- | --- | --- |
+| Explicit app dark / Sonner theme | dark / light | dark / dark |
+| Close target | 28×28, vertically centered | 44×44, top-right, localized name/focus ring |
+| Icon slot / child | 16px /24px | 24px /16px, top-aligned |
+| Long supplied-action text column | 13.016px | 218px |
+| Long action fixture height | 6948.75px; controls offscreen | 539.375px; both44px controls visible |
+
+Inspect screenshots `320-dark-actions.png` in the baseline and final directories
+and final `320-light-error.png` / `keyboard-close-focus.png`. The chosen surface
+matches existing Be Vietnam Pro and blue card tokens in both themes.
+
+### Actual checks and limits
+
+- Final browser run: **104 checks PASS**,18 screenshots/observations, no runtime
+  exceptions or source drift. App and its actual Sonner singleton are mounted;
+  synthetic APIs/messages intercept all external/backend requests.
+- Keyboard action invokes once; preventDefault retains the toast. Cancel invokes
+  once and dismisses. Same ID updates without duplication; promise loading→
+  success/error and auto-dismiss callback pass. Alt+T→Tab reaches Close with
+  a visible ring; leaving the region restores the prior input, and keyboard
+  dismissal records one onDismiss with that input focused. Callback/focus evidence
+  is resolved for these tested paths, not generalized to every consumer.
+- Actual LoginForm submits one rejected synthetic503 POST, displays the exact
+  parsed long API message within320px, and remains on `/login`.
+- Build PASS on final CSS (existing >500kB chunk warnings). Lint PASS with existing
+  warnings only;168 Node tests PASS,0 failures/skips before the final cancel CSS
+  refinement. Only CSS and the browser assertion changed afterward; final build
+  and rendered run cover that refinement. Final diff check PASS.
+- The baseline's later hotkey assertion failed because of the driver modifier/
+  focus setup. Other interim probes exposed fixture-regex, cleanup, focus-history
+  and CORS-preflight problems; they are preserved as failed evidence, not app
+  regressions. No claim that the baseline suite passed. Driver repairs and the
+  final104 checks provide fresh candidate callback/focus/LoginForm evidence.
+- Limits: headless Chromium with synthetic messages/APIs; no live backend,
+  upload or achievement event proof, physical device/Safari/Firefox, touch swipe,
+  real safe-area inset, live screen reader speech or performance measurement.
+  Still longer messages, shorter screens and multitoast interaction were not
+  exercised. Existing Sonner policy was retained; no new duration or viewport
+  scrolling policy is inferred from this bounded probe.
+
+To reproduce against an owned local Vite server on3111, run
+`rtk proxy node tests/toast-browser-check.mjs` from `apps/web`; override
+`TOAST_WEB_URL` for another local server. It creates an isolated Chromium profile,
+records screenshots/results under `/tmp/ui-toast-*` and cleans its own browser.
+The task-owned Vite server was stopped at closure. No staging or commit.
+
 ## Rendered UI breakage repair — accepted, 07/10/2026
 
 The local candidate repairs demonstrated narrow-layout failures; no redesign or

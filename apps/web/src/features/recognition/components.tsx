@@ -64,7 +64,17 @@ export function EvidenceDownload({ achievementId, attachment }: { achievementId:
   return <Button size="sm" variant="outline" onClick={() => void download()} disabled={pending}>{pending ? "Đang tải…" : `Tải ${attachment.originalName}`}</Button>;
 }
 export function ScoringRules() {
-  return <details className="recognition-rules"><summary>Cách tính điểm thành tích</summary><div className="recognition-table-scroll"><table><caption>Điểm được cộng cho mỗi hồ sơ đã duyệt. Điểm giải và tham gia cộng riêng khi được xác nhận.</caption><thead><tr><th scope="col">Hoạt động</th>{Object.entries(AWARDS).filter(([key]) => key !== "NONE").map(([key, label]) => <th key={key} scope="col">{label}</th>)}<th scope="col">Tham gia</th></tr></thead><tbody>{Object.entries(CATEGORIES).map(([key, label]) => <tr key={key}><th scope="row">{label}</th>{(["FIRST", "SECOND", "THIRD", "CONSOLATION"] as const).map(award => <td key={award}>{estimatePoints(key as keyof typeof CATEGORIES, award, false)}</td>)}<td>{PARTICIPATION[key as keyof typeof CATEGORIES] ?? "—"}</td></tr>)}</tbody></table></div><p>Kỷ niệm vinh danh không cộng điểm. Hồ sơ công khai chỉ hiển thị thành tích công khai; bảng xếp hạng cộng các thành tích đã duyệt của người đã chọn tham gia.</p></details>;
+  return <details className="recognition-rules" onToggle={event => {
+    const content = event.currentTarget.querySelector<HTMLDivElement>(".recognition-rules__content");
+    if (!content?.animate) return;
+    content.getAnimations().forEach(animation => animation.cancel());
+    if (event.currentTarget.open && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      content.animate([
+        { opacity: .7, transform: "translateY(-3px)" },
+        { opacity: 1, transform: "none" },
+      ], { duration: 160, easing: "ease-out" });
+    }
+  }}><summary>Cách tính điểm thành tích</summary><div className="recognition-rules__content"><div className="recognition-table-scroll"><table><caption>Điểm được cộng cho mỗi hồ sơ đã duyệt. Điểm giải và tham gia cộng riêng khi được xác nhận.</caption><thead><tr><th scope="col">Hoạt động</th>{Object.entries(AWARDS).filter(([key]) => key !== "NONE").map(([key, label]) => <th key={key} scope="col">{label}</th>)}<th scope="col">Tham gia</th></tr></thead><tbody>{Object.entries(CATEGORIES).map(([key, label]) => <tr key={key}><th scope="row">{label}</th>{(["FIRST", "SECOND", "THIRD", "CONSOLATION"] as const).map(award => <td key={award}>{estimatePoints(key as keyof typeof CATEGORIES, award, false)}</td>)}<td>{PARTICIPATION[key as keyof typeof CATEGORIES] ?? "—"}</td></tr>)}</tbody></table></div><p>Kỷ niệm vinh danh không cộng điểm. Hồ sơ công khai chỉ hiển thị thành tích công khai; bảng xếp hạng cộng các thành tích đã duyệt của người đã chọn tham gia.</p></div></details>;
 }
 export function UserPicker({ selected, onChange, studentOnly = false }: { selected: string; onChange: (id: string, name: string) => void; studentOnly?: boolean }) {
   const [search, setSearch] = useState("");

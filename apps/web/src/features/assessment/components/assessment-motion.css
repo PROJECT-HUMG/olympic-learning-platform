@@ -1,0 +1,16 @@
+.assessment-phase-marker {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assessment-review-status {
+    opacity: 1 !important;
+  }
+
+  .assessment-phase-marker {
+    transition: none !important;
+  }
+}
