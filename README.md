@@ -31,6 +31,16 @@ Web chạy tại `http://localhost:3000`, API tại `http://localhost:8080`. Vit
 
 Để chạy toàn bộ bằng container, cấu hình `.env` theo biến trong `compose.yml`, sau đó chạy `docker compose up --build`. Cổng host mặc định là `3000` và `8080` trên `127.0.0.1`.
 
+## Production delivery
+
+Pull requests and pushes to `main` run the repository-owned GitHub Actions checks.
+Successful `main` pushes build API/web images on GitHub-hosted runners, publish
+to GHCR and deploy exact digests through verified SSH. The production stack uses
+`deploy/compose.prod.yml`, explicit `prod`, persistent volumes and host HTTPS
+ingress. See the [operator runbook](docs/deployment/README.md) for Environment
+settings, release evidence, migration-aware backup/recovery and SMTP2525 checks.
+Local preparation does not establish registry/server readiness or perform a deploy.
+
 ## Cách làm việc
 
 Vinh danh lưu kỷ niệm độc lập với hồ sơ thành tích học thuật. Thành tích Olympic/NCKH do người dùng gửi minh chứng và admin duyệt; bảng xếp hạng theo năm/mọi năm yêu cầu tự bật tham gia. Hồ sơ và minh chứng có quyền riêng tư riêng, không tự cộng điểm từ bài vinh danh. Xem [quy tắc, quyền truy cập và kiểm tra](docs/architecture/recognition.md). Các mức điểm quốc tế và nhóm hoạt động ngoài học thuật được để lại cho đợt sau.

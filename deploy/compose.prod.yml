@@ -1,0 +1,118 @@
+# Image-only production stack. Never combine with the development Compose files.
+name: olympic_platform
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: olympic_platform
+      POSTGRES_USER: olympic_platform
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Required in production.env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    shm_size: 256mb
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U olympic_platform -d olympic_platform"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    logging: &logging
+      driver: json-file
+      options: {max-size: 10m, max-file: "5"}
+    networks: [internal]
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --appendonly, "yes", --appendfsync, everysec]
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    logging: *logging
+    networks: [internal]
+  api:
+    image: ${API_IMAGE:?Digest-pinned release image required}
+    env_file: ["${PRODUCTION_ENV_FILE:?Absolute host production.env path required}"]
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8080
+      DB_URL: jdbc:postgresql://postgres:5432/olympic_platform
+      DB_USERNAME: olympic_platform
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Required in production.env}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      WEB_BASE_URL: https://olympic.nghlong3004.me
+      SERVER_BASE_URL: https://olympic.nghlong3004.me
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Required in production.env}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Required in production.env}
+      ENCRYPTION_SALT: ${ENCRYPTION_SALT:?Required in production.env}
+      OLYMPIC_ADMIN_EMAIL: ${OLYMPIC_ADMIN_EMAIL:?Required in production.env}
+      OLYMPIC_ADMIN_USERNAME: ${OLYMPIC_ADMIN_USERNAME:?Required in production.env}
+      OLYMPIC_ADMIN_PASSWORD: ${OLYMPIC_ADMIN_PASSWORD:?Required in production.env}
+      OLYMPIC_AUTH_REGISTRATION_MODE: ${OLYMPIC_AUTH_REGISTRATION_MODE:-ADMIN_ONLY}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:?Required for production storage}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:?Required for production storage}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:?Required for production storage}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?Required by existing OAuth registration}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?Required by existing OAuth registration}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:?Required by existing OAuth registration}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:?Required by existing OAuth registration}
+      DB_POOL_MAX_SIZE: ${DB_POOL_MAX_SIZE:-5}
+      DB_POOL_MIN_IDLE: ${DB_POOL_MIN_IDLE:-1}
+      OLYMPIC_MAIL_ENABLED: ${OLYMPIC_MAIL_ENABLED:-true}
+      MAIL_PORT: ${MAIL_PORT:-2525}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_SMTP_STARTTLS_ENABLE:-true}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED: ${MAIL_SMTP_STARTTLS_REQUIRED:-true}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_CHECKSERVERIDENTITY: ${MAIL_SMTP_SSL_CHECKSERVERIDENTITY:-true}
+      OLYMPIC_EXPORT_STORAGE_ROOT: /app/storage/exports
+      MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE: readinessState,db,redis
+    init: true
+    mem_limit: ${API_MEMORY_LIMIT:-2g}
+    stop_grace_period: 30s
+    volumes: [api-storage:/app/storage]
+    ports: ["127.0.0.1:8080:8080"]
+    tmpfs: [/tmp]
+    healthcheck:
+      test: [CMD, wget, --spider, --quiet, "http://127.0.0.1:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 30
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    logging: *logging
+    networks: [internal, egress]
+  web:
+    image: ${WEB_IMAGE:?Digest-pinned release image required}
+    init: true
+    ports: ["127.0.0.1:3000:80"]
+    healthcheck:
+      test: [CMD-SHELL, "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      start_period: 10s
+      retries: 12
+    depends_on:
+      api: {condition: service_healthy}
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp]
+    logging: *logging
+    networks: [internal, egress]
+volumes:
+  # Same physical volumes as the root compose.yml, regardless of release directory.
+  postgres-data: {name: olympic_platform_postgres-data}
+  redis-data: {name: olympic_platform_redis-data}
+  api-storage: {name: olympic_platform_api-storage}
+networks:
+  internal: {internal: true}
+  egress: {driver: bridge}

@@ -23,6 +23,10 @@ ENV VITE_TURNSTILE_SITE_KEY=${VITE_TURNSTILE_SITE_KEY}
 
 RUN pnpm run build
 
+# Public, immutable build identity for deployment smoke checks; no runtime secrets.
+ARG RELEASE_SHA=development
+RUN node -e 'const fs=require("fs");const sha=process.argv[1];if(sha!=="development"&&!/^[a-f0-9]{40}$/.test(sha))process.exit(1);fs.writeFileSync("dist/release.json",JSON.stringify({sha})+"\n")' "$RELEASE_SHA"
+
 FROM nginx:1.29-alpine
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
