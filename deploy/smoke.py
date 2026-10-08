@@ -34,6 +34,12 @@ def check(sha):
     js, _ = get(asset[1].decode())
     if not js or js.lstrip().lower().startswith(b"<!doctype"):
         raise ValueError("Public JavaScript request returned fallback document")
+    # Public-copy files can fail even when generated HTML/hashed JS is readable.
+    for path, media_type in (("/favicon.svg", "image/svg+xml"),
+                             ("/images/anime-day.webp", "image/webp")):
+        content, asset_headers = get(path)
+        if not content or not asset_headers.get("Content-Type", "").startswith(media_type):
+            raise ValueError("Public static asset missing or returned fallback HTML")
     metadata = json.loads(get("/api/v1/documents/metadata")[0])
     if not all(isinstance(metadata.get(k), list) for k in ("categories", "subjects", "tags")):
         raise ValueError("Public API metadata shape mismatch")
@@ -51,7 +57,7 @@ def wait(sha):
         try:
             check(sha)
             return {"origin": ORIGIN, "sha": sha, "attempts": attempt + 1,
-                    "checks": ["release identity", "SPA", "hashed JS", "public API metadata", "actuator blocked"]}
+                    "checks": ["release identity", "SPA", "hashed JS", "public static assets", "public API metadata", "actuator blocked"]}
         except (OSError, ValueError) as error:
             if attempt == 5:
                 # Do not print response bodies, auth material or request metadata.

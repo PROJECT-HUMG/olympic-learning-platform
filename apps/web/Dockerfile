@@ -31,6 +31,10 @@ FROM nginx:1.29-alpine
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /workspace/dist /usr/share/nginx/html
+# Public assets may retain checkout umask077 through Vite's public copy.
+# Root owns these immutable files; nginx workers need read/traverse, not write.
+RUN find /usr/share/nginx/html -type d -exec chmod 755 {} + && \
+    find /usr/share/nginx/html -type f -exec chmod 644 {} +
 
 EXPOSE 80
 

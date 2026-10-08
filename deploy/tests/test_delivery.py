@@ -296,11 +296,24 @@ class DeliveryTests(unittest.TestCase):
             if path == "/release.json": return json.dumps({"sha": self.sha}).encode(), {"Cache-Control": "no-store"}
             if path == "/": return b'<div id="root"></div><script src="/assets/fixture.js"></script>', {}
             if path.startswith("/assets/"): return b"console.log('fixture')", {}
+            if path == "/favicon.svg": return b"<svg/>", {"Content-Type": "image/svg+xml"}
+            if path == "/images/anime-day.webp": return b"synthetic webp", {"Content-Type": "image/webp"}
             if path == "/api/v1/documents/metadata": return b'{"categories":[],"subjects":[],"tags":[]}', {}
             raise HTTPError(path, 404, "Blocked", {}, None)
         with patch("smoke.get", side_effect=get):
             smoke.check(self.sha)
             with self.assertRaises(ValueError): smoke.check("b" * 40)
+        def fallback(path):
+            if path == "/images/anime-day.webp": return b"<!doctype html>", {"Content-Type": "text/html"}
+            return get(path)
+        with patch("smoke.get", side_effect=fallback):
+            with self.assertRaisesRegex(ValueError, "Public static asset"):
+                smoke.check(self.sha)
+        def forbidden(path):
+            if path == "/favicon.svg": raise HTTPError(path, 403, "Forbidden", {}, None)
+            return get(path)
+        with patch("smoke.get", side_effect=forbidden):
+            with self.assertRaises(HTTPError): smoke.check(self.sha)
         with patch("smoke.get", side_effect=OSError("fixture offline")), patch("smoke.time.sleep"):
             with self.assertRaises(RuntimeError): smoke.wait(self.sha)
 

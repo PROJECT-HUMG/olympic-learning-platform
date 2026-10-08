@@ -369,3 +369,107 @@ The authorized meaningful commit push triggers new checks and an ordinary Compos
 trial on **main**. Complete HTTPS from section5 before requiring successful public
 smoke. No cloud/DNS/secret settings are changed by this implementation; production
 values and actual host readiness remain reported inputs until evidence confirms.
+
+### Ordinary Compose trial: actual result
+
+`0d40e3f49ddb0fa5120e6900512bed605d71fbb6` (`fix(deploy): use ordinary Compose
+builds`) was pushed nonforce to origin/main as the single outgoing commit, with
+six scoped paths including deletion of `deploy/buildkitd.toml`; Daily was excluded.
+[Delivery37787694140](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37787694140),
+attempt1, completed **failure**. Checks113346583562 passed web/deployment/API
+Testcontainers gates. Deploy113347532704 failed inside the SSH step with
+**Public smoke failed after six attempts**; runner smoke was skipped.
+
+The helper invokes that public smoke only after sequential ordinary API/web builds,
+image revision/platform checks, data readiness, successful pre-migration backup,
+app readiness and running image identity/health checks pass. This trial therefore
+advanced past those gates on the reported replacement; it did not promote a
+complete/healthy release pointer. It is startup evidence, not proof of sustained
+1GiB operation or heavy-feature capacity. No automatic rollback/DB downgrade occurred.
+No custom builder setup/stop or host resource limits were used by this candidate.
+
+A single independent public smoke probe returned **connection refused** at the
+HTTPS release request. Complete section5's operator-owned certificate/host Nginx
+HTTPS ingress using the full SHA above; verify Nginx configuration/listener and
+443 reachability rather than change application memory or bypass public smoke.
+No live UI/public API success is claimed. Full job logs returned HTTP403 anonymously;
+no authenticated/direct server surface was available. Retained evidence:
+`/tmp/olympic-compose-build-run-37787694140*.json` and
+`/tmp/olympic-compose-build-final-manifest-20261008.json`.
+
+Useful non-secret operator checks for this concrete remaining ingress failure:
+
+```bash
+cat /opt/olympic/state/status.json
+sudo nginx -t
+sudo systemctl is-active nginx
+sudo ss -ltnp '( sport = :443 )'
+curl --connect-timeout 5 --max-time 10 --fail --silent --show-error https://olympic.nghlong3004.me/release.json
+```
+
+Preserve the certificate/env/data; do not disable TLS verification or dump expanded
+configuration. After HTTPS is correct, Run workflow on main through normal gates
+and require both smokes; do not retry unchanged failures. Real SMTP2525/TLS/OTP
+remains an operator check after public readiness. Previous remote builder cleanup
+remains unknown and no automatic removal/pruning was attempted. All seven Daily
+hashes remain exact, operator dotenv unread and index empty. This outcome-only
+status update stays local/uncommitted to avoid an unchanged pipeline retry.
+
+### Public asset permissions repair
+
+Base: `0d40e3f49ddb0fa5120e6900512bed605d71fbb6`. The HTTPS reference routes
+static requests to web port3000 and API directly to8080. A matching favicon403
+at port3000 and HTTPS localizes the static failure upstream of host ingress.
+Independent public requests returned nginx HTML403 for favicon/icons, the actual
+/social-icons/github.png, /images/anime-day.webp and /videos/anime-day.mp4 paths.
+Anonymous /api/v1/users/me returned Bearer401; public document metadata returned200.
+A nonexistent root github.png or /videos/anime-day.webp returned SPA HTML and is
+not proof that the real asset loads. No credentials/session mutations were used.
+
+Source/artifact cause: the deployment program's restrictive umask077 applies to
+Git checkout. An actual installed Vite copy probe preserves a public file's600
+mode into dist, while generated index is644. Runtime Docker COPY preserves those
+modes with root ownership; official nginx uses an unprivileged nginx worker.
+The before-image regression reproduced root-asset403 and inaccessible nested
+assets falling back to HTML. This is a serving permission failure, not an API
+permission/CORS rule or HTTPS ingress block.
+
+Lead ACCEPT: normalize directories755/files644 only under /usr/share/nginx/html
+in the web runtime image, retaining root ownership and no nginx worker write
+access. Do not relax checkout/env/backup permissions or use chmod777. No host
+nginx/security/auth/resource-policy changes are made. Smoke now checks favicon
+and a real poster MIME/body in addition to release/JS/API/actuator; it refuses
+403 and fallback HTML. Nineteen deployment tests pass, including a real synthetic
+nginx runtime fixture at32MiB/48MiB swap/0.5CPU, readable/nonwritable public files
+and video206 Range response. This per-container local evidence on a larger host
+is not whole-VPS1GiB capacity proof. Owned test containers/images/directories were
+removed; the pulled declared nginx base remains cached. Prior remote builder
+cleanup remains unknown; no resources are pruned.
+
+Auth remains separate: GET /users/me needs an access token; POST /auth/refresh
+without a valid refresh cookie legitimately returns401. POST /auth/login is public
+and validates local identifier/password plus account status. No real login request,
+credential, cookie or session was inspected. A diagnosis needs redacted endpoint,
+method, status/error body and WWW-Authenticate, plus whether Authorization was
+present (no token value) and whether a cookie was issued/blocked (attributes only).
+An expired attached Bearer can fail before a public handler; invalid local login
+credentials also produce401. Do not assume either cause or request passwords.
+Prod secure/HttpOnly/SameSiteStrict refresh cookies, explicit public origin CORS
+and trusted HTTPS forwarding are preserved; existing CSRF policy is untouched.
+
+Setup reconciliation: Ubuntu docker.io/Compose is compatible with the successful
+ordinary build/readiness trial; no Docker vendor migration/custom builder is
+required. Deploy-owned /opt/olympic750 and .env600 match actual preflight; keep
+/opt/olympic/.env separate from checkout and local operator env. Correct fstab
+/swapfile none swap sw 0 0 needs no correction. The current public API/static
+responses demonstrate TLS ingress reachability but not complete UI/login success.
+Webroot Certbot renewal scheduling does not itself prove an nginx reload hook;
+verify a post-issuance dry-run and equivalent reload integration separately. No
+server setting changes or certificate/key/env reads are performed for this check.
+
+Exact candidate/check/live identifiers are recorded in
+`/tmp/olympic-static-final-manifest-20261008.json`. Before/after logs:
+`/tmp/olympic-static-before-20261008.log`, `/tmp/olympic-static-after-20261008.log`.
+The meaningful scoped commit push triggers normal checks/SSH/Compose/readiness
+and both public smokes. Live outcome must be recorded separately; actual login,
+SMTP2525/TLS/OTP and sustained1GiB capacity remain unverified.
