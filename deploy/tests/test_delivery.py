@@ -2,6 +2,7 @@
 import fcntl
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -210,7 +211,8 @@ class DeliveryTests(unittest.TestCase):
         # All transport/key commands replaced locally; no socket or real key is used.
         for command in ("ssh", "scp", "ssh-keygen"):
             executable = tools / command
-            executable.write_text('#!/bin/bash\nset -eu\nif [[ "$1" == "-F" ]]; then cat "$2" >> "$CONTRACT_LOG"; fi\nexit 0\n')
+            body = 'if [[ "$1" == "-F" ]]; then cat "$2" >> "$CONTRACT_LOG"; fi\n' if command != "ssh-keygen" else ""
+            executable.write_text('#!/bin/bash\nset -eu\n' + body + 'exit 0\n')
             executable.chmod(0o700)
         (self.root / "release.tar.gz").write_bytes(b"synthetic archive")
         env = dict(os.environ, PATH=str(tools) + os.pathsep + os.environ["PATH"], CONTRACT_LOG=str(log),
@@ -225,7 +227,7 @@ class DeliveryTests(unittest.TestCase):
         self.assertIn("IdentitiesOnly yes", config)
         for line in config.splitlines():
             if line.strip().startswith(("IdentityFile ", "UserKnownHostsFile ")):
-                self.assertFalse(Path(line.split()[-1]).exists())
+                self.assertFalse(Path(shlex.split(line)[-1]).exists())
         env["DEPLOY_HOST"] = "fixture; unsafe"
         self.assertNotEqual(subprocess.run(["bash", str(ROOT / "deploy" / "ssh-deploy.sh")], cwd=self.root, env=env, capture_output=True).returncode, 0)
 

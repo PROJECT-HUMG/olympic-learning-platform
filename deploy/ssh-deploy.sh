@@ -11,16 +11,27 @@ umask 077
 test -s release.tar.gz
 ssh_dir=$(mktemp -d)
 trap 'rm -rf "$ssh_dir"' EXIT
-printf '%s\n' "$DEPLOY_SSH_KEY" > "$ssh_dir/key"
-printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
-ssh-keygen -l -f "$ssh_dir/known_hosts" >/dev/null
+# Preserve multiline/escaped content; normalize only CRLF line endings.
+printf '%s\n' "$DEPLOY_SSH_KEY" | sed 's/\r$//' > "$ssh_dir/key"
+printf '%s\n' "$DEPLOY_KNOWN_HOSTS" | sed 's/\r$//' > "$ssh_dir/known_hosts"
+if ! ssh-keygen -y -P '' -f "$ssh_dir/key" >/dev/null 2>&1; then
+  printf '%s\n' '::error::DEPLOY_SSH_KEY must be a valid unencrypted private key with real multiline content.' >&2
+  exit 1
+fi
+known_host=$DEPLOY_HOST
+if [[ "$DEPLOY_PORT" != 22 ]]; then known_host="[$DEPLOY_HOST]:$DEPLOY_PORT"; fi
+if ! ssh-keygen -l -f "$ssh_dir/known_hosts" >/dev/null 2>&1 \
+    || ! ssh-keygen -F "$known_host" -f "$ssh_dir/known_hosts" >/dev/null 2>&1; then
+  printf '%s\n' '::error::DEPLOY_KNOWN_HOSTS must contain a valid verified entry matching DEPLOY_HOST and DEPLOY_PORT.' >&2
+  exit 1
+fi
 cat > "$ssh_dir/config" <<EOF
 Host production
   HostName $DEPLOY_HOST
   User $DEPLOY_USER
   Port $DEPLOY_PORT
-  IdentityFile $ssh_dir/key
-  UserKnownHostsFile $ssh_dir/known_hosts
+  IdentityFile "$ssh_dir/key"
+  UserKnownHostsFile "$ssh_dir/known_hosts"
   StrictHostKeyChecking yes
   IdentitiesOnly yes
   BatchMode yes
@@ -28,9 +39,15 @@ Host production
   ServerAliveInterval 15
   ServerAliveCountMax 3
 EOF
+transport_failure() {
+  printf '::error::%s failed (exit %s). Inspect preceding SSH/SCP stderr; remote state may be unknown.\n' "$1" "$2" >&2
+  exit "$2"
+}
 # Pre-existing owner-managed root and incoming directory; no provisioning here.
-scp -F "$ssh_dir/config" release.tar.gz "production:/opt/olympic/incoming/$RELEASE_ID.tar.gz"
-ssh -F "$ssh_dir/config" production "bash -s -- '$RELEASE_ID'" <<'REMOTE'
+scp -F "$ssh_dir/config" release.tar.gz "production:/opt/olympic/incoming/$RELEASE_ID.tar.gz" \
+  || transport_failure 'SSH release transfer' "$?"
+ssh -F "$ssh_dir/config" production "bash -s -- '$RELEASE_ID'" <<'REMOTE' \
+  || transport_failure 'SSH remote deployment session' "$?"
 set -euo pipefail
 umask 077
 id=$1

@@ -306,3 +306,79 @@ pipeline check, not a local targeted-test claim. No unchanged failed run was ret
 All seven uncommitted Daily paths still match their accepted manifest and remain
 outside CI/CD commits. Lead owns diagnosis and the bounded follow-up repair;
 no Peer was dispatched and no production/operator settings were changed.
+
+## Follow-up production trial, 08/10/2026
+
+Commit `1d2309d1d9cd8d20f884328d5397e5bec56e6c6c` (`fix(api): wire avatar
+integration test mapper`) includes only the fixture repair and this deployment
+status document. It was pushed without force to the same `origin/main`.
+[Delivery run 37711071398](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37711071398)
+passed **checks**, including the full Maven/Testcontainers/no-skips gate, and
+passed **publish** for both API and web images. The first API-check failure is
+therefore resolved without changing the test gate. Exact image digests remain
+in this run's `production-release` artifact; authenticated artifact download was
+not available in this execution session, so their values are not claimed here.
+
+The **deploy** job failed at **Deploy exact release over verified SSH**, job
+`113098340893`. Its public annotation reports **exit255**, without SSH/SCP stderr;
+the GitHub-runner public smoke step was skipped. Exit255 indicates a transport/
+session failure in this path, but does not distinguish connection, authentication,
+known-host verification or a lost remote session. Do not infer that no remote
+change occurred: host execution and migration state remain unknown. One bounded
+public GET to `/release.json` returned **HTTP502**, so deployed identity/health
+are not established. No unchanged rerun, rollback, server/settings mutation or
+destructive recovery was attempted.
+
+Next operator evidence: the deploy step's first SSH/SCP error (no key/token/env
+values), and, if remote execution began, the stage/outcome in
+`/opt/olympic/state/status.json`. Check only the transport prerequisite implicated
+by that actual error; retain strict known-host verification. If apps started,
+inspect backup/Flyway/running-release state before any recovery. SMTP2525 real
+OTP acceptance and off-host backup/tested restore remain unverified obligations.
+Public run/jobs/check/annotation JSON is retained under
+`/tmp/olympic-delivery-{followup-run,followup-jobs,deploy-check,deploy-annotations}.json`.
+The post-run status addition was initially left local to avoid triggering another
+identical failed deployment. It is included in the subsequent evidenced transport
+repair below. Daily's seven accepted files remain unchanged and uncommitted.
+
+## SSH transport review and repair, 08/10/2026
+
+The exact workflow invokes `bash deploy/ssh-deploy.sh`; the file's mode100644 is
+valid for this invocation. Repository shell/workflow files contain LF, not CRLF.
+Both SCP and SSH receive `-F` with the same owned config, which sets HostName,
+User and Port, so SCP does not need a separate `-P`. Release IDs and host/user/
+port values are validated before interpolation; the remote command passes the
+release ID as a quoted Bash argument. The quoted heredoc is not expanded locally.
+Remote Bash, Python3 and GNU timeout are explicit prerequisites; no remote script
+executable bit or interactive shell session is required. `/opt/olympic` and its
+owned folders remain prerequisites; this review does not establish their state.
+
+Two defects were independently demonstrated with disposable generated keys,
+real OpenSSH parsing and mocked network commands: LF private key exited0, the
+same valid key with CRLF exited255, and a temp-directory path with spaces exited255.
+The script preserved CRLF in the private-key file and left IdentityFile/
+UserKnownHostsFile paths unquoted in SSH config. These are **demonstrated script
+defects, not proof of the live exit255 cause**; actual secret bytes were not read.
+
+The transport now normalizes only CRLF line endings, preserves multiline content
+and does not reinterpret literal `\\n` escapes. It quotes config paths, validates
+that the private key parses without a passphrase, and requires an existing
+known-host entry matching the configured host/port before network calls. Hashed
+records remain supported. Both files are600 in a700 temporary directory and
+are removed on exit. Trust still comes from operator-verified known_hosts;
+StrictHostKeyChecking/IdentitiesOnly/BatchMode remain enabled. No keyscan, new
+trust, fallback authentication, retry, or deployment-gate bypass was introduced.
+Failure annotations now distinguish release transfer from remote deployment
+session while preserving the original exit status and unknown remote-state limit.
+
+Verification: `bash -n` and **16 offline delivery tests PASS, 0 skips**, including
+real OpenSSH `ssh -G`/`ssh-keygen` parsing, LF/CRLF/no-final-newline keys, hashed
+hosts, ports22/2222, paths with spaces, exact arguments/remote Bash syntax,
+permissions/cleanup, invalid/encrypted/escaped key refusal, wrong-host/port refusal,
+and preserved exit255 for each simulated transport stage. Earlier gate/backup/
+schema/health regressions still pass. Network commands are mocked; no SSH server,
+actual credentials, operator settings or production data were accessed by these
+checks. The four-path repair (transport, two test files, this status source) is
+eligible for the next authorized scoped commit/push trial because source changed
+to correct demonstrated defects. Live stderr remains needed if transport fails;
+no assertion is made that CRLF or a path with spaces caused the previous run.
