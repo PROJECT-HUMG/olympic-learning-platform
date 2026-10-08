@@ -211,6 +211,27 @@ class DeliveryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             deploy.Deployment(self.root, "main;cmd", 1, REPO)
 
+    def test_timeout_stops_nested_child_before_releasing_owned_command(self):
+        pid_file = self.folder / "nested.pid"
+        program = ('import subprocess,sys,time; from pathlib import Path; '
+                   'child=subprocess.Popen([sys.executable,"-c","import time; time.sleep(30)"]); '
+                   'Path(sys.argv[1]).write_text(str(child.pid)); time.sleep(30)')
+        target = self.target()
+        target.stage = "api server build"
+        with self.assertRaisesRegex(RuntimeError, "api server build timed out"):
+            target.run([sys.executable, "-c", program, str(pid_file)], timeout=.5)
+        pid = int(pid_file.read_text())
+        stat = Path(f"/proc/{pid}/stat")
+        # An orphan zombie may await init reaping, but must no longer execute.
+        try:
+            if stat.exists():
+                self.assertEqual(stat.read_text().split(")", 1)[1].split()[0], "Z")
+        finally:
+            try:
+                os.kill(pid, 9)
+            except ProcessLookupError:
+                pass
+
     def test_api_report_gate_refuses_skips_and_missing_reports(self):
         reports = self.folder / "reports"
         reports.mkdir()

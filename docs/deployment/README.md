@@ -127,6 +127,11 @@ image IDs match the built images, then check public TLS/release SHA/no-store,
 SPA/hashed JS, public document metadata and blocked actuator on the host and
 again on the GitHub runner. Smoke performs no login/write/OTP operation.
 
+Owned command processes run in a separate process group. Timeout/interruption
+stops the CLI and its local plugin children before releasing the checkout lock.
+This does not undo work already accepted by Docker/Flyway; remote daemon/app
+state still needs inspection after a failed or interrupted deployment.
+
 State metadata records stage/outcome/SHA/sequence, previous healthy SHA and backup.
 Only fully healthy host readiness+smoke promotes current.json/previous.json;
 latest.json captures attempted app migration fingerprints/image IDs. A runner
@@ -186,7 +191,7 @@ those paths or the workspace env. Superseded release.py/host-config template and
 GHCR/archive jobs are removed; physical server data/history is retained. The
 existing deployment status source is this document, not a duplicate tracker.
 
-Lead accepts the12-path checkout/Compose candidate after source review and16
+Lead accepted the12-path checkout/Compose candidate after source review and16
 passing offline regressions (zero skips), Bash/Python syntax, actionlint1.7.7 and
 `git diff --check`. Tests use synthetic env, real local Git with an advancing
 branch, real Compose configuration parsing and OpenSSH key/config parsing with
@@ -210,5 +215,54 @@ Authenticated rerun/log access was unavailable (no gh/auth token/connector or
 connected browser); public GitHub run/job/annotation observation and strict SSH
 Git push remain available. Root workspace env was never used as GitHub/server
 configuration. Updated key and existing operator setup remain reported inputs.
-The next authorized main push exercises this checkout route; observe actual job
-and public evidence before claiming deploy, backup, migration or health success.
+### Checkout trial: actual result and next frontier
+
+`d740e7ea5da8b93e1bd6a58a14ae35fdb944432c` (`ci: deploy tested checkout with
+server builds`) was pushed nonforce to origin/main as the only outgoing commit.
+[Delivery 37747477416](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37747477416),
+attempt 1, completed **failure**: checks job 113212299743 passed web/delivery/API
+Testcontainers gates; deploy job 113213130718 failed in the SSH checkout/build step.
+Actual annotations report **app readiness failed (exit 1)** and **RAM below 2 GiB**.
+The tested helper reaches this stage only after SSH/preflight, exact checkout,
+sequential image builds/identity checks, data readiness and a nonempty pre-app
+backup pass. Actual env value correctness, migration completion and service
+health are not established. Runner public smoke was skipped; an independent
+public release-marker GET returned 502. No healthy deployment is claimed.
+
+Job logs endpoint `/actions/jobs/113213130718/logs` returned 403 anonymously;
+Lead has no authenticated Actions log or direct server SSH surface. Public
+run/job/annotation evidence is retained under
+`/tmp/olympic-checkout-run-37747477416*.json`. The stage failure does not identify
+the first API/Flyway exception or prove OOM. Low RAM is an observed concern,
+not an established root cause. No unchanged deployment retry was issued.
+
+A separate local dummy-process probe demonstrated a nested child surviving the
+original subprocess timeout. Lead accepted a bounded helper/test correction:
+terminate the owned command group before releasing the host lock. All 17 updated
+offline tests pass, zero skips, including a real nested-child timeout check;
+Bash/Python syntax and diff checks pass. Interrupt cleanup is source-reviewed,
+not separately signal-tested; Docker daemon cancellation remains unverified.
+This follow-up is committed locally, held from push because it does not resolve
+the actual server readiness failure. All seven Daily hashes remain exact and unstaged;
+operator env values remain unread and untouched. No owned services were started;
+dummy processes and test temporary folders were cleaned.
+
+Next operator input is non-secret readiness evidence, not another bootstrap:
+
+```bash
+cat /opt/olympic/state/status.json
+free -m
+docker ps -a --filter label=com.docker.compose.project=olympic_platform --format '{{.ID}} {{.Names}} {{.Status}}'
+# Inspect only non-secret state; do not dump the complete container config.
+docker inspect --format '{{.Name}} status={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}} restarts={{.RestartCount}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' $(docker ps -aq --filter label=com.docker.compose.project=olympic_platform)
+curl --max-time 8 --silent --output /dev/null --write-out '%{http_code}\n' http://127.0.0.1:8080/actuator/health/readiness
+```
+
+Inspect restricted API/Flyway startup logs in the operator session for the first
+underlying exception; share only redacted diagnostics, no env dumps/secret or
+private records. Keep the recorded backup and current data. If OOM is confirmed,
+review measured host capacity/API cap before an operator resource decision;
+otherwise repair the actual exception/health cause. Once the blocker is remedied,
+push the local cleanup commit to main for the next gated trial, then verify host
+status/health and both public smokes. SMTP2525/TLS and a real permitted OTP remain
+operator live checks; the pipeline smoke does not validate mail.

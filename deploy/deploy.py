@@ -49,14 +49,24 @@ class Deployment:
 
     def run(self, args, timeout=120, output=None, hint="Inspect the corresponding host command safely"):
         # Production dotenv/child errors may contain credentials. Never forward child output.
+        process = subprocess.Popen(args, env=self.env, stdout=output or subprocess.PIPE,
+                                   stderr=subprocess.PIPE, start_new_session=True)
         try:
-            result = subprocess.run(args, env=self.env, stdout=output or subprocess.PIPE,
-                                    stderr=subprocess.PIPE, timeout=timeout, check=False)
-        except subprocess.TimeoutExpired:
-            raise RuntimeError(f"{self.stage} timed out after {timeout}s. {hint}") from None
-        if result.returncode:
-            raise RuntimeError(f"{self.stage} failed (exit {result.returncode}). {hint}")
-        return result.stdout
+            stdout, _stderr = process.communicate(timeout=timeout)
+        except BaseException as error:
+            # Docker CLI can spawn a Compose plugin. Stop the owned process group
+            # before releasing the checkout lock on timeout or interruption.
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.communicate()
+            if isinstance(error, subprocess.TimeoutExpired):
+                raise RuntimeError(f"{self.stage} timed out after {timeout}s. {hint}") from None
+            raise
+        if process.returncode:
+            raise RuntimeError(f"{self.stage} failed (exit {process.returncode}). {hint}")
+        return stdout
 
     def git(self, *args):
         return self.run(["git", "-C", str(self.checkout), *args], timeout=180,
