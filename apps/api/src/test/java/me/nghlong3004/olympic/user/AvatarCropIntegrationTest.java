@@ -11,6 +11,7 @@ import me.nghlong3004.olympic.common.security.CurrentUserProvider;
 import me.nghlong3004.olympic.storage.entity.File;
 import me.nghlong3004.olympic.storage.enums.StorageFolder;
 import me.nghlong3004.olympic.storage.enums.StorageProvider;
+import me.nghlong3004.olympic.storage.mapper.FileMapper;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
 import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.User;
@@ -93,6 +94,7 @@ class AvatarCropIntegrationTest {
   @TestConfiguration
   static class Dependencies {
     @Bean UserMapper userMapper() { return Mappers.getMapper(UserMapper.class); }
+    @Bean FileMapper fileMapper() { return Mappers.getMapper(FileMapper.class); }
     @Bean UserProperties userProperties() { return new UserProperties(null); }
   }
 }

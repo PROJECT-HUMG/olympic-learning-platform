@@ -3,8 +3,8 @@
 Repository-owned path: GitHub Actions → GHCR → Ubuntu24.04 amd64 Droplet →
 `https://olympic.nghlong3004.me`. The operator reports setup steps1–9 complete.
 That report does not establish SSH access, credentials, registry permissions,
-DNS/certificates, SMTP delivery or successful application startup. No remote
-operation or publication was performed during local preparation.
+DNS/certificates, SMTP delivery or successful application startup. Local preparation
+was followed by the authorized main-branch trial recorded below.
 
 ## Trigger and checks
 
@@ -256,5 +256,53 @@ environment. CI is configured to run them with Docker before publishing, but tha
 future execution is not claimed as passing. No production image build/pull, real
 nginx binary/certificate validation, registry publication, SSH/deploy or public
 network smoke was performed. These and production values/SMTP2525 real OTP remain
-unverified until the operator performs them. Dedicated reduced-motion validation
+unverified until the pipeline/operator exercises them. Dedicated reduced-motion validation
 is not part of delivery preparation. Reported setup is kept separate from proof.
+
+## First production trial, 08/10/2026
+
+Commit `e4a0b6f33c383b809df45d6401dad08e659e3603` (`ci: add digest-based
+production delivery`, 17 paths) was pushed to `origin/main` without force.
+[Delivery run 37659245805](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37659245805)
+failed in **API checks including PostgreSQL Testcontainers**. Web checks and
+delivery offline checks passed; **publish and deploy were skipped**. No registry
+publication, pipeline SSH deployment, migration or public smoke is established
+by this run. The test gate remains unchanged; no rerun was requested.
+
+Public job/check evidence confirms exit code 1 but supplies no Maven diagnosis.
+Authenticated logs are required: anonymous job-log download returned HTTP403,
+test-report artifact download returned HTTP401, and the job page says "Sign in
+to view logs". No authenticated browser host was connected. The retained
+`api-test-reports` artifact (ID `11499793373`) is available to the operator.
+These reports were not retrieved directly. The independent local reproduction
+below establishes the fixture defect without claiming access to the GitHub
+exception chain; no diagnosis is inferred from the exit code alone.
+Local public evidence is retained as `/tmp/olympic-delivery-failed-{run,jobs,check}.json`
+and `/tmp/olympic-delivery-failed-annotations`.
+
+The operator's visible Maven summary reports 308 tests, 0 failures, 2 errors,
+0 skips, with avatar-context startup failure followed by threshold suppression.
+Direct GitHub log/report retrieval remains blocked as described above. To resolve
+the cause independently, Lead ran the unchanged committed
+`AvatarCropIntegrationTest` with Java25 (from the public pinned Maven tool image)
+and disposable PostgreSQL16 Testcontainers, using synthetic CI environment values.
+It reproduced 2 errors/0 failures/0 skips. The first exception chain was:
+
+```text
+UnsatisfiedDependencyException: UserServiceImpl constructor parameter 6
+Caused by: NoSuchBeanDefinitionException: no qualifying FileMapper bean
+```
+
+The JPA slice imported the real service but supplied no `FileMapper` constructor
+dependency. Its existing `Dependencies` fixture now supplies the real generated
+MapStruct mapper, alongside `UserMapper`; no product code, test assertions,
+Docker integration requirement or publication gate changed. The same targeted
+test then passed **2 tests, 0 failures/errors/skips**. Evidence:
+`/tmp/olympic-avatar-ci-before.log`, `/tmp/olympic-avatar-ci-after.log`, and
+`/tmp/olympic-avatar-ci-reproduction/apps/api/target/surefire-reports/`.
+Full-suite execution/publication/deploy for the follow-up commit remains the next
+pipeline check, not a local targeted-test claim. No unchanged failed run was retried.
+
+All seven uncommitted Daily paths still match their accepted manifest and remain
+outside CI/CD commits. Lead owns diagnosis and the bounded follow-up repair;
+no Peer was dispatched and no production/operator settings were changed.
