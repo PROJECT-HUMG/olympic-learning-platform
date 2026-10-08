@@ -9,6 +9,8 @@ import { ROUTES } from "@/router/route-constants";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { toast } from "sonner";
+import { TurnstileChallenge } from "./turnstile-challenge";
+import { useTurnstileChallenge } from "../hooks/use-turnstile-challenge";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, "Vui lòng nhập Email hoặc Tên đăng nhập"),
@@ -18,6 +20,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
+  const turnstile = useTurnstileChallenge();
   const { login } = useAuth();
   const location = useLocation();
   const [pendingIdentifier, setPendingIdentifier] = useState("");
@@ -33,12 +36,14 @@ export function LoginForm() {
   async function onSubmit(data: LoginFormValues) {
     setPendingIdentifier("");
     try {
-      await login(data.identifier, data.password);
+      await login(data.identifier, data.password, turnstile.token());
       toast.success("Đăng nhập thành công! Chào mừng bạn quay trở lại.");
     } catch (err) {
       const apiError = parseApiError(err);
       if (apiError.messageKey === "error.auth.emailNotVerified") setPendingIdentifier(data.identifier);
       toast.error(apiError.detail || "Email, Tên đăng nhập hoặc mật khẩu không chính xác.");
+    } finally {
+      turnstile.reset();
     }
   }
 
@@ -81,7 +86,8 @@ export function LoginForm() {
           {...register("password")}
         />
 
-        <Button type="submit" className="w-full" loading={isSubmitting}>
+        <TurnstileChallenge action="login" generation={turnstile.generation} onToken={turnstile.receive} />
+        <Button type="submit" className="w-full" loading={isSubmitting} disabled={!turnstile.ready}>
           Đăng nhập
         </Button>
       </form>

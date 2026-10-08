@@ -14,15 +14,20 @@ import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import me.nghlong3004.olympic.auth.dto.AuthEmailTokenConsumption;
+import me.nghlong3004.olympic.auth.dto.RefreshTokenIssue;
 import me.nghlong3004.olympic.auth.enums.AuthEmailTokenPurpose;
 import me.nghlong3004.olympic.auth.enums.TurnstileAction;
 import me.nghlong3004.olympic.auth.request.ForgotPasswordRequest;
+import me.nghlong3004.olympic.auth.request.LoginRequest;
 import me.nghlong3004.olympic.auth.request.RegisterRequest;
 import me.nghlong3004.olympic.auth.request.ResetPasswordRequest;
+import me.nghlong3004.olympic.auth.response.CurrentUserResponse;
 import me.nghlong3004.olympic.auth.service.AuthEmailTokenService;
 import me.nghlong3004.olympic.auth.service.RefreshTokenService;
 import me.nghlong3004.olympic.auth.service.RegistrationVerificationService;
@@ -38,6 +43,8 @@ import me.nghlong3004.olympic.auth.mapper.AuthMapper;
 import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.User;
 import me.nghlong3004.olympic.user.enums.Status;
+import me.nghlong3004.olympic.user.exception.UserPendingException;
+import me.nghlong3004.olympic.user.exception.UserDisabledException;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -92,6 +99,63 @@ class AuthServiceImplTurnstileTest {
             currentUserProvider,
             Clock.fixed(Instant.parse("2026-10-03T00:00:00Z"), ZoneOffset.UTC),
             turnstileVerificationService);
+  }
+
+  @Test
+  void loginRejectionAndOutageDoNotTouchCredentialsOrSession() {
+    doThrow(ErrorCode.TURNSTILE_REJECTED.throwIt())
+        .doThrow(ErrorCode.TURNSTILE_UNAVAILABLE.throwIt())
+        .when(turnstileVerificationService).verify(TOKEN, TurnstileAction.LOGIN);
+    var request = new LoginRequest("student", "synthetic-password", TOKEN);
+    assertError(ErrorCode.TURNSTILE_REJECTED, () -> authService.login(request, "127.0.0.1", "test"));
+    assertError(ErrorCode.TURNSTILE_UNAVAILABLE, () -> authService.login(request, "127.0.0.1", "test"));
+    verifyNoInteractions(userRepository, passwordEncoder, refreshTokenService, jwtTokenService, authMapper);
+  }
+
+  @Test
+  void loginKeepsCredentialAndAccountStatusErrorsAfterVerification() {
+    var user = User.builder().id(UUID.randomUUID()).passwordHash("hash").status(Status.ACTIVE).build();
+    when(userRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull("student")).thenReturn(Optional.of(user));
+    var request = new LoginRequest("student", "synthetic-password", TOKEN);
+    assertError(ErrorCode.INVALID_CREDENTIALS, () -> authService.login(request, "127.0.0.1", "test"));
+    when(passwordEncoder.matches("synthetic-password", "hash")).thenReturn(true);
+    user.setStatus(Status.PENDING);
+    assertThatThrownBy(() -> authService.login(request, "127.0.0.1", "test"))
+        .isInstanceOf(UserPendingException.class);
+    user.setStatus(Status.DISABLED);
+    assertThatThrownBy(() -> authService.login(request, "127.0.0.1", "test"))
+        .isInstanceOf(UserDisabledException.class);
+    assertThat(user.getLastLoginAt()).isNull();
+    verifyNoInteractions(refreshTokenService, jwtTokenService, authMapper);
+  }
+
+  @Test
+  void verifiedLoginPreservesSessionIssuanceAndAcceptsEmailOrUsername() {
+    var user = User.builder().id(UUID.randomUUID()).email("user@example.com").username("student")
+        .passwordHash("hash").status(Status.ACTIVE).build();
+    when(userRepository.findByEmailIgnoreCaseAndDeletedAtIsNull("user@example.com")).thenReturn(Optional.of(user));
+    when(userRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull("student")).thenReturn(Optional.of(user));
+    when(passwordEncoder.matches("synthetic-password", "hash")).thenReturn(true);
+    when(refreshTokenService.issue(user, "127.0.0.1", "test")).thenReturn(new RefreshTokenIssue("synthetic-refresh", 3600));
+    when(jwtTokenService.issueAccessToken(user)).thenReturn("synthetic-access");
+    when(jwtTokenService.accessExpiresInSeconds()).thenReturn(900L);
+    when(authMapper.toResponse(user)).thenReturn(new CurrentUserResponse(user.getId(), user.getEmail(),
+        user.getUsername(), "Student", null, null, user.getRole(), user.getStatus(), null));
+    for (var identifier : List.of("User@Example.com", " student ")) {
+      var result = authService.login(new LoginRequest(identifier, "synthetic-password", TOKEN), "127.0.0.1", "test");
+      assertThat(result.response().accessToken()).isEqualTo("synthetic-access");
+      assertThat(result.refreshToken().token()).isEqualTo("synthetic-refresh");
+      assertThat(result.response().user().id()).isEqualTo(user.getId());
+    }
+    assertThat(user.getLastLoginAt()).isEqualTo(OffsetDateTime.parse("2026-10-03T00:00:00Z"));
+    var order = inOrder(turnstileVerificationService, userRepository, passwordEncoder, refreshTokenService);
+    order.verify(turnstileVerificationService).verify(TOKEN, TurnstileAction.LOGIN);
+    order.verify(userRepository).findByEmailIgnoreCaseAndDeletedAtIsNull("user@example.com");
+    order.verify(passwordEncoder).matches("synthetic-password", "hash");
+    order.verify(refreshTokenService).issue(user, "127.0.0.1", "test");
+    order.verify(turnstileVerificationService).verify(TOKEN, TurnstileAction.LOGIN);
+    order.verify(userRepository).findByUsernameIgnoreCaseAndDeletedAtIsNull("student");
+    verifyNoInteractions(registrationVerificationService, eventPublisher, authEmailTokenService);
   }
 
   @Test

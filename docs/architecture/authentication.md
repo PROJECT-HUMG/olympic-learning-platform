@@ -1,5 +1,5 @@
 ---
-last_updated: 2026-07-21
+last_updated: 2026-10-08
 owner: Olympic Engineering
 status: Draft
 title: Authentication Architecture
@@ -8,14 +8,18 @@ version: 1
 
 # Authentication
 
-## Turnstile — registration and reset-email request
+## Turnstile — password login, registration and reset-email request
 
-Only `POST /auth/register` and `POST /auth/password/forgot` accept
-`turnstileToken`. Actions are `register` and `password_reset`, respectively.
+`POST /auth/login`, `POST /auth/register` and `POST /auth/password/forgot` use
+`turnstileToken`. Actions are `login`, `register` and `password_reset`, respectively.
 When protection is enabled, the backend validates success, exact allowed
-hostname and action before account creation or email side effects. Token-based
+hostname and action before login account lookup/password checking/session issuance,
+account creation or email side effects. OAuth, refresh/logout, token-based
 password reset and OTP verify/resend/resume remain unchanged; OTP rate limits
 and cooldowns remain in force. Turnstile is not a replacement for rate limiting.
+The shared `LoginRequest` token is optional for JSON/constructor compatibility,
+but required by the password-login service whenever enforcement is enabled.
+Registration resume still accepts credentials without a CAPTCHA token.
 
 Backend runtime environment: `TURNSTILE_ENABLED`, `TURNSTILE_SECRET_KEY`,
 `TURNSTILE_ALLOWED_HOSTNAMES` (comma-separated frontend hostnames, no scheme,
@@ -26,6 +30,12 @@ feature disabled until explicitly configured; no dev/profile-based bypass.
 Enabled backend with missing required configuration must fail clearly;
 provider errors/timeouts fail closed with a retryable response. Missing public
 key or widget failure blocks the frontend form rather than bypassing it.
+All three forms use the same enable flags and key pair, not separate per-action
+configuration. Disabled mode loads no widget, omits the token and performs no
+Siteverify call. Every attempted login resets its single-use challenge in `finally`,
+including credential errors, provider failures and network uncertainty; inputs and
+email-not-verified guidance remain available. Automatic refresh/replay still excludes
+`/auth/login`. No login rate-limit/lockout policy is introduced by this extension.
 
 Vite embeds the public site key at build time. Dockerfile/Compose pass the
 frontend build arguments; changing runtime variables on an already-built web
@@ -77,6 +87,54 @@ full production startup remain unverified. OTP DB cooldown tests were not rerun;
 the implementation/limits were not changed. Protection remains disabled until
 explicitly configured; acceptance is of the integration, not live deployment.
 Feature-scoped local commit is authorized. No push, deploy or provisioning.
+
+Password-login delivery — 08/10/2026: the above 03/10 checkpoint is historical.
+Current delivery is the ordinary main-branch checks -> strict SSH -> exact tested
+checkout -> sequential API/web Compose builds. The existing `/opt/olympic/.env`
+owns runtime Turnstile values and public frontend build arguments; GitHub Turnstile
+Variables are not forwarded. Public site-key changes require a web rebuild;
+API env changes require container recreation, not just restart. Neither filled
+env file enters the checkout/build contexts. Runtime RAM caps, backup/migration,
+named volumes, readiness/HTTPS and smoke gates are unchanged.
+
+This bounded release ships the login form/token/action and API enforcement
+together using the existing flags. An old tab/client without a login token gets
+400 once backend protection is enabled; reload to obtain the new login form.
+There is no missing-token grace period or automatic fail-open. Compose replacement
+is not atomic; briefly incompatible in-flight requests must be retried with the
+new page/fresh challenge. Provider failures return503 rather than issuing a
+session. The operator reports frontend activation deployed and backend=true
+prepared in the server dotenv; effective live flags/keys are not independently
+verified and are never read for this delivery.
+
+Lead ACCEPT — 08/10/2026: bounded password-login candidate based on
+`97626f7ef28de999e45dc57164b0fe3e870df883`, owned directly after source/contract
+inspection. Four API owners, four web owners, four existing API test files,
+`apps/web/tests/login-turnstile-browser-check.mjs` and this document are the only
+14 accepted paths. No dependency, schema, credential, auth-policy or resource
+configuration changes. Daily7 candidate hashes and pre-existing local deployment
+status remain preserved and excluded from this commit.
+
+Local checks: Java25 Maven focused suite53/53 and PostgreSQL Testcontainers OTP
+integration15/15, no failures/errors/skips; web Node169/169, production build
+passes with existing chunk warning, lint passes with40 existing warnings.
+Interception-only Chromium checks pass enabled/disabled login, action/payload,
+pending duplicate-click prevention, expired challenge focus/input continuity,
+credential/provider errors and fresh-token retries, pending-account guidance,
+script-load retry, identity cache/token and role redirect. The first harness
+geometry assertion incorrectly compared scrollWidth to innerWidth despite a
+vertical scrollbar; it was corrected to check horizontal overflow against
+clientWidth. Product source did not change for that harness failure.
+
+Evidence: `/tmp/olympic-login-turnstile-api-focused.log`,
+`/tmp/olympic-login-turnstile-otp.log`, and
+`/tmp/olympic-login-turnstile-Gm5pyT/results.json` with320px light/1440px dark
+screenshots. Browser processes/Vite ports3118/3119 and temporary profiles are
+cleaned. Synthetic widget geometry does not prove real Cloudflare widget layout;
+no live credentials, CAPTCHA/Siteverify success, cookie or OTP request was used.
+Dedicated reduced-motion validation is omitted/unverified. Normal CI/deploy and
+public smoke are authorized; record their actual outcome separately from
+interactive login/Cloudflare verification and sustained1GiB capacity.
 
 > This document specifies the authentication architecture used by the
 > Olympic Learning Platform.

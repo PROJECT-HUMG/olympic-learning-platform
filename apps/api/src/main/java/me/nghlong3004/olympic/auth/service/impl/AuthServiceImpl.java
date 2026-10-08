@@ -93,6 +93,7 @@ public class AuthServiceImpl implements AuthService {
   @Transactional
   @Override
   public LoginResult login(LoginRequest request, String ip, String userAgent) {
+    turnstileVerificationService.verify(request.turnstileToken(), TurnstileAction.LOGIN);
     var identifier = request.identifier().trim();
     Optional<User> userOpt;
     

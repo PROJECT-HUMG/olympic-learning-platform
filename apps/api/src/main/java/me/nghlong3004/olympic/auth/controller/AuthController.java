@@ -101,9 +101,11 @@ public class AuthController {
   }
 
   @PostMapping("/login")
-  @Operation(summary = "Login with email and password")
+  @Operation(summary = "Login with email or username and password")
   @ApiResponse(responseCode = "200", description = "Authenticated and refresh cookie set")
+  @ApiResponse(responseCode = "400", description = "Invalid request or Turnstile verification rejected")
   @ApiResponse(responseCode = "401", description = "Invalid credentials")
+  @ApiResponse(responseCode = "503", description = "Turnstile verification unavailable; retry with a fresh token")
   public ResponseEntity<LoginResponse> login(
       @Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
     var result =

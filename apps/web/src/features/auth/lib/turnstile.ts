@@ -1,4 +1,4 @@
-export type TurnstileAction = "register" | "password_reset";
+export type TurnstileAction = "register" | "password_reset" | "login";
 
 export function turnstileConfig(enabled: string | undefined, siteKey: string | undefined) {
   const active = enabled === "true";

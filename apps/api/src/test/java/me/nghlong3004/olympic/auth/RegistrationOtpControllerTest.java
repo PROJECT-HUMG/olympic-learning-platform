@@ -2,6 +2,7 @@ package me.nghlong3004.olympic.auth;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -53,6 +54,33 @@ class RegistrationOtpControllerTest {
   @MockitoBean private SecurityProperties properties;
   @MockitoBean private JwtDecoder decoder;
   @MockitoBean private CorsConfigurationSource cors;
+
+  @Test
+  void passwordLoginPassesTokenAndReturnsGateErrorsWithoutCookie() throws Exception {
+    when(auth.login(argThat(request -> "sample-token".equals(request.turnstileToken())), any(), any()))
+        .thenThrow(ErrorCode.TURNSTILE_REJECTED.throwIt())
+        .thenThrow(ErrorCode.TURNSTILE_UNAVAILABLE.throwIt());
+    for (var expected : List.of(400, 503)) {
+      mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+          .content("""
+          {"identifier":"student","password":"synthetic-password","turnstileToken":"sample-token"}
+          """))
+          .andExpect(status().is(expected))
+          .andExpect(header().doesNotExist("Set-Cookie"))
+          .andExpect(jsonPath("$.messageKey").value(expected == 400
+              ? "error.auth.turnstileRejected" : "error.auth.turnstileUnavailable"));
+    }
+    verifyNoInteractions(verification, refresh);
+  }
+
+  @Test
+  void oversizedLoginTokenDoesNotReachAuthService() throws Exception {
+    mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+        .content("{\"identifier\":\"student\",\"password\":\"synthetic-password\",\"turnstileToken\":\""
+            + "a".repeat(2049) + "\"}"))
+        .andExpect(status().isBadRequest()).andExpect(header().doesNotExist("Set-Cookie"));
+    verifyNoInteractions(auth, verification, refresh);
+  }
 
   @Test
   void otpEndpointsAcceptAnonymousRequestsAndSerializeChallengeTimestamps() throws Exception {

@@ -17,6 +17,7 @@ export interface CurrentUser {
 export interface LoginRequest {
   identifier: string;
   password: string;
+  turnstileToken?: string;
 }
 
 export interface LoginResponse {

@@ -17,6 +17,27 @@ class AuthTurnstileRequestTest {
   private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
   @Test
+  void loginSupportsOldPayloadsAndBoundsOptionalTokens() throws Exception {
+    var old = new LoginRequest("student", "synthetic-password");
+    assertThat(old.turnstileToken()).isNull();
+    assertThat(validator.validate(old)).isEmpty();
+    var parsed = objectMapper.readValue(
+        """
+        {"identifier":"student","password":"synthetic-password","turnstileToken":"sample-token"}
+        """, LoginRequest.class);
+    assertThat(parsed.turnstileToken()).isEqualTo("sample-token");
+    var without = objectMapper.readValue(
+        """
+        {"identifier":"student","password":"synthetic-password"}
+        """, LoginRequest.class);
+    assertThat(without.turnstileToken()).isNull();
+    assertThat(validator.validate(new LoginRequest("student", "synthetic-password", "a".repeat(2048))))
+        .isEmpty();
+    assertThat(validator.validate(new LoginRequest("student", "synthetic-password", "a".repeat(2049))))
+        .anyMatch(violation -> violation.getPropertyPath().toString().equals("turnstileToken"));
+  }
+
+  @Test
   void oldConstructorsRemainAndOmitTheToken() {
     var register = new RegisterRequest("user@example.com", "user", "Student", "ChangeMe@123");
     var forgot = new ForgotPasswordRequest("user@example.com");

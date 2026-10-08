@@ -11,8 +11,8 @@ export function useAuth() {
   const queryClient = useQueryClient();
   const { setAccessToken, clearAuth } = useAuthStore();
 
-  async function login(identifier: string, password: string) {
-    const response = await authService.login({ identifier, password });
+  async function login(identifier: string, password: string, turnstileToken?: string) {
+    const response = await authService.login({ identifier, password, turnstileToken });
 
     // Discard an old account's in-flight /me result before replacing its identity.
     await queryClient.cancelQueries({ queryKey: QUERY_KEY_CURRENT_USER });

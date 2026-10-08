@@ -69,6 +69,7 @@ class TurnstileVerificationServiceImplTest {
   void disabledConfigurationDoesNotCallTheProvider() {
     service.verify(TOKEN, TurnstileAction.REGISTER);
     service.verify(null, TurnstileAction.PASSWORD_RESET);
+    service.verify(null, TurnstileAction.LOGIN);
 
     verifyNoInteractions(provider);
   }
@@ -109,6 +110,28 @@ class TurnstileVerificationServiceImplTest {
 
     service.verify(TOKEN, TurnstileAction.PASSWORD_RESET);
     assertRejected(() -> service.verify(TOKEN, TurnstileAction.REGISTER));
+  }
+
+  @Test
+  void loginRequiresItsOwnActionAndRejectsMissingOrReusedTokens() {
+    when(properties.enabled()).thenReturn(true);
+    when(properties.hostnames()).thenReturn(List.of("app.example.com"));
+    assertRejected(() -> service.verify(null, TurnstileAction.LOGIN));
+    assertRejected(() -> service.verify(" ", TurnstileAction.LOGIN));
+    when(provider.siteverify(TOKEN))
+        .thenReturn(TurnstileSiteverifyResponse.verdict(true, "app.example.com", "register", List.of()))
+        .thenReturn(TurnstileSiteverifyResponse.verdict(true, "app.example.com", "password_reset", List.of()))
+        .thenReturn(TurnstileSiteverifyResponse.verdict(true, "app.example.com", "login", List.of()))
+        .thenReturn(TurnstileSiteverifyResponse.verdict(false, "app.example.com", "login", List.of("timeout-or-duplicate")))
+        .thenReturn(TurnstileSiteverifyResponse.verdict(true, "other.example.com", "login", List.of()))
+        .thenReturn(TurnstileSiteverifyResponse.unreachable());
+    assertRejected(() -> service.verify(TOKEN, TurnstileAction.LOGIN));
+    assertRejected(() -> service.verify(TOKEN, TurnstileAction.LOGIN));
+    service.verify(TOKEN, TurnstileAction.LOGIN);
+    assertRejected(() -> service.verify(TOKEN, TurnstileAction.LOGIN));
+    assertRejected(() -> service.verify(TOKEN, TurnstileAction.LOGIN));
+    assertUnavailable(() -> service.verify(TOKEN, TurnstileAction.LOGIN));
+    assertLogsHideToken();
   }
 
   @Test
