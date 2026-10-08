@@ -41,6 +41,7 @@ class DeliveryTests(unittest.TestCase):
         (self.source / ".gitignore").write_text(".env\n")
         (self.source / "deploy").mkdir()
         shutil.copyfile(ROOT / "deploy/compose.prod.yml", self.source / "deploy/compose.prod.yml")
+        shutil.copyfile(ROOT / "deploy/buildkitd.toml", self.source / "deploy/buildkitd.toml")
         (self.source / "apps/web").mkdir()
         self.git("add", ".")
         self.git("commit", "-qm", "fixture initial")
@@ -74,6 +75,15 @@ class DeliveryTests(unittest.TestCase):
                 return None
             if args[:3] == ["docker", "compose", "version"]:
                 return b"2.38.2"
+            if args[:3] == ["docker", "buildx", "version"]:
+                return b"github.com/docker/buildx v0.35.0"
+            if "--help" in args:
+                return b"--builder string"
+            if args[:3] == ["docker", "exec", deploy.BUILDER_CONTAINER]:
+                return b"[worker.oci]\nmax-parallelism = 1\n"
+            if args[1] == "inspect" and args[-1] == deploy.BUILDER_CONTAINER:
+                return json.dumps({"memory": 768 * 1024**2, "swap": 1536 * 1024**2,
+                                   "quota": 75000, "period": 100000}).encode()
             if args[1:3] == ["image", "inspect"]:
                 service = "api" if "-api:" in args[-1] else "web"
                 return json.dumps({"id": "sha256:" + service, "arch": "amd64", "os": "linux", "revision": target.sha}).encode()
@@ -103,7 +113,7 @@ class DeliveryTests(unittest.TestCase):
         self.assertNotIn(str(self.secret), [a for call in self.calls if call[0] == "git" for a in call])
         self.assertEqual(target.env["PRODUCTION_ENV_FILE"], str(self.secret))
         self.assertEqual(target.env["COMPOSE_PARALLEL_LIMIT"], "1")
-        builds = [call[-1] for call in self.calls if "build" in call]
+        builds = [call[-1] for call in self.calls if "--builder" in call]
         self.assertEqual(builds, ["api", "web"])
         backup = next(i for i, call in enumerate(self.calls) if "pg_dump" in call)
         start = next(i for i, call in enumerate(self.calls) if "--no-build" in call)
@@ -112,7 +122,9 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(deploy.read_json(target.state / "status.json")["outcome"], "healthy")
         self.assertEqual(target.backup.stat().st_mode & 0o777, 0o600)
         self.assertFalse(any(a in ("reset", "clean", "down", "--volumes") for call in self.calls for a in call))
-        self.assertTrue(all("--env-file" in call for call in self.calls if call[:2] == ["docker", "compose"] and "version" not in call))
+        self.assertTrue(all("--env-file" in call for call in self.calls if call[:2] == ["docker", "compose"] and "version" not in call and "--help" not in call))
+        stopped = next(i for i, call in enumerate(self.calls) if call[:3] == ["docker", "buildx", "stop"])
+        self.assertLess(stopped, backup)
 
     def test_dirty_checkout_and_wrong_origin_refuse_preserving_operator_changes(self):
         target = self.target()
@@ -264,9 +276,53 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(config["services"]["api"]["environment"]["SPRING_PROFILES_ACTIVE"], "prod")
         self.assertEqual(config["services"]["api"]["environment"]["MAIL_PORT"], "2525")
         self.assertEqual(config["services"]["web"]["build"]["args"]["RELEASE_SHA"], self.sha)
+        self.assertEqual({k: int(v["mem_limit"]) for k, v in config["services"].items()},
+                         {"api": 512 * 1024**2, "postgres": 160 * 1024**2,
+                          "redis": 96 * 1024**2, "web": 32 * 1024**2})
+        self.assertIn("-Xmx320m", config["services"]["api"]["environment"]["JAVA_TOOL_OPTIONS"])
+        self.assertFalse(config["services"]["api"].get("tmpfs"))
+        self.assertIn("noeviction", config["services"]["redis"]["command"])
+        self.assertIn("shared_buffers=32MB", config["services"]["postgres"]["command"])
+        self.assertIn("work_mem=2MB", config["services"]["postgres"]["command"])
+        self.assertIn("max_connections=20", config["services"]["postgres"]["command"])
         for name in ("postgres", "redis", "api-storage"):
             key = name + "-data" if name in ("postgres", "redis") else name
             self.assertEqual(config["volumes"][key]["name"], "olympic_platform_" + key)
+
+    def test_small_host_swap_header_tolerance_and_pressure_refusal(self):
+        original = Path.read_text
+        for total, free, available, permitted in ((2047, 1024, 128, True),
+                                                  (2046, 1024, 128, False),
+                                                  (2047, 1023, 128, False),
+                                                  (2047, 1024, 127, False)):
+            with self.subTest(total=total, free=free, available=available):
+                self.calls.clear()
+                target = self.target()
+                def read(path, *args, **kwargs):
+                    if str(path) == "/proc/meminfo":
+                        return (f"MemTotal: {990 * 1024} kB\nSwapTotal: {total * 1024} kB\n"
+                                f"SwapFree: {free * 1024} kB\nMemAvailable: {available * 1024} kB\n")
+                    return original(path, *args, **kwargs)
+                with patch.object(Path, "read_text", read):
+                    if permitted:
+                        self.execute(target)
+                    else:
+                        with self.assertRaisesRegex(ValueError, "Small-host build preflight"):
+                            self.execute(target)
+                        self.assertFalse(any("--no-build" in call for call in self.calls))
+                        self.assertFalse(any(call[0] == "git" for call in self.calls))
+
+    def test_wrong_owned_builder_budget_refuses_app_update(self):
+        target = self.target()
+        real = self.fake_run(target)
+        def run(args, *a, **kw):
+            if args[1] == "inspect" and args[-1] == deploy.BUILDER_CONTAINER:
+                return b'{"memory":0,"swap":0,"quota":0,"period":0}'
+            return real(args, *a, **kw)
+        with patch.object(target, "run", side_effect=run), patch("builtins.print"):
+            with self.assertRaisesRegex(ValueError, "builder budget"):
+                target.execute()
+        self.assertFalse(any("--no-build" in call for call in self.calls))
 
     def test_public_smoke_identity_api_asset_and_private_actuator(self):
         def get(path):

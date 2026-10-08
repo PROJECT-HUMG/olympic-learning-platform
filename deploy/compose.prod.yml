@@ -9,7 +9,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Required in /opt/olympic/.env}
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    shm_size: 256mb
+    # Low-load budget; per-query work_mem is not a total process cap.
+    command: [postgres, -c, shared_buffers=32MB, -c, work_mem=2MB, -c, maintenance_work_mem=16MB, -c, max_connections=20, -c, autovacuum_max_workers=1, -c, max_parallel_workers_per_gather=0]
+    mem_limit: 160m
+    memswap_limit: 224m
+    shm_size: 64mb
     healthcheck:
       test: [CMD-SHELL, "pg_isready -U olympic_platform -d olympic_platform"]
       interval: 5s
@@ -23,7 +27,10 @@ services:
     networks: [internal]
   redis:
     image: redis:7-alpine
-    command: [redis-server, --appendonly, "yes", --appendfsync, everysec]
+    # Retain queued stream records. At capacity writes fail; never evict them.
+    command: [redis-server, --appendonly, "yes", --appendfsync, everysec, --maxmemory, 32mb, --maxmemory-policy, noeviction]
+    mem_limit: 96m
+    memswap_limit: 128m
     volumes: [redis-data:/data]
     healthcheck:
       test: [CMD, redis-cli, ping]
@@ -66,8 +73,8 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?Required by existing OAuth registration}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:?Required by existing OAuth registration}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:?Required by existing OAuth registration}
-      DB_POOL_MAX_SIZE: ${DB_POOL_MAX_SIZE:-5}
-      DB_POOL_MIN_IDLE: ${DB_POOL_MIN_IDLE:-1}
+      DB_POOL_MAX_SIZE: 3
+      DB_POOL_MIN_IDLE: 1
       OLYMPIC_MAIL_ENABLED: ${OLYMPIC_MAIL_ENABLED:-true}
       MAIL_HOST: ${MAIL_HOST:?Required in /opt/olympic/.env}
       MAIL_USERNAME: ${MAIL_USERNAME:-}
@@ -80,12 +87,15 @@ services:
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_CHECKSERVERIDENTITY: ${MAIL_SMTP_SSL_CHECKSERVERIDENTITY:-true}
       OLYMPIC_EXPORT_STORAGE_ROOT: /app/storage/exports
       MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE: readinessState,db,redis
+      # Heap leaves room for metaspace/JIT/stacks/direct buffers in the container.
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx320m -XX:ReservedCodeCacheSize=64m -XX:MaxDirectMemorySize=32m -XX:+ExitOnOutOfMemoryError -Djava.io.tmpdir=/tmp -Djava.security.egd=file:/dev/./urandom
     init: true
-    mem_limit: ${API_MEMORY_LIMIT:-2g}
+    mem_limit: 512m
+    memswap_limit: 768m
     stop_grace_period: 30s
     volumes: [api-storage:/app/storage]
     ports: ["127.0.0.1:8080:8080"]
-    tmpfs: [/tmp]
+    # Use ephemeral disk /tmp for multipart spooling, not charged RAM tmpfs.
     healthcheck:
       test: [CMD, wget, --spider, --quiet, "http://127.0.0.1:8080/actuator/health/readiness"]
       interval: 10s
@@ -112,6 +122,11 @@ services:
       labels:
         org.opencontainers.image.revision: ${DEPLOY_SHA:?Tested commit required}
     init: true
+    mem_limit: 32m
+    memswap_limit: 48m
+    cpus: 0.5
+    environment:
+      NGINX_ENTRYPOINT_WORKER_PROCESSES_AUTOTUNE: "1"
     ports: ["127.0.0.1:3000:80"]
     healthcheck:
       test: [CMD-SHELL, "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"]
@@ -123,7 +138,7 @@ services:
       api: {condition: service_healthy}
     restart: unless-stopped
     security_opt: [no-new-privileges:true]
-    tmpfs: [/tmp]
+    tmpfs: ["/tmp:size=8m,mode=1777"]
     logging: *logging
     networks: [internal, egress]
 volumes:
