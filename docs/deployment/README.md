@@ -1,6 +1,6 @@
 # Production delivery: fresh 1 GiB replacement
 
-Route: **GitHub checks → verified SSH → exact tested checkout → capped server
+Route: **GitHub checks → verified SSH → exact tested checkout → ordinary sequential Compose
 builds → Compose readiness → public HTTPS smoke**. Target: Ubuntu 24.04 amd64,
 `https://olympic.nghlong3004.me`. Production branch is **main**.
 
@@ -47,30 +47,30 @@ acceptance is modest routine CRUD/public reads and small uploads at low concurre
 not a new product restriction or changed validation policy. JVM heap limits do
 not cap native allocations; readiness passing is not a load/soak proof.
 
-### Server builds and swap
+### Ordinary server builds and swap
 
-[Helper](../../deploy/deploy.py) creates a dedicated `olympic-low-memory`
-**docker-container** Buildx builder, leaving the default builder alone. It checks
-768MiB RAM/1536MiB RAM+swap,0.75 CPU and [single-worker config](../../deploy/buildkitd.toml).
-API then web build sequentially. BuildKit's `--memory` Compose flag is unsupported,
-so it is not used. Buildx>=0.14 provides default-load into the local Docker engine.
-Maven build heap is384MiB; Node build heap512MiB, with native memory inside the
-builder budget. Runtime API JVM flags do not apply to Maven. Builds stop the owned
-builder afterward, retaining its cache; they do not stop existing app services.
+[Helper](../../deploy/deploy.py) uses ordinary `docker compose build api`, then
+`docker compose build web`. There is no custom builder, build cgroup/CPU budget,
+Maven/Node build heap cap or host resource-pressure gate. Compose uses its normal
+installed Docker build backend. API/web commands retain 1200/900-second timeouts;
+job timeout remains 65 minutes. Exact image revision/platform and readiness gates
+remain unchanged. Builds do not intentionally stop running app services.
 
-Require **2 GiB disk-backed host swap** on this1 GiB path. Preflight requires at
-least1 GiB free swap and128MiB MemAvailable before building. A nominal2 GiB
-swapfile may report2047MiB usable after its header; preflight accepts that overhead. API/web timeouts are
-1200/900s; job65min. Swap can accommodate cold pages/peaks, but cannot enlarge Java
-heap, guarantee responsiveness or replace physical RAM. Builds can compete with
-running services; sustained swapping/pressure is a failure signal, not success.
+Retain the operator's **2 GiB disk-backed host swap**. Uncapped Java25/Node builds
+can consume the 1 GiB host's available RAM and swap, compete with running services,
+be killed, time out or make SSH unresponsive. Runtime service caps do **not** cap
+build memory. Sequential service ordering avoids API/web overlap but does not
+limit internal build parallelism. Swap assists peaks; it does not guarantee fit
+or responsiveness. This risk is explicitly accepted for the ordinary Compose
+route; no new approval or custom builder setup is required.
 
-If bounded builds still exhaust memory/time, the smallest architectural alternative
-is building the same checked Dockerfiles on GitHub and deploying immutable images.
-That requires an explicit decision; this implementation retains server builds.
-Moving builds alone does not solve heavy PDF/image runtime memory: that requires
-more RAM or separately authorized processing changes. No1 GiB fit is promised
-from configuration or synthetic tests.
+The previous `olympic-low-memory` builder's remote cleanup remains **unverified**
+after its stop failed. This route does not use/manage it and performs no automatic
+builder removal, cache pruning or Docker cleanup. Operator may inspect its state
+privately if pressure persists; never blindly prune unrelated resources.
+No host OS resource limits or tuning are imposed by the helper. Existing swap and
+operator host settings are preserved. No 1 GiB fit is promised from configuration,
+CI checks or local testing. Heavy PDF/image runtime limitations remain as above.
 
 ## Replacement setup, in order
 
@@ -90,12 +90,11 @@ git --version
 python3 --version
 docker info --format '{{.Architecture}} memory={{.MemTotal}} memoryLimits={{.MemoryLimit}} swapLimits={{.SwapLimit}}'
 docker compose version
-docker compose build --help
-docker buildx version
 ```
 
-Need Bash, Git, Python>=3.11, Docker Engine, Compose>=2.24 **with --builder support**,
-Buildx>=0.14, Nginx, Certbot and curl. Fresh-host installation reference:
+Need Bash, Git, Python>=3.11, Docker Engine with its standard build backend,
+Compose>=2.24, Nginx, Certbot and curl. No dedicated Buildx builder, custom config
+or version gate is required. Fresh-host standard Docker installation reference:
 
 ```bash
 sudo apt-get update
@@ -130,16 +129,8 @@ fi
 
 Verify `swapon --show` reports2GiB. If the existing file is inactive/wrong size,
 review it as operator; do not run mkswap over it. Add `/swapfile none swap sw 0 0`
-to `/etc/fstab` once, after checking no duplicate entry. For this fresh low-memory
-namespace, `/etc/sysctl.d/90-olympic-memory.conf` may contain:
-
-```text
-vm.swappiness=10
-vm.overcommit_memory=1
-```
-
-Apply using `sudo sysctl --system`. Overcommit permits Redis persistence forks;
-container caps/swap still matter and do not guarantee allocations will succeed.
+to `/etc/fstab` once, after checking no duplicate entry. No sysctl tuning or
+host resource limits are required by this delivery path.
 Keep the initial console/session open until a second verified SSH session works.
 Allow SSH before enabling the firewall:
 
@@ -291,8 +282,8 @@ push tests those inputs, not the old overloaded host. HTTPS remains unverified.
 
 ### 7. First deployment, diagnostics and ongoing protection
 
-Watch the exact Delivery run/SHA. Helper enforces capped builder/config, production
-profile, image revision/platform/identity, data health and a **successful nonempty
+Watch the exact Delivery run/SHA. Helper enforces production profile, tested
+checkout, image revision/platform/identity, data health and a **successful nonempty
 mode600 pg_dump before API/Flyway starts**, even on a fresh database. Build/backup
 failure refuses app replacement. Running image IDs/health then host and runner
 smokes check TLS, release SHA/cache, SPA/hashed JS, public API metadata and blocked
@@ -337,30 +328,44 @@ ADMIN_ONLY merely to test mail. See [OTP](../architecture/registration-otp.md).
 
 ## Current acceptance/status
 
-Resource candidate base: `e8d37d88fd6bfae0f668b7f21b77364d313b91d8`. Direct Lead
-ownership; no Peers/profile substitution. Daily7 accepted hashes remain unstaged;
+Ordinary Compose candidate base: `87d9f29cf5f009718631081be2133ba325c92b25`.
+Direct Lead ownership; no Peers/profile substitution. Runtime Compose caps and
+operator swap/env are preserved. Accepted Daily7 hashes remain outside staging;
 operator env values remain unread. Existing status source is this document.
 
-Lead ACCEPT: the nine-path resource/setup candidate is suitable for the authorized
-replacement pipeline trial after source review and bounded checks; live readiness
-remains unverified. This push also includes the existing e8d37d8 timeout cleanup.
+Lead accepts the six-path simplification after bounded source review/checks:
+remove dedicated builder/config/cleanup and build-time heap caps; retain sequential
+builds, CI checks, strict SSH, exact checkout, serialization/timeouts, persistent
+volumes, pre-migration backup and health/public smoke. Uncapped build pressure is
+an accepted risk, not a new setup requirement. No host OS limits are installed.
+Local checks: 18 offline regressions pass with zero skips; workflow lint,
+Bash/Python syntax, runbook command parsing and diff checks pass.
+Candidate/commit/check identifiers are recorded in
+`/tmp/olympic-compose-build-final-manifest-20261008.json`. Local regression evidence:
+`/tmp/olympic-compose-build-tests-20261008.log`. Docker app deployment/network
+operations are mocked in offline tests; local parsing is not whole-VPS1GiB proof.
+Actual trial outcome must be recorded separately. HTTPS, real SMTP2525/TLS/OTP,
+low-load soak and heavy-feature capacity remain unverified until observed.
 
-Local evidence:19 offline regressions pass, zero skips, real Compose parsing with
-synthetic dotenv, real local Git and OpenSSH dummy-key checks. Dedicated builder
-probe accepts/exposes configured768/1536MiB/0.75CPU/single-worker budgets and was
-removed afterward. Docker host reports about6GiB; **this is not whole-VPS1GiB
-runtime/build proof**. No full local app stack/load test was added. API large-input,
-Redis capacity, actual swap/latency, HTTPS and replacement readiness remain live
-limits. Candidate/check/run identifiers are recorded in
-`/tmp/olympic-1g-final-manifest-20261008.json`; tests in
-`/tmp/olympic-1g-delivery-tests-20261008.log`, builder evidence in
-`/tmp/olympic-1g-builder-check-20261008.json`.
+Historical results retained, not current setup requirements:
 
-Historical results retained, not current setup requirements: e4a0b6f/API test failure
-repaired by1d2309d; b0b26b5/key preflight failed; d740e7e
-[37747477416](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37747477416)
-passed checks/build/backup gates but failed app readiness(exit1), RAM below2GiB,
-public marker502. Full logs were403 anonymously; first exception/OOM was not
-established. e8d37d8 corrected local command-group timeout cleanup, not that unknown
-readiness cause. Replacement is fresh and is the only currently authorized target;
-normal trial results must be recorded separately from source acceptance.
+- e4a0b6f API test failure repaired by1d2309d without weakening the test gate;
+  b0b26b5 failed key preflight before operator-reported key correction.
+- d740e7e [37747477416](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37747477416)
+  passed checks/build/backup but failed app readiness; first exception/OOM unknown.
+- e8d37d8 corrected owned command-group timeout cleanup.
+- 87d9f29 [37783928154](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37783928154),
+  attempt1: checks113333713855 passed web/deployment/API Testcontainers. Deploy
+  113334962857 passed small-host swap preflight, failed bounded builder setup
+  (exit1), then warned builder stop failed. App builds/backup/replacement were not
+  reached and runner smoke was skipped. An independent HTTPS probe returned
+  connection refused. Full job logs were HTTP403 anonymously; exact Docker cause
+  and remote builder cleanup unknown. The old builder probe on a6GiB Docker host
+  passed its own budget/config checks, not whole-host1GiB operation. Its local
+  test builder was removed. The custom-builder stage is now removed by explicit
+  route decision; its failure no longer creates a setup/approval requirement.
+
+The authorized meaningful commit push triggers new checks and an ordinary Compose
+trial on **main**. Complete HTTPS from section5 before requiring successful public
+smoke. No cloud/DNS/secret settings are changed by this implementation; production
+values and actual host readiness remain reported inputs until evidence confirms.

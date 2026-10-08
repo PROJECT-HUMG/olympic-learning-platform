@@ -7,9 +7,6 @@ FROM maven:3.9.16-eclipse-temurin-25-noble AS build
 
 WORKDIR /workspace
 
-# Build-stage budget only; production JVM settings belong to production Compose.
-ENV MAVEN_OPTS="-Xms64m -Xmx384m -XX:+ExitOnOutOfMemoryError"
-
 COPY pom.xml ./
 
 RUN --mount=type=cache,target=/root/.m2,sharing=locked \

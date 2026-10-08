@@ -1,3 +1,0 @@
-# Dedicated docker-container builder; do not change the operator's default builder.
-[worker.oci]
-  max-parallelism = 1

@@ -10,12 +10,8 @@ import shutil
 import signal
 import subprocess
 import sys
-import tomllib
 from datetime import datetime, timezone
 from pathlib import Path
-
-BUILDER = "olympic-low-memory"
-BUILDER_CONTAINER = "buildx_buildkit_" + BUILDER + "0"
 
 
 def atomic_json(path, value):
@@ -142,29 +138,6 @@ class Deployment:
         from smoke import wait
         return wait(self.sha)
 
-    def prepare_builder(self):
-        # Compose --memory is ignored by BuildKit. Bound the daemon and its
-        # build processes using the installed docker-container driver instead.
-        if "--builder" not in self.run(["docker", "compose", "build", "--help"]).decode():
-            raise ValueError("Compose build --builder support required; install current Docker Compose plugin")
-        version = self.run(["docker", "buildx", "version"]).decode()
-        numbers = re.search(r"\bv([0-9]+)\.([0-9]+)", version)
-        if not numbers or tuple(map(int, numbers.groups())) < (0, 14):
-            raise ValueError("Docker Buildx >=0.14 required for local image loading")
-        names = self.run(["docker", "buildx", "ls", "--format", "{{.Name}}"]).decode().splitlines()
-        if BUILDER not in names:
-            self.run(["docker", "buildx", "create", "--name", BUILDER, "--driver", "docker-container",
-                      "--driver-opt", "memory=768m,memory-swap=1536m,cpu-period=100000,cpu-quota=75000,default-load=true",
-                      "--buildkitd-config", str(self.checkout / "deploy/buildkitd.toml")])
-        self.run(["docker", "buildx", "inspect", "--bootstrap", BUILDER], timeout=180,
-                 hint="Check public BuildKit image access, disk, swap and Docker permission")
-        fmt = '{"memory":{{.HostConfig.Memory}},"swap":{{.HostConfig.MemorySwap}},"quota":{{.HostConfig.CpuQuota}},"period":{{.HostConfig.CpuPeriod}}}'
-        limits = json.loads(self.run(["docker", "inspect", "--format", fmt, BUILDER_CONTAINER]))
-        config = tomllib.loads(self.run(["docker", "exec", BUILDER_CONTAINER, "cat", "/etc/buildkit/buildkitd.toml"]).decode())
-        if limits != {"memory": 768 * 1024**2, "swap": 1536 * 1024**2, "quota": 75000, "period": 100000} \
-                or config.get("worker", {}).get("oci", {}).get("max-parallelism") != 1:
-            raise ValueError("Owned builder budget/config differs; operator review required, no builder removed/reconfigured")
-
     def execute(self):
         self.bootstrap()
         with (self.state / "deploy.lock").open("w") as lock:
@@ -194,11 +167,7 @@ class Deployment:
                         capacity[key + "MiB"] = int(value.split()[0]) // 1024
                 print(json.dumps({"host_capacity": capacity, "builds": "sequential; small-server fit unverified"}))
                 if capacity.get("MemTotalMiB", 0) < 1536:
-                    # mkswap reserves a header page; a 2GiB file floors to2047MiB.
-                    if capacity.get("SwapTotalMiB", 0) < 2047 or capacity.get("SwapFreeMiB", 0) < 1024 \
-                            or capacity.get("MemAvailableMiB", 0) < 128:
-                        raise ValueError("Small-host build preflight requires 2GiB swap (2047MiB usable), 1GiB free swap and 128MiB MemAvailable; inspect pressure before deployment")
-                    print("::warning::Small-host swap-assisted server build; low-load runtime/full feature fit remains unverified.")
+                    print("::warning::Uncapped Compose builds on a small host can exhaust RAM/swap or stall SSH; runtime service caps do not limit build memory.")
                 mark("tested checkout")
                 self.update_checkout()
                 migrations = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in
@@ -208,22 +177,11 @@ class Deployment:
                     raise ValueError("Migration history removed/changed; forward repair/schema review required, no automatic downgrade")
                 mark("production Compose validation")
                 self.run(self.compose + ["config", "--quiet"], hint="Check required /opt/olympic/.env values privately; never dump expanded Compose")
-                mark("bounded builder setup")
-                try:
-                    self.prepare_builder()
-                    for service, limit in (("api", 1200), ("web", 900)):
-                        mark(service + " server build")
-                        self.run(self.compose + ["build", "--builder", BUILDER, service], timeout=limit,
-                                 hint="Check Docker build diagnostics and RAM/swap/disk; running apps have not been replaced")
-                finally:
-                    # Stop only this owned build daemon; retain its cache/volume.
-                    failing = sys.exc_info()[0] is not None
-                    try:
-                        self.run(["docker", "buildx", "stop", BUILDER], timeout=30)
-                    except RuntimeError:
-                        if not failing:
-                            raise
-                        print("::warning::Owned builder stop failed; inspect its state before another deployment.")
+                # Ordinary Compose builds, ordered to avoid API/web build overlap.
+                for service, limit in (("api", 1200), ("web", 900)):
+                    mark(service + " server build")
+                    self.run(self.compose + ["build", service], timeout=limit,
+                             hint="Inspect the API/web Docker build error privately and host RAM/swap/disk; running apps have not been replaced")
                 image_ids = {}
                 for service in ("api", "web"):
                     image = f"olympic-platform-{service}:{self.sha}"

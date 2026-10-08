@@ -7,9 +7,6 @@ RUN corepack enable && \
 
 WORKDIR /workspace
 
-# V8 heap only; BuildKit's separate cgroup also bounds native/build worker memory.
-ENV NODE_OPTIONS="--max-old-space-size=512"
-
 COPY package.json pnpm-lock.yaml ./
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
