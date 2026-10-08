@@ -1,4 +1,4 @@
-# Image-only production stack. Never combine with the development Compose files.
+# Production server build. Standalone: never merge with development Compose.
 name: olympic_platform
 services:
   postgres:
@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: olympic_platform
       POSTGRES_USER: olympic_platform
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Required in production.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Required in /opt/olympic/.env}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     shm_size: 256mb
@@ -35,24 +35,29 @@ services:
     logging: *logging
     networks: [internal]
   api:
-    image: ${API_IMAGE:?Digest-pinned release image required}
-    env_file: ["${PRODUCTION_ENV_FILE:?Absolute host production.env path required}"]
+    image: olympic-platform-api:${DEPLOY_SHA:?Tested commit required}
+    build:
+      context: ../apps/api
+      target: runtime
+      labels:
+        org.opencontainers.image.revision: ${DEPLOY_SHA:?Tested commit required}
+    env_file: ["${PRODUCTION_ENV_FILE:?Explicit /opt/olympic/.env path required}"]
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8080
       DB_URL: jdbc:postgresql://postgres:5432/olympic_platform
       DB_USERNAME: olympic_platform
-      DB_PASSWORD: ${POSTGRES_PASSWORD:?Required in production.env}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Required in /opt/olympic/.env}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       WEB_BASE_URL: https://olympic.nghlong3004.me
       SERVER_BASE_URL: https://olympic.nghlong3004.me
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Required in production.env}
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Required in production.env}
-      ENCRYPTION_SALT: ${ENCRYPTION_SALT:?Required in production.env}
-      OLYMPIC_ADMIN_EMAIL: ${OLYMPIC_ADMIN_EMAIL:?Required in production.env}
-      OLYMPIC_ADMIN_USERNAME: ${OLYMPIC_ADMIN_USERNAME:?Required in production.env}
-      OLYMPIC_ADMIN_PASSWORD: ${OLYMPIC_ADMIN_PASSWORD:?Required in production.env}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Required in /opt/olympic/.env}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Required in /opt/olympic/.env}
+      ENCRYPTION_SALT: ${ENCRYPTION_SALT:?Required in /opt/olympic/.env}
+      OLYMPIC_ADMIN_EMAIL: ${OLYMPIC_ADMIN_EMAIL:?Required in /opt/olympic/.env}
+      OLYMPIC_ADMIN_USERNAME: ${OLYMPIC_ADMIN_USERNAME:?Required in /opt/olympic/.env}
+      OLYMPIC_ADMIN_PASSWORD: ${OLYMPIC_ADMIN_PASSWORD:?Required in /opt/olympic/.env}
       OLYMPIC_AUTH_REGISTRATION_MODE: ${OLYMPIC_AUTH_REGISTRATION_MODE:-ADMIN_ONLY}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:?Required for production storage}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:?Required for production storage}
@@ -64,6 +69,10 @@ services:
       DB_POOL_MAX_SIZE: ${DB_POOL_MAX_SIZE:-5}
       DB_POOL_MIN_IDLE: ${DB_POOL_MIN_IDLE:-1}
       OLYMPIC_MAIL_ENABLED: ${OLYMPIC_MAIL_ENABLED:-true}
+      MAIL_HOST: ${MAIL_HOST:?Required in /opt/olympic/.env}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:?Required in /opt/olympic/.env}
       MAIL_PORT: ${MAIL_PORT:-2525}
       MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
       MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_SMTP_STARTTLS_ENABLE:-true}
@@ -92,7 +101,16 @@ services:
     logging: *logging
     networks: [internal, egress]
   web:
-    image: ${WEB_IMAGE:?Digest-pinned release image required}
+    image: olympic-platform-web:${DEPLOY_SHA:?Tested commit required}
+    build:
+      context: ../apps/web
+      args:
+        VITE_API_BASE_URL: /api/v1
+        VITE_TURNSTILE_ENABLED: ${VITE_TURNSTILE_ENABLED:-false}
+        VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-}
+        RELEASE_SHA: ${DEPLOY_SHA:?Tested commit required}
+      labels:
+        org.opencontainers.image.revision: ${DEPLOY_SHA:?Tested commit required}
     init: true
     ports: ["127.0.0.1:3000:80"]
     healthcheck:
@@ -109,7 +127,7 @@ services:
     logging: *logging
     networks: [internal, egress]
 volumes:
-  # Same physical volumes as the root compose.yml, regardless of release directory.
+  # Same physical volumes as the root compose.yml, regardless of checkout directory.
   postgres-data: {name: olympic_platform_postgres-data}
   redis-data: {name: olympic_platform_redis-data}
   api-storage: {name: olympic_platform_api-storage}

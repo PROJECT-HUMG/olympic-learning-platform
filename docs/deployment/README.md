@@ -1,384 +1,214 @@
 # Production delivery
 
-Repository-owned path: GitHub Actions → GHCR → Ubuntu24.04 amd64 Droplet →
-`https://olympic.nghlong3004.me`. The operator reports setup steps1–9 complete.
-That report does not establish SSH access, credentials, registry permissions,
-DNS/certificates, SMTP delivery or successful application startup. Local preparation
-was followed by the authorized main-branch trial recorded below.
+Current route: **GitHub checks → verified SSH → owned checkout at the tested
+commit → server-side Docker Compose build/start → readiness and public smoke**.
+Production is `https://olympic.nghlong3004.me`, Ubuntu24.04 linux/amd64.
+This replaces GHCR/image-only delivery by explicit scope change. No publication,
+release archive, SCP upload, host-config.json or server GHCR credential is needed.
+Do not execute old archive/digest instructions; their retained release folders,
+images, backups and state are not deleted by this change.
 
-## Trigger and checks
+## Trigger and trust boundaries
 
-[Delivery workflow](../../.github/workflows/delivery.yml) runs `checks` for every
-pull request and every push to **main**, the inspected production branch.
-Only a successful **push to refs/heads/main** can publish and deploy. No PR or
-`pull_request_target` execution gets production credentials/packages-write access.
-Configure branch protection to require **Delivery / checks** (select the emitted
-`checks` context in GitHub); a checked-in workflow alone does not enforce merges.
-The `production` Environment should restrict deployments to main and retain the
-operator's review/protection rules. There is no manual untested deployment trigger.
+[Delivery](../../.github/workflows/delivery.yml) runs checks for PRs and pushes to
+**main**, the inspected production branch. Only a successful push to main deploys,
+using the **production** Environment. All jobs have `contents:read`; no package
+write permission or production credentials in PR checks. Checkouts do not persist
+Git credentials. CI retains Node24/pnpm10.17.0 web lint/tests/build, delivery
+regressions and Java25/Maven verify with PostgreSQL Testcontainers. Missing,
+failed or skipped API reports refuse deployment. API image packaging skips tests;
+that is not the CI gate. Configure existing branch/Environment protections to
+require checks/main; YAML alone does not enforce merging.
 
-Checks use Node24, pnpm10.17.0 (matching web Dockerfile), Temurin Java25 and the
-Maven3.9.16 wrapper. Web frozen install/lint/all Node tests/build, delivery offline
-regressions and **all Maven verify tests including PostgreSQL Testcontainers** run
-before publication. Docker must be available on the GitHub-hosted runner;
-`check-test-reports.py` refuses missing/zero/failed/skipped Surefire results.
-The optional authoring browser harness is not part of Maven's default test suite.
-Dockerfile API packaging still skips tests; it is not the publication gate.
+[SSH transport](../../deploy/ssh-deploy.sh) uses DEPLOY_HOST, DEPLOY_USER,
+DEPLOY_PORT(default22) and Environment secrets DEPLOY_SSH_KEY/DEPLOY_KNOWN_HOSTS.
+The intended existing Windows key was reported valid locally; the updated GitHub
+secret is not thereby verified. Real multiline unencrypted key/known-host bytes
+are CRLF-normalized, validated without printing values, and written to temporary
+600 files in a700 directory, removed on exit. Hashed known_hosts entries work.
+Nonstandard ports require `[host]:port`. StrictHostKeyChecking, IdentitiesOnly
+and BatchMode remain enabled; no runtime keyscan, password fallback or trust bypass.
 
-Images build on **ubuntu-24.04 GitHub-hosted runners**, platform linux/amd64;
-the Droplet only pulls images. The publisher alone gets `packages:write`, using
-the job's ephemeral GITHUB_TOKEN. All jobs default to `contents:read` and checkout
-does not retain Git credentials. Actions are pinned to public upstream commit
-SHAs. Images have commit revision/source labels and tags:
+The runner sends only the checked-in [deployment program](../../deploy/deploy.py)
+on SSH stdin to Python3, with validated tested SHA/workflow sequence/repository
+arguments. It sends **no archive, checkout, env file, app data or credentials**.
+The server fetches that full SHA from the configured repository's HTTPS URL,
+verifies FETCH_HEAD/HEAD and checks it out detached; it never pulls a moving main.
+This public repository needs no second server GitHub SSH key or GHCR read token.
+A future private-repository change requires separately prepared read access.
+
+## Existing server setup and exact environment path
+
+The production environment file is **`/opt/olympic/.env`**, already reported
+configured by the operator. Its existence, owner/mode and usable values remain
+unverified until actual preflight/startup. Do not move, overwrite, print, source
+into a shell, upload or commit it. Compose receives this explicit path via
+`--env-file` and PRODUCTION_ENV_FILE; it never selects checkout/local workspace
+`.env`. The root workspace `.env` contains a local operator CI key and is a
+**different file**: ignored/untracked, never read, bundled or deployed by this task.
+[production.env.example](../../deploy/production.env.example) is reference only,
+not an instruction to replace the configured file or rotate stable keys/passwords.
+
+Owned paths are deliberately separate:
 
 ```text
-ghcr.io/<lowercase owner/repository>-api:sha-<commit>-<run-id>-<attempt>
-ghcr.io/<lowercase owner/repository>-web:sha-<commit>-<run-id>-<attempt>
+/opt/olympic/.env               existing operator secrets, deploy-user-owned600
+/opt/olympic/checkout/          Git checkout/build contexts, created automatically
+/opt/olympic/state/             host lock, status/current/previous/latest JSON
+/opt/olympic/backups/           exclusive pre-app PostgreSQL dumps, mode600
 ```
 
-Deployment uses **the returned sha256 digests**, never a tag or latest.
-The `production-release` Actions artifact contains `release.json` and
-`release.tar.gz`; it records exact images, commit/run identity, migration hashes,
-public web build settings and deployment-file hashes. Public `release.json` in
-the web image contains only its commit SHA. Vite secrets are never build inputs.
-The local CI/CD commit excludes the pre-existing uncommitted Daily candidate;
-Actions builds committed checkout bytes, not that working tree.
+The program creates missing owned state/backups/checkout directories and initializes
+Git automatically. It refuses a nonempty non-Git checkout, wrong repository origin,
+tracked changes or nonignored untracked files, with an actionable error. Existing
+ignored operator files are preserved; checkout uses `--no-overwrite-ignore`.
+There is no `git reset --hard`, `git clean`, force update or destructive cleanup.
+Fix actual local changes outside automation; don't hide them behind a reset.
 
-## Remaining operator prerequisites
+Only remaining setup prerequisites, if not already satisfied:
 
-Use the reported existing setup; do not re-provision or replace secrets blindly.
+- Configured deploy user needs Bash/SSH/Python3/Git, Docker Engine with Compose
+  plugin>=2.24 and Docker daemon access. Docker membership/key grants host-level
+  authority; retain the existing approved account/key policy.
+- `/opt/olympic` must be deploy-user-owned and writable. If missing/wrong, the
+  operator can prepare the namespace with `sudo install -d -m700 -o <deploy-user>
+  /opt/olympic`, preserving its existing children. Inspect permissions without
+  values using `stat -c '%U %a' /opt/olympic /opt/olympic/.env`. The deployment
+  will not chown, replace credentials or silently create an empty env file.
+- Production Environment retains the two named SSH secrets and three connection
+  variables. Server needs outbound HTTPS to this GitHub repository and public
+  Docker/Maven/npm registries. No GHCR credential/publisher setting is required.
+- Existing HTTPS/DNS/certificate and host Nginx must route the trusted ingress as
+  below. No DNS/cloud/secret settings are mutated by repository automation.
 
-| Owner / location | Required state before pushing production |
+Required app values remain stable JWT/encryption keys, DB password aligned with
+the existing volume, admin seed, storage/OAuth and mail configuration. Existing
+Spring YAML declares both OAuth clients; blank IDs can prevent startup. No provider
+rewrite/fake production client was added. Preserve ADMIN_ONLY registration unless
+an existing authorized policy says otherwise. Public VITE_TURNSTILE_ENABLED/
+VITE_TURNSTILE_SITE_KEY now come from **server `/opt/olympic/.env` build settings**,
+not a removed GHCR publication job; match backend Turnstile/hostname policy.
+Do not put private keys/secrets in Vite build arguments.
+
+## Build, backup, readiness and ingress
+
+[Production Compose](../../deploy/compose.prod.yml) is standalone, not merged with
+root development Compose. It builds existing API Java25 and web Node24 Dockerfiles
+on the server sequentially (API then web), tagging local images with the full
+commit SHA and revision labels. Web `/release.json` contains only that SHA with
+no-store. API/web contexts are checkout/apps/api and checkout/apps/web; the
+operator env is outside both, and Docker ignore rules exclude env files.
+No source/dependency/package change is required. Runtime uses explicit `prod`,
+DB/Redis readiness and local image IDs/health verification.
+
+Physical volumes remain **olympic_platform_postgres-data**,
+**olympic_platform_redis-data**, **olympic_platform_api-storage**, project
+olympic_platform. No DB/Redis host ports. API/web bind only127.0.0.1:8080/3000.
+Existing DB passwords must match existing initialized volumes; POSTGRES_PASSWORD
+is not an automatic password rotation mechanism.
+
+[Host Nginx reference](../../deploy/nginx.conf) routes `/api/` directly to loopback
+API, bypassing web nginx's forwarding-header replacement. It clears spoofed
+Forwarded/prefix/SSL headers, replaces scheme/host/port/client IP with trusted
+HTTPS ingress values, blocks actuator/docs, keeps26m multipart ingress against
+app25MB limits, and proxies SPA/assets to web. Preserve the existing certificate,
+other sites and renewal. Validate the existing site with `sudo nginx -t` before
+any operator-owned reload; no ingress/cloud change is performed by CI. A CDN/real_ip
+change requires a separate trust review. Production secure-cookie/proxy behavior
+still requires actual live acceptance.
+
+The host lock covers **checkout, builds, backup and app replacement**. GitHub deploy
+concurrency never cancels an active job; sequence fencing rejects older attempted
+app deployments. Builds timeout900s(API)/600s(web); data readiness180s, backup180s,
+app readiness420s, bounded public smoke. A successful custom pg_dump is required
+**before new API/Flyway starts**; build/backup failure refuses app replacement.
+Failed or empty backups stop normal deployment. After readiness, verify running
+image IDs match the built images, then check public TLS/release SHA/no-store,
+SPA/hashed JS, public document metadata and blocked actuator on the host and
+again on the GitHub runner. Smoke performs no login/write/OTP operation.
+
+State metadata records stage/outcome/SHA/sequence, previous healthy SHA and backup.
+Only fully healthy host readiness+smoke promotes current.json/previous.json;
+latest.json captures attempted app migration fingerprints/image IDs. A runner
+smoke failure after host success can leave a healthy host pointer while Actions
+correctly fails. Child output/expanded Compose/secrets are never forwarded; errors
+identify the stage, timeout/exit and the owning configuration/resource check.
+Inspect restricted service/Flyway diagnostics as operator, without env dumps.
+
+## Server capacity and recovery limits
+
+The initially considered1GB VPS size is **not verified**. Runtime default API cap
+is2g (a limit, not reserved memory), PostgreSQL has256MB shared memory, and Java25
+compilation plus Node/TypeScript/Vite builds add heap/native memory while existing
+services run. Sequential builds reduce concurrency, but do not establish1GB fit.
+The deployment reports actual RAM/swap and warns below2GiB; it does not change
+server size, swap or memory policy. Build exit137/OOM, timeout or disk exhaustion
+requires actual host evidence and an operator resource decision. No tiny-server
+success or safe swap substitute is claimed. A capacity problem is a limitation
+of this requested server-build path, not a requirement to restore GHCR delivery.
+
+No automatic application rollback/database downgrade occurs. Missing/changed
+prior attempted migration fingerprints are refused before starting apps. Even
+matching SQL files are not a complete data/API compatibility proof. After app
+replacement, failures can leave advanced apps/schema; retain status/backups and
+prefer a checked forward repair. Older job attempts are fenced. Operator app-only
+recovery requires confirmed schema/data compatibility and a reviewed tested
+commit, not a forced checkout/reset. Database restore is a separate maintenance
+and data-loss decision. Never `down -v`, prune/remove volumes, Flyway clean or drop.
+
+Pre-app pg_dump covers PostgreSQL-owned private evidence but is not off-host
+recovery. Retain encrypted off-host backups/tested restore and API storage/Redis
+as appropriate; no pruning is automatic. This single host replaces services and
+is not zero downtime. API restarts can interrupt polling/uploads; client draft,
+permissions/private gates and room/player code are unchanged, not proof of
+seamless in-flight requests.
+
+## SMTP2525 and real OTP
+
+Current MAIL_* integration is retained, configurable, default2525 with auth/
+STARTTLS and TLS certificate identity checking. SMTP/readiness/template tests do
+not prove real mail. Operator must verify actual host/container network reachability,
+provider/from-domain/auth/TLS and real invitation/reset or policy-permitted OTP.
+A non-secret TLS reference command is `openssl s_client -starttls smtp -connect
+'<smtp-host>:2525' -servername '<smtp-host>' -verify_hostname '<smtp-host>'
+-verify_return_error`. Do not print credentials, sessions or OTPs. For an existing
+allowed SELF_VERIFY test, confirm delivery, verify-to-ACTIVE, resend cooldown and
+replaced-code rejection; do not switch ADMIN_ONLY policy just to test. See
+[OTP contract](../architecture/registration-otp.md) and
+[account email](../architecture/account-email.md).
+
+## Current source acceptance and trial status
+
+Base for this route change: `b0b26b59c1eff130431c09c0b536c56aa404a2a6` on main.
+Direct Lead ownership, no Peers/profile substitutions. Preserve all seven Daily
+candidate hashes in `/tmp/daily-recovery-final-manifest-20261007.json`; never stage
+those paths or the workspace env. Superseded release.py/host-config template and
+GHCR/archive jobs are removed; physical server data/history is retained. The
+existing deployment status source is this document, not a duplicate tracker.
+
+Lead accepts the12-path checkout/Compose candidate after source review and16
+passing offline regressions (zero skips), Bash/Python syntax, actionlint1.7.7 and
+`git diff --check`. Tests use synthetic env, real local Git with an advancing
+branch, real Compose configuration parsing and OpenSSH key/config parsing with
+generated dummy keys. Docker app operations and public network are mocked.
+Proof: `/tmp/olympic-checkout-delivery-tests-20261008.log`; exact candidate/commit
+and preservation evidence: `/tmp/olympic-checkout-delivery-final-manifest-20261008.json`.
+Server-side builds, production values, HTTPS/OTP and actual server capacity remain
+unverified until live trial. No owned services were started; test temporary
+directories/SSH material were cleaned and existing development containers retained.
+Dedicated reduced-motion validation is outside this delivery task.
+
+Prior route history (superseded instructions, preserved evidence):
+
+| Commit/run | Actual result |
 | --- | --- |
-| GitHub Environment **production**, variables | `DEPLOY_HOST` (Droplet IPv4 or DNS name), `DEPLOY_USER` (SSH user), `DEPLOY_PORT` (defaults22), `VITE_TURNSTILE_ENABLED` (`true`/`false`, defaultsfalse), `VITE_TURNSTILE_SITE_KEY` (public key when enabled). Build flags must agree with backend protection/hostname settings. |
-| GitHub Environment **production**, secrets | `DEPLOY_SSH_KEY` (dedicated deploy private key), `DEPLOY_KNOWN_HOSTS` (verified complete known_hosts entries; nonstandard port uses `[host]:port`). Verify the SSH fingerprint through the DigitalOcean console/another trusted channel before storing it. Do not use runtime ssh-keyscan as trust establishment. |
-| Repository/package access | Actions enabled; production Environment rules/main branch rule configured; GITHUB_TOKEN permitted to publish the two packages. Package Actions access must include this repository, especially if packages already exist. No personal write PAT is required in Actions. |
-| Deploy user on host | Docker Engine/Compose plugin≥2.24, Python3, Bash, GNU timeout/tar, SSH and ca-certificates installed. User can run Docker and owns `/opt/olympic/{incoming,releases,shared,state,backups}`; directories mode700. Docker membership and this SSH key effectively grant root-level host authority; scope the key/operator accordingly. |
-| Private GHCR pulls | Deploy user's Docker credential store has a separate GHCR read credential (normally classic PAT `read:packages`, authorized for organization SSO if applicable). It needs access to **both** packages. Do not copy the ephemeral Actions token to the server or put read credentials in release.json/production.env. Verify package access after first publication; before that, image pull cannot be established. |
-| Host config / secrets | `shared/host-config.json` from [template](../../deploy/host-config.example.json), repository value equals actual lowercase GITHUB_REPOSITORY. `shared/production.env` from [template](../../deploy/production.env.example), deploy-user-owned mode600, filled through the operator's secret process. No repository `.env` is used by production commands. |
-| HTTPS ingress | Host Nginx site based on [deploy/nginx.conf](../../deploy/nginx.conf), trusted certificate at the referenced Let's Encrypt paths; renewal established. DNS/AAAA must actually reach this host. Only80/443 public; SSH restricted to approved sources. No DB/Redis/8080/3000 public exposure. |
+| e4a0b6f / [37659245805](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37659245805) | API checks failed; publication/deploy skipped. Avatar JPA slice lacked FileMapper; independently reproduced and repaired in1d2309d without weakening gate. |
+|1d2309d / [37711071398](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37711071398) | Full checks and GHCR publish passed; deploy exit255, stderr unavailable; public marker502. No success inferred. |
+| b0b26b5 / [37714366319](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37714366319) | Checks/publish passed; key preflight exit1 before SCP/SSH. Operator subsequently reported key update; local Windows parsing doesn't verify the GitHub secret. |
 
-Required production values include POSTGRES password, stable JWT/encryption
-key/salt, existing admin seed credentials, Cloudinary storage credentials,
-existing Google/GitHub OAuth registration credentials, and the SMTP host/user/
-password/from. Existing YAML declares both OAuth clients, so blank IDs may fail
-startup even if the UI does not use OAuth. This path does not rewrite providers.
-Use real existing registrations; review disabling an unused integration separately.
-Keep registration policy `ADMIN_ONLY` unless the operator has explicitly chosen
-another existing mode. Do not rotate encryption/JWT keys as part of deployment.
-Keep database credentials aligned with an already initialized Postgres volume;
-changing POSTGRES_PASSWORD does not rotate that existing DB user's password.
-
-For private GHCR login, as the deploy user (operator executes later, no token in
-shell arguments/history):
-
-```bash
-read -rsp 'GHCR read token: ' ghcr_read_token
-printf '%s' "$ghcr_read_token" | docker login ghcr.io -u '<read-token-owner>' --password-stdin
-unset ghcr_read_token
-```
-
-## Files, ingress and first run
-
-The standalone [production Compose](../../deploy/compose.prod.yml) is deliberately
-not merged with root `compose.yml`; it has **no build**, forces `prod`, and keeps
-physical volumes `olympic_platform_postgres-data`, `olympic_platform_redis-data`
-and `olympic_platform_api-storage`. Compose project is always `olympic_platform`.
-Never run development Compose against the production host/project.
-
-Host Nginx routes `/api/` **directly to127.0.0.1:8080**, while SPA/assets route to
-127.0.0.1:3000. The web container's existing forwarding-header replacement cannot
-rewrite production HTTPS/client IP. Host ingress clears client Forwarded/prefix/
-SSL headers and replaces X-Forwarded-* with canonical host, HTTPS,443 and actual
-remote address. `prod` trusts those headers; do not expose API directly or add an
-untrusted proxy/CDN. If a CDN is adopted later, review restricted real_ip trust
-first. API upload caps25MB, feature ownership/permissions and no-store responses
-remain authoritative; ingress26m permits multipart framing, without raising app
-limits. No public actuator/docs route or public DB/Redis mapping is provided.
-
-Reference validation commands on the **already configured host**, without
-dumping expanded production configuration:
-
-```bash
-sudo nginx -t
-sudo systemctl reload nginx  # only after successful config/certificate validation
-sudo certbot renew --dry-run
-```
-
-If the existing ingress differs, review/copy `deploy/nginx.conf` to the host and
-install that owned site as `/etc/nginx/sites-available/olympic`, link it from
-`/etc/nginx/sites-enabled/olympic`, then run the validation/reload commands above.
-Preserve other sites; do not overwrite unrelated host configuration. HTTPS trust
-and loopback API routing must match this reference before deploy smoke can pass.
-
-If HTTPS has not actually been issued, use an HTTP-only ACME webroot site first;
-do not load TLS config referencing nonexistent certificates. Reference issuance
-command (only if needed): `sudo certbot certonly --webroot -w /var/www/letsencrypt
--d olympic.nghlong3004.me`. Do not redo completed certificate/setup work. Official
-references: [Docker Ubuntu installation](https://docs.docker.com/engine/install/ubuntu/),
-[Certbot Nginx guidance](https://certbot.eff.org/instructions?ws=nginx&os=ubuntunoble).
-
-After reviewing/committing these files and confirming the above prerequisites,
-push the CI/CD commit on **main** to the GitHub repository (`git push origin main`).
-This is the next externally effective operator action; local preparation did not
-perform it. Daily changes remain separate until separately committed.
-
-The workflow transfers only the release bundle, verifies known-host SSH, extracts
-to a new owned `/opt/olympic/releases/<sha>-<run-id>-<attempt>` and invokes:
-
-```bash
-python3 /opt/olympic/releases/<id>/deploy/deploy.py deploy <id> --root /opt/olympic
-```
-
-The script validates repository/bundle/digest/platform/revision and secret-file
-permissions, pulls only API/web, waits up to180s for Postgres/Redis, and takes a
-custom-format pg_dump **before starting the new API/Flyway migrations**. Backup
-failure stops app replacement. App Compose health waits up to420s; API readiness
-includes readinessState+DB+Redis, not SMTP delivery. Digest/health are inspected
-after start. Public smoke checks TLS, matching no-store release SHA, SPA/hashed
-JavaScript, `/api/v1/documents/metadata` shape and actuator404 on the host, then
-again from the GitHub runner. Smoke has six bounded attempts,8s per GET and5s
-between attempts; no write/auth endpoint or OTP is invoked by CI.
-
-Status evidence:
-
-```text
-/opt/olympic/state/status.json     deploying / failed / healthy; stage, backup, previous, smoke
-/opt/olympic/state/current.json    last release passing host readiness+public smoke
-/opt/olympic/state/previous.json   previous healthy manifest
-/opt/olympic/state/latest.json     highest attempted app-deployment workflow sequence
-/opt/olympic/backups/<id>-<UTC>.dump pre-app PostgreSQL snapshot (mode600)
-```
-
-GitHub deploy concurrency never cancels a running deploy; host flock also guards
-manual recovery. GitHub may replace a **pending** run with a newer push; the host
-sequence fence refuses stale deployments that finish building out of order.
-Keep this workflow identity/run-number lineage; resetting it needs operator
-review of the sequence fence. First publication can succeed while deploy fails;
-inspect job summaries/artifacts and host status separately. A cancelled/disconnected
-SSH session is not evidence of rollback or success. If runner smoke fails after
-host success, current.json may identify healthy host deployment while Actions
-correctly remains failed; investigate public reachability before retrying.
-
-## Backup, failure and bounded recovery
-
-No automatic app rollback or database rollback is performed. After failure,
-apps/schema may have partially advanced, even though current.json still records
-the last healthy release. Restricted service logs and real Flyway history must
-be inspected by the operator; do not print production.env, `compose config`,
-`docker inspect` full environments or credentials into CI/support logs.
-
-Backups are consistent pre-deployment DB snapshots, including PostgreSQL-owned
-private evidence. They are not an off-host/disaster recovery solution. Arrange
-encrypted off-host retention and a tested restore before schema-risking releases;
-also retain Redis volume and `/app/storage` export data. No release, backup, image
-or volume pruning is automatic. Check disk capacity and take a coordinated backup
-when data outside PostgreSQL matters. Restoring a snapshot loses writes after its
-timestamp and is an explicit maintenance/data-recovery decision, never a deploy
-script operation. **Never `down -v`, volume rm/prune, Flyway clean or drop data.**
-
-Recovery paths:
-
-1. Failure before app replacement: correct the operator-owned configuration/
-   registry/ingress cause, then rerun failed Actions jobs. A rerun creates a new
-   attempt ID/digests/bundle and remains subject to checks/Environment protection.
-   A host-local retry of the exact prepared release also takes a new backup.
-   The CI transport refuses to overwrite an existing immutable release directory.
-2. Failure after app replacement: inspect stage, digests, schema/Flyway state and
-   backup first. Prefer a checked forward repair when migrations changed. Do not
-   keep looping failed deployments without identifying the cause.
-3. Application-only recovery is permitted **only after an operator confirms
-   schema/data/API compatibility**, using a retained known release. The script
-   additionally requires identical migration fingerprints with the latest
-   attempted/active release, and never reverses a migration:
-
-   ```bash
-   python3 /opt/olympic/releases/<latest-id>/deploy/deploy.py rollback <previous-id> \
-     --root /opt/olympic --schema-compatible
-   ```
-
-   Matching migration files is necessary but not sufficient: changed data formats,
-   OTP lifecycle or other app semantics may still prevent safe rollback. Different
-   fingerprints are refused; restoring an older image against newer Flyway
-   history may also fail validation. That case requires reviewed forward repair
-   or a separately approved maintenance restore, not a bypass flag.
-
-Deployments are single-host replacements, not zero-downtime releases. Existing
-room client/player code is untouched, but API restarts can interrupt polling/
-uploads; coordinate releases, and do not promise seamless in-flight requests.
-
-## SMTP2525 and real OTP acceptance
-
-SMTP remains the current MAIL_* integration, not a new provider. Template uses
-2525 with auth/STARTTLS, required TLS and server certificate identity checking;
-all remain configurable for the actual provider. MAIL_HOST must be reachable
-from the API container (localhost means that container, not the Droplet).
-Port2525 alone does not establish TLS/auth/delivery. Confirm provider credentials,
-verified MAIL_FROM/domain and outbound firewall rules. Test the real provider
-from the host/container network without printing password/session/OTP:
-
-```bash
-openssl s_client -starttls smtp -connect '<smtp-host>:2525' \
-  -servername '<smtp-host>' -verify_hostname '<smtp-host>' -verify_return_error
-```
-
-Require a valid certificate and announced STARTTLS, then exercise real app mail
-with an operator-controlled address. If the chosen existing registration mode
-supports OTP, register, confirm real inbox delivery/links/branding, verify the
-code to ACTIVE, confirm resend cooldown/replaced-code rejection and HTTPS secure
-cookie/login behavior. If production stays ADMIN_ONLY, use a separately approved
-test/staging SELF_VERIFY configuration; do not silently change policy to test OTP.
-Also verify the existing invitation/reset mail used by the selected policy.
-Use [OTP contract](../architecture/registration-otp.md) and
-[account email](../architecture/account-email.md) for expected behavior. SMTP
-health/Testcontainers/template tests do not prove real OTP delivery. Forwarded
-HTTPS/client-IP trust and production cookie behavior remain live acceptance
-checks; do not include OTP, challenge secrets or auth cookies in evidence.
-
-## Local acceptance, 08/10/2026
-
-Local candidate/status and exact hashes are recorded in
-`/tmp/olympic-delivery-final-manifest-20261008.json` after final validation/commit.
-All seven pre-existing Daily candidate paths must remain byte-identical to
-`/tmp/daily-recovery-final-manifest-20261007.json` and outside this commit.
-Preparation uses direct Lead ownership; no Peers, provider changes or retries.
-
-| Local proof | Result / evidence |
-| --- | --- |
-| Workflow validation | actionlint1.7.7 PASS; public tool archive verified against upstream release checksums; action commit pins resolved from public upstream tags. |
-| Delivery regressions |12 PASS,0 skipped; `/tmp/olympic-delivery-tests-20261008.log`. Real Compose CLI validates only fabricated env values; deployment/SSH/public-smoke dependencies are replaced by offline fixtures. Covers immutable identity/bundle, backup-before-start/failure, digest/health/smoke promotion, host lock/stale order, schema/consent recovery, skipped API report refusal and strict SSH credential cleanup. |
-| Python/Bash syntax | Python AST and `bash -n deploy/ssh-deploy.sh` PASS. |
-| Current web tree |169 Node tests PASS,0 failures/skips; build PASS (existing large-chunk warning); lint PASS (40 pre-existing warnings); `/tmp/olympic-delivery-web-{tests,build,lint}-20261008.log`. Includes one uncommitted Daily test; committed CI checkout excludes it until Daily is separately committed. |
-| Preservation | All seven Daily hashes match the accepted manifest, including the shared UX status document; none staged for CI/CD. No actual `.env` values read or expanded config printed. |
-
-API tests were **not locally rerun**: no Java executable/JDK25 in this execution
-environment. CI is configured to run them with Docker before publishing, but that
-future execution is not claimed as passing. No production image build/pull, real
-nginx binary/certificate validation, registry publication, SSH/deploy or public
-network smoke was performed. These and production values/SMTP2525 real OTP remain
-unverified until the pipeline/operator exercises them. Dedicated reduced-motion validation
-is not part of delivery preparation. Reported setup is kept separate from proof.
-
-## First production trial, 08/10/2026
-
-Commit `e4a0b6f33c383b809df45d6401dad08e659e3603` (`ci: add digest-based
-production delivery`, 17 paths) was pushed to `origin/main` without force.
-[Delivery run 37659245805](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37659245805)
-failed in **API checks including PostgreSQL Testcontainers**. Web checks and
-delivery offline checks passed; **publish and deploy were skipped**. No registry
-publication, pipeline SSH deployment, migration or public smoke is established
-by this run. The test gate remains unchanged; no rerun was requested.
-
-Public job/check evidence confirms exit code 1 but supplies no Maven diagnosis.
-Authenticated logs are required: anonymous job-log download returned HTTP403,
-test-report artifact download returned HTTP401, and the job page says "Sign in
-to view logs". No authenticated browser host was connected. The retained
-`api-test-reports` artifact (ID `11499793373`) is available to the operator.
-These reports were not retrieved directly. The independent local reproduction
-below establishes the fixture defect without claiming access to the GitHub
-exception chain; no diagnosis is inferred from the exit code alone.
-Local public evidence is retained as `/tmp/olympic-delivery-failed-{run,jobs,check}.json`
-and `/tmp/olympic-delivery-failed-annotations`.
-
-The operator's visible Maven summary reports 308 tests, 0 failures, 2 errors,
-0 skips, with avatar-context startup failure followed by threshold suppression.
-Direct GitHub log/report retrieval remains blocked as described above. To resolve
-the cause independently, Lead ran the unchanged committed
-`AvatarCropIntegrationTest` with Java25 (from the public pinned Maven tool image)
-and disposable PostgreSQL16 Testcontainers, using synthetic CI environment values.
-It reproduced 2 errors/0 failures/0 skips. The first exception chain was:
-
-```text
-UnsatisfiedDependencyException: UserServiceImpl constructor parameter 6
-Caused by: NoSuchBeanDefinitionException: no qualifying FileMapper bean
-```
-
-The JPA slice imported the real service but supplied no `FileMapper` constructor
-dependency. Its existing `Dependencies` fixture now supplies the real generated
-MapStruct mapper, alongside `UserMapper`; no product code, test assertions,
-Docker integration requirement or publication gate changed. The same targeted
-test then passed **2 tests, 0 failures/errors/skips**. Evidence:
-`/tmp/olympic-avatar-ci-before.log`, `/tmp/olympic-avatar-ci-after.log`, and
-`/tmp/olympic-avatar-ci-reproduction/apps/api/target/surefire-reports/`.
-Full-suite execution/publication/deploy for the follow-up commit remains the next
-pipeline check, not a local targeted-test claim. No unchanged failed run was retried.
-
-All seven uncommitted Daily paths still match their accepted manifest and remain
-outside CI/CD commits. Lead owns diagnosis and the bounded follow-up repair;
-no Peer was dispatched and no production/operator settings were changed.
-
-## Follow-up production trial, 08/10/2026
-
-Commit `1d2309d1d9cd8d20f884328d5397e5bec56e6c6c` (`fix(api): wire avatar
-integration test mapper`) includes only the fixture repair and this deployment
-status document. It was pushed without force to the same `origin/main`.
-[Delivery run 37711071398](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37711071398)
-passed **checks**, including the full Maven/Testcontainers/no-skips gate, and
-passed **publish** for both API and web images. The first API-check failure is
-therefore resolved without changing the test gate. Exact image digests remain
-in this run's `production-release` artifact; authenticated artifact download was
-not available in this execution session, so their values are not claimed here.
-
-The **deploy** job failed at **Deploy exact release over verified SSH**, job
-`113098340893`. Its public annotation reports **exit255**, without SSH/SCP stderr;
-the GitHub-runner public smoke step was skipped. Exit255 indicates a transport/
-session failure in this path, but does not distinguish connection, authentication,
-known-host verification or a lost remote session. Do not infer that no remote
-change occurred: host execution and migration state remain unknown. One bounded
-public GET to `/release.json` returned **HTTP502**, so deployed identity/health
-are not established. No unchanged rerun, rollback, server/settings mutation or
-destructive recovery was attempted.
-
-Next operator evidence: the deploy step's first SSH/SCP error (no key/token/env
-values), and, if remote execution began, the stage/outcome in
-`/opt/olympic/state/status.json`. Check only the transport prerequisite implicated
-by that actual error; retain strict known-host verification. If apps started,
-inspect backup/Flyway/running-release state before any recovery. SMTP2525 real
-OTP acceptance and off-host backup/tested restore remain unverified obligations.
-Public run/jobs/check/annotation JSON is retained under
-`/tmp/olympic-delivery-{followup-run,followup-jobs,deploy-check,deploy-annotations}.json`.
-The post-run status addition was initially left local to avoid triggering another
-identical failed deployment. It is included in the subsequent evidenced transport
-repair below. Daily's seven accepted files remain unchanged and uncommitted.
-
-## SSH transport review and repair, 08/10/2026
-
-The exact workflow invokes `bash deploy/ssh-deploy.sh`; the file's mode100644 is
-valid for this invocation. Repository shell/workflow files contain LF, not CRLF.
-Both SCP and SSH receive `-F` with the same owned config, which sets HostName,
-User and Port, so SCP does not need a separate `-P`. Release IDs and host/user/
-port values are validated before interpolation; the remote command passes the
-release ID as a quoted Bash argument. The quoted heredoc is not expanded locally.
-Remote Bash, Python3 and GNU timeout are explicit prerequisites; no remote script
-executable bit or interactive shell session is required. `/opt/olympic` and its
-owned folders remain prerequisites; this review does not establish their state.
-
-Two defects were independently demonstrated with disposable generated keys,
-real OpenSSH parsing and mocked network commands: LF private key exited0, the
-same valid key with CRLF exited255, and a temp-directory path with spaces exited255.
-The script preserved CRLF in the private-key file and left IdentityFile/
-UserKnownHostsFile paths unquoted in SSH config. These are **demonstrated script
-defects, not proof of the live exit255 cause**; actual secret bytes were not read.
-
-The transport now normalizes only CRLF line endings, preserves multiline content
-and does not reinterpret literal `\\n` escapes. It quotes config paths, validates
-that the private key parses without a passphrase, and requires an existing
-known-host entry matching the configured host/port before network calls. Hashed
-records remain supported. Both files are600 in a700 temporary directory and
-are removed on exit. Trust still comes from operator-verified known_hosts;
-StrictHostKeyChecking/IdentitiesOnly/BatchMode remain enabled. No keyscan, new
-trust, fallback authentication, retry, or deployment-gate bypass was introduced.
-Failure annotations now distinguish release transfer from remote deployment
-session while preserving the original exit status and unknown remote-state limit.
-
-Verification: `bash -n` and **16 offline delivery tests PASS, 0 skips**, including
-real OpenSSH `ssh -G`/`ssh-keygen` parsing, LF/CRLF/no-final-newline keys, hashed
-hosts, ports22/2222, paths with spaces, exact arguments/remote Bash syntax,
-permissions/cleanup, invalid/encrypted/escaped key refusal, wrong-host/port refusal,
-and preserved exit255 for each simulated transport stage. Earlier gate/backup/
-schema/health regressions still pass. Network commands are mocked; no SSH server,
-actual credentials, operator settings or production data were accessed by these
-checks. The four-path repair (transport, two test files, this status source) is
-eligible for the next authorized scoped commit/push trial because source changed
-to correct demonstrated defects. Live stderr remains needed if transport fails;
-no assertion is made that CRLF or a path with spaces caused the previous run.
+Authenticated rerun/log access was unavailable (no gh/auth token/connector or
+connected browser); public GitHub run/job/annotation observation and strict SSH
+Git push remain available. Root workspace env was never used as GitHub/server
+configuration. Updated key and existing operator setup remain reported inputs.
+The next authorized main push exercises this checkout route; observe actual job
+and public evidence before claiming deploy, backup, migration or health success.

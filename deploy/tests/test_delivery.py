@@ -1,8 +1,8 @@
-"""Offline delivery contract/failure tests. No registry/server/network access."""
+"""Real local Git/Compose parsing; Docker deployment and public network are mocked."""
 import fcntl
+import hashlib
 import json
 import os
-import shlex
 import shutil
 import subprocess
 import sys
@@ -15,244 +15,252 @@ from urllib.error import HTTPError
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "deploy"))
 import deploy
-import release
 import smoke
 
-SHA = "a" * 40
-REPO = "fixture/olympic"
+REPO = "PROJECT-HUMG/olympic-learning-platform"
 
 
-def manifest(sequence=1, sha=SHA):
-    return {"version": 1, "repository": REPO, "sha": sha, "id": f"{sha}-{sequence}-1", "sequence": sequence,
-            "api_image": f'ghcr.io/{REPO}-api@sha256:{"b" * 64}',
-            "web_image": f'ghcr.io/{REPO}-web@sha256:{"c" * 64}',
-            "migrations": {"V1__fixture.sql": "d" * 64},
-            "public_config": {"turnstile_enabled": "false", "turnstile_site_key": ""},
-            "bundle": {name: release.sha256(ROOT / "deploy" / name) for name in release.BUNDLE_FILES}}
-
-
+@unittest.skipUnless(shutil.which("git") and shutil.which("docker"), "Git/Docker CLI unavailable")
 class DeliveryTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="olympic-delivery-test-")
-        self.root = Path(self.temporary.name)
-        (self.root / "shared").mkdir()
-        (self.root / "shared" / "host-config.json").write_text(json.dumps({"repository": REPO, "public_origin": release.ORIGIN}))
-        self.secret = self.root / "shared" / "production.env"
-        self.secret.write_text("# Synthetic test fixture only, not a real secret\n")
+        self.temporary = tempfile.TemporaryDirectory(prefix="olympic-checkout-test-")
+        self.folder = Path(self.temporary.name)
+        self.root = self.folder / "host"
+        self.root.mkdir(mode=0o700)
+        self.secret = self.root / ".env"
+        self.secret.write_text("# Synthetic operator env, never a real secret\n")
         self.secret.chmod(0o600)
+        self.source = self.folder / "source"
+        self.source.mkdir()
+        self.git("init", "--quiet")
+        self.git("config", "user.email", "fixture@example.test")
+        self.git("config", "user.name", "Fixture")
+        migrations = self.source / "apps/api/src/main/resources/db/migration"
+        migrations.mkdir(parents=True)
+        (migrations / "V1__fixture.sql").write_text("-- fixture migration\n")
+        (self.source / ".gitignore").write_text(".env\n")
+        (self.source / "deploy").mkdir()
+        shutil.copyfile(ROOT / "deploy/compose.prod.yml", self.source / "deploy/compose.prod.yml")
+        (self.source / "apps/web").mkdir()
+        self.git("add", ".")
+        self.git("commit", "-qm", "fixture initial")
+        self.sha = self.git("rev-parse", "HEAD").decode().strip()
+        (self.source / "newer.txt").write_text("untested moving branch content\n")
+        self.git("add", ".")
+        self.git("commit", "-qm", "fixture newer main")
+        self.newer = self.git("rev-parse", "HEAD").decode().strip()
         self.calls = []
+
+    def git(self, *args):
+        return subprocess.check_output(["git", "-C", str(self.source), *args], stderr=subprocess.DEVNULL)
 
     def tearDown(self):
         self.temporary.cleanup()
 
-    def prepared(self, value):
-        folder = self.root / "releases" / value["id"]
-        (folder / "deploy").mkdir(parents=True)
-        for name in release.BUNDLE_FILES:
-            shutil.copyfile(ROOT / "deploy" / name, folder / "deploy" / name)
-        (folder / "release.json").write_text(json.dumps(value))
-        return deploy.Deployment(self.root, value["id"])
+    def target(self, sha=None, sequence=1):
+        with patch("deploy.repository_url", return_value=str(self.source)):
+            return deploy.Deployment(self.root, sha or self.sha, sequence, REPO)
 
-    def fake_run(self, deployment, failing_stage=None):
-        def run(args, timeout=120, output=None):
+    def fake_run(self, target, failing_stage=None, empty_backup=False):
+        real = target.run
+        def run(args, timeout=120, output=None, hint="fixture"):
             self.calls.append(args)
-            if deployment.stage == failing_stage:
+            if args[0] == "git":
+                return real(args, timeout, output, hint)
+            if target.stage == failing_stage:
                 raise RuntimeError("Synthetic operation failure")
             if output:
-                output.write(b"PGDMP synthetic database dump")
+                output.write(b"" if empty_backup else b"PGDMP synthetic dump")
                 return None
+            if args[:3] == ["docker", "compose", "version"]:
+                return b"2.38.2"
             if args[1:3] == ["image", "inspect"]:
-                return json.dumps({"arch": "amd64", "os": "linux", "revision": deployment.manifest["sha"]}).encode()
+                service = "api" if "-api:" in args[-1] else "web"
+                return json.dumps({"id": "sha256:" + service, "arch": "amd64", "os": "linux", "revision": target.sha}).encode()
             if args[1] == "inspect":
-                service = args[-1]
-                return json.dumps({"image": deployment.manifest[service + "_image"], "health": "healthy"}).encode()
+                return json.dumps({"image": "sha256:" + args[-1], "health": "healthy"}).encode()
             if "ps" in args:
                 return args[-1].encode()
-            return b""
+            return b"fixture"
         return run
 
-    def test_manifest_rejects_tags_other_owners_injection_and_bad_build_inputs(self):
-        value = manifest()
-        self.assertEqual(release.validate(value, REPO), value)
-        for field, invalid in [("api_image", f"ghcr.io/{REPO}-api:latest"),
-                               ("repository", "other/project"), ("id", "../../shared"),
-                               ("sha", "main;touch /tmp/invalid"), ("sequence", 0)]:
-            with self.subTest(field=field), self.assertRaises(ValueError):
-                release.validate(dict(value, **{field: invalid}), REPO)
-        value["public_config"]["turnstile_enabled"] = "true"
-        with self.assertRaises(ValueError):
-            release.validate(value)
-
-    def test_generated_release_freezes_actual_migrations_and_bundle_bytes(self):
-        output = self.root / "release.json"
-        env = {"GITHUB_REPOSITORY": "Fixture/Olympic", "GITHUB_SHA": SHA, "GITHUB_RUN_ID": "10",
-               "GITHUB_RUN_ATTEMPT": "2", "GITHUB_RUN_NUMBER": "3", "API_DIGEST": "sha256:" + "b" * 64,
-               "WEB_DIGEST": "sha256:" + "c" * 64, "VITE_TURNSTILE_ENABLED": "false"}
-        with patch.dict(os.environ, env):
-            release.create(output)
-        value = json.loads(output.read_text())
-        self.assertEqual(value["id"], f"{SHA}-10-2")
-        self.assertEqual(value["repository"], REPO)
-        self.assertTrue(value["migrations"])
-        for name, digest in value["bundle"].items():
-            self.assertEqual(digest, release.sha256(ROOT / "deploy" / name))
-        self.assertNotIn("production.env", output.read_text())
-
-    def test_bundle_tampering_and_secret_permissions_fail_preflight(self):
-        value = manifest()
-        self.prepared(value)
-        folder = self.root / "releases" / value["id"]
-        (folder / "deploy" / "compose.prod.yml").write_text("tampered")
-        with self.assertRaises(ValueError):
-            deploy.Deployment(self.root, value["id"])
-        self.secret.chmod(0o644)
-        with self.assertRaises(ValueError):
-            self.prepared(manifest(2))
-
-    def test_success_requires_backup_digest_health_and_public_smoke_before_promotion(self):
-        target = self.prepared(manifest())
-        evidence = {"sha": SHA, "checks": ["fixture smoke"]}
-        with patch.object(target, "run", side_effect=self.fake_run(target)), patch("deploy.public_smoke", return_value=evidence):
+    def execute(self, target, failing=None, empty_backup=False, smoke_failure=False):
+        with patch.object(target, "run", side_effect=self.fake_run(target, failing, empty_backup)), \
+             patch("builtins.print"), \
+             patch.object(target, "public_smoke", side_effect=RuntimeError("Synthetic smoke failure") if smoke_failure else None,
+                          return_value={"sha": target.sha}):
             target.execute()
-        self.assertEqual(deploy.read_json(target.state / "current.json")["sha"], SHA)
+
+    def test_exact_commit_not_moving_main_and_explicit_operator_env(self):
+        before = self.secret.read_bytes()
+        target = self.target()
+        self.execute(target)
+        head = subprocess.check_output(["git", "-C", str(target.checkout), "rev-parse", "HEAD"]).decode().strip()
+        self.assertEqual(head, self.sha)
+        self.assertNotEqual(head, self.newer)
+        self.assertFalse((target.checkout / "newer.txt").exists())
+        self.assertEqual(self.secret.read_bytes(), before)
+        self.assertNotIn(str(self.secret), [a for call in self.calls if call[0] == "git" for a in call])
+        self.assertEqual(target.env["PRODUCTION_ENV_FILE"], str(self.secret))
+        self.assertEqual(target.env["COMPOSE_PARALLEL_LIMIT"], "1")
+        builds = [call[-1] for call in self.calls if "build" in call]
+        self.assertEqual(builds, ["api", "web"])
+        backup = next(i for i, call in enumerate(self.calls) if "pg_dump" in call)
+        start = next(i for i, call in enumerate(self.calls) if "--no-build" in call)
+        self.assertLess(backup, start)
+        self.assertEqual(deploy.read_json(target.state / "current.json")["sha"], self.sha)
         self.assertEqual(deploy.read_json(target.state / "status.json")["outcome"], "healthy")
-        self.assertTrue(target.backup.read_bytes().startswith(b"PGDMP"))
-        backup_index = next(i for i, args in enumerate(self.calls) if "pg_dump" in args)
-        app_index = next(i for i, args in enumerate(self.calls) if "--no-build" in args)
-        self.assertLess(backup_index, app_index)
-        self.assertTrue(all("down" not in args and "--volumes" not in args for args in self.calls))
-        self.assertTrue(all("--env-file" in args for args in self.calls if args[1] == "compose"))
+        self.assertEqual(target.backup.stat().st_mode & 0o777, 0o600)
+        self.assertFalse(any(a in ("reset", "clean", "down", "--volumes") for call in self.calls for a in call))
+        self.assertTrue(all("--env-file" in call for call in self.calls if call[:2] == ["docker", "compose"] and "version" not in call))
 
-    def test_failed_health_or_smoke_keeps_previous_pointer_without_claiming_rollback(self):
-        for failing in ("app readiness", "public smoke"):
-            with self.subTest(stage=failing):
-                target = self.prepared(manifest(2 if failing == "app readiness" else 3))
-                old = manifest()
-                deploy.atomic_json(target.state / "current.json", old)
-                with patch.object(target, "run", side_effect=self.fake_run(target, failing)), patch("deploy.public_smoke", side_effect=RuntimeError("Synthetic smoke failure")):
-                    with self.assertRaises(RuntimeError):
-                        target.execute()
-                self.assertEqual(deploy.read_json(target.state / "current.json"), old)
-                status = deploy.read_json(target.state / "status.json")
-                self.assertEqual(status["outcome"], "failed")
-                self.assertEqual(status["stage"], failing)
-                self.assertTrue(target.backup.exists())
+    def test_dirty_checkout_and_wrong_origin_refuse_preserving_operator_changes(self):
+        target = self.target()
+        self.execute(target)
+        note = target.checkout / "operator-note.txt"
+        note.write_text("keep this work")
+        target = self.target(self.newer, 2)
+        with self.assertRaisesRegex(ValueError, "local changes"):
+            self.execute(target)
+        self.assertEqual(note.read_text(), "keep this work")
+        note.unlink()
+        subprocess.run(["git", "-C", str(target.checkout), "remote", "set-url", "origin", "https://github.com/other/project.git"], check=True)
+        with self.assertRaisesRegex(ValueError, "origin differs"):
+            self.execute(target)
 
-    def test_backup_failure_refuses_app_start(self):
-        target = self.prepared(manifest())
-        with patch.object(target, "run", side_effect=self.fake_run(target, "pre-migration backup")):
-            with self.assertRaises(RuntimeError):
-                target.execute()
-        self.assertFalse(any("--no-build" in args for args in self.calls))
+    def test_ignored_env_in_checkout_is_retained_and_never_selected(self):
+        target = self.target()
+        self.execute(target)
+        ignored = target.checkout / ".env"
+        ignored.write_text("# dummy ignored operator content")
+        target = self.target(self.newer, 2)
+        self.execute(target)
+        self.assertEqual(ignored.read_text(), "# dummy ignored operator content")
+        self.assertEqual(target.env["PRODUCTION_ENV_FILE"], str(self.secret))
 
-    def test_host_lock_and_stale_order_refuse_mutation(self):
-        target = self.prepared(manifest())
+    def test_bootstrap_actionable_missing_env_permissions_and_nonempty_checkout(self):
+        target = self.target()
+        self.secret.unlink()
+        with self.assertRaisesRegex(ValueError, "Missing /opt/olympic/.env"):
+            target.execute()
+        self.secret.write_text("dummy")
+        self.secret.chmod(0o644)
+        with self.assertRaisesRegex(ValueError, "mode600"):
+            target.execute()
+        self.secret.chmod(0o600)
+        target.checkout.mkdir()
+        (target.checkout / "keep.txt").write_text("operator")
+        with self.assertRaisesRegex(ValueError, "nonempty"):
+            self.execute(target)
+        self.assertEqual((target.checkout / "keep.txt").read_text(), "operator")
+
+    def test_host_lock_and_stale_sequence_refuse_checkout_mutation(self):
+        target = self.target()
+        target.bootstrap()
         with (target.state / "deploy.lock").open("w") as lock:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            with self.assertRaises(BlockingIOError):
+            with self.assertRaisesRegex(ValueError, "host lock"):
                 target.execute()
         deploy.atomic_json(target.state / "latest.json", {"sequence": 2})
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "Superseded"):
             target.execute()
-        self.assertFalse((target.state / "status.json").exists())
+        self.assertFalse(target.checkout.exists())
 
-    def test_rollback_requires_consent_equal_schema_and_retains_highwater(self):
-        old = manifest()
-        target = self.prepared(old)
-        newer = manifest(2, "e" * 40)
-        self.prepared(newer)
-        deploy.atomic_json(target.state / "current.json", newer)
-        deploy.atomic_json(target.state / "latest.json", {"sequence": 2})
-        with self.assertRaises(ValueError):
-            target.execute(rollback=True)
-        newer["migrations"]["V2__new.sql"] = "f" * 64
-        (self.root / "releases" / newer["id"] / "release.json").write_text(json.dumps(newer))
-        with self.assertRaises(ValueError):
-            target.execute(rollback=True, schema_compatible=True)
-        newer["migrations"].pop("V2__new.sql")
-        (self.root / "releases" / newer["id"] / "release.json").write_text(json.dumps(newer))
-        with patch.object(target, "run", side_effect=self.fake_run(target)), patch("deploy.public_smoke", return_value={"sha": SHA}):
-            target.execute(rollback=True, schema_compatible=True)
-        self.assertEqual(deploy.read_json(target.state / "latest.json")["sequence"], 2)
+    def test_build_or_backup_failure_never_replaces_apps(self):
+        for stage in ("api server build", "web server build", "pre-migration backup"):
+            with self.subTest(stage=stage):
+                self.calls.clear()
+                target = self.target()
+                with self.assertRaises(RuntimeError):
+                    self.execute(target, failing=stage)
+                self.assertFalse(any("--no-build" in call for call in self.calls))
+                self.assertEqual(deploy.read_json(target.state / "status.json")["stage"], stage)
+        target = self.target()
+        with self.assertRaisesRegex(RuntimeError, "Empty database backup"):
+            self.execute(target, empty_backup=True)
 
-    def test_smoke_checks_identity_asset_api_and_private_actuator(self):
-        def get(path):
-            if path == "/release.json":
-                return json.dumps({"sha": SHA}).encode(), {"Cache-Control": "no-store"}
-            if path == "/":
-                return b'<div id="root"></div><script src="/assets/example.js"></script>', {}
-            if path.startswith("/assets/"):
-                return b"console.log('fixture')", {}
-            if path == "/api/v1/documents/metadata":
-                return b'{"categories":[],"subjects":[],"tags":[]}', {}
-            raise HTTPError(path, 404, "Blocked", {}, None)
-        with patch("smoke.get", side_effect=get):
-            smoke.check(SHA)
-            with self.assertRaises(ValueError):
-                smoke.check("f" * 40)
-        with patch("smoke.get", side_effect=OSError("fixture offline")), patch("smoke.time.sleep"):
+    def test_health_or_smoke_failure_keeps_previous_and_reports_unknown_running_state(self):
+        target = self.target()
+        self.execute(target)
+        old = deploy.read_json(target.state / "current.json")
+        for stage in ("app readiness", "public smoke"):
+            target = self.target(self.newer, 2)
             with self.assertRaises(RuntimeError):
-                smoke.wait(SHA)
+                self.execute(target, failing=stage if stage == "app readiness" else None,
+                             smoke_failure=stage == "public smoke")
+            self.assertEqual(deploy.read_json(target.state / "current.json"), old)
+            status = deploy.read_json(target.state / "status.json")
+            self.assertEqual(status["outcome"], "failed")
+            self.assertEqual(status["database_rollback"], "never automatic")
+            self.assertTrue(target.backup.exists())
 
-    def test_api_report_gate_rejects_skips_and_missing_reports(self):
-        reports = self.root / "reports"
+    def test_missing_or_modified_migration_refuses_app_downgrade(self):
+        target = self.target()
+        self.execute(target)
+        latest = deploy.read_json(target.state / "latest.json")
+        latest["migrations"]["V2__already_attempted.sql"] = "f" * 64
+        deploy.atomic_json(target.state / "latest.json", latest)
+        target = self.target(self.newer, 2)
+        with self.assertRaisesRegex(ValueError, "Migration history"):
+            self.execute(target)
+
+    def test_repository_and_commit_arguments_cannot_inject_commands(self):
+        for repository in ("other;cmd/project", "../project", "owner/project;touch"):
+            with self.assertRaises(ValueError):
+                deploy.repository_url(repository)
+        with self.assertRaises(ValueError):
+            deploy.Deployment(self.root, "main;cmd", 1, REPO)
+
+    def test_api_report_gate_refuses_skips_and_missing_reports(self):
+        reports = self.folder / "reports"
         reports.mkdir()
-        command = [sys.executable, str(ROOT / "deploy" / "check-test-reports.py"), str(reports)]
+        command = [sys.executable, str(ROOT / "deploy/check-test-reports.py"), str(reports)]
         self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
-        report = reports / "TEST-fixture.xml"
         for skipped in (0, 1):
-            report.write_text(f'<testsuite tests="1" failures="0" errors="0" skipped="{skipped}"/>')
+            (reports / "TEST-fixture.xml").write_text(f'<testsuite tests="1" failures="0" errors="0" skipped="{skipped}"/>')
             self.assertEqual(subprocess.run(command, capture_output=True).returncode, skipped)
 
-    def test_ssh_transport_uses_strict_known_hosts_and_never_bundles_credentials(self):
-        tools = self.root / "fake-tools"
-        tools.mkdir()
-        log = self.root / "ssh-contract.txt"
-        # All transport/key commands replaced locally; no socket or real key is used.
-        for command in ("ssh", "scp", "ssh-keygen"):
-            executable = tools / command
-            body = 'if [[ "$1" == "-F" ]]; then cat "$2" >> "$CONTRACT_LOG"; fi\n' if command != "ssh-keygen" else ""
-            executable.write_text('#!/bin/bash\nset -eu\n' + body + 'exit 0\n')
-            executable.chmod(0o700)
-        (self.root / "release.tar.gz").write_bytes(b"synthetic archive")
-        env = dict(os.environ, PATH=str(tools) + os.pathsep + os.environ["PATH"], CONTRACT_LOG=str(log),
-                   DEPLOY_HOST="fixture.example.test", DEPLOY_USER="deployer", DEPLOY_PORT="22",
-                   DEPLOY_SSH_KEY="synthetic-private-key", DEPLOY_KNOWN_HOSTS="synthetic-public-key", RELEASE_ID=manifest()["id"])
-        run = subprocess.run(["bash", str(ROOT / "deploy" / "ssh-deploy.sh")], cwd=self.root, env=env, capture_output=True)
-        self.assertEqual(run.returncode, 0)
-        self.assertNotIn(b"synthetic-private-key", run.stdout + run.stderr)
-        config = log.read_text()
-        self.assertIn("StrictHostKeyChecking yes", config)
-        self.assertIn("BatchMode yes", config)
-        self.assertIn("IdentitiesOnly yes", config)
-        for line in config.splitlines():
-            if line.strip().startswith(("IdentityFile ", "UserKnownHostsFile ")):
-                self.assertFalse(Path(shlex.split(line)[-1]).exists())
-        env["DEPLOY_HOST"] = "fixture; unsafe"
-        self.assertNotEqual(subprocess.run(["bash", str(ROOT / "deploy" / "ssh-deploy.sh")], cwd=self.root, env=env, capture_output=True).returncode, 0)
-
-    @unittest.skipUnless(shutil.which("docker"), "Docker Compose CLI unavailable")
-    def test_compose_with_synthetic_values_is_image_only_prod_and_preserves_volumes(self):
-        names = ("POSTGRES_PASSWORD", "JWT_SECRET_KEY", "ENCRYPTION_KEY", "ENCRYPTION_SALT",
-                 "OLYMPIC_ADMIN_EMAIL", "OLYMPIC_ADMIN_USERNAME", "OLYMPIC_ADMIN_PASSWORD",
-                 "CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET",
-                 "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET")
+    def test_production_compose_build_contexts_tokens_ports_and_preserved_volumes(self):
+        names = ("POSTGRES_PASSWORD", "JWT_SECRET_KEY", "ENCRYPTION_KEY", "ENCRYPTION_SALT", "OLYMPIC_ADMIN_EMAIL",
+                 "OLYMPIC_ADMIN_USERNAME", "OLYMPIC_ADMIN_PASSWORD", "CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY",
+                 "CLOUDINARY_API_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET",
+                 "MAIL_HOST", "MAIL_FROM")
         self.secret.write_text("\n".join(f"{name}=synthetic-fixture" for name in names))
-        env = dict(os.environ, API_IMAGE=manifest()["api_image"], WEB_IMAGE=manifest()["web_image"], PRODUCTION_ENV_FILE=str(self.secret))
-        result = subprocess.run(["docker", "compose", "--env-file", str(self.secret), "-f", str(ROOT / "deploy" / "compose.prod.yml"), "config", "--format", "json"], env=env, capture_output=True, check=True)
-        config = json.loads(result.stdout)  # Never print expanded config, even this fixture.
-        for service, data in config["services"].items():
-            self.assertNotIn("build", data)
-            if service in ("postgres", "redis"):
-                self.assertFalse(data.get("ports"))
-            for port in data.get("ports", []):
+        env = {k: v for k, v in os.environ.items() if k in ("PATH", "HOME", "LANG")}
+        env.update(DEPLOY_SHA=self.sha, PRODUCTION_ENV_FILE=str(self.secret))
+        r = subprocess.run(["docker", "compose", "--env-file", str(self.secret), "-f", str(ROOT / "deploy/compose.prod.yml"),
+                            "config", "--format", "json"], cwd=self.folder, env=env, capture_output=True, check=True)
+        config = json.loads(r.stdout)  # Never print expanded config, even synthetic fixtures.
+        for service, item in config["services"].items():
+            if service in ("api", "web"):
+                self.assertIn("build", item)
+                self.assertTrue(item["image"].endswith(":" + self.sha))
+                self.assertEqual(item["build"]["labels"]["org.opencontainers.image.revision"], self.sha)
+            else:
+                self.assertFalse(item.get("ports"))
+            for port in item.get("ports", []):
                 self.assertEqual(port["host_ip"], "127.0.0.1")
         self.assertEqual(config["services"]["api"]["environment"]["SPRING_PROFILES_ACTIVE"], "prod")
         self.assertEqual(config["services"]["api"]["environment"]["MAIL_PORT"], "2525")
-        self.assertEqual(config["volumes"]["postgres-data"]["name"], "olympic_platform_postgres-data")
-        self.assertEqual(config["volumes"]["redis-data"]["name"], "olympic_platform_redis-data")
-        self.assertEqual(config["volumes"]["api-storage"]["name"], "olympic_platform_api-storage")
+        self.assertEqual(config["services"]["web"]["build"]["args"]["RELEASE_SHA"], self.sha)
+        for name in ("postgres", "redis", "api-storage"):
+            key = name + "-data" if name in ("postgres", "redis") else name
+            self.assertEqual(config["volumes"][key]["name"], "olympic_platform_" + key)
+
+    def test_public_smoke_identity_api_asset_and_private_actuator(self):
+        def get(path):
+            if path == "/release.json": return json.dumps({"sha": self.sha}).encode(), {"Cache-Control": "no-store"}
+            if path == "/": return b'<div id="root"></div><script src="/assets/fixture.js"></script>', {}
+            if path.startswith("/assets/"): return b"console.log('fixture')", {}
+            if path == "/api/v1/documents/metadata": return b'{"categories":[],"subjects":[],"tags":[]}', {}
+            raise HTTPError(path, 404, "Blocked", {}, None)
+        with patch("smoke.get", side_effect=get):
+            smoke.check(self.sha)
+            with self.assertRaises(ValueError): smoke.check("b" * 40)
+        with patch("smoke.get", side_effect=OSError("fixture offline")), patch("smoke.time.sleep"):
+            with self.assertRaises(RuntimeError): smoke.wait(self.sha)
 
 
 if __name__ == "__main__":
+    os.umask(0o077)
     unittest.main()

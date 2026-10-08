@@ -9,7 +9,7 @@ import unittest
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parents[1] / "ssh-deploy.sh"
-RELEASE = "a" * 40 + "-1-1"
+SHA = "a" * 40
 
 
 @unittest.skipUnless(shutil.which("ssh") and shutil.which("ssh-keygen"), "OpenSSH CLI unavailable")
@@ -40,7 +40,9 @@ key = pathlib.Path(values["identityfile"])
 hosts = config.parent / "known_hosts"
 if subprocess.run([os.environ["REAL_KEYGEN"], "-y", "-P", "", "-f", str(key)], capture_output=True).returncode: sys.exit(255)
 body = sys.stdin.read() if name == "ssh" else ""
-if body and subprocess.run(["bash", "-n"], input=body, text=True, capture_output=True).returncode: sys.exit(2)
+if body:
+    import ast
+    ast.parse(body)
 record = {"command": name, "args": sys.argv[1:], "config": str(config), "key": str(key),
           "hosts": str(hosts), "key_mode": key.stat().st_mode & 0o777,
           "hosts_mode": hosts.stat().st_mode & 0o777, "dir_mode": config.parent.stat().st_mode & 0o777,
@@ -53,12 +55,14 @@ sys.exit(255 if os.environ.get("FAIL_STAGE") == name else 0)
             f = tools / name
             f.write_text(mock)
             f.chmod(0o700)
-        (self.root / "release.tar.gz").write_bytes(b"dummy archive")
+        (self.root / "deploy").mkdir()
+        (self.root / "deploy" / "deploy.py").write_text("# Synthetic transport fixture\n")
         self.env = {k: v for k, v in os.environ.items() if k in ("PATH", "HOME", "LANG")}
         self.env.update(PATH=str(tools) + os.pathsep + os.environ["PATH"], TMPDIR=str(self.root),
                         REAL_SSH=shutil.which("ssh"), REAL_KEYGEN=self.keygen,
                         TRANSPORT_LOG=str(self.log), DEPLOY_HOST="fixture.example.test",
-                        DEPLOY_USER="deployer", DEPLOY_PORT="2222", RELEASE_ID=RELEASE,
+                        DEPLOY_USER="deployer", DEPLOY_PORT="2222", DEPLOY_SHA=SHA, DEPLOY_SEQUENCE="3",
+                        DEPLOY_REPOSITORY="PROJECT-HUMG/olympic-learning-platform",
                         DEPLOY_SSH_KEY=self.key,
                         DEPLOY_KNOWN_HOSTS=f"[fixture.example.test]:2222 {self.public}\n")
 
@@ -88,7 +92,7 @@ sys.exit(255 if os.environ.get("FAIL_STAGE") == name else 0)
                                     DEPLOY_KNOWN_HOSTS=hosts.replace("\n", newline))
                 self.assertEqual(r.returncode, 0, r.stderr.decode())
                 records = self.records()
-                self.assertEqual([x["command"] for x in records], ["scp", "ssh"])
+                self.assertEqual([x["command"] for x in records], ["ssh"])
                 for x in records:
                     self.assertEqual(x["key_sha"], hashlib.sha256((self.key + ("\n" if final else "")).encode()).hexdigest())
                     self.assertEqual(x["hosts_sha"], hashlib.sha256((hosts + "\n").encode()).hexdigest())
@@ -99,12 +103,9 @@ sys.exit(255 if os.environ.get("FAIL_STAGE") == name else 0)
                     self.assertEqual(x["values"]["stricthostkeychecking"], "true")
                     self.assertEqual(x["values"]["batchmode"], "yes")
                     self.assertEqual(x["values"]["identitiesonly"], "yes")
-                self.assertEqual(records[0]["args"], ["-F", records[0]["config"], "release.tar.gz",
-                                                     f"production:/opt/olympic/incoming/{RELEASE}.tar.gz"])
-                self.assertEqual(records[1]["args"], ["-F", records[1]["config"], "production", f"bash -s -- '{RELEASE}'"])
-                self.assertIn('id=$1', records[1]["body"])
-                self.assertIn('root=/opt/olympic', records[1]["body"])
-                self.assertIn('timeout --signal=TERM --kill-after=30s 1500s python3', records[1]["body"])
+                self.assertEqual(records[0]["args"], ["-F", records[0]["config"], "production",
+                    f"python3 - '{SHA}' '3' 'PROJECT-HUMG/olympic-learning-platform'"])
+                self.assertEqual(records[0]["body"], "# Synthetic transport fixture\n")
                 self.assertNotIn(self.key.encode(), r.stdout + r.stderr)
                 self.assert_cleaned()
 
@@ -133,8 +134,7 @@ sys.exit(255 if os.environ.get("FAIL_STAGE") == name else 0)
                 self.assert_cleaned()
 
     def test_transport_exit_and_stage_survive_failure_without_claiming_remote_rollback(self):
-        for stage, message, count in (("scp", b"SSH release transfer", 1),
-                                      ("ssh", b"SSH remote deployment session", 2)):
+        for stage, message, count in (("ssh", b"SSH checkout/build deployment session", 1),):
             with self.subTest(stage=stage):
                 r = self.run_script(FAIL_STAGE=stage)
                 self.assertEqual(r.returncode, 255)

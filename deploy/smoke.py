@@ -5,7 +5,7 @@ import re
 import time
 from urllib.error import HTTPError
 from urllib.request import build_opener, HTTPRedirectHandler, Request
-from release import ORIGIN
+ORIGIN = "https://olympic.nghlong3004.me"
 
 
 class NoRedirect(HTTPRedirectHandler):

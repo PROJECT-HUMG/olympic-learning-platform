@@ -34,12 +34,13 @@ Web chạy tại `http://localhost:3000`, API tại `http://localhost:8080`. Vit
 ## Production delivery
 
 Pull requests and pushes to `main` run the repository-owned GitHub Actions checks.
-Successful `main` pushes build API/web images on GitHub-hosted runners, publish
-to GHCR and deploy exact digests through verified SSH. The production stack uses
-`deploy/compose.prod.yml`, explicit `prod`, persistent volumes and host HTTPS
-ingress. See the [operator runbook](docs/deployment/README.md) for Environment
-settings, release evidence, migration-aware backup/recovery and SMTP2525 checks.
-Local preparation does not establish registry/server readiness or perform a deploy.
+Successful `main` pushes SSH to the existing server, fetch the exact tested commit
+into an owned checkout and build/start API/web with production Docker Compose.
+`/opt/olympic/.env` stays outside the checkout/build contexts; explicit `prod`,
+persistent volumes, pre-migration backup and host HTTPS ingress remain in place.
+See the [operator runbook](docs/deployment/README.md) for setup reconciliation,
+readiness/smoke evidence, capacity limits and SMTP2525 checks. Server-side builds
+are not claimed to fit an unverified1GB VPS.
 
 ## Cách làm việc
 

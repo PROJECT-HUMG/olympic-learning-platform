@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
-# CI transport only. SSH secrets never enter the release archive or server env.
+# CI transport only. SSH secrets never enter Git, build contexts or server env.
 set -euo pipefail
 umask 077
 : "${DEPLOY_HOST:?}" "${DEPLOY_USER:?}" "${DEPLOY_PORT:?}"
-: "${DEPLOY_SSH_KEY:?}" "${DEPLOY_KNOWN_HOSTS:?}" "${RELEASE_ID:?}"
+: "${DEPLOY_SSH_KEY:?}" "${DEPLOY_KNOWN_HOSTS:?}" "${DEPLOY_SHA:?}" "${DEPLOY_SEQUENCE:?}" "${DEPLOY_REPOSITORY:?}"
 [[ "$DEPLOY_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]]
 [[ "$DEPLOY_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
 [[ "$DEPLOY_PORT" =~ ^[1-9][0-9]{0,4}$ ]] && (( DEPLOY_PORT <= 65535 ))
-[[ "$RELEASE_ID" =~ ^[a-f0-9]{40}-[1-9][0-9]*-[1-9][0-9]*$ ]]
-test -s release.tar.gz
+[[ "$DEPLOY_SHA" =~ ^[a-f0-9]{40}$ ]]
+[[ "$DEPLOY_SEQUENCE" =~ ^[1-9][0-9]*$ ]]
+[[ "$DEPLOY_REPOSITORY" =~ ^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$ ]]
+test -s deploy/deploy.py
 ssh_dir=$(mktemp -d)
 trap 'rm -rf "$ssh_dir"' EXIT
 # Preserve multiline/escaped content; normalize only CRLF line endings.
@@ -40,21 +42,10 @@ Host production
   ServerAliveCountMax 3
 EOF
 transport_failure() {
-  printf '::error::%s failed (exit %s). Inspect preceding SSH/SCP stderr; remote state may be unknown.\n' "$1" "$2" >&2
+  printf '::error::%s failed (exit %s). Inspect preceding SSH stderr; remote state may be unknown.\n' "$1" "$2" >&2
   exit "$2"
 }
-# Pre-existing owner-managed root and incoming directory; no provisioning here.
-scp -F "$ssh_dir/config" release.tar.gz "production:/opt/olympic/incoming/$RELEASE_ID.tar.gz" \
-  || transport_failure 'SSH release transfer' "$?"
-ssh -F "$ssh_dir/config" production "bash -s -- '$RELEASE_ID'" <<'REMOTE' \
-  || transport_failure 'SSH remote deployment session' "$?"
-set -euo pipefail
-umask 077
-id=$1
-root=/opt/olympic
-test -d "$root/shared"
-test ! -e "$root/releases/$id"
-mkdir "$root/releases/$id"
-tar --extract --gzip --file "$root/incoming/$id.tar.gz" --directory "$root/releases/$id" --no-same-owner --no-same-permissions
-timeout --signal=TERM --kill-after=30s 1500s python3 "$root/releases/$id/deploy/deploy.py" deploy "$id" --root "$root"
-REMOTE
+# Send only the tested deployment program, never archives, app data or env files.
+# It fetches the exact SHA into the owned server checkout before Compose builds.
+ssh -F "$ssh_dir/config" production "python3 - '$DEPLOY_SHA' '$DEPLOY_SEQUENCE' '$DEPLOY_REPOSITORY'" \
+  < deploy/deploy.py || transport_failure 'SSH checkout/build deployment session' "$?"
