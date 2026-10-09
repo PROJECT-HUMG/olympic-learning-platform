@@ -2350,3 +2350,245 @@ insertion. Daily mobile title CSS belongs to UI scope and is included separately
 The component reference labels uncommitted Daily behavior explicitly. Unrelated
 authentication/deployment documentation remains dirty and uncommitted. Operator
 `.env` stays ignored, untracked, unread/unprinted and excluded from all artifacts.
+
+
+## Cross-file shared ownership source audit (09/10/2026)
+
+Completed source inventory at local UI HEAD
+`bd47c5b6bed35ce64900e39a5e5eea8c90e60c5b`. All42 page entry files, router/lazy
+wrappers and supporting frontend ownership were traced;372 TS/TSX/CSS files
+scanned. Definition/import/JSX evidence distinguishes composed reuse, primitive
+reuse, CSS-only patterns and intentional domain ownership. The discoverable
+[component reference](../architecture/web-ui-components.md) links the
+[full reuse inventory](../architecture/web-ui-reuse-audit.md), with42-entry ledger,
+exact sites/counts, inactive legacy consumers and bounded consolidation remedies.
+Two uses invite inspection; no extraction is mandated solely by repetition.
+
+Verified shared adoption: SearchInput9 files; PageHeader29; PageSection12;
+NativeSelect14; external Radix Select3; Dialog17; ListFeedback2 directly plus
+EmptyState adapter/four consumers. AppPagination9 source files includes1 inactive
+legacy consumer; Card9 includes2, Badge11 includes2, DropdownMenu4 includes1.
+Floating FormField10 and RHF FormField2 are separate owners. Toolbars (5 files)
+and shells (31) reuse CSS, not a universal React composition. Corrected reference
+claims: Home reuses PostBadge but has local HomeNewsItem, not PostListItem;
+SocialLoginButtons currently has no mounted source consumer.
+
+Findings for a bounded follow-up, not implementation acceptance: two POST image
+pickers repeat validation/upload and use click-only div activation (source-level
+keyboard concern); three compact management error panels; two management row/
+action and range-summary copies; two identical Daily explicit-instant validators.
+Room input CSS, identity fallback, URL mutation and blob-download mechanics have
+smaller opportunities. Different query/permission precedence, private figure/
+evidence authority, units/absence semantics, hero/reader/auth headings, calendar,
+native group modal and persistent room player remain intentional local contracts.
+No generic page/query/editor framework or automatic owner conversion is proposed.
+
+Documentation-only outcome; runtime source, queries/drafts/auth/Turnstile/room
+behavior unchanged. No test suite or rendered probe rerun: current evidence is
+source/AST/import/definition inspection plus document-link/diff checks, not new
+all-screen usability or live backend proof. Previously passing/interrupted probes
+retain their separate historical status; dedicated reduced-motion proof remains
+omitted/unverified. Pending accepted Daily source/test hashes and the existing
+Daily status insertion are preserved; Daily recovery is still outside the UI
+commit. Existing status content is retained verbatim before this appended section.
+Unrelated authentication/deployment docs and operator env boundaries are preserved.
+No staging, commit, push/deployment, runtime or peer dispatch for this audit.
+
+
+## Three-cluster reuse implementation accepted (09/10/2026)
+
+Lead **ACCEPTS** the bounded uncommitted18-path candidate on
+`bd47c5b6bed35ce64900e39a5e5eea8c90e60c5b`. No delegation, dependencies,
+staging/commit/push/deploy. Complete paths/hashes and task-only incremental patch
+are in `/tmp/ui-three-cluster-final-manifest-20261009.json`; entry snapshots are
+`/tmp/ui-three-cluster-entry-20261009.json`. This extends the dirty documentation
+supplement with new hashes; earlier manifests still identify their original bytes.
+
+Resolved3 of13 audit clusters (other10 deferred):
+
+- POST-owned validatePostImage is consumed by PostImageUpload and the RichTextEditor
+  image dialog. Existing image-MIME/inclusive5MiB policy and storageService POST
+  upload remain; native Button now owns Enter/Space. Input reset enables same-file
+  validation/failure retry, per-picker in-flight/native disabled/busy gates prevent
+  duplicates. Thumbnail remains asset-ID/preview/removal; editor remains URL
+  insertion/Dialog close and preserves draft. Preview controls are labelled,
+  keyboard-visible/44px and visible below640px. No upload framework/private-media
+  policy merge.
+- One Daily explicitInstant regex/parser beside platform-calendar serves both plan
+  and evidence consumers (2 files/3 calls). Genuine date, explicit zone, time ranges,
+  fraction/offset spelling and nullable plan semantics stay unchanged. Full DTO
+  validators and private/evidence/editor/autosync rules remain separate.
+- Presentation-only RetryFeedback beside ListFeedback serves document management,
+  post management and Question Bank (3 routed files/3 sites). Exact compact alert
+  styling retained; loading/error/cache precedence, refetch callbacks, isFetching
+  disablement and query/URL rules stay feature-owned.
+
+Meaningful evidence:
+
+- `node --test --test-isolation=none tests/*.test.ts`:172 passed,0 failed/skipped,
+  including new POST MIME/size boundary/error-precedence regression and malformed
+  dates/missing zones/invalid ranges/offset equivalence through both DTO consumers.
+- `pnpm build`:TypeScript/Vite passed; existing large-chunk advisory remains.
+  `pnpm lint`:passed with existing warnings (no new fixture warning).
+- Owned `tests/ui-three-cluster-browser-check.mjs` mounts real pickers and all3
+  management consumers with fully intercepted synthetic API/storage. Before:
+  `/tmp/three-cluster-before-2wd7dp/results.json` (12 checks). Final after:
+  `/tmp/three-cluster-after-MeSFjc/results.json` (15 checks,0 uncaught exceptions).
+  Screenshots in those directories cover1440×900,768×900 and320×568/light-dark.
+  Native Enter/Space emits real file-chooser events for both pickers; invalid MIME/
+  oversize sends no upload, failure retains retry, pending blocks duplicate requests,
+  only confirmed success supplies ID versus URL, editor text stays. Modal Tab/Escape
+  and return to the image trigger pass. All9 retry panel/text classes and44px button
+  heights match before; first-error retry returns to loading without cache, cached
+  error retains disabled retry; single callback and unchanged filters recover to empty.
+- Earlier failed probes remain separate: `before-Oxv3Ss` assumed cached-error UI
+  during an initial no-data retry (corrected harness expectation, no query change);
+  `after-C3GfAv` omitted CDP Enter text (corrected driver); `after-nsmy9V` exposed
+  real image-dialog Escape focus loss. Existing controlled image Dialog was wired
+  to its actual button through installed DialogTrigger; final return proof passes.
+  Baseline duplicate Tiptap extension warning remains; intentional synthetic upload
+  failures log the existing error feedback and are not unexpected runtime exceptions.
+
+Owned Vite/Chromium stopped; temporary browser profiles removed. Fixtures are
+clearly synthetic, external/API traffic blocked and env loading disabled. No live
+backend/storage/auth/permissions/physical-device/all-screen proof; dedicated reduced-
+motion validation omitted/unverified. Source review and existing full regressions
+cover continuity without claiming new live Daily autosync/persistence proof.
+
+Preservation: all6 pending Daily source/test/probe paths retain exact entry/accepted
+hashes; the seventh shared status path retains its entire entry prefix, with this
+section appended. Separate plan/evidence parser files are the only new Daily edits.
+Authentication/deployment docs and platform-calendar are untouched. Previous audit/
+reference content is updated only for implemented owners/adoption/dispositions;
+operator env is ignored, unread/unprinted/untracked and excluded from snapshots,
+patches/build context/probes. HEAD unchanged/index empty; unrelated work remains.
+
+## Post-consolidation shared-ownership residual audit (09/10/2026)
+
+Lead disposition: **ACCEPT the bounded source inventory/documentation supplement**
+against three-cluster candidate `3de13873de64945dfa00b8d58a70d6c536fb797cd1af3e1e38482c69e30220d6`
+on HEAD `bd47c5b6bed35ce64900e39a5e5eea8c90e60c5b`. No runtime changes or new
+implementation acceptance is implied. All18 candidate paths and9 preservation
+entries matched at audit entry. Only component reference, reuse audit and this
+status document change; historical manifests remain historical.
+
+Fresh full-source discovery covers375 TS/TSX/CSS files (223/122/30), including
+all42 TSX page entries and supporting frontend/router/layout files. Actual imports,
+JSX sites, repeated bodies/regex/classes and CSS property sets were checked; candidate
+repetitions were inspected for behavioral equivalence. The existing42-entry ledger
+and shared-owner counts remain current, including RetryFeedback3 files/3 sites.
+This is source coverage, not all-screen rendered or line-by-line manual proof.
+
+Confirmed sole owners/intended consumers: validatePostImage2 files/2 calls;
+explicitInstant2 files/3 calls; RetryFeedback3 routed files/3 sites. No equivalent
+shadow copy remains in those clusters. Feature completion/query/DTO authority and
+different upload policies remain local. Groups' looser timestamp check is a separate
+source-level contract concern, not a strict-parser shadow or observed live defect.
+
+Residual disposition: **retain as findings, no refactor authorized here**. Highest
+value is one pure set/delete/reset-page helper beside list-navigation (3 equivalent
+implementations/4 screen compositions, correcting the earlier Recognition-only
+count), then Toolkit decimal parsing (2 equivalent helpers/2 panels on one route).
+Daily reflection field has2 identical definitions/7 uses; a small presentation owner
+could prevent label/limit drift but would overlap pending Daily recovery. Management
+rows/footers and cached-refresh strips are lower-value presentation repetitions.
+Solid-danger classes repeat in4 files including conditional Daily confirmation;
+UUID format repeats in7 files with different adapters. Room inputs, blob downloads,
+identity, feedback/private gates, chips and skeletons retain purposeful differences.
+No universal shell/form/query/upload/confirmation framework is recommended. Exact
+sites/counts/owners/remedies are discoverable in
+[the residual inventory](../architecture/web-ui-reuse-audit.md#post-consolidation-residual-sweep)
+and [component reference](../architecture/web-ui-components.md#follow-up-dispositions-and-remaining-opportunities).
+
+Evidence: `/tmp/ui-residual-source-sweep-20261009.json`,
+`/tmp/ui-residual-css-discovery-20261009.json`; entry documentation bytes in
+`/tmp/ui-residual-audit-entry-20261009.json`. Supplemental final hashes and doc-only
+incremental patch: `/tmp/ui-residual-audit-final-manifest-20261009.json`.
+Validation is relative source/doc link and anchor bounds,42-page ledger equality,
+doc whitespace, and source/candidate/preservation hash reconciliation. Prior172
+regressions/build/lint and15 rendered checks are reused for unchanged runtime;
+none rerun, no probes/services/external actions started for this source-only audit.
+No new defects/live/all-screen/assistive-technology proof or dedicated reduced-motion
+validation is claimed.
+
+Preservation: all15 non-document candidate paths and all9 preservation entries
+remain exact. The shared status retains its entire entry prefix, including pending
+Daily evidence; all6 pending Daily source/test/probe files stay untouched. Design
+authority web-ui.md, authentication/deployment docs and operator env are untouched.
+Env values were not read/printed/hashed/copied. HEAD unchanged, index empty;
+no staging/commit/push/deploy. Original18-path manifest is not rewritten; the3-doc
+supplement accounts explicitly for authorized documentation hash drift.
+
+## Completed reuse consolidation — accepted scoped local commit (09/10/2026)
+
+Lead directly implemented and **ACCEPTS** the integrated reuse scope on verified
+HEAD `bd47c5b6bed35ce64900e39a5e5eea8c90e60c5b`. Includes previously accepted
+18-path three-cluster candidate `3de13873de64945dfa00b8d58a70d6c536fb797cd1af3e1e38482c69e30220d6`
+and its source-audit/doc supplements, plus all eight equivalent residual clusters.
+No delegation. No dependency, API/auth/Turnstile, resource/deploy or business-policy
+change; no push/deploy. Existing historical manifests are not rewritten.
+
+Current owners: replaceListParam3 files/3 calls/4 screen compositions;
+parseToolkitDecimal2 files/6 calls/2 GPA panels; DailyReflectionField2 files/7 sites;
+ManagementListRow and ManagementRowActions2 files/2 sites each; PaginationFooter2/2;
+InlineRetryFeedback2/2; existing Button destructive-solid4 files/4 sites;
+hasUuidFormat7 files/7 calls. All intended imports/calls are migrated, equivalent
+shadow definitions absent. Prior POST validation2, strict instant2/3 and
+RetryFeedback3/3 remain adopted. Full-source discovery now covers381 source files
+(227 TSX,124 TS,30 CSS) and all42 page entries. Exact sites/API/boundaries and
+regenerated primitive call index: [reuse reference](../architecture/web-ui-reuse-audit.md#completed-residual-consolidation-09102026).
+Room inputs/downloads/identity/private gates/chips/native dialogs retain intentional
+contracts. Small local sync/navigation/page-clamp adapters stay beside their gates;
+Groups' looser timestamp policy is not silently tightened.
+
+Actual checks:
+
+- Full working-tree Node suite:175 passed,0 failed/skipped, including new immutable
+  URL/reset/typed-adapter, both GPA syntax/credit-rule and UUID-wrapper regressions.
+  Existing private evidence/figure, Daily sync, auth/Turnstile/room regressions pass.
+- TypeScript `pnpm exec tsc -b` and Vite production build with `envDir:false` passed
+  (same build phases as app build; no env loading). Existing large-chunk advisory.
+  `pnpm lint` passed with existing warnings; no new fixture/refactor warning.
+- Expanded owned Chromium probe `/tmp/three-cluster-after-or0mBm/results.json`:
+  18 checks,0 uncaught exceptions,1440×900/768×900/320×568 light/dark. Retains prior
+  picker Enter/Space, MIME/size/no-request, failure/retry, pending gates, distinct
+  ID/URL completion, image-dialog focus and all3 compact retry precedence checks.
+  Adds associated4000-char reflection with raw draft/node/focus continuity; actual
+  document/post list keyboard edit/delete closures and44px buttons; cached-warning
+  loading disables retry; final-page range; solid confirmation Escape/focus return.
+  Screenshots include shared-owners-{1440,768,320}.png. Synthetic API/storage only,
+  all external traffic intercepted. Owned Vite/Chromium stopped, profiles removed.
+  Expected synthetic upload errors and pre-existing Tiptap duplicate-extension
+  warning remain separate from unexpected runtime failures.
+- Import/callsite/no-shadow checks, source/doc link/anchor bounds and staged
+  whitespace/scope/secret-exclusion checks accompany the final manifest.
+
+Pending Daily boundary: group-controls, plan-editor validation helper, sync status,
+auto-sync regression and recovery probe remain untouched. Day editor has only the
+reflection import/component substitution staged from HEAD; its accepted invalid
+row/error/focus recovery hunks remain dirty. Shared status stages only reuse audit/
+implementation records, excluding the earlier Daily-recovery section. The seven
+pending Daily paths are preserved with exact snapshots plus overlap patch accounting.
+Authentication/deployment docs and operator configuration remain unrelated/uncommitted.
+Root env remains ignored/untracked and unread/unprinted/unhashed/uncopied.
+
+Exact accepted index paths/hashes, full working hashes and incremental/recovery
+patches: `/tmp/ui-reuse-complete-final-manifest-20261009.json`. Entry bytes:
+`/tmp/ui-reuse-complete-entry-20261009.json`; source discovery:
+`/tmp/ui-reuse-complete-source-20261009.json`. Local commit is authorized for reuse
+scope only. Full-suite/rendered checks include pending accepted Daily fixes; staged
+contract checks separately exclude those fixes. No new live backend/authorization,
+all-screen, physical device, AT speech or dedicated reduced-motion validation.
+Existing before/after evidence remains valid only for its recorded snapshots.
+
+Historical temporary screenshot links from older tasks may no longer exist in
+this workspace; they were not relabelled as fresh proof. Current18-check evidence
+is present. Repository links/added anchors are verified separately from those
+historical temporary artifacts.
+
+Isolated staged source snapshot contract check:63 passed,0 failed/skipped across
+11 targeted test files, including all moved lexical/URL/GPA/plan/evidence/figure
+contracts, without pending Daily recovery. Log:
+`/tmp/ui-reuse-index-contract-check-20261009.log`. Current source links and primitive
+call-site index use staged/committed Daily line offsets; working-tree overlaps
+are separately accounted. Temporary index snapshot is cleaned after verification.

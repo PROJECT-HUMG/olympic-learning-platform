@@ -1,3 +1,4 @@
+import { DailyReflectionField } from "../ui/daily-reflection-field";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
@@ -16,7 +17,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageSection } from "@/components/ui/page-section";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DailyDialogHeader } from "../ui/daily-dialog-header";
 import { ROUTES } from "@/router/route-constants";
@@ -243,9 +243,9 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
                   {form.tasks.length ? <ul tabIndex={0} aria-label="Công việc trong bản đang nhập">{form.tasks.map(task => <li key={task.key}><span className="daily-reflection-context__status" data-complete={task.status === "COMPLETED"}>{task.status === "COMPLETED" ? "Đã xong" : "Chưa làm"}</span><span>{task.title || "Việc chưa đặt tên"}</span></li>)}</ul> : <p className="study-note">Ngày này chưa có việc. Bạn vẫn có thể ghi lại điều đã học.</p>}
                 </aside>
                 <fieldset disabled={editingLocked} className="daily-reflection-fields">
-                  <ReviewField id="daily-reasons" label="Vì sao chưa xong" value={form.reviewReasons} onChange={(value) => edit((current) => ({ ...current, reviewReasons: value }))} />
-                  <ReviewField id="daily-well" label="Việc đã ổn" value={form.reviewWentWell} onChange={(value) => edit((current) => ({ ...current, reviewWentWell: value }))} />
-                  <ReviewField id="daily-tomorrow" label="Ngày mai" value={form.reviewTomorrow} onChange={(value) => edit((current) => ({ ...current, reviewTomorrow: value }))} />
+                  <DailyReflectionField id="daily-reasons" label="Vì sao chưa xong" value={form.reviewReasons} onChange={(value) => edit((current) => ({ ...current, reviewReasons: value }))} />
+                  <DailyReflectionField id="daily-well" label="Việc đã ổn" value={form.reviewWentWell} onChange={(value) => edit((current) => ({ ...current, reviewWentWell: value }))} />
+                  <DailyReflectionField id="daily-tomorrow" label="Ngày mai" value={form.reviewTomorrow} onChange={(value) => edit((current) => ({ ...current, reviewTomorrow: value }))} />
                 </fieldset>
               </div>
               <div className="daily-dialog-actions">{syncStatus}<p className="study-note">Tự động lưu công việc và nhìn lại, không nộp hay bật chia sẻ. Đóng vẫn tiếp tục đồng bộ.</p></div>
@@ -440,8 +440,4 @@ function TaskRow({ task, index, last, disabled, onChange, onMove, onRemove, chil
     </div>
     </div>;
   return <li ref={row} className="study-task study-task--editable" data-complete={isComplete}>{children(header)}</li>;
-}
-
-function ReviewField({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (value: string) => void }) {
-  return <div className="study-review-field space-y-2"><Label htmlFor={id}>{label}</Label><Textarea id={id} value={value} maxLength={4000} onChange={(event) => onChange(event.target.value)} /></div>;
 }

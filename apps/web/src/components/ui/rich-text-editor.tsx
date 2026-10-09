@@ -1,12 +1,13 @@
-import { useState, useRef, useId } from "react";
+import { useState, useRef, useId, type ReactNode } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { storageService } from "@/features/documents/services/storage.service";
 import { toast } from "sonner";
+import { validatePostImage } from "@/features/post/lib/post-image-validation.ts";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
@@ -41,32 +42,37 @@ interface RichTextEditorProps {
 }
 
 interface ImageInsertDialogProps {
+  children: ReactNode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onInsert: (url: string) => void;
 }
 
-function ImageInsertDialog({ open, onOpenChange, onInsert }: ImageInsertDialogProps) {
+function ImageInsertDialog({ children, open, onOpenChange, onInsert }: ImageInsertDialogProps) {
   const [tab, setTab] = useState("upload");
   const [urlInput, setUrlInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadInFlight = useRef(false);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    event.target.value = ""; // Permit choosing the same file after validation/failure.
+    if (!file || uploadInFlight.current) return;
+    const issue = validatePostImage(file);
 
-    if (!file.type.startsWith("image/")) {
+    if (issue === "type") {
       toast.error("Định dạng không hợp lệ", { description: "Vui lòng chọn tệp hình ảnh." });
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (issue === "size") {
       toast.error("Tệp quá lớn", { description: "Kích thước ảnh tối đa là 5MB." });
       return;
     }
 
+    uploadInFlight.current = true;
     try {
       setIsUploading(true);
       setProgress(0);
@@ -85,6 +91,7 @@ function ImageInsertDialog({ open, onOpenChange, onInsert }: ImageInsertDialogPr
       console.error("Upload failed", error);
       toast.error("Tải lên thất bại", { description: "Đã có lỗi xảy ra. Vui lòng thử lại." });
     } finally {
+      uploadInFlight.current = false;
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
@@ -100,6 +107,7 @@ function ImageInsertDialog({ open, onOpenChange, onInsert }: ImageInsertDialogPr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Chèn hình ảnh</DialogTitle>
@@ -112,36 +120,32 @@ function ImageInsertDialog({ open, onOpenChange, onInsert }: ImageInsertDialogPr
           
           <TabsContent value="upload" className="mt-4">
             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
-            <div 
-              onClick={() => !isUploading && fileInputRef.current?.click()}
-              className={`relative flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg border-muted-foreground/25 cursor-pointer hover:bg-muted/50 hover:border-primary/50 transition-colors ${isUploading ? 'pointer-events-none bg-muted/30' : ''}`}
-            >
-              {isUploading ? (
-                <div className="w-full space-y-4 px-4">
-                  <div className="flex justify-center">
-                    <div className="p-3 bg-primary/10 rounded-full">
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                    </div>
-                  </div>
-                  <div className="w-full space-y-2">
-                    <div className="flex justify-between text-xs text-muted-foreground font-medium">
-                      <span>Đang tải lên...</span>
-                      <span>{progress}%</span>
-                    </div>
-                    <Progress value={progress} className="h-2 w-full" />
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="p-4 bg-primary/5 text-primary/70 rounded-full mb-3">
-                    <UploadCloud className="w-8 h-8" />
-                  </div>
-                  <p className="text-sm font-medium">Nhấn để chọn ảnh</p>
-                  <p className="text-xs text-muted-foreground mt-1 text-center">
-                    Hỗ trợ JPEG, PNG (Tối đa 5MB)
-                  </p>
-                </>
-              )}
+            <div className="relative">
+              <Button
+                type="button"
+                variant="ghost"
+                aria-label="Chọn ảnh chèn vào bài viết"
+                aria-busy={isUploading}
+                disabled={isUploading}
+                onClick={() => !uploadInFlight.current && fileInputRef.current?.click()}
+                className="h-auto min-h-44 w-full flex-col gap-0 whitespace-normal rounded-lg border-2 border-dashed border-muted-foreground/25 p-8 hover:border-primary/50 hover:bg-muted/50"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 aria-hidden="true" className="mb-3 size-6 animate-spin text-primary" />
+                    <span className="text-sm">Đang tải lên… {progress}%</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="mb-3 rounded-full bg-primary/5 p-4 text-primary/70">
+                      <UploadCloud aria-hidden="true" className="size-8" />
+                    </span>
+                    <span className="text-sm font-medium">Nhấn để chọn ảnh</span>
+                    <span className="mt-1 text-center text-xs font-normal text-muted-foreground">Hỗ trợ JPEG, PNG (Tối đa 5MB)</span>
+                  </>
+                )}
+              </Button>
+              {isUploading && <Progress aria-label="Tiến trình tải ảnh" value={progress} className="absolute inset-x-8 bottom-6 h-2 w-auto" />}
             </div>
           </TabsContent>
           
@@ -216,10 +220,6 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       return;
     }
     setLinkDialogOpen(false);
-  };
-
-  const addImage = () => {
-    setImageDialogOpen(true);
   };
 
   return (
@@ -395,16 +395,22 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         >
           <LinkIcon className="h-4 w-4" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-foreground"
-          onClick={addImage}
-          type="button"
-          title="Chèn Hình Ảnh"
+        <ImageInsertDialog
+          open={isImageDialogOpen}
+          onOpenChange={setImageDialogOpen}
+          onInsert={(url) => editor.chain().focus().setImage({ src: url }).run()}
         >
-          <ImageIcon className="h-4 w-4" />
-        </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            type="button"
+            title="Chèn Hình Ảnh"
+            aria-label="Chèn hình ảnh"
+          >
+            <ImageIcon aria-hidden="true" className="h-4 w-4" />
+          </Button>
+        </ImageInsertDialog>
       </div>
 
       <div className="w-px h-5 bg-border flex-shrink-0" />
@@ -435,11 +441,6 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         </Button>
       </div>
 
-      <ImageInsertDialog 
-        open={isImageDialogOpen} 
-        onOpenChange={setImageDialogOpen} 
-        onInsert={(url) => editor.chain().focus().setImage({ src: url }).run()} 
-      />
       <Dialog open={isLinkDialogOpen} onOpenChange={setLinkDialogOpen}>
         <DialogContent onCloseAutoFocus={(event) => {
           event.preventDefault();

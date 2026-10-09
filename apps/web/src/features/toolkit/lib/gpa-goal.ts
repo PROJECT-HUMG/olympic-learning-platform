@@ -1,3 +1,5 @@
+import { parseToolkitDecimal } from "./decimal.ts";
+
 export interface GpaGoalInput {
   currentGpa: string;
   completedCredits: string;
@@ -14,21 +16,16 @@ export function restoreGpaGoal(value: unknown): GpaGoalInput {
     remainingCredits: saved.remainingCredits as string, targetGpa: saved.targetGpa as string };
 }
 
-function number(value: string): number | null {
-  if (!/^(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(value.trim())) return null;
-  const parsed = Number(value.trim().replace(",", "."));
-  return Number.isFinite(parsed) ? parsed : null;
-}
 
 export function calculateGpaGoal(input: GpaGoalInput, scale: 4 | 10) {
   const errors: Partial<Record<keyof GpaGoalInput, string>> = {};
   const result = { requiredAverage: null as number | null, maximumGpa: null as number | null, errors,
     status: "empty" as "empty" | "invalid" | "achievable" | "achieved" | "unreachable" };
   if (Object.values(input).every((value) => !value.trim())) return result;
-  const current = number(input.currentGpa);
-  const completed = number(input.completedCredits);
-  const remaining = number(input.remainingCredits);
-  const target = number(input.targetGpa);
+  const current = parseToolkitDecimal(input.currentGpa);
+  const completed = parseToolkitDecimal(input.completedCredits);
+  const remaining = parseToolkitDecimal(input.remainingCredits);
+  const target = parseToolkitDecimal(input.targetGpa);
   if (current === null || current > scale) errors.currentGpa = `Nhập GPA từ 0 đến ${scale}.`;
   if (target === null || target > scale) errors.targetGpa = `Nhập GPA mục tiêu từ 0 đến ${scale}.`;
   if (completed === null) errors.completedCredits = "Nhập số tín chỉ đã học từ 0 trở lên.";

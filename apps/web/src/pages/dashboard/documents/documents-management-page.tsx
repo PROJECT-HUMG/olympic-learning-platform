@@ -1,3 +1,5 @@
+import { PaginationFooter } from "@/components/ui/pagination-footer";
+import { RetryFeedback } from "@/components/ui/retry-feedback";
 import { SearchInput } from "@/components/ui/search-input";
 import { PageHeader } from "@/components/ui/page-header";
 import { useState, useEffect } from "react";
@@ -144,21 +146,14 @@ export default function DocumentsManagementPage() {
           Đang tải tài liệu…
         </div>
       ) : isError ? (
-        <div
-          role="alert"
-          className="space-y-3 rounded-xl border border-border p-6 text-center"
-        >
-          <p className="text-sm text-muted-foreground">
-            Không thể tải danh sách tài liệu.
-          </p>
-          <Button
-            variant="outline"
-            disabled={isFetching}
-            onClick={() => void refetch()}
-          >
-            Thử lại
-          </Button>
-        </div>
+        <RetryFeedback
+          message="Không thể tải danh sách tài liệu."
+          actions={
+            <Button type="button" variant="outline" disabled={isFetching} onClick={() => void refetch()}>
+              Thử lại
+            </Button>
+          }
+        />
       ) : (
         <DashboardDocumentList
           data={pageData?.content || []}
@@ -169,31 +164,13 @@ export default function DocumentsManagementPage() {
 
       {/* Pagination */}
       {pageData && pageData.totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
-          <p className="text-sm text-muted-foreground">
-            Hiển thị{" "}
-            <span className="font-medium">
-              {apiPageOffset * pageData.size + 1}
-            </span>{" "}
-            đến{" "}
-            <span className="font-medium">
-              {Math.min(
-                (apiPageOffset + 1) * pageData.size,
-                pageData.totalElements,
-              )}
-            </span>{" "}
-            trong tổng số{" "}
-            <span className="font-medium">{pageData.totalElements}</span> tài
-            liệu
-          </p>
-          <div className="overflow-x-auto max-w-full">
+        <PaginationFooter pageOffset={apiPageOffset} size={pageData.size} total={pageData.totalElements} itemLabel="tài liệu">
             <AppPagination
               currentPage={currentPage}
               totalPages={pageData.totalPages}
               onPageChange={setCurrentPage}
             />
-          </div>
-        </div>
+        </PaginationFooter>
       )}
 
       {/* Delete Confirmation Dialog */}
@@ -222,7 +199,7 @@ export default function DocumentsManagementPage() {
                 handleDeleteConfirm();
               }}
               disabled={deleteDocument.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive-solid"
             >
               {deleteDocument.isPending ? "Đang xóa..." : "Xóa tài liệu"}
             </AlertDialogAction>

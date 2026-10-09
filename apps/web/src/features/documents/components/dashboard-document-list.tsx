@@ -1,7 +1,7 @@
 import { EmptyState } from "@/components/ui/empty-state";
 import type { DocumentResponse } from "@/features/documents/types/documents.types";
-import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, FileText, Calendar, Eye, Download } from "lucide-react";
+import { ManagementListRow, ManagementRowActions } from "@/components/ui/management-list-row";
+import { FileText, Calendar, Eye, Download } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Link } from "react-router-dom";
@@ -28,10 +28,7 @@ export function DashboardDocumentList({ data, onDeleteClick, onEditClick }: Dash
         });
 
         return (
-          <div 
-            key={doc.id} 
-            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border border-border/50 rounded-xl bg-card hover:bg-accent/20 transition-colors"
-          >
+          <ManagementListRow key={doc.id} actions={<ManagementRowActions onEdit={() => onEditClick(doc)} onDelete={() => onDeleteClick(doc)} />}>
             <div className="flex items-start gap-4 flex-1 min-w-0 w-full sm:w-auto">
               <div className="shrink-0 pt-1 w-12 h-16 flex items-center justify-center bg-muted/30 rounded border border-border/50 overflow-hidden">
                 {doc.thumbnailUrl ? (
@@ -86,27 +83,7 @@ export function DashboardDocumentList({ data, onDeleteClick, onEditClick }: Dash
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center mt-2 sm:mt-0">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => onEditClick(doc)}
-                className="min-h-11 text-xs"
-              >
-                <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                Sửa
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => onDeleteClick(doc)}
-                className="min-h-11 text-xs text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30"
-              >
-                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                Xóa
-              </Button>
-            </div>
-          </div>
+          </ManagementListRow>
         );
       })}
     </div>

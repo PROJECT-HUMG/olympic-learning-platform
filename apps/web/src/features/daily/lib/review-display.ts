@@ -1,3 +1,4 @@
+import { hasUuidFormat } from "../../../lib/uuid.ts";
 import type { CountRate, TaskPriority, TaskStatus } from "./completion-figures.ts";
 import type { SubmitTiming } from "./platform-calendar.ts";
 
@@ -21,7 +22,6 @@ export const SUBMIT_TIMING_LABEL: Record<SubmitTiming, string> = {
 
 export const NOT_APPLICABLE_LABEL = "Không áp dụng";
 
-const AUTHOR_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface FeedbackEntry {
   authorId: string;
@@ -59,7 +59,7 @@ export function feedbackContributors(entries: readonly FeedbackEntry[], reviewId
   const byAuthor = new Map<string, FeedbackContributor>();
   for (const entry of entries) {
     if (entry.reviewId !== reviewId || entry.groupId !== groupId) continue;
-    if (!AUTHOR_ID.test(entry.authorId) || entry.authorName.trim() === "" || entry.text.trim().length === 0) continue;
+    if (!hasUuidFormat(entry.authorId) || entry.authorName.trim() === "" || entry.text.trim().length === 0) continue;
     byAuthor.set(entry.authorId, { authorId: entry.authorId, authorName: entry.authorName, text: entry.text });
   }
   const contributors = [...byAuthor.values()];

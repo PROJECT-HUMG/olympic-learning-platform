@@ -1,3 +1,4 @@
+import { InlineRetryFeedback } from "@/components/ui/inline-retry-feedback";
 import { Link } from "react-router-dom";
 import { useUserProfile } from "@/features/user/hooks/use-user-profile";
 import { AvatarUploadCard } from "@/features/user/components/avatar-upload-card";
@@ -38,12 +39,7 @@ export default function ProfilePage() {
         }
       />
       {hasSameSessionRefreshError ? (
-        <div
-          role="alert"
-          className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive"
-        >
-          <span>Chưa thể cập nhật thông tin tài khoản mới nhất.</span>
-          <Button
+        <InlineRetryFeedback message="Chưa thể cập nhật thông tin tài khoản mới nhất." actions={<Button
             type="button"
             variant="outline"
             size="sm"
@@ -52,8 +48,7 @@ export default function ProfilePage() {
             onClick={() => void refetch()}
           >
             Thử lại
-          </Button>
-        </div>
+          </Button>} />
       ) : null}
       {isLoading ? (
         <div className="profile-layout" role="status" aria-label="Đang tải hồ sơ" aria-busy="true">

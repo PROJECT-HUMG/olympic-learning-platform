@@ -1,8 +1,8 @@
+import { hasUuidFormat } from "../../../lib/uuid.ts";
 import { parseApiError } from "../../../lib/api-error.ts";
 import type { AvatarCrop } from "../../user/types/user.types";
 export const GROUP_CONTRACT = "Dữ liệu nhóm không đúng hợp đồng.";
-const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-export function groupId(value: unknown): value is string { return typeof value === "string" && ID.test(value); }
+export function groupId(value: unknown): value is string { return typeof value === "string" && hasUuidFormat(value); }
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
 const text = (v: unknown): v is string => typeof v === "string" && !!v.trim();
 const count = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v >= 0;

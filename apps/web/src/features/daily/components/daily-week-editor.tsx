@@ -1,10 +1,9 @@
+import { DailyReflectionField } from "../ui/daily-reflection-field";
 import { useDailyConfirm } from "../ui/use-daily-confirm";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
-import { Textarea } from "@/components/ui/textarea";
 import { ROUTES } from "@/router/route-constants";
 import { DailyAccountWarning } from "./daily-account-gate";
 import { useDailyEditorSession, useDailyDraftLeave } from "../hooks/use-daily-editor";
@@ -151,10 +150,10 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
     <form id="daily-week-form" className="study-work-surface" onSubmit={(event) => { event.preventDefault(); }}>
       <fieldset disabled={editingLocked} className="m-0 min-w-0 border-0 p-0">
         <StudyDisclosure id="week-review" title="Nhìn lại tuần" defaultOpen>
-          <WeekField id="week-unfinished" label="Việc còn dở" value={form.recurringUnfinished} onChange={(value) => edit((current) => ({ ...current, recurringUnfinished: value }))} />
-          <WeekField id="week-issues" label="Vấn đề lặp lại" value={form.issues} onChange={(value) => edit((current) => ({ ...current, issues: value }))} />
-          <WeekField id="week-reflection" label="Nhìn lại" value={form.reflection} onChange={(value) => edit((current) => ({ ...current, reflection: value }))} />
-          <WeekField id="week-next" label="Tuần sau" value={form.nextWeekChanges} onChange={(value) => edit((current) => ({ ...current, nextWeekChanges: value }))} />
+          <DailyReflectionField id="week-unfinished" label="Việc còn dở" value={form.recurringUnfinished} onChange={(value) => edit((current) => ({ ...current, recurringUnfinished: value }))} />
+          <DailyReflectionField id="week-issues" label="Vấn đề lặp lại" value={form.issues} onChange={(value) => edit((current) => ({ ...current, issues: value }))} />
+          <DailyReflectionField id="week-reflection" label="Nhìn lại" value={form.reflection} onChange={(value) => edit((current) => ({ ...current, reflection: value }))} />
+          <DailyReflectionField id="week-next" label="Tuần sau" value={form.nextWeekChanges} onChange={(value) => edit((current) => ({ ...current, nextWeekChanges: value }))} />
         </StudyDisclosure>
       </fieldset>
     </form>
@@ -167,8 +166,4 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
       <div><DailySyncStatus dirty={draft.dirty} busy={draft.busy} syncing={sync.syncing} saved={Boolean(form.id)} issue={sync.issue} conflict={draft.conflict} onRetry={sync.retry} /><p className="study-note">Nhận xét tự động lưu; không đổi số liệu ngày.</p></div>
     </div>
   </div>;
-}
-
-function WeekField({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (value: string) => void }) {
-  return <div className="study-review-field space-y-2"><Label htmlFor={id}>{label}</Label><Textarea id={id} value={value} maxLength={4000} onChange={(event) => onChange(event.target.value)} /></div>;
 }

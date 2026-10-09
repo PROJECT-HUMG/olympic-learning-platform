@@ -1,3 +1,4 @@
+import { hasUuidFormat } from "../../../lib/uuid.ts";
 import type { ScientificBlock, ScientificExplanation } from "../types/scientific-content.ts";
 
 export interface ObjectUrlHost {
@@ -17,10 +18,9 @@ export interface PrivateFigureState {
   message: string;
 }
 
-const PRIVATE_FIGURE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function isPrivateFigureId(value: string): boolean {
-  return PRIVATE_FIGURE.test(value);
+  return hasUuidFormat(value);
 }
 
 export function canRetryPrivateFigure(questionId: string | null | undefined, assetId: string): boolean {

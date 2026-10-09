@@ -1,3 +1,4 @@
+import { RetryFeedback } from "@/components/ui/retry-feedback";
 import { SearchInput } from "@/components/ui/search-input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -152,21 +153,14 @@ export default function QuestionBankPage() {
           <Skeleton className="h-44 rounded-xl" />
         </div>
       ) : query.isError ? (
-        <div
-          role="alert"
-          className="space-y-3 rounded-xl border border-border p-6 text-center"
-        >
-          <p className="text-sm text-muted-foreground">
-            Không thể tải ngân hàng câu hỏi.
-          </p>
-          <Button
-            variant="outline"
-            disabled={query.isFetching}
-            onClick={() => void query.refetch()}
-          >
-            Thử lại
-          </Button>
-        </div>
+        <RetryFeedback
+          message="Không thể tải ngân hàng câu hỏi."
+          actions={
+            <Button type="button" variant="outline" disabled={query.isFetching} onClick={() => void query.refetch()}>
+              Thử lại
+            </Button>
+          }
+        />
       ) : (
         <>
           {query.data?.content.length === 0 && (

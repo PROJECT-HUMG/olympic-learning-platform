@@ -1,3 +1,4 @@
+import { InlineRetryFeedback } from "@/components/ui/inline-retry-feedback";
 import { PageHeader } from "@/components/ui/page-header";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -250,12 +251,7 @@ export default function AdminCategoriesPage() {
         ) : (
           <>
             {isMetadataError && (
-              <div
-                role="alert"
-                className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive"
-              >
-                <span>Không thể làm mới danh mục hệ thống.</span>
-                <Button
+              <InlineRetryFeedback message="Không thể làm mới danh mục hệ thống." actions={<Button
                   type="button"
                   variant="outline"
                   size="sm"
@@ -263,8 +259,7 @@ export default function AdminCategoriesPage() {
                   onClick={() => void refetchMetadata()}
                 >
                   Thử lại
-                </Button>
-              </div>
+                </Button>} />
             )}
 
             <TabsContent value="categories" className="m-0">

@@ -4,12 +4,16 @@
 
 ## Scope and how to read this reference
 
-Source inventory established on 09/10/2026 from the accepted, uncommitted UI candidate
-`f2cc0db66460a4b7c6c58007461f42e009eca56e9c3aac8b190523f3667e82c5`, on HEAD
-`0f06fcbaf757d06f243b7385e3ca68fc0b0d3530`. All 42 page entry files, their
-route aliases, layouts and relevant feature owners were inventoried. Adoption below
-reflects the bounded follow-up implementation (Honors search, Dialog lightbox and
-shared list feedback, then compact mobile headers); earlier manifests still identify their earlier bytes exactly.
+Current cross-file inventory verified on 09/10/2026 at local UI commit
+`bd47c5b6bed35ce64900e39a5e5eea8c90e60c5b`, including the separately pending Daily
+recovery in the working tree. The [cross-file reuse audit](web-ui-reuse-audit.md)
+records all 42 page entries, import/JSX evidence, direct consumer counts, copied
+structures/helpers and justified local exceptions. It supplements the route table
+below rather than treating matching CSS or transitive imports as component reuse.
+The original inventory began at candidate `f2cc0db66460a4b7c6c58007461f42e009eca56e9c3aac8b190523f3667e82c5`
+on base `0f06fcbaf757d06f243b7385e3ca68fc0b0d3530`; earlier manifests still identify
+their earlier bytes exactly. Honors search, Dialog lightbox, shared list feedback
+and compact mobile headers are now committed UI behavior.
 The route inventory is source evidence, not all-screen rendered or backend validation. The preceding
 candidate's representative Chromium checks remain bounded to their recorded
 screens/states; see the [existing audit](../reviews/ux-flow-audit.md).
@@ -42,6 +46,12 @@ not route counts: aliases and branches reuse the same implementation. Imports
 through large feature modules can overcount reachability; the table below names
 actual rendered branches rather than equating every reachable import with use.
 There is **no shared query/filter state engine or universal page component**.
+Counts include retained source even when it is not mounted: AppPagination has
+eight routed consumer files plus the unused legacy PostManagement; Card has seven
+routed plus two legacy files, Badge nine plus two, DropdownMenu three plus one.
+The two FormField owners are counted separately: floating fields in ten files,
+RHF fields in two. RichTextEditor additionally composes Select/Dialog internally.
+See the audit for exact call sites and the import-reachability limit.
 
 ## Search, filter and layout owners
 
@@ -97,7 +107,7 @@ own responsive navigation. They do not make every body a shared page composition
 | `/achievements/:userId` | [AchievementProfilePage](../../apps/web/src/pages/achievement-profile-page.tsx) → [public-pages](../../apps/web/src/features/recognition/public-pages.tsx) | Stable PageHeader, PageSection and QueryFeedback; no list search/pager in this branch. Public content gate remains feature-owned. |
 | `/toolkit?tool=rooms`, `/toolkit?tool=gpa` | [ToolkitPage](../../apps/web/src/pages/toolkit-page.tsx) → [ToolkitFeature](../../apps/web/src/features/toolkit/components/toolkit-feature.tsx), [StudyRoomsLobby](../../apps/web/src/features/study-room/components/study-rooms-lobby.tsx), [GpaCalculator](../../apps/web/src/features/toolkit/components/gpa-calculator.tsx) | PageHeader, shared Tabs; GPA uses Input/NativeSelect/Button with domain validation, lobby uses styled native inputs. Neither is a list-search page. |
 | `/study-rooms/:roomId` | [StudyRoomPage](../../apps/web/src/pages/study-room-page.tsx) → [StudyRoomSession](../../apps/web/src/features/study-room/components/study-room-session.tsx) | PageHeader, Dialog/AlertDialog/DropdownMenu, NativeSelect policy fields; custom scene, seat paging, audio/range inputs and native music dialog preserve persistent player continuity. |
-| `/login`, `/register`, `/verify-email`, `/forgot-password`, `/reset-password` | [auth page wrappers](../../apps/web/src/pages/auth) → [auth forms](../../apps/web/src/features/auth/components) | Shared floating FormField/Button, social buttons and TurnstileChallenge where enabled; feature-owned heading/error/OTP/resume compositions in AuthCardLayout. No PageHeader/list filters. |
+| `/login`, `/register`, `/verify-email`, `/forgot-password`, `/reset-password` | [auth page wrappers](../../apps/web/src/pages/auth) → [auth forms](../../apps/web/src/features/auth/components) | Shared floating FormField/Button and TurnstileChallenge where enabled; feature-owned heading/error/OTP/resume compositions in AuthCardLayout. SocialLoginButtons currently has no consumers. No PageHeader/list filters. |
 | `/dashboard`, `/r/dashboard` | [DashboardPage](../../apps/web/src/pages/dashboard-page.tsx) | PageHeader/PageSection, shared links/buttons; role-aware shortcuts are intentional domain content. |
 | `/profile` | [ProfilePage](../../apps/web/src/pages/profile-page.tsx) → [profile/security/avatar components](../../apps/web/src/features/user/components) | PageHeader/PageSection, floating FormField, Dialog/AlertDialog and shared AvatarImage; account identity and mounted-editor refresh handling stay feature-owned. |
 | `/profile/achievements` | [MyAchievementsPage](../../apps/web/src/pages/my-achievements-page.tsx) → [private-pages](../../apps/web/src/features/recognition/private-pages.tsx), [AchievementEditor](../../apps/web/src/features/recognition/achievement-editor.tsx) | PageHeader/PageSection, NativeSelect, domain QueryFeedback/Field, native checkbox/disclosure. Visibility/evidence/submission are explicit feature operations. |
@@ -107,12 +117,12 @@ own responsive navigation. They do not make every body a shared page composition
 | `/daily/groups/:groupId/reviews/:ownerId` (day/week) | [DailySharedReviewPage](../../apps/web/src/pages/daily-shared-review-page.tsx) | PageHeader/PageSection and domain date/progress/disclosure/feedback; read-only plan and private revalidation gates are intentional. |
 | `/practice`, `/history` | [PracticePage](../../apps/web/src/pages/practice-page.tsx), [HistoryPage](../../apps/web/src/pages/history-page.tsx) | PageHeader, shell and guidance-action CSS/Button; truthful feature guidance, not implemented exercise/history flows. |
 | `/competitions`, `/about` | [CompetitionsPage](../../apps/web/src/pages/competitions-page.tsx), [AboutPage](../../apps/web/src/pages/about-page.tsx) | Public PageHeader/shell; About also PageSection. Guidance/content rather than list filters. |
-| `/r/documents` | [DocumentsManagementPage](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx) → [DocumentForm](../../apps/web/src/features/documents/components/document-form.tsx), [DashboardDocumentList](../../apps/web/src/features/documents/components/dashboard-document-list.tsx) | PageHeader/SearchInput/AppPagination/toolbar CSS; RHF Form, Radix Select, Dialog/AlertDialog, EmptyState. Metadata/loading/retry/upload behavior remains domain-owned. |
-| `/r/posts` | [PostManagementPage](../../apps/web/src/pages/dashboard/posts/post-management-page.tsx) → [PostManagementFeature](../../apps/web/src/features/post/components/post-management-feature.tsx), [PostForm](../../apps/web/src/features/post/components/post-form.tsx) | PageHeader/SearchInput/AppPagination/toolbar CSS; RHF Form, Radix Select, Dialog/AlertDialog, EmptyState and RichTextEditor. |
+| `/r/documents` | [DocumentsManagementPage](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx) → [DocumentForm](../../apps/web/src/features/documents/components/document-form.tsx), [DashboardDocumentList](../../apps/web/src/features/documents/components/dashboard-document-list.tsx) | PageHeader/SearchInput/AppPagination/RetryFeedback/toolbar CSS; RHF Form, Radix Select, Dialog/AlertDialog, EmptyState. Metadata/loading/retry/upload behavior remains domain-owned. |
+| `/r/posts` | [PostManagementPage](../../apps/web/src/pages/dashboard/posts/post-management-page.tsx) → [PostManagementFeature](../../apps/web/src/features/post/components/post-management-feature.tsx), [PostForm](../../apps/web/src/features/post/components/post-form.tsx) | PageHeader/SearchInput/AppPagination/RetryFeedback/toolbar CSS; RHF Form, Radix Select, Dialog/AlertDialog, EmptyState and RichTextEditor. |
 | `/admin/users` | [AdminUsersPage](../../apps/web/src/pages/admin/users/admin-users-page.tsx) | PageHeader/SearchInput/AppPagination/toolbar CSS; shared Dialog/Table/Badge, local row permissions and feedback. |
 | `/admin/categories` | [AdminCategoriesPage](../../apps/web/src/pages/dashboard/categories/admin-categories-page.tsx) → [category components](../../apps/web/src/features/system-categories/components) | PageHeader, Tabs, Table, Dialog/AlertDialog, floating FormField, Skeleton. Tabbed metadata tasks intentionally have no list-search bar. |
 | `/admin/recognition` | [AdminRecognitionPage wrapper](../../apps/web/src/pages/admin/recognition-page.tsx) → [admin-page](../../apps/web/src/features/recognition/admin-page.tsx), [HonorEditor](../../apps/web/src/features/recognition/honor-editor.tsx), AchievementEditor | PageHeader/PageSection, NativeSelect, Dialog and domain QueryFeedback/Field/UserPicker; flat review list retained. UserPicker is server search + native selection, not Combobox. |
-| `/r/questions` | [QuestionBankPage](../../apps/web/src/pages/question-bank-page.tsx) | PageHeader/SearchInput/NativeSelect/AppPagination/toolbar CSS; Card/Skeleton and feature feedback. One bounded search/filter band. |
+| `/r/questions` | [QuestionBankPage](../../apps/web/src/pages/question-bank-page.tsx) | PageHeader/SearchInput/NativeSelect/AppPagination/RetryFeedback/toolbar CSS; Card/Skeleton and feature-owned query state. One bounded search/filter band. |
 | `/r/questions/new`, `/r/questions/:id` | [QuestionDetailPage](../../apps/web/src/pages/question-detail-page.tsx) → [ManualQuestionWorkspace](../../apps/web/src/features/questions/components/manual-question-form.tsx) or legacy editor | Both use PageHeader/primitives; manual/scientific branch uses NativeSelect/PageSection, legacy branch Radix Select/floating title FormField. Schema/nullable adapters/figure gates explain different form owners. |
 | `/r/questions/import` | [AssessmentImportPage](../../apps/web/src/pages/assessment-import-page.tsx) → [assessment components](../../apps/web/src/features/assessment/components) | PageHeader/Card/Skeleton/Button, compact NativeSelect in mounted draft review; local status/progress/retry distinguish polling from restarting a job. |
 | `/r/exams` | [ExamDraftsPage](../../apps/web/src/pages/exam-drafts-page.tsx) → [ExamDraftList](../../apps/web/src/features/exams/components/exam-read.tsx) | Domain Shell composes PageHeader/shell CSS; flat lists, ExamLoading/ExamProblem. No list search/pagination currently offered. |
@@ -164,6 +174,48 @@ credentials or mutations occur. The ten rendered routes are representative, not
 all-screen runtime validation; Daily/room persistence and AT speech are not proven
 by CSS or these fixtures. See the [status/evidence](../reviews/ux-flow-audit.md).
 
+## Three-cluster consolidation (working candidate, 09/10/2026)
+
+The three-cluster implementation is included in the completed reuse consolidation
+on the UI base above. The original13-cluster inventory is historical; equivalent
+residual owners are now implemented below.
+The [post-consolidation residual sweep](web-ui-reuse-audit.md#post-consolidation-residual-sweep)
+independently checks all42 page entries and375 source files, confirms these owners
+have no equivalent shadow copies, and adds/corrects remaining findings. The seven-path
+Daily recovery remains a separate pending candidate. Its editor/group/status/test
+fixes remain pending separately. Reflection extraction overlaps the day editor:
+only its import/composition is committed; recovery hunks stay in the working tree.
+Plan/evidence timestamp changes belong to reuse scope. Historical manifests retain historical hashes.
+
+| Owner / API | Verified direct consumers | Behavior and intentional boundary |
+| --- | --- | --- |
+| [validatePostImage](../../apps/web/src/features/post/lib/post-image-validation.ts): `Pick<File, "type" \| "size">` → `"type" \| "size" \| null` | [PostImageUpload](../../apps/web/src/features/post/components/post-image-upload.tsx#L26), [ImageInsertDialog in RichTextEditor](../../apps/web/src/components/ui/rich-text-editor.tsx#L63): **2 files** | Existing `image/*` MIME family, inclusive 5MiB limit, type-error precedence. This is client feedback, not byte/security validation. Both use native [Button](../../apps/web/src/components/ui/button.tsx) activation and the existing [storageService](../../apps/web/src/features/documents/services/storage.service.ts), folder POST. Clear input after capturing File so same-file validation/failure retry works; per-picker in-flight guard plus disabled/busy state prevent duplicate requests. Thumbnail completes with asset ID/preview/removal; editor inserts URL/closes its existing Dialog and preserves text. URL insertion stays separate. No upload framework, private-media policy or new whitelist. |
+| [explicitInstant](../../apps/web/src/features/daily/lib/explicit-instant.ts#L6): `unknown` → `string \| null` | [daily-contract](../../apps/web/src/features/daily/lib/daily-contract.ts#L97), [evidence-contract](../../apps/web/src/features/daily/evidence/evidence-contract.ts#L125): **2 files**, **3 call sites** | One original regex/parser beside platform-calendar; genuine civil date, explicit zone, bounded time and Date.parse validity. Preserve spelling/fraction/offset acceptance and nullable plan adapter. Full DTO identity/kind/shape rules remain separate. No auto-sync/private query/editor changes. |
+| [RetryFeedback](../../apps/web/src/components/ui/retry-feedback.tsx#L4): `{ message: string; actions: ReactNode }` | [DocumentsManagementPage](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx#L149), [PostManagementFeature](../../apps/web/src/features/post/components/post-management-feature.tsx#L174), [QuestionBankPage](../../apps/web/src/pages/question-bank-page.tsx#L156): **3 files / 3 sites**, all routed | Exact compact alert, border/padding/centered text; actions are caller-owned. Existing Button type=button, isFetching disablement and refetch callbacks stay in each feature. Initial retry without cached data returns to loading; cached-error retry retains disabled alert. No query engine, illustrated ListFeedback replacement, generic loading or permission wrapper. |
+
+Thumbnail preview Change/Remove are keyboard-visible through focus-within,
+visible below640px, and44px targets; Remove has an accessible name. Existing
+Dialog/its DialogTrigger own editor modal focus/scroll/Escape/return; the image
+trigger is now connected to Radix rather than leaving a controlled modal without
+a trigger. No new manual key handlers or body-scroll lifecycle.
+For a compact management retry use:
+
+```tsx
+<RetryFeedback message="Không thể tải danh sách tài liệu." actions={
+  <Button type="button" variant="outline" disabled={isFetching}
+    onClick={() => void refetch()}>Thử lại</Button>
+} />
+```
+
+[Regressions](../../apps/web/tests/ui-three-cluster.test.ts) exercise MIME/size
+boundaries and both timestamp DTO consumers. [Owned browser probe](../../apps/web/tests/ui-three-cluster-browser-check.mjs)
+mounts both pickers and all three real management consumers at1440/768/320px with
+intercepted synthetic API/storage and light/dark presentation. It verifies native
+Enter/Space chooser activation, invalid-file request prevention, failure/retry,
+pending gates, distinct completion, editor draft/modal focus and query precedence.
+Evidence and limits are in the [existing status](../reviews/ux-flow-audit.md).
+No live backend/storage or exhaustive all-screen claim follows from these fixtures.
+
 ## Other reusable patterns: use the actual owner
 
 | Pattern | Source / API / current call sites | Selection guidance |
@@ -173,14 +225,38 @@ by CSS or these fixtures. See the [status/evidence](../reviews/ux-flow-audit.md)
 | Pagination | [AppPagination](../../apps/web/src/components/ui/app-pagination.tsx): one-based currentPage/totalPages/onPageChange, default numbered or compact variant; hides when totalPages ≤ 1. [Pagination primitives](../../apps/web/src/components/ui/pagination.tsx) are its markup owner. | Documents/News/management/Users/question bank/PublishedBank reuse it. Recognition [Pager](../../apps/web/src/features/recognition/components.tsx) adapts zero-based API. Do not replace room seat paging or calendars with collection paging. |
 | Initial route/session loading | [RouteSuspense](../../apps/web/src/router/route-suspense.tsx) → [PageLoading](../../apps/web/src/components/ui/page-loading.tsx); [SessionLoading](../../apps/web/src/router/guards/session-loading.tsx), [SessionError](../../apps/web/src/router/guards/session-error.tsx); [startup-preloader](../../apps/web/src/app/startup-preloader.ts). | Lazy-route/auth readiness is not query loading; query/filter changes must not replay startup. Guards withhold unauthorized children. |
 | Query feedback and skeletons | [Skeleton](../../apps/web/src/components/ui/skeleton.tsx); domain document/post/import skeletons. Recognition [QueryFeedback](../../apps/web/src/features/recognition/components.tsx), exams [ExamLoading/ExamProblem](../../apps/web/src/features/exams/components/exam-feedback.tsx), Daily [DailySyncStatus](../../apps/web/src/features/daily/ui/daily-sync-status.tsx) and [Retry](../../apps/web/src/features/daily/groups/group-controls.tsx). | Pending/error/empty composition and retry target remain feature-owned. Use one meaningful pending region, decorative skeleton children; do not convert private revalidation or conflict into generic loading/empty. |
+| Compact management errors | [RetryFeedback](../../apps/web/src/components/ui/retry-feedback.tsx): message/actions only; document/post management and Question Bank (3 routed consumers). | Preserve caller branch precedence, disabled retry gate and callbacks. Public illustrated feedback and private query gates have different contracts. |
 | Empty/error lists | [ListFeedback](../../apps/web/src/components/ui/list-feedback.tsx): icon/title/children/actions, `tone="empty"` (status) or `tone="error"` (alert), wrapping description/action regions. [EmptyState](../../apps/web/src/components/ui/empty-state.tsx) delegates the empty variant; four feature consumers: public DocumentList/NewsList and DashboardDocumentList/DashboardPostList. | DocumentList and NewsList reuse ListFeedback errors but retain state precedence, request gates, retry callbacks and copy. News empty reset remains a separate explicit action. No query/loading/persistence engine. [StudyEmpty](../../apps/web/src/features/daily/ui/study-notebook.tsx) remains a compact domain owner. |
 | Dialogs and confirmation | [Dialog](../../apps/web/src/components/ui/dialog.tsx), [AlertDialog](../../apps/web/src/components/ui/alert-dialog.tsx), [Sheet](../../apps/web/src/components/ui/sheet.tsx): installed Radix semantics/portal/focus/short-viewport scrolling. [DailyDialogHeader](../../apps/web/src/features/daily/ui/daily-dialog-header.tsx), [useDailyConfirm](../../apps/web/src/features/daily/ui/use-daily-confirm.tsx) compose them. | Document/post/user/category/room/evidence dialogs reuse them. Native group Create and [RoomMusicDialog](../../apps/web/src/features/study-room/components/room-music-dialog.tsx) are existing feature owners; preserve close/focus/request gates and persistent media. File/permission/beforeunload prompts stay native. |
 | Menus, popovers and date picker | [DropdownMenu](../../apps/web/src/components/ui/dropdown-menu.tsx): account/Daily task/room menus. [Popover](../../apps/web/src/components/ui/popover.tsx): Combobox/listening controls. Daily [StudyDatePicker](../../apps/web/src/features/daily/ui/study-date-picker.tsx) composes Radix directly. | Calendar owns civil-date keyboard navigation and guarded onSelect acceptance; not a generic searchable option list. Keep permission/navigation guards at caller. |
-| Chips, badges and cards | [Badge](../../apps/web/src/components/ui/badge.tsx), [Card](../../apps/web/src/components/ui/card.tsx); domain [PostBadge](../../apps/web/src/features/post/components/post-badge.tsx), [PostStatusBadge](../../apps/web/src/features/post/components/post-status-badge.tsx), [PostListItem](../../apps/web/src/features/post/components/post-list-item.tsx), [DocumentCard](../../apps/web/src/features/documents/components/document-card.tsx). | Card/Badge are primitives, not authorization or whole item behavior. Home/public News reuse PostBadge/PostListItem. Document filter chips have removal buttons; category Links navigate; status badges are not interactive filters. Do not merge these merely for shape. |
+| Chips, badges and cards | [Badge](../../apps/web/src/components/ui/badge.tsx), [Card](../../apps/web/src/components/ui/card.tsx); domain [PostBadge](../../apps/web/src/features/post/components/post-badge.tsx), [PostStatusBadge](../../apps/web/src/features/post/components/post-status-badge.tsx), [PostListItem](../../apps/web/src/features/post/components/post-list-item.tsx), [DocumentCard](../../apps/web/src/features/documents/components/document-card.tsx). | Card/Badge are primitives, not authorization or whole item behavior. Home and News reuse PostBadge; only News feed/pinned/related items use PostListItem. HomeNewsItem stays local. Document filter chips have removal buttons; category Links navigate; status badges are not interactive filters. Do not merge these merely for shape. |
 | Identity and private media | [AvatarImage](../../apps/web/src/features/user/components/avatar-image.tsx), [UserHoverCard](../../apps/web/src/features/user/components/user-hover-card.tsx); Daily [evidence components](../../apps/web/src/features/daily/evidence), Recognition HonorImage/EvidenceDownload, question figure resolvers. | Reuse identity/crop rendering. Private byte fetch, abort/revoke, permission/expiry and evidence visibility remain with their domain; no generic URL card may bypass them. |
 | Auth and rich content | [TurnstileChallenge](../../apps/web/src/features/auth/components/turnstile-challenge.tsx), [SocialLoginButtons](../../apps/web/src/features/auth/components/social-login-buttons.tsx); [RichTextEditor](../../apps/web/src/components/ui/rich-text-editor.tsx), [RichTextViewer](../../apps/web/src/components/ui/rich-text-viewer.tsx). | Auth reuses provider/token lifecycle without changing enforcement. Post rich text differs from scientific question blocks/frozen exam content; retain sanitization/figure contracts, not a universal editor. |
 
 ## Follow-up dispositions and remaining opportunities
+
+The [completed owner inventory](web-ui-reuse-audit.md#completed-residual-consolidation-09102026)
+is authoritative for current definitions/calls/counts and preserved boundaries.
+These eight residual patterns now reuse equivalent ownership:
+
+| Owner / API | Exact current consumers | Adoption / boundary |
+| --- | --- | --- |
+| [replaceListParam](../../apps/web/src/lib/list-navigation.ts#L2): params/key/value → cloned params | [public-pages.tsx:24](../../apps/web/src/features/recognition/public-pages.tsx#L24); [admin-page.tsx:27](../../apps/web/src/features/recognition/admin-page.tsx#L27); [manual-question.ts:116](../../apps/web/src/features/questions/components/manual-question.ts#L116) | 3 files/3 calls/4 screen compositions. Typed key, draft/submit, query/navigation rules remain local; Documents/News have different reset/batch rules. |
+| [parseToolkitDecimal](../../apps/web/src/features/toolkit/lib/decimal.ts#L2): string → finite number/null | [gpa.ts:37](../../apps/web/src/features/toolkit/lib/gpa.ts#L37); [gpa.ts:38](../../apps/web/src/features/toolkit/lib/gpa.ts#L38); [gpa-goal.ts:25](../../apps/web/src/features/toolkit/lib/gpa-goal.ts#L25); [gpa-goal.ts:26](../../apps/web/src/features/toolkit/lib/gpa-goal.ts#L26); [gpa-goal.ts:27](../../apps/web/src/features/toolkit/lib/gpa-goal.ts#L27); [gpa-goal.ts:28](../../apps/web/src/features/toolkit/lib/gpa-goal.ts#L28) | 2 files/6 calls/2 panels on one route. Same dot/comma/trim syntax; credit/range/aggregation/overflow rules stay local. |
+| [DailyReflectionField](../../apps/web/src/features/daily/ui/daily-reflection-field.tsx#L5): id/label/value/onChange | [daily-plan-editor.tsx:246](../../apps/web/src/features/daily/components/daily-plan-editor.tsx#L246); [daily-plan-editor.tsx:247](../../apps/web/src/features/daily/components/daily-plan-editor.tsx#L247); [daily-plan-editor.tsx:248](../../apps/web/src/features/daily/components/daily-plan-editor.tsx#L248); [daily-week-editor.tsx:153](../../apps/web/src/features/daily/components/daily-week-editor.tsx#L153); [daily-week-editor.tsx:154](../../apps/web/src/features/daily/components/daily-week-editor.tsx#L154); [daily-week-editor.tsx:155](../../apps/web/src/features/daily/components/daily-week-editor.tsx#L155); [daily-week-editor.tsx:156](../../apps/web/src/features/daily/components/daily-week-editor.tsx#L156) | 2 files/7 sites. Same associated Label/Textarea/classes/4000 limit; sync/session/edit/focus authority stays local. Day-editor recovery hunks excluded from commit. |
+| [ManagementListRow + ManagementRowActions](../../apps/web/src/components/ui/management-list-row.tsx#L6): children/actions frame; onEdit/onDelete closures | [dashboard-document-list.tsx:31](../../apps/web/src/features/documents/components/dashboard-document-list.tsx#L31); [dashboard-post-list.tsx:33](../../apps/web/src/features/post/components/dashboard-post-list.tsx#L33) | 2 files/2 sites for each owner. Exact row/action/44px Button presentation; record/status/expiry/thumbnail/permissions/confirmation stay local. |
+| [PaginationFooter](../../apps/web/src/components/ui/pagination-footer.tsx#L4): pageOffset/size/total/itemLabel/children | [post-management-feature.tsx:192](../../apps/web/src/features/post/components/post-management-feature.tsx#L192); [documents-management-page.tsx:167](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx#L167) | 2 files/2 sites. Exact range/frame/scroll wrapper; AppPagination passed by caller, page-clamp/query adapters remain local. |
+| [InlineRetryFeedback](../../apps/web/src/components/ui/inline-retry-feedback.tsx#L4): message/actions | [admin-categories-page.tsx:254](../../apps/web/src/pages/dashboard/categories/admin-categories-page.tsx#L254); [profile-page.tsx:42](../../apps/web/src/pages/profile-page.tsx#L42) | 2 files/2 sites. Cached-refresh strip only; caller Buttons/loading/retry and terminal identity/cache gates retained. Compact RetryFeedback remains different. |
+| [Button destructive-solid](../../apps/web/src/components/ui/button.tsx#L22): existing variant, also accepted by AlertDialogAction | [post-management-feature.tsx:226](../../apps/web/src/features/post/components/post-management-feature.tsx#L226); [documents-management-page.tsx:202](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx#L202); [avatar-upload-card.tsx:167](../../apps/web/src/features/user/components/avatar-upload-card.tsx#L167); [use-daily-confirm.tsx:27](../../apps/web/src/features/daily/ui/use-daily-confirm.tsx#L27) | 4 files/4 sites. Exact existing solid treatment including inherited primary border; tinted destructive variant unchanged. Radix/request/focus/close untouched. |
+| [hasUuidFormat](../../apps/web/src/lib/uuid.ts#L2): lexical string predicate | [evidence-contract.ts:45](../../apps/web/src/features/daily/evidence/evidence-contract.ts#L45); [daily-contract.ts:107](../../apps/web/src/features/daily/lib/daily-contract.ts#L107); [group-contract.ts:5](../../apps/web/src/features/daily/groups/group-contract.ts#L5); [review-display.ts:62](../../apps/web/src/features/daily/lib/review-display.ts#L62); [paper-figures.ts:7](../../apps/web/src/features/exams/paper-figures.ts#L7); [figure-resolution.ts:23](../../apps/web/src/features/questions/components/figure-resolution.ts#L23); [manual-question.ts:30](../../apps/web/src/features/questions/components/manual-question.ts#L30) | 7 files/7 calls. Exact case-insensitive regex; no version/authority policy. Type/null/DTO/existence/access adapters stay separate. |
+
+Choose these owners only where their documented contract fits. Room fields,
+downloads, identity, formatting, private query gates, Groups timestamps and native/
+persistent dialogs retain differences. GroupScreen PageSection markup and inactive
+legacy cleanup stay low priority. The direct index is refreshed against381 source
+files and42 page entries. Existing PageHeader29/32, SearchInput9/9, NativeSelect14/24,
+Dialog17/20 and RetryFeedback3/3 adoption counts remain unchanged. Proof is
+representative synthetic Chromium, not all-screen/live backend validation.
 
 | Priority / evidence | Impact | Smallest responsible next step |
 | --- | --- | --- |

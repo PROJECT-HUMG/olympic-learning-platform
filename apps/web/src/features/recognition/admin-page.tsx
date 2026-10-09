@@ -2,7 +2,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { getPageNumber } from "@/lib/list-navigation";
+import { getPageNumber, replaceListParam } from "@/lib/list-navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/ui/page-header";
@@ -24,7 +24,7 @@ export function AdminRecognitionPage() {
   const requestedStatus = params.get("status") ?? "PENDING";
   const status = ["PENDING", "APPROVED", "REJECTED", "REVOKED"].includes(requestedStatus) ? requestedStatus : "PENDING";
   const page = getPageNumber(params.get("page")) - 1;
-  const change = (key: string, value: string) => setParams(previous => { const next = new URLSearchParams(previous); if (value) next.set(key, value); else next.delete(key); if (key !== "page") next.delete("page"); return next; });
+  const change = (key: string, value: string) => setParams(previous => replaceListParam(previous, key, value));
   const honors = useQuery({ queryKey: ["recognition", "admin-honors", page], queryFn: () => service.honors({ page, size: 12 }, true), enabled: tab === "honors" });
   const reviews = useQuery({ queryKey: ["recognition", "reviews", status, page], queryFn: () => service.reviews({ status: status || undefined, page, size: 20 }), enabled: tab === "reviews" });
   const [editing, setEditing] = useState<Honor | undefined>();

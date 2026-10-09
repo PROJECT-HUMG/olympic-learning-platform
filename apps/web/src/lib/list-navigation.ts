@@ -1,3 +1,12 @@
+/** Replace one list parameter without mutating the caller; filter changes reset pagination. */
+export function replaceListParam(current: URLSearchParams, key: string, value: string): URLSearchParams {
+  const next = new URLSearchParams(current);
+  if (value) next.set(key, value);
+  else next.delete(key);
+  if (key !== "page") next.delete("page");
+  return next;
+}
+
 /** URL pages are one-based; malformed values must never reach API pagination. */
 export function getPageNumber(value: string | null): number {
   if (!value || !/^[1-9]\d*$/.test(value)) return 1;

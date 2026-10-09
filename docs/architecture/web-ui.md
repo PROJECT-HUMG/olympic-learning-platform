@@ -5,6 +5,32 @@ remaining duplication, read the [shared UI owner reference](web-ui-components.md
 This authority defines the standard; that reference inventories current source
 usage and does not claim all-screen rendered verification.
 
+## Bounded shared-owner consolidation (09/10/2026, uncommitted)
+
+Ordinary POST file-pick actions use the existing native Button, not click-only
+containers or custom Enter/Space handlers. POST-owned validatePostImage alone
+owns the existing image-MIME/5MiB client feedback rule; existing storageService
+and separate thumbnail-ID/editor-URL completions remain. Keep disabled/busy gates,
+same-file retry, visible keyboard focus and44px preview actions.
+
+Compact document/post management and Question Bank error alerts use RetryFeedback
+beside ListFeedback. Share presentation only; feature-owned state precedence,
+request/retry gate and callbacks stay local. Public illustrated feedback/private
+revalidation have different purposes. Daily's identical explicit-zone timestamp
+validation belongs beside platform-calendar, reused by plan/evidence adapters
+without merging DTO contracts or changing editor/auto-sync policy. Actual APIs,
+consumer counts and evidence are in the [owner reference](web-ui-components.md#three-cluster-consolidation-working-candidate-09102026).
+
+Equivalent residual presentation/mechanics now have responsible owners: immutable
+`replaceListParam` beside list-navigation; Toolkit decimal syntax; DailyReflectionField;
+management row/actions and range footer; cached-refresh InlineRetryFeedback;
+existing Button `destructive-solid` variant; UUID lexical predicate. Use their
+[actual APIs/adoption](web-ui-reuse-audit.md#completed-residual-consolidation-09102026)
+when the behavior fits. Keep submission, query/cache precedence, page clamping,
+validation ranges, DTO adapters, permissions and editor/sync lifecycles local.
+Solid-danger confirmation appearance is preserved; tinted destructive remains a
+different existing treatment. Shared styling never implies shared business semantics.
+
 ## Current navigation-shell decision (05/10/2026)
 
 This decision supersedes the older floating-header/bottom-sheet/manual-motion choices below; those paragraphs describe earlier iterations, not the mounted navigation contract. Navigation alone is being redesigned; unrelated page bodies, destinations and role guards remain unchanged. Use the same palette/type tokens. The public header is aligned with the functional page container; at >=1200px it shows primary discovery links, at 768–1199px it keeps Môn học/Tài liệu/Bảng tin direct, and below 768px it keeps brand/sign-in or account/Menu. A shared left drawer preserves every existing destination grouped by role, with destinations first and theme/auth actions at the bottom.

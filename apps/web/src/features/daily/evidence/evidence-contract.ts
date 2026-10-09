@@ -1,5 +1,6 @@
+import { hasUuidFormat } from "../../../lib/uuid.ts";
 import { parseApiError } from "../../../lib/api-error.ts";
-import { parsePlatformDate } from "../lib/platform-calendar.ts";
+import { explicitInstant } from "../lib/explicit-instant.ts";
 
 export const EVIDENCE_CONTRACT = "Dữ liệu minh chứng không đúng hợp đồng.";
 export const EVIDENCE_MAX_BYTES = 5 * 1024 * 1024;
@@ -7,8 +8,6 @@ export const EVIDENCE_MAX_ITEMS = 10;
 export const EVIDENCE_LABEL_LIMIT = 200;
 export const EVIDENCE_URL_LIMIT = 2048;
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const INSTANT = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d{1,9})?(Z|[+-]\d{2}:\d{2})$/;
 const FIELDS = ["id", "planId", "taskId", "stage", "kind", "originalName", "contentType", "sizeBytes", "url", "label", "createdAt"] as const;
 
 export type EvidenceStage = "START" | "FINISH" | "GENERAL";
@@ -43,7 +42,7 @@ export interface EvidenceScope {
 }
 
 export function evidenceId(value: unknown): string | null {
-  return typeof value === "string" && UUID.test(value) ? value : null;
+  return typeof value === "string" && hasUuidFormat(value) ? value : null;
 }
 
 export function evidenceStage(value: unknown): EvidenceStage | null {
@@ -100,17 +99,6 @@ export function evidenceHttpUrl(value: string): string | null {
   }
   if ((parsed.protocol !== "http:" && parsed.protocol !== "https:") || parsed.username !== "" || parsed.password !== "" || parsed.hostname === "") return null;
   return value;
-}
-
-function explicitInstant(value: unknown): string | null {
-  if (typeof value !== "string" || !INSTANT.test(value)) return null;
-  const match = INSTANT.exec(value);
-  if (!match || !parsePlatformDate(match[1])) return null;
-  const hour = Number(match[2]);
-  const minute = Number(match[3]);
-  const second = Number(match[4]);
-  if (hour > 23 || minute > 59 || second > 59) return null;
-  return Number.isNaN(Date.parse(value)) ? null : value;
 }
 
 function exactRecord(value: unknown): Record<string, unknown> | null {

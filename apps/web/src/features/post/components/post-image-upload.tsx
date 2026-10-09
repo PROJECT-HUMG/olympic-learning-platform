@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { storageService } from "@/features/documents/services/storage.service";
 import { toast } from "sonner";
+import { validatePostImage } from "../lib/post-image-validation.ts";
 
 interface PostImageUploadProps {
   value?: string;
@@ -16,25 +17,29 @@ export function PostImageUpload({ onChange, initialPreviewUrl }: PostImageUpload
   const [progress, setProgress] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialPreviewUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadInFlight = useRef(false);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    event.target.value = ""; // Permit choosing the same file after validation/failure.
+    if (!file || uploadInFlight.current) return;
+    const issue = validatePostImage(file);
 
-    if (!file.type.startsWith("image/")) {
+    if (issue === "type") {
       toast.error("Định dạng không hợp lệ", {
         description: "Vui lòng chọn một tệp hình ảnh (JPEG, PNG, v.v.)",
       });
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (issue === "size") {
       toast.error("Tệp quá lớn", {
         description: "Kích thước ảnh tối đa là 5MB.",
       });
       return;
     }
 
+    uploadInFlight.current = true;
     try {
       setIsUploading(true);
       setProgress(0);
@@ -56,6 +61,7 @@ export function PostImageUpload({ onChange, initialPreviewUrl }: PostImageUpload
       });
       if (fileInputRef.current) fileInputRef.current.value = "";
     } finally {
+      uploadInFlight.current = false;
       setIsUploading(false);
     }
   };
@@ -68,7 +74,7 @@ export function PostImageUpload({ onChange, initialPreviewUrl }: PostImageUpload
   };
 
   const triggerFileInput = () => {
-    if (!isUploading) {
+    if (!uploadInFlight.current) {
       fileInputRef.current?.click();
     }
   };
@@ -90,58 +96,60 @@ export function PostImageUpload({ onChange, initialPreviewUrl }: PostImageUpload
             alt="Thumbnail preview" 
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
+          <div className="absolute inset-0 bg-black/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
             <Button 
               type="button" 
               variant="secondary" 
               size="sm" 
               onClick={triggerFileInput}
-              className="h-8"
+              disabled={isUploading}
+              aria-busy={isUploading}
+              className="min-h-11"
             >
-              Thay đổi ảnh
+              {isUploading ? "Đang tải lên…" : "Thay đổi ảnh"}
             </Button>
             <Button 
               type="button" 
               variant="destructive" 
               size="icon" 
               onClick={handleRemove}
-              className="absolute top-2 right-2 h-7 w-7 rounded-full"
+              disabled={isUploading}
+              aria-label="Xóa ảnh đại diện bài viết"
+              className="absolute top-2 right-2 size-11 rounded-full"
             >
-              <X className="h-4 w-4" />
+              <X aria-hidden="true" className="h-4 w-4" />
             </Button>
           </div>
         </div>
       ) : (
-        <div 
-          onClick={triggerFileInput}
-          className={`relative aspect-video w-full rounded-xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50 transition-colors flex flex-col items-center justify-center p-6 text-center cursor-pointer ${isUploading ? 'pointer-events-none bg-muted/30' : ''}`}
-        >
-          {isUploading ? (
-            <div className="w-full flex flex-col items-center justify-center space-y-4 px-8">
-              <div className="p-3 bg-primary/10 text-primary rounded-full animate-pulse">
-                <Loader2 className="w-6 h-6 animate-spin" />
-              </div>
-              <div className="w-full space-y-2">
-                <div className="flex justify-between text-xs text-muted-foreground font-medium">
-                  <span>Đang tải lên...</span>
-                  <span>{progress}%</span>
-                </div>
-                <Progress value={progress} className="h-2 w-full" />
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="p-4 bg-primary/5 text-primary/70 rounded-full mb-3">
-                <UploadCloud className="w-8 h-8" />
-              </div>
-              <p className="text-sm font-medium text-foreground mb-1">
-                Nhấn để tải ảnh lên
-              </p>
-              <p className="text-xs text-muted-foreground max-w-[200px]">
-                Hỗ trợ JPEG, PNG. Kích thước tối đa 5MB. Khuyên dùng ảnh tỉ lệ 16:9.
-              </p>
-            </>
-          )}
+        <div className="relative aspect-video min-h-44 w-full">
+          <Button
+            type="button"
+            variant="ghost"
+            aria-label="Chọn ảnh đại diện bài viết"
+            aria-busy={isUploading}
+            disabled={isUploading}
+            onClick={triggerFileInput}
+            className="h-full min-h-44 w-full flex-col gap-0 whitespace-normal rounded-xl border-2 border-dashed border-muted-foreground/25 p-6 text-center hover:border-primary/50 hover:bg-muted/50"
+          >
+            {isUploading ? (
+              <>
+                <Loader2 aria-hidden="true" className="mb-3 size-6 animate-spin text-primary" />
+                <span className="text-sm">Đang tải lên… {progress}%</span>
+              </>
+            ) : (
+              <>
+                <span className="mb-3 rounded-full bg-primary/5 p-4 text-primary/70">
+                  <UploadCloud aria-hidden="true" className="size-8" />
+                </span>
+                <span className="mb-1 text-sm font-medium text-foreground">Nhấn để tải ảnh lên</span>
+                <span className="max-w-[200px] text-xs font-normal text-muted-foreground">
+                  Hỗ trợ JPEG, PNG. Kích thước tối đa 5MB. Khuyên dùng ảnh tỉ lệ 16:9.
+                </span>
+              </>
+            )}
+          </Button>
+          {isUploading && <Progress aria-label="Tiến trình tải ảnh" value={progress} className="absolute inset-x-6 bottom-6 h-2 w-auto" />}
         </div>
       )}
     </div>

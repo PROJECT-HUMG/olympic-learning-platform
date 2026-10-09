@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
-import { getListReturnPath, getPageNumber } from "@/lib/list-navigation";
+import { getListReturnPath, getPageNumber, replaceListParam } from "@/lib/list-navigation";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -21,7 +21,7 @@ function useListFilters() {
   const yearText = params.get("year") ?? "";
   const yearNumber = Number(yearText);
   const year = /^\d{4}$/.test(yearText) && yearNumber >= 1900 && yearNumber <= new Date().getFullYear() ? yearNumber : undefined;
-  const change = (key: string, value: string) => setParams(previous => { const next = new URLSearchParams(previous); if (value) next.set(key, value); else next.delete(key); if (key !== "page") next.delete("page"); return next; });
+  const change = (key: string, value: string) => setParams(previous => replaceListParam(previous, key, value));
   return { params, page, year, yearText: year ? String(year) : "", change };
 }
 export function HonorsPage() {

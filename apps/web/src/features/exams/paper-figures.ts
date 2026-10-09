@@ -1,10 +1,10 @@
+import { hasUuidFormat } from "../../lib/uuid.ts";
 export interface PaperFigureScope { userId: string; revision: number }
 export interface PaperObjectUrlHost { createObjectURL(blob: Blob): string; revokeObjectURL(url: string): void }
 export interface PaperDownload { assetId: string; blob?: Blob; failed?: boolean }
 export interface PaperFigureState { assetId: string; phase: "loading" | "ready" | "error"; message: string }
 
-const PRIVATE_FIGURE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-export function isPrivateAssetId(value: string): boolean { return PRIVATE_FIGURE.test(value); }
+export function isPrivateAssetId(value: string): boolean { return hasUuidFormat(value); }
 
 export function paperFigureScope(userId: string | null | undefined, accessToken: string | null | undefined, revision: number): PaperFigureScope | null {
   if (typeof userId !== "string" || userId.length === 0) return null;

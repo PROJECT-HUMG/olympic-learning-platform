@@ -24,7 +24,7 @@ export function useDailyConfirm() {
   const confirmation = <AlertDialog open={question !== null} onOpenChange={open => { if (!open) finish(false); }}>
     <AlertDialogContent className="daily-confirm" onCloseAutoFocus={event => { event.preventDefault(); if (opener.current?.isConnected) opener.current.focus(); }}>
       <AlertDialogHeader><AlertDialogTitle>{labels.title}</AlertDialogTitle><AlertDialogDescription>{question}</AlertDialogDescription></AlertDialogHeader>
-      <AlertDialogFooter><AlertDialogCancel onClick={() => finish(false)}>Giữ nguyên</AlertDialogCancel><AlertDialogAction className={labels.destructive ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : undefined} onClick={() => finish(true)}>{labels.action}</AlertDialogAction></AlertDialogFooter>
+      <AlertDialogFooter><AlertDialogCancel onClick={() => finish(false)}>Giữ nguyên</AlertDialogCancel><AlertDialogAction variant={labels.destructive ? "destructive-solid" : "default"} onClick={() => finish(true)}>{labels.action}</AlertDialogAction></AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>;
   return { confirm, confirmation };

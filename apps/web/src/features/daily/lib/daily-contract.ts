@@ -1,11 +1,11 @@
+import { hasUuidFormat } from "../../../lib/uuid.ts";
 import { parseApiError } from "../../../lib/api-error.ts";
+import { explicitInstant } from "./explicit-instant.ts";
 import { mondayIndex, parsePlatformDate } from "./platform-calendar.ts";
 import type { TaskPriority } from "./completion-figures.ts";
 
 export const DAILY_CONTRACT = "Dữ liệu Daily không đúng hợp đồng.";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const INSTANT = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d{1,9})?(Z|[+-]\d{2}:\d{2})$/;
 const PRIORITIES = new Set<TaskPriority>(["MUST", "SHOULD", "COULD"]);
 const STATUSES = new Set<DailyEditorStatus>(["TODO", "COMPLETED"]);
 
@@ -97,17 +97,6 @@ function requiredInstant(value: unknown): string | null {
   return explicitInstant(value);
 }
 
-function explicitInstant(value: unknown): string | null {
-  if (typeof value !== "string" || !INSTANT.test(value)) return null;
-  const match = INSTANT.exec(value);
-  if (!match || !parsePlatformDate(match[1])) return null;
-  const hour = Number(match[2]);
-  const minute = Number(match[3]);
-  const second = Number(match[4]);
-  if (hour > 23 || minute > 59 || second > 59) return null;
-  return Number.isNaN(Date.parse(value)) ? null : value;
-}
-
 function nullableInstant(value: unknown): string | null | undefined {
   if (value === undefined) return undefined;
   if (value === null) return null;
@@ -115,7 +104,7 @@ function nullableInstant(value: unknown): string | null | undefined {
 }
 
 function uuid(value: unknown): string | null {
-  return typeof value === "string" && UUID.test(value) ? value : null;
+  return typeof value === "string" && hasUuidFormat(value) ? value : null;
 }
 
 function safeCount(value: unknown): number | null {

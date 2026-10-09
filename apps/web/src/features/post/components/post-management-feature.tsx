@@ -1,3 +1,5 @@
+import { PaginationFooter } from "@/components/ui/pagination-footer";
+import { RetryFeedback } from "@/components/ui/retry-feedback";
 import { SearchInput } from "@/components/ui/search-input";
 import { PageHeader } from "@/components/ui/page-header";
 import { useState, useEffect } from "react";
@@ -169,21 +171,14 @@ export function PostManagementFeature() {
             </span>
           </div>
         ) : isError ? (
-          <div
-            role="alert"
-            className="space-y-3 rounded-xl border border-border p-6 text-center"
-          >
-            <p className="text-sm text-muted-foreground">
-              Không thể tải danh sách bài viết.
-            </p>
-            <Button
-              variant="outline"
-              disabled={isFetching}
-              onClick={() => void refetch()}
-            >
-              Thử lại
-            </Button>
-          </div>
+          <RetryFeedback
+            message="Không thể tải danh sách bài viết."
+            actions={
+              <Button type="button" variant="outline" disabled={isFetching} onClick={() => void refetch()}>
+                Thử lại
+              </Button>
+            }
+          />
         ) : (
           <DashboardPostList
             data={pageData?.content || []}
@@ -194,31 +189,13 @@ export function PostManagementFeature() {
       </div>
 
       {pageData && pageData.totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
-          <p className="text-sm text-muted-foreground">
-            Hiển thị{" "}
-            <span className="font-medium">
-              {apiPageOffset * pageData.size + 1}
-            </span>{" "}
-            đến{" "}
-            <span className="font-medium">
-              {Math.min(
-                (apiPageOffset + 1) * pageData.size,
-                pageData.totalElements,
-              )}
-            </span>{" "}
-            trong tổng số{" "}
-            <span className="font-medium">{pageData.totalElements}</span> bài
-            viết
-          </p>
-          <div className="overflow-x-auto max-w-full">
+        <PaginationFooter pageOffset={apiPageOffset} size={pageData.size} total={pageData.totalElements} itemLabel="bài viết">
             <AppPagination
               currentPage={currentPage}
               totalPages={pageData.totalPages}
               onPageChange={setCurrentPage}
             />
-          </div>
-        </div>
+        </PaginationFooter>
       )}
 
       <AlertDialog
@@ -246,7 +223,7 @@ export function PostManagementFeature() {
                 handleDeleteConfirm();
               }}
               disabled={deletePost.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive-solid"
             >
               {deletePost.isPending ? "Đang xóa..." : "Xóa bài viết"}
             </AlertDialogAction>

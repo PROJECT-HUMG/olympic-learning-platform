@@ -1,8 +1,8 @@
-import { getPageNumber } from "../../../lib/list-navigation.ts";
+import { getPageNumber, replaceListParam } from "../../../lib/list-navigation.ts";
+import { hasUuidFormat } from "../../../lib/uuid.ts";
 import type { QuestionStatus, UpdateQuestionRequest } from "../types/question.types.ts";
 import type { ScientificBlock, ScientificFigure } from "../types/scientific-content.ts";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/;
 const STATUSES = new Set<QuestionStatus>(["DRAFT", "PUBLISHED", "ARCHIVED"]);
 export const MANUAL_TYPES = ["single_choice", "multiple_choice", "written", "written_multipart"] as const;
@@ -27,7 +27,7 @@ export const RESTORE_CHECK_NOTE =
   "Khôi phục kiểm tra lại môn học, chủ đề còn mở và nội dung đủ điều kiện xuất bản.";
 
 export function isUuid(value: string): boolean {
-  return UUID.test(value);
+  return hasUuidFormat(value);
 }
 export function isManualType(value: string): value is ManualQuestionType {
   return (MANUAL_TYPES as readonly string[]).includes(value);
@@ -113,11 +113,7 @@ export function replaceQuestionBankParam(
   key: "search" | "subjectId" | "status" | "page",
   value: string,
 ): URLSearchParams {
-  const next = new URLSearchParams(current);
-  if (value) next.set(key, value);
-  else next.delete(key);
-  if (key !== "page") next.delete("page");
-  return next;
+  return replaceListParam(current, key, value);
 }
 export function saveFailureNotice(status: number, detail: string): { conflict: boolean; notice: string } {
   const kept = "Nội dung đang soạn vẫn còn trên trang.";

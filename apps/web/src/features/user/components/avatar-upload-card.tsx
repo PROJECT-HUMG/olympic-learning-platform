@@ -164,7 +164,7 @@ export function AvatarUploadCard({ user }: AvatarUploadCardProps) {
                   <AlertDialogDescription>Ảnh hiện tại sẽ được xóa và tài khoản dùng ảnh mặc định.</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter><AlertDialogCancel>Hủy</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleRemoveAvatar} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Xóa ảnh</AlertDialogAction>
+                  <AlertDialogAction onClick={handleRemoveAvatar} variant="destructive-solid">Xóa ảnh</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>}

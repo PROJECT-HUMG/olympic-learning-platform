@@ -1,3 +1,5 @@
+import { parseToolkitDecimal } from "./decimal.ts";
+
 export interface CourseRow {
   id: string;
   name: string;
@@ -24,12 +26,6 @@ export function restoreGpa(value: unknown): GpaState {
   return state as GpaState;
 }
 
-function decimal(value: string): number | null {
-  const text = value.trim();
-  if (!/^(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(text)) return null;
-  const number = Number(text.replace(",", "."));
-  return Number.isFinite(number) ? number : null;
-}
 
 export function calculateGpa(courses: CourseRow[], scale: 4 | 10) {
   const errors: Record<string, { credits?: string; grade?: string }> = Object.create(null);
@@ -38,8 +34,8 @@ export function calculateGpa(courses: CourseRow[], scale: 4 | 10) {
   let courseCount = 0;
   for (const row of courses) {
     if (!row.name.trim() && !row.credits.trim() && !row.grade.trim()) continue;
-    const credits = decimal(row.credits);
-    const grade = decimal(row.grade);
+    const credits = parseToolkitDecimal(row.credits);
+    const grade = parseToolkitDecimal(row.grade);
     const error: { credits?: string; grade?: string } = {};
     if (credits === null || credits <= 0) error.credits = "Nhập số tín chỉ lớn hơn 0.";
     if (grade === null || grade < 0 || grade > scale) error.grade = `Nhập điểm từ 0 đến ${scale}.`;
