@@ -18,16 +18,20 @@
 }
 @media (max-width: 767px) {
   .public-header__inner { min-height: 64px; padding-inline: 1rem; gap: .5rem; }
-  .public-header .shell-brand { gap: .375rem; }
-  .public-header .shell-brand__name { font-size: .8125rem; }
+  .public-header .shell-brand { gap: .375rem; flex-shrink: 0; }
+  .public-header .shell-brand__name { display: none; }
   .public-header .shell-brand__name > span { font-size: .625rem; }
   .public-header__actions { gap: .5rem; }
-}
-@media (max-width: 359px) {
-  .public-header .shell-brand__name { display: none; }
 }
 @media (hover: hover) and (pointer: fine) {
   .public-header__link:hover { background: var(--accent); color: var(--primary); }
   .public-header__link:hover::after { transform: scaleX(1); }
 }
 @media (prefers-reduced-motion: reduce) { .public-header__link, .public-header__link::after { transition: none; } }
+
+/* Keep anonymous logo/theme/login/Menu distinct at the narrowest viewport. */
+@media (max-width: 359px) {
+  .public-header__inner { padding-inline: .75rem; }
+  .public-header__cta { padding-inline: .5rem; }
+  .public-header .shell-menu-trigger { padding-inline: .375rem; }
+}

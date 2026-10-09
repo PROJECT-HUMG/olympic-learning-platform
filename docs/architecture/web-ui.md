@@ -33,13 +33,13 @@ different existing treatment. Shared styling never implies shared business seman
 
 ## Current navigation-shell decision (05/10/2026)
 
-This decision supersedes the older floating-header/bottom-sheet/manual-motion choices below; those paragraphs describe earlier iterations, not the mounted navigation contract. Navigation alone is being redesigned; unrelated page bodies, destinations and role guards remain unchanged. Use the same palette/type tokens. The public header is aligned with the functional page container; at >=1200px it shows primary discovery links, at 768–1199px it keeps Môn học/Tài liệu/Bảng tin direct, and below 768px it keeps brand/sign-in or account/Menu. A shared left drawer preserves every existing destination grouped by role, with destinations first and theme/auth actions at the bottom.
+This decision supersedes the older floating-header/bottom-sheet/manual-motion choices below; those paragraphs describe earlier iterations, not the mounted navigation contract. Navigation alone is being redesigned; unrelated page bodies, destinations and role guards remain unchanged. Use the same palette/type tokens. The public header is aligned with the functional page container; at >=1200px it shows primary discovery links, at 768–1199px it keeps Môn học/Tài liệu/Bảng tin direct, and below 768px it keeps brand/sign-in or account/Menu. A shared left drawer preserves every existing destination grouped by role, with destinations first and auth actions at the bottom. Theme switching stays in the mobile top navbar; tablet/desktop drawers retain their existing theme footer.
 
 Workspace navigation separates personal/content/system tasks from public discovery. Staff have Overview, content/system management, then personal Daily/profile destinations. Students retain personal work destinations. At >=1200px use a collapsible readable sidebar; at 768–1199px use an 88px labelled shortcut rail with direct Overview/Daily/Groups and staff Questions; below 768px use the compact header and full drawer. Discovery is accessible from the sidebar/rail without permanently repeating the public directory. Account/theme actions occupy a consistent top-right position. Use one drawer scroll region, 44px targets, modal focus trapping/Escape/return and collapse focus handoff; no route or authorization changes.
 
 Expressive user-triggered motion is allowed: a 360ms drawer reveal, staged group reveals, responsive sidebar width transition, account reveal and active-route markers. Do not delay links or add continuous navigation motion. OS prefers-reduced-motion suppresses these animations automatically. The visible “Nền động” control (HomeMotionToggle and PublicDisplaySettings switch) and its now-unused preference store are removed; the home-motion hook follows OS preference, preserving theme settings. This is not authority to override browser accessibility or add new background effects.
 
-Rendered recheck: retain the visible Menu label on tablet/mobile; below 360px keep the school logo but omit the adjacent brand text to make room for sign-in/Menu. Compact workspace rails have one Menu trigger, not a second discovery trigger to the same drawer. Staff rail order is Overview, Documents, Questions, Daily, Daily groups; the expanded sidebar/full drawer retain every destination and the same role restrictions. Active rail entries use a text-weight/background/edge marker, not color alone. Existing account/theme, draft blocking and focus return stay intact.
+Rendered recheck: retain the visible Menu label on tablet/mobile; below 768px keep the school logo but omit the adjacent brand text to make room for sign-in/Menu. Compact workspace rails have one Menu trigger, not a second discovery trigger to the same drawer. Staff rail order is Overview, Documents, Questions, Daily, Daily groups; the expanded sidebar/full drawer retain every destination and the same role restrictions. Active rail entries use a text-weight/background/edge marker, not color alone. Existing account/theme, draft blocking and focus return stay intact.
 
 Study-room presentation (06/10/2026): `/toolkit?tool=rooms` retains flat discovery/create; GPA is unchanged. `/study-rooms/:roomId` keeps explicit preview/Join. The joined room is listening-first: real selected title and local controls, original Three.js observatory, then a compact rhythm/accounting band with the same aligned edges. Desktop >=1200px pairs the stage with a 19rem Queue/People companion; tablet/mobile move those tabs below it. Below 768px Play/Player/Volume form one deliberate control row and volume uses a bounded popover. Rounded stone/oak, an orbital window, smoother seated characters and daylight/evening lighting replace the prior dense timber/mountain scene; retain platform tokens and Be Vietnam Pro for DOM content, with no fabricated artwork or metadata. Character/DOM identity interactions remain accessible and fallback does not block controls. Music/TV use one persistent player modal; Add uses a focused shadcn dialog respecting the existing one-outstanding-track rule. Management/Leave occupy the compact More menu. Bell/phase feedback, OS reduced motion, keyboard/focus, routes/API/access remain. This supersedes the timer-first 320px rail, not room semantics; no group-room links, authoritative seats or saved customization.
 
@@ -303,3 +303,38 @@ Kéo ảnh để chọn phần bạn muốn hiển thị.
 Rà soát kế hoạch: trọng tâm là chọn chủ thể, không cố nhét cả ảnh vào icon. Giữ bước xem trước/hủy trước upload để không đổi ảnh tài khoản ngoài ý muốn. Chỉ upload ảnh gốc và metadata khi xác nhận Lưu ảnh mới; không thêm thư viện crop hoặc tự nhận diện khuôn mặt. Bản xem trước và chỉnh khung đều dùng ảnh gốc.
 
 Rà soát ảnh triển khai ở 390px sáng và 1440px tối: phần bị che ngoài hình tròn giúp thấy chính xác chủ thể sẽ xuất hiện, giữ font/màu/nút cùng hồ sơ và không thu nhỏ avatar nav. Đặt lại căn trái, khung ảnh căn giữa. Rà soát thêm 320×360px phát hiện grid của hộp thoại có thể ép hàng làm khung che nút; đổi riêng hộp thoại này sang flex với các phần không co, nội dung cuộn đúng và các nút được kiểm tra bấm lại trên Chromium/WebKit.
+
+## Mobile auth, navigation and private Recognition evidence (09/10/2026)
+
+Password login alone puts the recovery link after the password field and its
+inline error at the auth shell's ≤900px breakpoint. Keep the existing 52px
+floating fields, 44px recovery/reveal targets, validation associations and login
+Turnstile/token lifecycle. Desktop retains its compact above-field recovery link;
+other auth forms are unchanged. Mobile navigation (<768px) keeps logo-only public
+branding with its accessible home-link name; the workspace logo/control row has
+full page context in a compact second row instead of squeezing the title away.
+Theme preference/persistence remains with ThemeToggle/useThemeStore in the navbar.
+Mobile drawers omit the duplicate theme footer; tablet/desktop behavior remains.
+
+EvidencePreviews/EvidenceViewer share Daily's two-thumbnail/+N and all-items
+Dialog presentation, captions, native keyboard activation, close/return focus,
+44px controls, short-viewport scrolling and optional 2× image zoom. Feature
+adapters own access, freshly authorized metadata, bytes, downloads and operations.
+Recognition evidence is private even on a public achievement: owner/admin only,
+never mounted by public profiles, hidden during failed/pending revalidation with
+abort/revoke on unmount or identity/resource change. Recognition stores API bytes,
+not signed URLs; do not introduce external URLs to bypass authorization. Only
+validated bounded raster bytes receive image previews; PDF/legacy links retain
+honest non-image fallback and feature-owned download/open behavior.
+
+Admin album creation remains Draft by default. The discoverable Công bố album
+list action opens the existing editor with explicit publication intent; Lưu và
+công bố uses existing validation, upload-before-publication, admin API and
+expectedVersion rules. Failures retain fields/saved draft with inline feedback;
+conflicts require reopening current metadata for explicit reconciliation. No
+new publication/approval/visibility policy, API or media limits are introduced.
+See the [component APIs and consumers](web-ui-components.md#mobile-and-recognition-evidence-owners-09102026).
+
+Narrow anonymous public navigation also keeps the logo from shrinking into the
+theme target: at <360px only horizontal navbar/button padding is compacted,
+retaining44px height,8px target separation and complete login/Menu labels.

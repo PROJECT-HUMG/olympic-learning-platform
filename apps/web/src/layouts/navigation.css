@@ -62,13 +62,14 @@
 /* The shell supplies the same Daily destinations on tablets and wide screens. */
 @media (min-width: 768px) { .workspace-content .page-shell.study-notebook > .study-area-nav { display: none; } }
 @media (max-width: 767px) {
-  .workspace-topbar { min-height: 64px; padding-inline: .75rem; gap: .5rem; }
-  .workspace-topbar__identity { gap: .5rem; }
-  .workspace-topbar__identity > .shell-brand__logo { display: none; }
+  .workspace-topbar { min-height: 64px; padding: .5rem .75rem; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0 .5rem; }
+  .workspace-topbar__identity { display: contents; }
+  .workspace-topbar__identity > .shell-brand__logo { display: block; }
+  .workspace-topbar__actions { grid-column: 3; grid-row: 1; }
+  .workspace-topbar__context { grid-column: 1 / -1; grid-row: 2; margin-top: .25rem; }
   .workspace-topbar__context > span { display: none; }
-  .workspace-topbar__context > p { font-size: .8125rem; }
+  .workspace-topbar__context > p { font-size: .8125rem; white-space: normal; overflow-wrap: anywhere; }
   .workspace-content { padding: 1.5rem 1rem; }
-  .workspace-topbar__context > p { max-width: 32vw; }
 }
 @media (max-width: 640px) { .workspace-content { padding-top: 1rem; } }
 @media (max-height: 480px) {

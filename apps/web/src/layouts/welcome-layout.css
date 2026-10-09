@@ -360,3 +360,10 @@ html:has(.welcome-layout) {
     .welcome-layout *, .welcome-layout *::before, .welcome-layout *::after { animation: none !important; transition: none !important; }
   }
 }
+
+/* Password login alone: recovery follows field/error on mobile, outside the field gap. */
+.login-password-field { position: relative; }
+.login-recovery-link { position: absolute; right: 2px; top: 5px; transform: translateY(-100%); }
+@media (max-width: 900px) {
+  .login-recovery-link { position: static; transform: none; display: flex; align-items: center; justify-content: flex-end; width: fit-content; margin-left: auto; min-height: 44px; }
+}

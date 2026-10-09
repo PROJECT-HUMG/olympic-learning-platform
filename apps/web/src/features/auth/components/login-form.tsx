@@ -48,7 +48,7 @@ export function LoginForm() {
   }
 
   return (
-    <div className="auth-form">
+    <div className="auth-form auth-form--login">
       <div>
         <h1 className="auth-heading auth-heading--greeting">Chào bạn trở lại.</h1>
         <p className="auth-description">
@@ -67,24 +67,21 @@ export function LoginForm() {
           {...register("identifier")}
         />
 
-        <FormField
-          id="login-password"
-          type="password"
-          label="Mật khẩu"
-          labelRight={
-            <Link
-              to={ROUTES.FORGOT_PASSWORD}
-              state={location.state}
-              className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
-            >
-              Quên mật khẩu?
-            </Link>
-          }
-          required
-          placeholder="••••••••"
-          error={errors.password?.message}
-          {...register("password")}
-        />
+        <div className="login-password-field">
+          <FormField
+            id="login-password"
+            type="password"
+            label="Mật khẩu"
+            required
+            placeholder="••••••••"
+            error={errors.password?.message}
+            {...register("password")}
+          />
+          <Link to={ROUTES.FORGOT_PASSWORD} state={location.state}
+            className="login-recovery-link text-xs text-muted-foreground hover:text-foreground underline underline-offset-4">
+            Quên mật khẩu?
+          </Link>
+        </div>
 
         <TurnstileChallenge action="login" generation={turnstile.generation} onToken={turnstile.receive} />
         <Button type="submit" className="w-full" loading={isSubmitting} disabled={!turnstile.ready}>

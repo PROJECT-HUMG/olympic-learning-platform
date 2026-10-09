@@ -153,7 +153,9 @@ it("feedback draft survives transient checks but is hidden, and denied access un
 it("evidence uses file-only dialogs and bounded authorized previews, not nested forms", () => {
   assert.match(evidence, /daily-evidence-dialog/);
   assert.match(evidence, /aria-describedby=\{prefix \+ "-file-help"\}/);
-  assert.match(evidence, /images.slice\(0, 2\)/);
+  assert.match(source("components/ui/evidence-gallery.tsx"), /images.slice\(0, 2\)/);
+  assert.match(evidence, /<EvidencePreviews/);
+  assert.match(evidence, /<EvidenceViewer/);
   assert.match(evidence, /evidenceService.download/);
   assert.match(evidence, /URL.revokeObjectURL/);
   assert.doesNotMatch(evidence, /saveLink|setStage|type="url"|Trước khi làm|Sau khi làm/);

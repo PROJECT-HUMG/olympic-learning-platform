@@ -2592,3 +2592,57 @@ contracts, without pending Daily recovery. Log:
 `/tmp/ui-reuse-index-contract-check-20261009.log`. Current source links and primitive
 call-site index use staged/committed Daily line offsets; working-tree overlaps
 are separately accounted. Temporary index snapshot is cleaned after verification.
+
+## Mobile and Recognition repair — accepted local candidate, 09/10/2026
+
+Entry/base `ec98761206b9fdc233cee6c9911e660e77d09bca`. Lead implemented directly;
+no Peer dispatch, dependency, Java/API-policy, deployment or environment change.
+The exact integrated candidate is accepted for scoped local commit; no push or
+live content publication is authorized by this checkpoint. Complete paths/hashes,
+patch accounting and evidence are in `/tmp/mobile-recognition-final-manifest-20261009.json`.
+Pending seven-path Daily recovery remains separate, including its existing status
+content; unrelated authentication/deployment documentation and operator env are
+excluded. This status section alone is the new staged contribution to this file.
+
+- Password login recovery follows password/error at ≤900px. Measured normal
+  account→password gap:70→26px at320/390/768; desktop1440 remains26px. Inputs,
+  errors and44px mobile actions remain; login/Turnstile/token logic is unchanged.
+- Mobile public navbar has logo-only branding and existing ThemeToggle; workspace
+  logo/control row retains full page context beneath it. Mobile drawer duplicate
+  theme control removed; desktop/tablet theme/branding and role destinations remain.
+- Daily and Recognition share EvidencePreviews/EvidenceViewer presentation and
+  bounded raster detection. Owner history and admin review use one Recognition
+  adapter; public profiles never mount evidence. Private metadata pending/error,
+  identity/version/attachment change and expiry abort/revoke old byte previews.
+  Native triggers,2 previews/+N, all-items navigation,44px Close,2× zoom,
+  short-viewport scrolling, file/download fallback and feature retries are retained.
+- Draft-only report was a discoverability gap, not a missing API publication state:
+  create defaults Draft, existing editor status can publish after successful upload.
+  Admin list now exposes Công bố album → existing editor → explicit Lưu và công bố.
+  Existing validation/version/admin rules remain; inline failure/conflict feedback
+  preserves fields and saved draft. No automatic create publication or new eligibility.
+
+Actual evidence: baseline16 local screenshots `/tmp/mobile-four-before-5j7zOP/`
+plus album baseline `/tmp/mobile-four-before-2cDXQe/`; after22 screenshots and
+passing native/gallery/theme/error checks `/tmp/mobile-four-after-aa6XjE/`;
+publication503/pending/retry/success/validation/default-Draft/non-admin probe
+`/tmp/mobile-four-after-9idsKJ/`; private revalidation/identity/reviewer approval
+and rejection probe `/tmp/mobile-four-after-h9V6iW/`. Login enabled/disabled,
+spent/expired token, script/provider failure and focus/draft recovery passed in
+`/tmp/olympic-login-turnstile-ETTCi2/`. Updated Daily interaction probe passed
+`/tmp/daily-ux-2jAICP/` (desktop/tablet/mobile320×568 and short320×360, gallery,
+legacy files, sync/drafts/reflections/sharing). All fixtures are synthetic; no
+private screenshot content was copied into project artifacts.
+
+Checks:175 Node tests passed; TypeScript + production Vite bundle passed using
+an env-disabled local config; Oxlint passed with existing warnings. Earlier
+probe failures were harness route/selector/DOM-serialization and stopped owned
+runtime issues; those outcomes remain separately retained, followed by passing
+corrected probes. No dedicated reduced-motion test, live backend authorization,
+signed expiry, real Cloudflare verification/OTP, physical device/screen-reader,
+all-screen coverage or1GiB capacity proof claimed. Anonymous navbar320/390 targets,8px separation and drawer checks passed in
+`/tmp/mobile-four-after-u4yKAP/`; the added theme control initially overlapped
+the shrinkable logo at320px. Logo now cannot shrink; only narrow horizontal
+padding is compacted while all44px controls and labels remain.
+Owned runtimes cleaned at handoff. See [component ownership](../architecture/web-ui-components.md#mobile-and-recognition-evidence-owners-09102026)
+and [design rules](../architecture/web-ui.md#mobile-auth-navigation-and-private-recognition-evidence-09102026).

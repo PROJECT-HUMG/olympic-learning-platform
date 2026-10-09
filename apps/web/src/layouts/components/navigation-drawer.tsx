@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import type { NavigationGroup } from "../navigation";
 import { NavigationGroups } from "./navigation-groups";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { PublicDisplaySettings } from "./public-display-settings";
 
 /** The caller owns the trigger/open state; Radix owns modality and focus return. */
@@ -12,6 +13,7 @@ export function NavigationDrawer({ groups, onNavigate, workspace = false, footer
   footer?: ReactNode;
   onCloseAutoFocus?: (event: Event) => void;
 }) {
+  const hasRail = useMediaQuery("(min-width: 768px)");
   return <SheetContent side="left" className="navigation-drawer" onCloseAutoFocus={onCloseAutoFocus}>
     <SheetHeader className="navigation-drawer__header">
       <SheetTitle>{workspace ? "Không gian của bạn" : "Olympic HUMG"}</SheetTitle>
@@ -20,9 +22,9 @@ export function NavigationDrawer({ groups, onNavigate, workspace = false, footer
     <div className="navigation-drawer__body">
       <NavigationGroups groups={groups} onNavigate={onNavigate} />
     </div>
-    <div className="navigation-drawer__footer">
-      <PublicDisplaySettings />
+    {(hasRail || footer) && <div className="navigation-drawer__footer">
+      {hasRail && <PublicDisplaySettings />}
       {footer}
-    </div>
+    </div>}
   </SheetContent>;
 }

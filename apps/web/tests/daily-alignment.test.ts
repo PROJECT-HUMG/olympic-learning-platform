@@ -42,6 +42,6 @@ it("owner tasks use a unified header and associated evidence ribbon, not a reser
   const css = source("features/daily/ui/study-notebook.css");
   assert.doesNotMatch(css, /minmax\(240px, 38%\)/);
   assert.match(css, /\.daily-task-heading \{/);
-  assert.match(css, /\.daily-evidence-previews \{ display: flex; flex-wrap: wrap/);
+  assert.match(source("components/ui/evidence-gallery.css"), /\.evidence-previews \{ display: flex; flex-wrap: wrap/);
   assert.match(source("features/daily/evidence/evidence-panel.tsx"), /taskHeader/);
 });

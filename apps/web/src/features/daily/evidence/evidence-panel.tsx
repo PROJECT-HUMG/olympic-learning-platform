@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Download, FileText, Link as LinkIcon, Paperclip, Upload } from "lucide-react";
+import { Download, Link as LinkIcon, Paperclip, Upload } from "lucide-react";
+import { EvidencePreviews, EvidenceViewer } from "@/components/ui/evidence-gallery";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DailyDialogHeader } from "../ui/daily-dialog-header";
@@ -51,10 +52,7 @@ function SavedPanel({ scope, disabled, readOnly, taskTitle, taskHeader }: { scop
   useEffect(() => () => { active.current?.abort(); }, []);
   // Never mount old metadata or byte previews while a permission check is pending/failed.
   const rows = query.isSuccess && !query.isFetching ? query.data : [];
-  const images = rows.filter(item => item.kind === "FILE" && evidenceIsImage(item.contentType));
-  const files = rows.filter(item => !images.includes(item));
-  const selected = rows.find(item => item.id === selectedId) ?? rows[0];
-  const selectedIndex = selected ? rows.indexOf(selected) : 0;
+  const items = rows.map(item => ({ ...item, name: item.originalName ?? item.label ?? "Minh chứng", image: item.kind === "FILE" && evidenceIsImage(item.contentType), detail: item.kind === "LINK" ? "Liên kết đã lưu" : formatBytes(item.sizeBytes!), icon: item.kind === "LINK" ? <LinkIcon size={20} aria-hidden="true" /> : undefined }));
   const blocked = disabled || busy;
   const canCreate = !blocked && !readOnly && query.isSuccess && !query.isFetching && evidenceRoom(rows.length);
 
@@ -97,7 +95,6 @@ function SavedPanel({ scope, disabled, readOnly, taskTitle, taskHeader }: { scop
     });
   }
   function openGallery(item: EvidenceRecord, opener: HTMLButtonElement) { galleryOpener.current = opener; setNotice(null); setFailure(null); setSelectedId(item.id); setGalleryOpen(true); }
-  function move(delta: number) { if (rows.length) setSelectedId(rows[(selectedIndex + delta + rows.length) % rows.length].id); }
   const state = <>
     {query.isFetching ? <p role="status" className="study-note">Đang kiểm tra minh chứng…</p> : null}
     {query.isError ? <div><p role="alert" className="study-note">{evidenceErrorMessage(query.error)}</p><Button type="button" variant="outline" disabled={blocked} onClick={() => void query.refetch()}>Thử lại minh chứng</Button></div> : null}
@@ -125,33 +122,19 @@ function SavedPanel({ scope, disabled, readOnly, taskTitle, taskHeader }: { scop
     </div>
     </div>
     {!uploadOpen && !galleryOpen ? state : null}
-    {rows.length ? <div className="daily-evidence-previews">
-      {images.slice(0, 2).map((item, i) => <button type="button" className="daily-evidence-photo" key={item.id} onClick={event => openGallery(item, event.currentTarget)} aria-label={`Xem ${item.originalName}${i === 1 && images.length > 2 ? ` và ${images.length - 2} ảnh khác` : ""}`}>
-        {!galleryOpen ? <PrivateImage scope={scope} item={item} /> : null}
-        <span className="daily-evidence-photo__name">{item.originalName}</span>
-        {i === 1 && images.length > 2 ? <span className="daily-evidence-photo__more">+{images.length - 2}</span> : null}
-      </button>)}
-      {files.slice(0, images.length ? 1 : 2).map(item => <button type="button" className="daily-evidence-file" key={item.id} onClick={event => openGallery(item, event.currentTarget)}>{item.kind === "LINK" ? <LinkIcon size={20} /> : <FileText size={20} />}<span>{item.originalName ?? item.label}</span><small>{item.kind === "LINK" ? "Liên kết đã lưu" : formatBytes(item.sizeBytes!)}</small></button>)}
-      <Button type="button" variant="ghost" className="daily-evidence-all" onClick={event => openGallery(rows[0], event.currentTarget)}>Xem tất cả ({rows.length})</Button>
-    </div> : readOnly && query.isSuccess && !query.isFetching ? <p className="study-note daily-evidence-empty">Chưa có minh chứng được chia sẻ.</p> : null}
-    <Dialog open={galleryOpen} onOpenChange={setGalleryOpen}>
-      <DialogContent className="daily-dialog daily-gallery-dialog" showCloseButton={false} onOpenAutoFocus={event => { event.preventDefault(); document.querySelector<HTMLElement>(".daily-gallery-dialog [data-slot=dialog-title]")?.focus(); }} onCloseAutoFocus={event => { event.preventDefault(); const target = galleryOpener.current?.isConnected ? galleryOpener.current : surface.current?.querySelector<HTMLButtonElement>(".daily-evidence-all, .daily-evidence-add"); target?.focus(); }}>
-        <DailyDialogHeader><DialogTitle tabIndex={-1}>Minh chứng</DialogTitle><DialogDescription className="daily-gallery-context">{taskTitle} · {readOnly ? "Chỉ đọc theo quyền chia sẻ" : "Riêng tư"}</DialogDescription></DailyDialogHeader>
-        {state}
-        {selected ? <>
-          <div className="daily-gallery-view" aria-live="polite">
-            {selected.kind === "FILE" && evidenceIsImage(selected.contentType) ? <PrivateImage key={selected.id} scope={scope} item={selected} /> : <div className="daily-gallery-file"><FileText size={40} aria-hidden="true" /><p>{selected.originalName ?? selected.label}</p><p className="study-note">{selected.kind === "LINK" ? "Liên kết đã lưu từ trước; không có bản xem trước." : "Tệp đính kèm; không tạo hình xem trước giả."}</p></div>}
-          </div>
-          <div className="daily-gallery-caption"><strong>{selected.originalName ?? selected.label}</strong><span>{selectedIndex + 1} / {rows.length}</span></div>
-          <div className="daily-gallery-controls"><Button type="button" variant="outline" onClick={() => move(-1)} disabled={rows.length < 2}><ChevronLeft size={16} />Trước</Button><Button type="button" variant="outline" onClick={() => move(1)} disabled={rows.length < 2}>Sau<ChevronRight size={16} /></Button>
-            {selected.kind === "FILE" ? <Button type="button" variant="outline" disabled={blocked} onClick={() => download(selected)}><Download size={16} />Tải tệp</Button> : <a className="daily-legacy-link" href={selected.url!} target="_blank" rel="noreferrer noopener">Mở liên kết cũ</a>}
-            {!readOnly ? <Button type="button" variant="ghost" disabled={blocked} onClick={() => void remove(selected)}>Gỡ minh chứng</Button> : null}
-            <Button type="button" variant="ghost" disabled={blocked} onClick={() => void query.refetch()}>Kiểm tra lại minh chứng</Button>
-          </div>
-          <div className="daily-gallery-index" aria-label="Chọn minh chứng">{rows.map((item, i) => <Button type="button" key={item.id} variant={item.id === selected.id ? "secondary" : "ghost"} aria-pressed={item.id === selected.id} onClick={() => setSelectedId(item.id)} aria-label={`Minh chứng ${i + 1}: ${item.originalName ?? item.label}`}>{i + 1}</Button>)}</div>
-        </> : !query.isFetching && !query.isError ? <p className="study-note">Chưa có minh chứng.</p> : null}
-      </DialogContent>
-    </Dialog>
+    <EvidencePreviews items={items} open={galleryOpen} className="daily-evidence-previews"
+      renderImage={item => <PrivateImage scope={scope} item={item} />} onOpen={openGallery} />
+    {!rows.length && readOnly && query.isSuccess && !query.isFetching ? <p className="study-note daily-evidence-empty">Chưa có minh chứng được chia sẻ.</p> : null}
+    <EvidenceViewer items={items} open={galleryOpen} onOpenChange={setGalleryOpen} selectedId={selectedId} onSelect={setSelectedId}
+      description={`${taskTitle} · ${readOnly ? "Chỉ đọc theo quyền chia sẻ" : "Riêng tư"}`} feedback={state}
+      empty={!query.isFetching && !query.isError ? <p className="study-note">Chưa có minh chứng.</p> : null}
+      onCloseAutoFocus={event => { event.preventDefault(); const target = galleryOpener.current?.isConnected ? galleryOpener.current : surface.current?.querySelector<HTMLButtonElement>(".evidence-all, .daily-evidence-add"); target?.focus(); }}
+      renderImage={item => <PrivateImage key={item.id} scope={scope} item={item} />}
+      renderActions={item => <>
+        {item.kind === "FILE" ? <Button type="button" variant="outline" disabled={blocked} onClick={() => download(item)}><Download size={16} aria-hidden="true" />Tải tệp</Button> : <a className="daily-legacy-link" href={item.url!} target="_blank" rel="noreferrer noopener">Mở liên kết cũ</a>}
+        {!readOnly ? <Button type="button" variant="ghost" disabled={blocked} onClick={() => void remove(item)}>Gỡ minh chứng</Button> : null}
+        <Button type="button" variant="ghost" disabled={blocked} onClick={() => void query.refetch()}>Kiểm tra lại minh chứng</Button>
+      </>} />
     {confirmation}
   </div>;
 }

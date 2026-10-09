@@ -55,11 +55,15 @@ export function HonorImage({ honor, photoId, alt, management = false, interactiv
 }
 export function EvidenceDownload({ achievementId, attachment }: { achievementId: string; attachment: Evidence }) {
   const [pending, setPending] = useState(false);
+  const active = useRef<AbortController | null>(null);
+  useEffect(() => () => active.current?.abort(), []);
   async function download() {
+    if (active.current) return;
+    const controller = new AbortController(); active.current = controller;
     setPending(true);
-    try { const blob = await service.evidence(achievementId, attachment.id); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = attachment.originalName; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
-    catch (error) { toast.error(parseApiError(error).detail || "Chưa tải được minh chứng. Hãy thử lại."); }
-    finally { setPending(false); }
+    try { const blob = await service.evidence(achievementId, attachment.id, controller.signal); if (controller.signal.aborted) return; const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = attachment.originalName; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+    catch (error) { if (!controller.signal.aborted) toast.error(parseApiError(error).detail || "Chưa tải được minh chứng. Hãy thử lại."); }
+    finally { if (!controller.signal.aborted) setPending(false); if (active.current === controller) active.current = null; }
   }
   return <Button size="sm" variant="outline" onClick={() => void download()} disabled={pending}>{pending ? "Đang tải…" : `Tải ${attachment.originalName}`}</Button>;
 }

@@ -33,5 +33,5 @@ export const recognitionService = {
   reviews: (params: { status?: string; userId?: string; page?: number; size?: number }) => apiClient.get<RecognitionPage<Achievement>>(`${admin}/achievements`, { params }).then(data),
   review: (record: Achievement, status: "APPROVED" | "REJECTED" | "REVOKED", note: string) => apiClient.post<Achievement>(`${admin}/achievements/${record.id}/review`, { status, note, expectedVersion: record.version }).then(data),
   visibility: (id: string, publicVisible: boolean) => apiClient.patch<Achievement>(`${root}/achievements/${id}/visibility`, { publicVisible }).then(data),
-  evidence: (id: string, attachmentId: string) => apiClient.get<Blob>(`${root}/achievements/${id}/evidence/${attachmentId}`, { responseType: "blob" }).then(data),
+  evidence: (id: string, attachmentId: string, signal?: AbortSignal) => apiClient.get<Blob>(`${root}/achievements/${id}/evidence/${attachmentId}`, { responseType: "blob", signal }).then(data),
 };

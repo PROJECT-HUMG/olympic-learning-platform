@@ -218,20 +218,20 @@ try {
     await navigate("/daily?date="+date);await wait("document.querySelectorAll('.study-task').length===13");
     assert.equal(await js("document.querySelector('.study-task__main > input').value"),"Unrelated unsaved task title");
     checks.push("synthetic add/save/reopen roundtrip; no real server persistence claim");
-    await wait("document.querySelectorAll('.daily-evidence-photo img').length===2");
-    assert.equal(await js("document.querySelector('.daily-evidence-photo__more').textContent"),"+2");
+    await wait("document.querySelectorAll('.evidence-photo img').length===2");
+    assert.equal(await js("document.querySelector('.evidence-photo__more').textContent"),"+2");
     await shot("day-gallery-desktop-light");
-    await js("document.querySelector('.daily-evidence-photo').click()");await wait("!!document.querySelector('.daily-gallery-dialog img')");
+    await js("document.querySelector('.evidence-photo').click()");await wait("!!document.querySelector('.evidence-viewer img')");
     await shot("gallery-desktop-light");
-    await click("Sau");await wait("document.querySelector('.daily-gallery-caption').textContent.includes('2 / 6')");
-    await js("document.querySelectorAll('.daily-gallery-index button')[4].click()");
-    await wait("document.querySelector('.daily-gallery-dialog').textContent.includes('không tạo hình xem trước giả')");
-    assert.equal(await js("document.querySelectorAll('.daily-gallery-view img').length"),0);
+    await click("Sau");await wait("document.querySelector('.evidence-gallery-caption').textContent.includes('2 / 6')");
+    await js("document.querySelectorAll('.evidence-gallery-index button')[4].click()");
+    await wait("document.querySelector('.evidence-viewer').textContent.includes('không có bản xem trước ảnh')");
+    assert.equal(await js("document.querySelectorAll('.evidence-gallery-view img').length"),0);
     await shot("gallery-document-desktop");
-    await js("document.querySelectorAll('.daily-gallery-index button')[5].click()");
+    await js("document.querySelectorAll('.evidence-gallery-index button')[5].click()");
     assert.ok(await js("!!document.querySelector('.daily-legacy-link')"));
-    await key("Escape","Escape",27);await wait("!document.querySelector('.daily-gallery-dialog')");
-    await wait("document.activeElement.classList.contains('daily-evidence-photo')");
+    await key("Escape","Escape",27);await wait("!document.querySelector('.evidence-viewer')");
+    await wait("document.activeElement.classList.contains('evidence-photo')");
     checks.push("two image previews +N, all six peers, document cards and retained legacy links; gallery focus/Escape");
 
     await js("document.querySelector('.daily-evidence-add').click()");await wait("!!document.querySelector('.daily-evidence-dialog input[type=file]')");
@@ -248,9 +248,9 @@ try {
     checks.push("file-only upload dialog honest failure/retry and neutral metadata; synthetic storage only");
 
     evidenceVariants=true;await navigate('/daily?date='+date);
-    await wait("document.querySelectorAll('.study-task')[1].querySelectorAll('.daily-evidence-photo img').length===1");
+    await wait("document.querySelectorAll('.study-task')[1].querySelectorAll('.evidence-photo img').length===1");
     await shot('task-ribbon-desktop-variants');
-    const taskMetrics=await js("[...document.querySelectorAll('.study-task')].slice(0,4).map(e=>{const r=e.getBoundingClientRect(),t=e.querySelector('.study-task__main > input').getBoundingClientRect(),node=e.querySelector('.daily-evidence-previews'),p=node?.getBoundingClientRect();return {height:r.height,titleX:t.x+parseFloat(getComputedStyle(e.querySelector('.study-task__main > input')).paddingLeft),previewX:node?p.x+parseFloat(getComputedStyle(node).paddingLeft):null,photos:e.querySelectorAll('.daily-evidence-photo').length,files:e.querySelectorAll('.daily-evidence-file').length}})");
+    const taskMetrics=await js("[...document.querySelectorAll('.study-task')].slice(0,4).map(e=>{const r=e.getBoundingClientRect(),t=e.querySelector('.study-task__main > input').getBoundingClientRect(),node=e.querySelector('.daily-evidence-previews'),p=node?.getBoundingClientRect();return {height:r.height,titleX:t.x+parseFloat(getComputedStyle(e.querySelector('.study-task__main > input')).paddingLeft),previewX:node?p.x+parseFloat(getComputedStyle(node).paddingLeft):null,photos:e.querySelectorAll('.evidence-photo').length,files:e.querySelectorAll('.evidence-file').length}})");
     assert.ok(taskMetrics[0].height<230,'Evidence no longer inflates a detached split row');
     assert.ok(taskMetrics[3].height<90,'Empty evidence has no reserved split column/row');
     assert.ok(Math.abs(taskMetrics[0].titleX-taskMetrics[0].previewX)<1,'Preview ribbon aligned with its task title');
@@ -270,13 +270,13 @@ try {
       assert.equal(await js("document.querySelector('#daily-tomorrow').value"),"Unrelated unsaved reflection");
       assert.equal(await js("document.querySelectorAll('.daily-reflection-context li').length"),13);
       await key("Escape","Escape",27);await wait("!document.querySelector('.daily-reflection-dialog')");
-      await js("document.querySelector('.daily-evidence-photo').click()");await wait("!!document.querySelector('.daily-gallery-dialog')");
+      await js("document.querySelector('.evidence-photo').click()");await wait("!!document.querySelector('.evidence-viewer')");
       await fit("gallery-"+width+"x"+height);await shot("gallery-"+width+"x"+height+"-light");
-      await js("(()=>{const d=document.querySelector('.daily-gallery-dialog');d.scrollTop=d.scrollHeight;d.querySelector('.daily-gallery-controls button').focus()})()");
+      await js("(()=>{const d=document.querySelector('.evidence-viewer');d.scrollTop=d.scrollHeight;d.querySelector('.evidence-gallery-controls button').focus()})()");
       await shot("gallery-controls-"+width+"x"+height+"-light");
-      assert.ok(await js("(()=>{const r=document.querySelector('.daily-dialog-close').getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight})()"));
-      await key("Escape","Escape",27);await wait("!document.querySelector('.daily-gallery-dialog')");
-      await wait("document.activeElement.classList.contains('daily-evidence-photo')");
+      assert.ok(await js("(()=>{const r=document.querySelector('.evidence-gallery-close').getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight})()"));
+      await key("Escape","Escape",27);await wait("!document.querySelector('.evidence-viewer')");
+      await wait("document.activeElement.classList.contains('evidence-photo')");
     }
     await viewport(1440);await js("document.documentElement.classList.add('dark')");
     await shot("day-desktop-dark");await click("Nhìn lại ngày");await wait("!!document.querySelector('.daily-reflection-dialog')");await shot("reflection-desktop-dark");
