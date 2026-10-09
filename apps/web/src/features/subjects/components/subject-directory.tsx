@@ -1,10 +1,10 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { useState } from "react";
-import { ArrowUpRight, BookOpen, RefreshCw, Search } from "lucide-react";
+import { ArrowUpRight, BookOpen, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import { useDocumentMetadata } from "@/features/documents/hooks/use-documents";
 import { ROUTES } from "@/router/route-constants";
 import "./subject-directory.css";
@@ -32,9 +32,7 @@ export function SubjectDirectory() {
         <div className="subject-directory__toolbar">
           <div className="subject-directory__search">
             <label htmlFor="subject-search">Tìm môn học</label>
-            <div className="subject-directory__search-field">
-              <Search aria-hidden="true" />
-              <Input
+              <SearchInput
                 id="subject-search"
                 type="search"
                 placeholder="Tên môn hoặc mã môn…"
@@ -42,8 +40,8 @@ export function SubjectDirectory() {
                 onChange={(event) => setKeyword(event.target.value)}
                 aria-controls="subject-results"
                 autoComplete="off"
+                className="bg-background"
               />
-            </div>
           </div>
           <p className="subject-directory__count" role="status">
             {metadata.data && (normalizedKeyword

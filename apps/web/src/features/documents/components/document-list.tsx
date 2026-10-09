@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ListFeedback } from "@/components/ui/list-feedback";
 import { DocumentCard } from "./document-card";
 import { DocumentListItem } from "./document-list-item";
 import { DocumentCardSkeleton } from "./document-card-skeleton";
@@ -20,12 +22,10 @@ interface DocumentListProps {
 export function DocumentList({ documents, isLoading, isError, isEmpty, viewMode = "grid", onDownload, onRetry, retrying }: DocumentListProps) {
   if (isError) {
     return (
-      <div role="alert" className="flex flex-col items-center justify-center p-12 text-center text-destructive">
-        <FileQuestion aria-hidden="true" className="w-12 h-12 mb-4 opacity-50" />
-        <p className="text-lg font-medium">Đã xảy ra lỗi khi tải dữ liệu.</p>
-        <p className="text-sm opacity-80 mt-1">Hãy kiểm tra kết nối và thử lại.</p>
-        {onRetry && <Button type="button" variant="outline" className="mt-4" loading={retrying} onClick={onRetry}>Thử lại</Button>}
-      </div>
+      <ListFeedback tone="error" icon={<FileQuestion />} title="Đã xảy ra lỗi khi tải dữ liệu."
+        actions={onRetry && <Button type="button" variant="outline" loading={retrying} onClick={onRetry}>Thử lại</Button>}>
+        Hãy kiểm tra kết nối và thử lại.
+      </ListFeedback>
     );
   }
 
@@ -60,11 +60,9 @@ export function DocumentList({ documents, isLoading, isError, isEmpty, viewMode 
 
   if (isEmpty || !documents || documents.length === 0) {
     return (
-      <div role="status" className="flex flex-col items-center justify-center px-4 py-12 text-center text-muted-foreground border border-dashed rounded-xl bg-muted/20">
-        <FileQuestion aria-hidden="true" className="w-16 h-16 mb-4 opacity-20" />
-        <h3 className="text-xl font-medium text-foreground mb-2">Không tìm thấy tài liệu nào</h3>
-        <p>Thử thay đổi từ khóa hoặc bộ lọc để tìm kiếm lại nhé.</p>
-      </div>
+      <EmptyState icon={<FileQuestion />} title="Không tìm thấy tài liệu nào">
+        Thử thay đổi từ khóa hoặc bộ lọc để tìm kiếm lại nhé.
+      </EmptyState>
     );
   }
 

@@ -75,7 +75,7 @@ export default function DocumentsPage() {
 
   return (
     <div className="page-shell page-shell--public">
-      {/* Kho Tài Liệu title removed as requested */}
+      <h1 className="sr-only">Kho tài liệu</h1>
 
       <DocumentFilters />
 

@@ -91,7 +91,7 @@ export function DashboardDocumentList({ data, onDeleteClick, onEditClick }: Dash
                 variant="outline" 
                 size="sm"
                 onClick={() => onEditClick(doc)}
-                className="h-8 text-xs"
+                className="min-h-11 text-xs"
               >
                 <Pencil className="w-3.5 h-3.5 mr-1.5" />
                 Sửa
@@ -100,7 +100,7 @@ export function DashboardDocumentList({ data, onDeleteClick, onEditClick }: Dash
                 variant="outline" 
                 size="sm"
                 onClick={() => onDeleteClick(doc)}
-                className="h-8 text-xs text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30"
+                className="min-h-11 text-xs text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30"
               >
                 <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                 Xóa

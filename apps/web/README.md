@@ -77,6 +77,15 @@ Vinh danh là nội dung kỷ niệm do admin công bố, có ảnh và danh sá
 
 Kết quả và các luồng còn cần sửa được ghi trong [rà soát UI/UX](../../docs/reviews/ux-flow-audit.md). Các kiểm tra trình duyệt được ghi ở đó có dùng API mock; không thay thế kiểm chứng backend, email, storage và YouTube thực tế.
 
+## Shared UI component reference
+
+Before adding search, filters, forms or page wrappers, consult the
+[current owner/API and screen adoption reference](../../docs/architecture/web-ui-components.md)
+alongside the [UI authority](../../docs/architecture/web-ui.md). It distinguishes
+shared compositions, primitive/CSS reuse and intentional feature layouts; the
+route table and remaining opportunities are source evidence, not all-screen
+browser validation.
+
 ## Kiểm tra
 
 Room presentation and playback local evidence (start Vite separately):

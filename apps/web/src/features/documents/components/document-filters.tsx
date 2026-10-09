@@ -1,7 +1,7 @@
-import { Search, X, SlidersHorizontal } from "lucide-react";
+import { X, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
 import { useDocumentMetadata } from "../hooks/use-documents";
@@ -24,22 +24,19 @@ function KeywordSearch({
       }}
     >
       <div className="relative min-w-0 flex-1">
-        <Search
-          aria-hidden="true"
-          className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
-        />
-        <Input
+        <SearchInput
+          type="text"
           aria-label="Tìm trong kho tài liệu"
           placeholder="Tìm trong kho tài liệu"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          className="h-12 rounded-full bg-accent/50 pl-11 pr-12"
+          className="bg-background pr-12"
         />
         {draft && (
           <button
             type="button"
             aria-label="Xóa từ khóa tìm kiếm"
-            className="absolute right-1 top-1 size-10 rounded-full text-muted-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
+            className="absolute right-0 top-0 size-11 rounded-lg text-muted-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
             onClick={() => {
               setDraft("");
               onApply("");
@@ -52,7 +49,7 @@ function KeywordSearch({
       <Button
         type="submit"
         variant="secondary"
-        className="h-12 rounded-full px-4"
+        className="px-4"
       >
         Tìm
       </Button>
@@ -87,19 +84,19 @@ export function DocumentFilters() {
   ];
   const hasFilters = keyword || filters.some(({ key }) => params.has(key));
   return (
-    <div className="mx-auto mb-6 flex w-full max-w-3xl flex-col gap-3">
+    <div className="flex w-full flex-col gap-3">
       <KeywordSearch
         key={keyword}
         keyword={keyword}
         onApply={(value) => updateFilter("keyword", value)}
       />
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="page-toolbar !justify-start !gap-2">
         <span className="hidden items-center gap-1 text-sm text-muted-foreground sm:flex">
           <SlidersHorizontal aria-hidden="true" className="size-4" />
           Bộ lọc
         </span>
         {filters.map(({ key, label, options }) => (
-          <div key={key} className="min-w-0 flex-[1_1_140px]">
+          <div key={key} className="min-w-0 flex-[1_1_12rem]">
             <Combobox
               aria-label={label}
               options={options.map((item) => ({
@@ -111,7 +108,6 @@ export function DocumentFilters() {
               placeholder={metadata.isLoading ? "Đang tải…" : label}
               emptyText={`Không tìm thấy ${label.toLowerCase()}`}
               disabled={metadata.isLoading || metadata.isError}
-              inputClassName="rounded-full"
             />
           </div>
         ))}
@@ -144,12 +140,11 @@ export function DocumentFilters() {
               <Button
                 key={key}
                 variant="secondary"
-                className="h-11 rounded-full"
+                className="min-h-11 h-auto max-w-full whitespace-normal text-left"
                 aria-label={`Bỏ lọc ${label.toLowerCase()}`}
                 onClick={() => updateFilter(key, "")}
               >
-                {options.find((item) => item.id === params.get(key))?.name ??
-                  label}
+                <span className="min-w-0 [overflow-wrap:anywhere]">{options.find((item) => item.id === params.get(key))?.name ?? label}</span>
                 <X aria-hidden="true" className="size-3.5" />
               </Button>
             ))}

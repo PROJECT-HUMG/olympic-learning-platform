@@ -196,10 +196,10 @@ export default function DocumentDetailPage() {
 
       <div className="flex flex-col gap-6">
         {/* Header Metadata */}
-        <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
-          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+        <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 md:p-8">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 sm:gap-6">
             <div className="flex-1 min-w-0">
-              <div className="flex gap-2 flex-wrap mb-4">
+              <div className="flex gap-2 flex-wrap mb-3 sm:mb-4">
                 <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-semibold">
                   {document.category.name}
                 </Badge>

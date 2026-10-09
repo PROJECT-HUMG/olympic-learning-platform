@@ -1,3 +1,4 @@
+import { SearchInput } from "@/components/ui/search-input";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useCallback, useEffect, useState } from "react";
@@ -161,7 +162,7 @@ function PublishedBank({ subjectId, onAdd }: { subjectId: string; onAdd: (questi
     <h3 className="font-semibold">Ngân hàng đã xuất bản</h3>
     <div className="flex flex-wrap gap-2">
       <Label className="sr-only" htmlFor="bank-search">Tìm câu đã xuất bản</Label>
-      <Input id="bank-search" value={text} onChange={(event) => setText(event.target.value)} onKeyDown={(event) => { if (!bankSearchKey(event)) return; applySearch(); }} />
+      <SearchInput id="bank-search" value={text} onChange={(event) => setText(event.target.value)} onKeyDown={(event) => { if (!bankSearchKey(event)) return; applySearch(); }} />
       <Button type="button" variant="outline" onClick={(event) => { event.preventDefault(); event.stopPropagation(); applySearch(); }}>Tìm</Button>
     </div>
     {query.isLoading ? <ExamLoading label="Đang tải câu hỏi…" /> : null}

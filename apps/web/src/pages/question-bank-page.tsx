@@ -36,7 +36,7 @@ function QuestionSearch({
   const [draft, setDraft] = useState(value);
   return (
     <form
-      className="flex max-w-xl gap-2"
+      className="flex min-w-0 flex-[1_1_20rem] gap-2"
       role="search"
       onSubmit={(event) => {
         event.preventDefault();
@@ -112,36 +112,38 @@ export default function QuestionBankPage() {
           </Button>
         }
       />
-      <QuestionSearch
-        key={bank.search ?? ""}
-        value={bank.search ?? ""}
-        onSearch={(value) => setParams((previous) => replaceQuestionBankParam(previous, "search", value))}
-      />
-      <div className="flex flex-wrap gap-3">
-        <label className="flex min-w-48 flex-col gap-1 text-sm">
-          Môn học
-          <NativeSelect
-            value={params.get("subjectId") ?? ""}
-            onChange={(event) => setParams((previous) => replaceQuestionBankParam(previous, "subjectId", event.target.value))}
-          >
-            <option value="">Tất cả</option>
-            {subjects.map((subject) => (
-              <option key={subject.id} value={subject.id}>{subject.name}</option>
-            ))}
-          </NativeSelect>
-        </label>
-        <label className="flex min-w-48 flex-col gap-1 text-sm">
-          Trạng thái
-          <NativeSelect
-            value={params.get("status") ?? ""}
-            onChange={(event) => setParams((previous) => replaceQuestionBankParam(previous, "status", event.target.value))}
-          >
-            <option value="">Tất cả</option>
-            <option value="DRAFT">Bản nháp</option>
-            <option value="PUBLISHED">Đã xuất bản</option>
-            <option value="ARCHIVED">Lưu trữ</option>
-          </NativeSelect>
-        </label>
+      <div className="page-toolbar !items-end">
+        <QuestionSearch
+          key={bank.search ?? ""}
+          value={bank.search ?? ""}
+          onSearch={(value) => setParams((previous) => replaceQuestionBankParam(previous, "search", value))}
+        />
+        <div className="flex min-w-0 flex-[1_1_24rem] flex-wrap gap-3">
+          <label className="flex min-w-0 flex-[1_1_12rem] flex-col gap-1 text-sm">
+            Môn học
+            <NativeSelect
+              value={params.get("subjectId") ?? ""}
+              onChange={(event) => setParams((previous) => replaceQuestionBankParam(previous, "subjectId", event.target.value))}
+            >
+              <option value="">Tất cả</option>
+              {subjects.map((subject) => (
+                <option key={subject.id} value={subject.id}>{subject.name}</option>
+              ))}
+            </NativeSelect>
+          </label>
+          <label className="flex min-w-0 flex-[1_1_12rem] flex-col gap-1 text-sm">
+            Trạng thái
+            <NativeSelect
+              value={params.get("status") ?? ""}
+              onChange={(event) => setParams((previous) => replaceQuestionBankParam(previous, "status", event.target.value))}
+            >
+              <option value="">Tất cả</option>
+              <option value="DRAFT">Bản nháp</option>
+              <option value="PUBLISHED">Đã xuất bản</option>
+              <option value="ARCHIVED">Lưu trữ</option>
+            </NativeSelect>
+          </label>
+        </div>
       </div>
       {query.isLoading ? (
         <div role="status" aria-busy="true" className="grid gap-4 md:grid-cols-2">

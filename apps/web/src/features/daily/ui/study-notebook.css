@@ -173,7 +173,7 @@
 @media (max-width: 640px) {
   .page-shell.study-notebook { gap: 1rem; }
   .study-notebook .page-heading { align-items: flex-start; gap: .75rem; }
-  .study-notebook .page-heading__title { font-size: 1.75rem; }
+  .study-notebook .page-heading__title { font-size: var(--page-title-size); }
   .study-area-nav { align-self: stretch; gap: 1.5rem; }
   .study-notebook .page-section__heading { padding-bottom: .75rem; }
   .study-task { padding: .5rem 0; }

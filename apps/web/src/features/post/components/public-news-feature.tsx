@@ -1,9 +1,9 @@
 import { PageHeader } from "@/components/ui/page-header";
 import type { FormEvent } from "react";
-import { Bell, Newspaper, Pin, RefreshCw, Search } from "lucide-react";
+import { Bell, Newspaper, Pin, RefreshCw } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { usePosts } from "@/features/post/hooks/use-posts";
 import { NewsList } from "./news-list";
@@ -95,8 +95,7 @@ export function PublicNewsFeature() {
           </div>
           <form key={searchParams.toString()} role="search" onSubmit={search} className="school-news__search">
             <label className="sr-only" htmlFor="school-news-search">Tìm bài viết</label>
-            <Search className="school-news__search-icon" aria-hidden="true" />
-            <Input id="school-news-search" type="search" name="q" defaultValue={keyword} placeholder="Tìm trong bảng tin…" />
+            <SearchInput id="school-news-search" type="search" name="q" defaultValue={keyword} placeholder="Tìm trong bảng tin…" className="bg-card" />
             <Button type="submit" variant="secondary">Tìm</Button>
           </form>
         </div>

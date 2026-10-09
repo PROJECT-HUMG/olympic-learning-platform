@@ -386,15 +386,16 @@ function QuestionEditForm({
                 Độ khó
               </label>
               <Select
-                value={watch("difficulty") ?? ""}
+                value={watch("difficulty") || "UNSET"}
                 onValueChange={(value) =>
-                  setValue("difficulty", value, { shouldValidate: true })
+                  setValue("difficulty", value === "UNSET" ? "" : value, { shouldValidate: true, shouldDirty: true })
                 }
               >
                 <SelectTrigger id="edit-difficulty">
                   <SelectValue placeholder="Chọn độ khó" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="UNSET">Chưa đặt</SelectItem>
                   {DIFFICULTY_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}

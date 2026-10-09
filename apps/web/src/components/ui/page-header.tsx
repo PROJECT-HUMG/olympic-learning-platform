@@ -13,7 +13,7 @@ export function PageHeader({ title, description, actions, titleId, className }: 
   return <header className={cn("page-heading", className)}>
     <div className="page-heading__copy">
       <h1 id={titleId} className="page-heading__title">{title}</h1>
-      {description && <p className="page-heading__description">{description}</p>}
+      {description && <div className="page-heading__description">{description}</div>}
     </div>
     {actions && <div className="page-heading__actions">{actions}</div>}
   </header>;

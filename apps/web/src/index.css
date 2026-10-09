@@ -293,3 +293,7 @@
     }
   }
 }
+
+/* Native controls use the same scheme as the selected application theme. */
+:root { color-scheme: light; }
+:root.dark { color-scheme: dark; }

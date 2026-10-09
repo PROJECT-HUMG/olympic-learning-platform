@@ -51,8 +51,8 @@ function NewsDetailSkeleton() {
   return (
     <div className="min-h-screen" role="status" aria-label="Đang tải bài viết" aria-busy="true">
       {/* Breadcrumb skeleton */}
-      <div className="mx-auto max-w-5xl px-4 pt-8 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center gap-2">
+      <div className="mx-auto max-w-5xl px-4 pt-4 sm:px-6 sm:pt-8 lg:px-8">
+        <div className="mb-3 flex items-center gap-2 sm:mb-6">
           <Skeleton className="h-4 w-16" />
           <span className="text-muted-foreground/30" aria-hidden="true">/</span>
           <Skeleton className="h-4 w-32" />
@@ -62,19 +62,19 @@ function NewsDetailSkeleton() {
       </div>
 
       {/* Compact title + thumbnail skeleton */}
-      <div className="mx-auto max-w-4xl px-4 pt-10 sm:px-6">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px]">
+      <div className="mx-auto max-w-4xl px-4 pt-4 sm:px-6 sm:pt-10">
+        <div className="grid gap-4 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_260px]">
           <div>
             <div className="space-y-3">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-4/5" />
             </div>
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-3 flex flex-wrap gap-3 sm:mt-5">
               <Skeleton className="h-4 w-16" />
               <Skeleton className="h-4 w-28" />
               <Skeleton className="h-4 w-20" />
             </div>
-            <div className="mt-6 flex items-center gap-3 border-t border-border/40 pt-6">
+            <div className="mt-4 flex items-center gap-3 border-t border-border/40 pt-4 sm:mt-6 sm:pt-6">
               <Skeleton className="h-10 w-10 rounded-full" />
               <div className="space-y-1.5">
                 <Skeleton className="h-4 w-32" />
@@ -87,7 +87,7 @@ function NewsDetailSkeleton() {
       </div>
 
       {/* Article content skeleton */}
-      <div className="mx-auto mt-10 max-w-4xl px-4 sm:px-6">
+      <div className="mx-auto mt-6 max-w-4xl px-4 sm:mt-10 sm:px-6">
         <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
           <Skeleton className="h-4 w-36" />
           <div className="mt-3 space-y-2">
@@ -211,14 +211,14 @@ export function NewsDetailFeature() {
       <ReadingProgressBar targetRef={articleRef} />
 
       {/* ── Breadcrumb ── */}
-      <div className="mx-auto max-w-5xl px-4 pt-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 pt-4 sm:px-6 sm:pt-8 lg:px-8">
         {post.expiredAt && new Date(post.expiredAt) <= new Date() && (
           <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200">
             <AlertTriangle className="mt-0.5 size-4 shrink-0" />
             <div><p className="font-semibold">Bài viết này đã hết hiệu lực</p><p className="mt-1">Thông tin có thể đã thay đổi. Hãy xem các thông báo mới nhất trước khi thực hiện.</p></div>
           </div>
         )}
-        <div className="mb-6">
+        <div className="mb-3 sm:mb-6">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -246,16 +246,16 @@ export function NewsDetailFeature() {
         initial={reduceMotion ? false : { opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: reduceMotion ? 0 : 0.5, delay: reduceMotion ? 0 : 0.15, ease: [0.16, 1, 0.3, 1] }}
-        className="mx-auto max-w-4xl px-4 pt-10 sm:px-6"
+        className="mx-auto max-w-4xl px-4 pt-4 sm:px-6 sm:pt-10"
       >
-        <div className={`grid gap-8 ${post.thumbnailUrl ? "lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start" : ""}`}>
+        <div className={`grid gap-4 sm:gap-8 ${post.thumbnailUrl ? "lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start" : ""}`}>
           <div>
             <h1 className="page-heading__title">
               {post.title}
             </h1>
 
             {/* Compact metadata strip */}
-            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground sm:mt-5">
           <PostBadge type={post.type} />
           <span className="hidden sm:inline text-border">·</span>
           <span className="flex items-center gap-1.5">
@@ -270,7 +270,7 @@ export function NewsDetailFeature() {
             </div>
 
             {/* Author strip */}
-            <div className="mt-6 border-t border-border/40 pt-6">
+            <div className="mt-4 border-t border-border/40 pt-4 sm:mt-6 sm:pt-6">
           {post.author ? (
             <UserHoverCard user={post.author as any}>
               <div className="-ml-1 flex cursor-pointer items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-muted/50">
@@ -330,7 +330,7 @@ export function NewsDetailFeature() {
       </motion.header>
 
       {/* ── Content Area: Sidebar + Article ── */}
-      <div className="mx-auto mt-10 max-w-4xl px-4 sm:px-6">
+      <div className="mx-auto mt-6 max-w-4xl px-4 sm:mt-10 sm:px-6">
         {/* ── Article Content ── */}
         <motion.article
           initial={reduceMotion ? false : { opacity: 0, y: 24 }}

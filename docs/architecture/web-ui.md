@@ -1,5 +1,10 @@
 # Giao diện chung
 
+For actual component APIs, route-by-route adoption, intentional exceptions and
+remaining duplication, read the [shared UI owner reference](web-ui-components.md).
+This authority defines the standard; that reference inventories current source
+usage and does not claim all-screen rendered verification.
+
 ## Current navigation-shell decision (05/10/2026)
 
 This decision supersedes the older floating-header/bottom-sheet/manual-motion choices below; those paragraphs describe earlier iterations, not the mounted navigation contract. Navigation alone is being redesigned; unrelated page bodies, destinations and role guards remain unchanged. Use the same palette/type tokens. The public header is aligned with the functional page container; at >=1200px it shows primary discovery links, at 768–1199px it keeps Môn học/Tài liệu/Bảng tin direct, and below 768px it keeps brand/sign-in or account/Menu. A shared left drawer preserves every existing destination grouped by role, with destinations first and theme/auth actions at the bottom.
@@ -38,6 +43,82 @@ explicit-operation disabled state and editable completion during automatic batch
 No dependency, persistence, Submit, sharing or room contract changes are required.
 `olympic-context` and `frontend-design` guided scope isolation, the shared circular
 silhouette and restrained checklist styling; this is not a broader page redesign.
+
+## Shared search, filters and page layout (09/10/2026)
+
+Functional pages keep the existing Olympic palette, Be Vietnam Pro and shared
+heading scale. Use `PageHeader`, `.page-shell` (72rem maximum, 32px section rhythm;
+16px at ≤640px) and existing public/workspace gutters. A reader, authoring workspace,
+Daily notebook, cinematic home or persistent room player may keep its purposeful
+layout; consistency does not require identical cards or page entrances. `PageHeader` descriptions accept text or block React content in a div, retaining the shared description style and valid HTML.
+
+Search is owned by `SearchInput` for ordinary list searches: 44px input, leading
+decorative icon, contextual accessible name and flexible minimum width. Visible
+labels remain where already useful. Feature owners retain draft/apply behavior,
+debounce, URL filters, pagination reset and query/error handling. Native search
+semantics must not introduce duplicate clear buttons when a feature already owns
+an explicit clear action. Home's prominent search and 52px floating form fields
+are deliberate exceptions.
+
+Use `NativeSelect` for existing small enumerations, installed Radix Select for
+existing rich selects, and the shared `Combobox` for searchable option lists.
+Do not exchange owners merely for appearance. Ordinary controls are 44px;
+36px NativeSelect / 32px Radix compact controls remain intentional dense-toolbar
+exceptions. Every control has an associated label or contextual accessible name,
+visible focus, disabled/invalid semantics and the current value available.
+Combobox Arrow keys/Enter/Escape must retain input focus; Tab follows native
+navigation. Option popups must stay reachable within the viewport and outside
+clipping panels; long Vietnamese options wrap without shrinking their targets.
+Native dropdowns follow the selected light/dark color scheme. Rich Select uses installed popper collision handling, a trigger-sized popup with a bounded minimum reading width, and 44px wrapped options.
+
+Filter rows use the existing `.page-toolbar` wrapping rhythm. Search and filters
+can shrink to available space; at narrow widths they stack or wrap deliberately
+with at least 8px gaps, without page-level horizontal scrolling or hidden actions.
+Scrollable data tables remain bounded in their own region. Long labels and page
+actions wrap, and 320px layouts keep all existing actions reachable. Preserve
+keyboard/form submission, editor DOM identity, permission/loading/error/empty
+states and feature-specific draft/media continuity. No new motion or policy is
+part of this standard.
+Documents deliberately remains visually search-first; its accessible h1 identifies
+the route without restoring the previously removed visible title. Profile headers
+retain generic context while data is pending/unavailable, and private data keeps
+its existing gate. Flat recognition reviews and exam lists do not require another
+card. Existing server-backed user search is not an in-memory Combobox. A 52px
+floating field may coexist with stacked fields; preserve its owner and association.
+
+Adoption follow-up (09/10/2026): Honors ordinary subject search uses SearchInput
+under its existing label/form/URL contract. News ImageLightbox uses the shared
+Dialog for modal focus, scroll locking and close/return; the native button trigger
+supports Enter/Space. ListFeedback owns equivalent Documents/News empty/error
+presentation and EmptyState delegates its empty variant. Features keep pending
+precedence, skeletons and explicit retry/reset callbacks; domain/private/conflict
+feedback is not converted into a universal query wrapper. See the linked component
+reference for actual consumers and retained exceptions.
+
+
+### Compact mobile page headers (09/10/2026)
+
+At ≤640px, page titles use the existing `--page-title-size` token at 24px with
+1.25 line height. PageHeader copy occupies its own row; retain the complete title
+and description, balanced/wrapping text, 8px description spacing and 1.6 description
+line height. Use 12px between copy/actions and before the divider, 8px action gaps
+and 16px page-section rhythm. Header buttons may wrap long labels and grow taller,
+with a 44px minimum target. Do not truncate context, hide actions or shrink inputs.
+Public page and workspace content start with 16px top inset; global navigation
+height, drawers, focus and destinations remain unchanged. Above 640px retain the
+existing tablet/desktop title scale, spacing and action composition.
+
+Daily keeps its flat notebook, domain status/date controls and 16px mobile rhythm;
+its mobile title override now reads the shared token. Room headers retain their
+bounded title scale and deliberate action grid. Auth headings already read the same
+token; floating fields, verification context, form gates and cinematic shell remain.
+News/Document readers retain local metadata, thumbnail/download and reading layouts,
+with bounded mobile-only reductions to header padding/gaps. Home's cinematic hero
+and prominent search, search-first Documents' sr-only h1, fallback/404 presentation,
+calendars and persistent player remain intentional exceptions. No shared header has
+fixed height or clamped title/description content. Actual route adoption and bounded
+rendered evidence are in the [component reference](web-ui-components.md).
+
 
 ## Màu và chữ
 

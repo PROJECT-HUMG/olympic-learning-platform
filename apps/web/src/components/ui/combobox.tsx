@@ -2,6 +2,8 @@ import * as React from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { Popover as PopoverPrimitive } from "radix-ui";
+import { PopoverContent } from "@/components/ui/popover";
 
 export interface ComboboxOption {
   value: string;
@@ -34,7 +36,6 @@ export function Combobox({
   const [isOpen, setIsOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
   const [activeIndex, setActiveIndex] = React.useState(-1);
-  const containerRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const listboxRef = React.useRef<HTMLUListElement>(null);
 
@@ -44,13 +45,20 @@ export function Combobox({
     [options, value]
   );
 
-  // Sync input with selected option when closed
+  // Closed presentation derives from the controlled value. Only explicit opening
+  // resets the search draft, so a delayed close effect cannot overwrite typing.
+  const changeOpen = (open: boolean) => {
+    if (open && !isOpen) setInputValue(selectedOption?.label ?? "");
+    setIsOpen(open);
+    setActiveIndex(-1);
+  };
+
   React.useEffect(() => {
-    if (!isOpen) {
-      setInputValue(selectedOption ? selectedOption.label : "");
+    if (disabled) {
+      setIsOpen(false);
       setActiveIndex(-1);
     }
-  }, [isOpen, selectedOption]);
+  }, [disabled]);
 
   // Filter options based on input
   const filteredOptions = React.useMemo(() => {
@@ -61,20 +69,6 @@ export function Combobox({
       opt.label.toLowerCase().includes(inputValue.toLowerCase())
     );
   }, [options, inputValue, isOpen, selectedOption]);
-
-  // Handle click outside to close
-  React.useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, []);
 
   // Scroll active item into view
   React.useEffect(() => {
@@ -93,7 +87,8 @@ export function Combobox({
       case "ArrowDown":
         e.preventDefault();
         if (!isOpen) {
-          setIsOpen(true);
+          changeOpen(true);
+          setActiveIndex(options.length ? 0 : -1);
         } else {
           setActiveIndex((prev) =>
             prev < filteredOptions.length - 1 ? prev + 1 : prev
@@ -102,26 +97,30 @@ export function Combobox({
         break;
       case "ArrowUp":
         e.preventDefault();
-        if (isOpen) {
-          setActiveIndex((prev) => (prev > 0 ? prev - 1 : 0));
+        if (!isOpen) {
+          changeOpen(true);
+          setActiveIndex(options.length - 1);
+        } else {
+          setActiveIndex((prev) => prev > 0 ? prev - 1 : filteredOptions.length - 1);
         }
         break;
       case "Enter":
-        e.preventDefault();
+        if (isOpen) e.preventDefault();
         if (isOpen && activeIndex >= 0 && activeIndex < filteredOptions.length) {
           onChange?.(filteredOptions[activeIndex].value);
-          setIsOpen(false);
-          inputRef.current?.blur();
+          changeOpen(false);
         }
         break;
       case "Escape":
-        e.preventDefault();
-        setIsOpen(false);
-        inputRef.current?.blur();
+        if (isOpen) {
+          e.preventDefault();
+          e.stopPropagation();
+          changeOpen(false);
+        }
         break;
       case "Tab":
         if (isOpen) {
-          setIsOpen(false);
+          changeOpen(false);
         }
         break;
     }
@@ -135,112 +134,130 @@ export function Combobox({
 
   const handleOptionClick = (optionValue: string) => {
     onChange?.(optionValue);
-    setIsOpen(false);
+    inputRef.current?.focus();
+    changeOpen(false);
   };
 
   const listboxId = React.useId();
   const activeDescendantId =
-    activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined;
+    activeIndex >= 0 && activeIndex < filteredOptions.length ? `${listboxId}-option-${activeIndex}` : undefined;
 
   return (
-    <div
-      ref={containerRef}
-      className={cn("relative w-full", className)}
-      onKeyDown={handleKeyDown}
-    >
-      <div className="relative">
-        <Input
-          ref={inputRef}
-          type="text"
-          role="combobox"
-          aria-label={ariaLabel}
-          aria-expanded={isOpen}
-          aria-controls={isOpen ? listboxId : undefined}
-          aria-activedescendant={isOpen ? activeDescendantId : undefined}
-          aria-autocomplete="list"
-          disabled={disabled}
-          value={inputValue}
-          onChange={handleInputChange}
-          onClick={() => !disabled && setIsOpen(true)}
-          onFocus={() => !disabled && setIsOpen(true)}
-          placeholder={placeholder}
-          className={cn(
-            "bg-background pr-12",
-            inputClassName,
-            isOpen && "rounded-b-none border-b-0"
-          )}
-        />
-        {value && !isOpen ? (
-          <button
-            type="button"
-            className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+    <PopoverPrimitive.Root open={isOpen && !disabled} onOpenChange={changeOpen}>
+      <PopoverPrimitive.Anchor asChild>
+        <div className={cn("relative min-w-0 w-full", className)}>
+          <Input
+            ref={inputRef}
+            type="text"
+            role="combobox"
+            aria-label={ariaLabel}
+            aria-expanded={isOpen && !disabled}
+            aria-controls={isOpen ? listboxId : undefined}
+            aria-activedescendant={isOpen ? activeDescendantId : undefined}
+            aria-autocomplete="list"
             disabled={disabled}
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange?.("");
-              setInputValue("");
-            }}
-            aria-label={`Bỏ chọn ${ariaLabel ?? placeholder}`}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
-            disabled={disabled}
-            onClick={() => !disabled && setIsOpen(!isOpen)}
-            aria-label={`Mở danh sách ${ariaLabel ?? placeholder}`}
-            tabIndex={-1}
-          >
-            <ChevronDown className="h-4 w-4" />
-          </button>
-        )}
-      </div>
-
-      {isOpen && (
-        <div className="absolute top-full left-0 z-50 w-full rounded-b-md border border-input bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 motion-reduce:animate-none">
-          <ul
-            ref={listboxRef}
-            id={listboxId}
-            role="listbox"
-            className="max-h-60 overflow-auto p-1 focus:outline-none"
-          >
-            {filteredOptions.length === 0 ? (
-              <li className="py-6 text-center text-sm text-muted-foreground">
-                {emptyText}
-              </li>
-            ) : (
-              filteredOptions.map((option, index) => {
-                const isActive = index === activeIndex;
-                const isSelected = option.value === value;
-                return (
-                  <li
-                    key={option.value}
-                    id={`${listboxId}-option-${index}`}
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => handleOptionClick(option.value)}
-                    onMouseEnter={() => setActiveIndex(index)}
-                    className={cn(
-                      "relative flex min-h-11 w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none transition-colors",
-                      isActive && "bg-accent text-accent-foreground",
-                      isSelected && "font-medium text-primary"
-                    )}
-                  >
-                    {option.label}
-                    {isSelected && (
-                      <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center text-primary">
-                        <Check className="h-4 w-4" />
-                      </span>
-                    )}
-                  </li>
-                );
-              })
+            value={isOpen ? inputValue : selectedOption?.label ?? ""}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            onClick={() => !disabled && changeOpen(true)}
+            onFocus={() => !disabled && changeOpen(true)}
+            placeholder={placeholder}
+            className={cn(
+              "bg-background pr-12",
+              inputClassName
             )}
-          </ul>
+          />
+          {value && !isOpen ? (
+            <button
+              type="button"
+              className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+              disabled={disabled}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange?.("");
+                setInputValue("");
+                inputRef.current?.focus();
+                changeOpen(false);
+              }}
+              aria-label={`Bỏ chọn ${ariaLabel ?? placeholder}`}
+            >
+              <X aria-hidden="true" className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+              disabled={disabled}
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={() => {
+                const nextOpen = !isOpen;
+                inputRef.current?.focus();
+                changeOpen(nextOpen);
+              }}
+              aria-label={`Mở danh sách ${ariaLabel ?? placeholder}`}
+              tabIndex={-1}
+            >
+              <ChevronDown aria-hidden="true" className="h-4 w-4" />
+            </button>
+          )}
         </div>
-      )}
-    </div>
+      </PopoverPrimitive.Anchor>
+
+      {/* Radix owns collision, portal and dismissal; the input retains combobox focus. */}
+      <PopoverContent
+        role="presentation"
+        align="start"
+        sideOffset={4}
+        collisionPadding={8}
+        onOpenAutoFocus={(event) => event.preventDefault()}
+        onCloseAutoFocus={(event) => event.preventDefault()}
+        onInteractOutside={(event) => {
+          if (event.target instanceof Node && inputRef.current?.parentElement?.contains(event.target)) event.preventDefault();
+        }}
+        className="w-(--radix-popover-trigger-width) max-w-[calc(100vw-1rem)] rounded-lg p-0"
+      >
+        <ul
+          ref={listboxRef}
+          id={listboxId}
+          role="listbox"
+          aria-label={ariaLabel ?? placeholder}
+          className="max-h-[min(15rem,var(--radix-popover-content-available-height))] overflow-auto p-1 focus:outline-none"
+        >
+          {filteredOptions.length === 0 ? (
+            <li className="py-6 text-center text-sm text-muted-foreground">
+              {emptyText}
+            </li>
+          ) : (
+            filteredOptions.map((option, index) => {
+              const isActive = index === activeIndex;
+              const isSelected = option.value === value;
+              return (
+                <li
+                  key={option.value}
+                  id={`${listboxId}-option-${index}`}
+                  role="option"
+                  aria-selected={isSelected}
+                  onPointerDown={(event) => event.preventDefault()}
+                  onClick={() => handleOptionClick(option.value)}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  className={cn(
+                    "relative flex min-h-11 w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none transition-colors",
+                    isActive && "bg-accent text-accent-foreground",
+                    isSelected && "font-medium text-primary"
+                  )}
+                >
+                  <span className="min-w-0 [overflow-wrap:anywhere]">{option.label}</span>
+                  {isSelected && (
+                    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center text-primary">
+                      <Check aria-hidden="true" className="h-4 w-4" />
+                    </span>
+                  )}
+                </li>
+              );
+            })
+          )}
+        </ul>
+      </PopoverContent>
+    </PopoverPrimitive.Root>
   );
 }

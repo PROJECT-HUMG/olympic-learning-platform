@@ -53,7 +53,8 @@ interface DocumentFormProps {
 
 export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: DocumentFormProps) {
   const isEditMode = !!initialData;
-  const { data: metadata } = useDocumentMetadata();
+  const metadataQuery = useDocumentMetadata();
+  const metadata = metadataQuery.data;
   const uploadFile = useUploadFile();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -165,6 +166,13 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
               )}
             />
 
+            {metadataQuery.isPending && <p role="status" className="text-sm text-muted-foreground">Đang tải danh mục, môn học và thẻ…</p>}
+            {metadataQuery.isError && (
+              <div role="alert" className="space-y-2 text-sm text-muted-foreground">
+                <p>Chưa tải được danh mục, môn học và thẻ.</p>
+                <Button type="button" variant="outline" disabled={metadataQuery.isFetching} onClick={() => void metadataQuery.refetch()}>Thử lại bộ chọn</Button>
+              </div>
+            )}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
               {/* Category */}
               <FormField
@@ -176,6 +184,7 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
                       Phân loại <span className="text-destructive">*</span>
                     </FormLabel>
                     <Select
+                      disabled={metadataQuery.isPending || metadataQuery.isError}
                       value={field.value}
                       onValueChange={(val) => form.setValue("categoryId", val, { shouldValidate: true })}
                     >
@@ -207,6 +216,7 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
                       Môn học <span className="text-destructive">*</span>
                     </FormLabel>
                     <Select
+                      disabled={metadataQuery.isPending || metadataQuery.isError}
                       value={field.value}
                       onValueChange={(val) => form.setValue("subjectId", val, { shouldValidate: true })}
                     >
@@ -236,6 +246,7 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
                   <FormItem>
                     <FormLabel>Thẻ phân loại</FormLabel>
                     <Select
+                      disabled={metadataQuery.isPending || metadataQuery.isError}
                       value={field.value?.[0] || ""}
                       onValueChange={(val) => form.setValue("tagIds", [val], { shouldValidate: true })}
                     >

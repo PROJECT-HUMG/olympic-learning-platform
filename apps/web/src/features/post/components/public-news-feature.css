@@ -49,9 +49,7 @@
   min-width: 0;
 }
 
-.school-news__search input { min-width: 0; height: 2.75rem; padding-left: 2.5rem; background: var(--card); }
 .school-news__search button { min-height: 2.75rem; padding-inline: 1rem; }
-.school-news__search-icon { position: absolute; top: .875rem; left: .875rem; width: 1rem; height: 1rem; color: var(--muted-foreground); pointer-events: none; }
 
 .school-news__categories {
   display: flex;
@@ -118,7 +116,6 @@
   .school-news__pinned-heading { margin-bottom: 1rem; }
   .school-news__feed-header { align-items: stretch; flex-direction: column; }
   .school-news__search { flex-basis: auto; }
-  .school-news__search input { font-size: 1rem; }
   .school-news-post--illustrated .school-news-post__link { grid-template-columns: minmax(0, 1fr) 5rem; gap: 1rem; }
   .school-news-post__image { aspect-ratio: 1; }
   .school-news-post h3 { font-size: 1rem; }

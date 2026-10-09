@@ -135,7 +135,7 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Trạng thái</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Chọn trạng thái" />
@@ -176,7 +176,7 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Loại bài viết</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl><SelectTrigger><SelectValue placeholder="Chọn loại bài viết" /></SelectTrigger></FormControl>
                           <SelectContent>
                             <SelectItem value="NEWS">Tin tức</SelectItem>

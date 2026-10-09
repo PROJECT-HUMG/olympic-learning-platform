@@ -70,6 +70,7 @@
   .workspace-content { padding: 1.5rem 1rem; }
   .workspace-topbar__context > p { max-width: 32vw; }
 }
+@media (max-width: 640px) { .workspace-content { padding-top: 1rem; } }
 @media (max-height: 480px) {
   .navigation-drawer__header[data-slot="sheet-header"] { min-height: 56px; padding-block: .5rem; }
   .navigation-drawer__body { padding-block: .625rem; }

@@ -24,11 +24,16 @@
 .page-guidance__actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
 .page-note { color: var(--muted-foreground); font-size: .8125rem; line-height: 1.8; }
 @media (max-width: 640px) {
-  :root { --page-gap: 1.5rem; }
-  .page-shell--public { padding: 1.5rem 1rem 3rem; }
+  :root { --page-title-size: 1.5rem; --page-gap: 1rem; }
+  .page-shell--public { padding: 1rem 1rem 3rem; }
+  .page-heading { gap: .75rem; padding-bottom: .75rem; }
+  .page-heading__copy { flex-basis: 100%; }
+  .page-heading__title { text-wrap: balance; }
+  .page-heading__description { margin-top: .5rem; line-height: 1.6; }
   .page-section__heading { padding: 1rem; }
   .page-section__content { padding: 1rem; }
-  .page-heading__actions { width: 100%; }
+  .page-heading__actions { width: 100%; gap: .5rem; }
+  .page-heading__actions :is(button, a[data-slot="button"]) { max-width: 100%; height: auto; min-height: 44px; white-space: normal; }
 }
 
 .dashboard-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .25rem 1.5rem; }

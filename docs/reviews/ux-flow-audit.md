@@ -2030,3 +2030,323 @@ API cần chạy migration V12 trước frontend mới. Storage Cloudinary và i
 API giữ user PENDING đến khi mã đúng; OTP 10 phút, tối đa 5 lần sai, cooldown 60 giây, giới hạn chia sẻ theo user/IP trong PostgreSQL. Sửa email chỉ dùng phiên đăng ký tương ứng; mã/link cũ bị hủy và không đổi user ID. Nginx thay header IP do client gửi, chống vượt giới hạn bằng forwarded headers. API cần V13; contract/vận hành ở [registration-otp.md](../architecture/registration-otp.md).
 
 Kiểm tra: 15 PostgreSQL integration + 3 controller + 2 JWT tests qua, không skip; 47 Node web tests qua; build thành công, lint 0 lỗi/29 cảnh báo có sẵn; nginx -t hợp lệ. Chromium/WebKit qua ở 1440/390/320px, sáng/tối, giảm chuyển động, sửa email trùng/thành công, tải lại, resend, mã sai/khóa, chống gửi verify trùng, phục hồi PENDING/phiên hết hạn và storage bị chặn. Kiểm tra trình duyệt dùng API mock; StrictMode link cũ chạy trên Vite dev riêng. Chưa chứng minh SMTP production giao thư thật và chưa triển khai runtime API mới.
+
+
+## Shared controls and layout repair (09/10/2026, accepted local candidate)
+
+Base `0f06fcbaf757d06f243b7385e3ca68fc0b0d3530`; entry and preservation manifest
+`/tmp/ui-consistency-entry-20261009.json`. Existing Daily recovery content and
+six source/test files are retained. Lead owns shared primitives and integration.
+Three disjoint read-only Antigravity audits use configured alias
+`slp-agent-profile-muwz3aai-alhlbc9trsf`, `gemini-3.8-flash-high`, full-access,
+no thinking/features overrides; actual runtime identities verified as Antigravity.
+
+Public audit ACCEPT: ordinary search consolidation; stable public profile heading.
+Documents remains visually search-first (prior explicit decision); reject restoration
+of a visible header and add only accessible h1. Home/reader/native ranking variations
+stay. Management audit ACCEPT: document action target consistency, metadata state
+feedback, controlled RHF post selects. Reject empty-string Radix placeholder defect
+claim/undefined binding, mandatory recognition card wrapper and replacement of
+52px floating fields. No current post-reset failure was demonstrated; controlled
+binding is ownership consistency. Both audits read-only, relinquished, dispositions
+sent; source-only findings do not establish rendered success.
+
+Rendered baseline `/tmp/ui-consistency-Z43aka/results.json`: actual routes with
+synthetic intercepted fixtures at1440x900 light,820x900 dark,320x640 light,320x360 dark.
+Enter/Escape both lose Combobox focus; long selected chips escape the mobile card
+and cause tablet page overflow; short320x360 popup extends below viewport. Lead
+repairs the responsible shared Combobox using installed Radix Popover positioning,
+portal and dismissal, with input/listbox keyboard focus retained. Public searches
+share SearchInput; Document filters wrap and retain URL/apply/reset semantics.
+All audit dispositions are closed below; final acceptance and evidence follow.
+
+Authoring/personal audit ACCEPT: PublishedBank shared search owner with existing
+Enter/IME/nested-form contract; bounded cohesive question filters; optional legacy
+difficulty reset (existing nullable API contract) within installed Radix owner.
+Reject replacing subject/topic/form-field owners for appearance and shrinking the
+44px confidence input merely to match compact actions. Daily/room/toolkit and flat
+exam lists stay purposeful. Read-only audit relinquished, explicit disposition sent.
+All page implementation remains Lead-owned; no concurrent writable Peer scopes.
+
+
+Prioritized route/owner mapping (implementation, not a blanket layout rewrite):
+
+| Priority | Screen/owner | Integrated response | Evidence boundary |
+| --- | --- | --- | --- |
+| P1 | All shared `Combobox` consumers; `components/ui/combobox.tsx` | Installed Radix Popover owns portal/collision/dismissal; input retains Enter/Escape/selection focus, long options wrap | Baseline failure and candidate browser checks |
+| P1 | `/documents`; `document-filters.tsx` | Shared44px SearchInput; full-width narrow filters; bounded wrapping chips and44px clear | Desktop/tablet/320px fixtures |
+| P1 | Document management; `document-form.tsx` | Disabled unresolved/failed metadata selectors, contextual pending/error and explicit retry; fields remain mounted | Synthetic pending/error/retry proof passed |
+| P2 | `/subjects`, `/news` | Reuse SearchInput and remove duplicate icon/input CSS; keep visible labels, native search clearing, local Vietnamese matching / URL submit | Representative fixture renders |
+| P2 | Question bank / exam composer | One wrapping search/filter band; PublishedBank SearchInput stays beside its action; Enter/IME/nested save guards unchanged | Exam draft/focus proof |
+| P2 | Legacy question editor | Existing Radix optional difficulty has Chưa đặt, serialized as existing nullable value; dirty guard records edits | Synthetic nullable-save/focus proof passed |
+| P2 | Rich selects / native theme | Radix options44px and bounded/wrapped; native color-scheme follows selected app theme | Document modal / computed theme |
+| P2 | Document cards / post editor / public achievement profile |44px card actions; controlled RHF select values; generic header across query states | Source findings; no claim of exhaustive rendered behavior |
+| Keep | Home/auth forms, readers, Daily/groups, room/toolkit, flat reviews/exams | Purposeful owners and current interaction/data lifecycle unchanged | Source audit; existing Daily/room/auth regressions |
+
+The three audits and their actual read-only responses are preserved in
+`/tmp/ui-consistency-peer-evidence-20261009.json`; explicit narrowed ACCEPT/REJECT
+responses sent and acknowledged. All three task agents archived after closure;
+no profile failures or substitutions. Peer source snapshots are evidence of an
+audit, not a writer candidate. Lead alone integrates and accepts product bytes.
+
+
+Lead ACCEPT (21-path unstaged candidate): shared ownership and existing feature
+semantics retained; accidental control/layout drift repaired with installed owners.
+Radix Select now uses collision-aware popper positioning, bounded option width and
+44px wrapped items. Actual320x360 item-aligned overflow was corrected; direct CSS
+owns wrapping/heights rather than custom popup positioning. Combobox closed text
+derives from the controlled value, avoiding a delayed close effect overwriting the
+next typed filter query. No new dependency, motion policy, API or auth changes.
+
+Final evidence:
+- Baseline: `/tmp/ui-consistency-Z43aka/results.json` (28 screenshots).
+- Final core: `/tmp/ui-consistency-3utSpL/results.json` (32 screenshots): Documents,
+  Subjects, News, Users, Questions and document management at1440x900 light,
+  820x900 dark,320x640 light,320x360 dark; no page overflow, exact viewport/screenshot
+  sizes, correct native color-scheme. Combobox Arrow/Enter/Escape/Tab, pointer
+  selection, empty search and rapid query recovery retain focus/value/URL semantics.
+- Final rich select: `/tmp/ui-consistency-9Y9JZ8/results.json` (4 screenshots): all
+  four viewports;44px/wrapped options, bounded popup, keyboard selection and Escape
+  return focus to trigger and preserve the enclosing dialog.
+- Authoring/recovery: `/tmp/ui-consistency-TebcUq/results.json` (6 screenshots):
+  exam-bank search stays aligned at desktop/tablet/mobile, Enter sends search only,
+  editor node/draft/focus retained; optional legacy difficulty saves null and keeps
+  editor identity/focus; held metadata request,503 and explicit retry retain title
+  and mounted form. Final select width refinement changes presentation only;
+  nullable-save/retry source is unchanged from this proof.
+- `pnpm build` passed after final product edits (session89725); existing large-chunk
+  advisory remains. `pnpm lint` passed (40 existing warnings, no errors). Full Node
+  suite169 passed,0 failed/skipped (session80797); existing exam dirty-publish and
+  Enter/IME/nested-save policy regression also passed after search consolidation.
+  `git diff --check` passed. No Java/API changes require a backend check.
+
+Failed/interrupted probes retained separately: initial wrong route and scrollbar
+width assertions were driver failures; mock CORS lacked PATCH before correction;
+focus assertions must wait for Radix close and must not send a second Escape that
+legitimately closes the parent dialog. The failed short select geometry and rapid
+Combobox text-reset probes prompted responsible shared-owner corrections. Two
+local probes ended143 without final results during lifecycle cleanup; do not treat
+those as passes or infer a product/provider failure. Final completed proofs above
+replace these incomplete checks, not their historical record.
+
+Limits: intercepted synthetic API fixtures/headless Chromium, no live backend,
+server authorization/persistence, physical/mobile software keyboard, AT speech,
+Safari/Firefox or measured contrast proof. Source audits cover additional pages;
+no claim that every populated screen/state was rendered. Post binding, public
+profile heading and document card targets have source/build proof, not dedicated
+full-flow browser coverage. Dedicated reduced-motion validation omitted/unverified;
+existing suppression remains. Frozen exams, Daily800ms sync/private gates, identity,
+Turnstile and persistent room/media remain unchanged; existing Node regressions pass.
+
+Candidate manifest/snapshots and UI-only incremental patch:
+`/tmp/ui-consistency-final-manifest-20261009.json` and
+`/tmp/ui-consistency-candidate-20261009/`. These account explicitly for the existing
+Daily status prefix; authentication/deployment docs and six Daily source/test paths
+retain entry hashes. Operator env is unread/unprinted/unmodified and excluded.
+No staging, commit, push, deployment, dependency or external-setting changes.
+
+Final runtime cleanup revealed an existing DOM nesting warning: shared PageHeader
+accepted arbitrary React descriptions but wrapped them in a p, while legacy question
+headers pass a block Badge. Responsible wrapper changed to div with the same class,
+spacing and content. No caller rewrite or data change; targeted320px heading proof
+and final build/lint passed. This corrects the shared semantic owner rather than
+suppressing React warnings. Candidate scope is21 paths including PageHeader.
+
+Shared-header targeted proof passed: `/tmp/ui-consistency-DqHa3K/results.json`,
+320x640 light; same heading/description content, no DOM nesting console error.
+The initial header probe used a nonexistent Badge data-slot selector and was
+corrected to the actual owner markup; that failed driver result remains separate.
+Final shared-heading candidate is accepted with the existing43 after screenshots,
+28 baseline screenshots and source-only limits stated above. Owned Vite and browser
+runtimes are stopped; profiles removed. Index remains empty and HEAD unchanged.
+
+## Shared UI adoption reference (09/10/2026, documentation supplement)
+
+Lead ACCEPT documentation-only supplement to UI candidate
+`f2cc0db66460a4b7c6c58007461f42e009eca56e9c3aac8b190523f3667e82c5`, base
+`0f06fcbaf757d06f243b7385e3ca68fc0b0d3530`.
+[Component owner/API and route adoption reference](../architecture/web-ui-components.md)
+covers all42 page entries, role aliases, auth/redirect/fallback and domain surfaces.
+Shared presentation and Radix/native lifecycle adoption is real but partial;
+query/persistence/authorization remain feature-owned. Remaining source concerns
+and consolidation opportunities are findings, not product changes. UI authority
+and frontend README link the reference; no duplicate status tracker.
+
+Evidence: `/tmp/ui-adoption-source-inventory-20261009.json`; literal import scan
+plus direct owning-branch inspection. Legacy PostManagement is not routed; module
+reachability alone overcounts Recognition/reader controls. Link/coverage/hash and
+diff checks are documentation proof, not new rendered validation. Prior checks
+remain associated with unchanged product bytes; no fresh runtime/AT/reduced-motion
+validation. Daily/unrelated work and accepted UI product hashes remain preserved.
+The earlier manifest/snapshots identify the earlier candidate exactly; changed
+documentation hashes are accounted for separately in
+`/tmp/ui-adoption-supplement-manifest-20261009.json`. No commit/push/deploy.
+
+
+## Shared component adoption implementation (09/10/2026, accepted local candidate)
+
+Lead ACCEPT the bounded10-path follow-up to UI candidate
+`f2cc0db66460a4b7c6c58007461f42e009eca56e9c3aac8b190523f3667e82c5` and its
+adoption documentation supplement; HEAD remains
+`0f06fcbaf757d06f243b7385e3ca68fc0b0d3530`. Lead implemented directly with one
+owner for shared contracts and integration; no new Peer dispatch.
+
+Honors now reuses SearchInput under the existing label/form/URL handler: typing
+is local, explicit submit trims subject, preserves year and resets page. News
+ImageLightbox uses the installed shared Dialog with a native image button;
+Enter/Space, modal focus/Tab, Escape/Close/backdrop return and scroll ownership
+replace manual portal/listener/body-style writes. ListFeedback owns equivalent
+Documents/News empty/error presentation; EmptyState delegates its empty variant.
+Copy, request gates, distinct explicit retries/reset, loading precedence and
+content-shaped skeletons remain feature-owned. Four EmptyState feature consumers
+and two direct ListFeedback error consumers now share presentation; SearchInput
+has nine direct feature consumers. NativeSelect14/Radix Select3/Combobox1 remain.
+
+The component reference/design authority reflect current owners, API/actions and
+resolved findings. Group section CSS/domain layouts, UserPicker server selection,
+pinned/out-of-range News recovery, Daily/calendar/native dialogs, room/player and
+unrouted legacy management remain intentionally bounded; no universal query shell,
+new dependency or speculative abstraction. No API/auth/Turnstile/Daily changes.
+
+Evidence: baseline `/tmp/ui-adoption-render-a2vHKc/results.json` (28 screenshots,
+17 observations/checks) shows absent lightbox focus containment/return and loss
+of prior inline body lock. Its observations completed but command exited1 during
+owned profile removal; the orphan profile was later removed after checking no
+owning Chromium process. Final interaction matrix
+`/tmp/ui-adoption-render-XtKce1/results.json` passed21 checks/28 screenshots:
+1440x900 light,820x900 dark,320x640 light,320x360 dark; Honors submit/URL, one feature
+query per explicit Documents/News retry, filtered News reset, Enter/Space open,
+Tab containment, Escape/Close/backdrop return, image click retention, repeated
+open/close and prior lock preservation. No page overflow or runtime exceptions.
+Focused scrolled feedback proof `/tmp/ui-adoption-render-HgV058/results.json`
+passed8 checks/16 screenshots at the same sizes; actual panels/actions are visible.
+It uses a stable synthetic identity solely to isolate presentation. The full matrix
+uses intercepted anonymous responses; neither is live auth/backend proof.
+
+Failed drivers remain separate: an initial CDP expression returned a DOM element
+and exceeded serialization depth; the focused anonymous initialization did not
+reach its expected empty state. Neither establishes a new product/auth defect;
+the corrected expression and stable-identity focused fixture completed. No failed
+or incomplete probe is counted as passing.
+
+Build passed (session6723, existing large-chunk advisory); lint passed0 errors/
+40 existing warnings; full Node suite169 passed0 failed/skipped (session63196).
+Final reference links/source counts and diff/patch/preservation checks passed.
+No backend edits require new API tests. Reduced-motion behavior delegates to the
+existing Dialog support; dedicated validation omitted/unverified. Limits remain
+headless Chromium/synthetic intercepted APIs; no physical mobile keyboard, AT
+speech, other engines, production permissions/persistence or exhaustive populated
+screen proof. Existing unrelated source regressions are evidence, not fresh live
+Daily/room validation.
+
+Entry preservation: `/tmp/ui-adoption-implementation-entry-20261009.json`.
+Final incremental and integrated hashes/snapshots/patches:
+`/tmp/ui-adoption-implementation-final-manifest-20261009.json` and
+`/tmp/ui-adoption-implementation-candidate-20261009/`. Earlier manifests remain
+immutable evidence of their earlier bytes; overlaps are explicitly accounted for.
+Six Daily source/test paths remain identical and their shared status prefix is
+retained. Operator env is unread/unprinted/unmodified/excluded. Owned Vite/Chromium
+are stopped and temporary browser profiles removed. Index empty; no commit/push/deploy.
+
+
+## Compact mobile headers (09/10/2026, accepted integrated extension)
+
+Lead ACCEPT the9-path mobile extension to the shared-component adoption candidate,
+base `0f06fcbaf757d06f243b7385e3ca68fc0b0d3530`; one Lead owns the shared contract,
+local deviations, integration and evidence. Earlier read-only audit ownership is
+closed; no new delegation. This extends the current local candidate, with no
+staging/commit/push/deployment.
+
+All42 page entry files and their route/feature heading owners were inventoried.
+The existing PageHeader's29 direct consumer files inherit24px mobile titles,
+16px page rhythm/top content inset, complete wrapping descriptions with1.6 line
+height,12px header row/divider spacing and8px action gaps at≤640px. Actions keep
+44px targets and may grow to wrap labels. Workspace body top inset is16px;
+global navigation geometry is unchanged. Daily's mobile title override now uses
+the common token, keeping flat regions/domain controls. News/Document readers
+keep task-specific metadata/action layouts with smaller mobile padding/gaps;
+News pending skeleton spacing follows the loaded header. Tablet/desktop `sm:`
+treatments and shared rules above640px remain purposeful. Auth already consumes
+the title token; hero/search-first Documents/404/native-dialog/calendar/persistent
+room variations remain. No query/URL/auth/Turnstile/editor/persistence code changes.
+
+Before evidence: `/tmp/ui-mobile-header-render-PX6dRo/results.json`,48 checks/
+40 screenshots covering10 actual route families and1440x900 light,820x900 dark,
+320x640 light,320x360 dark. After evidence is deliberately partitioned:
+`/tmp/ui-mobile-header-render-vOYhxc/failure.json` contains the observed completed
+first36 screenshots and44 checks, including desktop/tablet/narrow-mobile cases,
+then the owned Vite exited143 and the next navigation encountered connection
+refusal. This is an interrupted command, not a passing full matrix or production
+failure. Completed short matrix `/tmp/ui-mobile-header-render-jIbV2R/results.json`
+passed12 checks/10 screenshots. The final reader spacing correction was then
+verified at all four sizes in `/tmp/ui-mobile-header-render-UIjnLZ/results.json`,
+8 checks/8 screenshots. Unchanged non-reader source cases retain their prior
+observations; final reader hashes/proof are separate. No failed run is counted as
+passing or silently discarded. Combined representative coverage includes10 families,
+keyboard header-link activation,44px header actions, no horizontal overflow and
+exam input DOM identity/draft/focus through resize. Complete title/description text
+is retained. News320x360 header measured219.8→151.8px; Home hero geometry is retained.
+
+Failed driver evidence stays separate: initial focus checks assumed outline-only
+styling, then incorrectly assumed Shift+Tab return for this CDP sequence; the probe
+now verifies actual Enter link activation. A synthetic Document response originally
+used the wrong endpoint and caused a fixture-only missing-category error. Corrected
+fixtures completed the baseline. These do not establish auth/permission defects.
+Build passed again after final reader styles (session56751, existing chunk advisory).
+Lint passed with existing40 warnings/no errors. Node suite reported169 passes, but
+its first shell wrapper exited143; the direct rerun (session45517) passed169/0failed/
+0skipped with exit0. The final reader correction changes presentation classes only;
+functional regression evidence is reused. No API tests are required by CSS-only
+policy-preserving changes. Local reference links168 resolve; diff/preservation and
+reverse patch checks are recorded in the final manifest.
+
+Limits: headless Chromium, fully intercepted synthetic APIs/external resources;
+login rendering is anonymous/synthetic, not live Turnstile verification. No physical
+keyboard/AT speech/other browser engines, exhaustive populated42-screen rendering,
+live Daily/room persistence or dedicated reduced-motion validation. Existing support
+remains; no motion added. Unrelated Daily source/test bytes and exact accepted Daily
+status prefix, authentication/deployment docs and operator env boundaries are retained.
+Owned Vite/browser runtimes are stopped; browser profiles removed and3118 closed.
+
+Final35-path integrated UI/reference snapshot plus9-path mobile extension:
+`/tmp/ui-adoption-mobile-final-manifest-20261009.json` and
+`/tmp/ui-adoption-mobile-candidate-20261009/`. Original UI/adoption manifests remain
+immutable evidence of their earlier bytes. This manifest records complete current
+path/hash ownership and overlapping doc deltas; Daily source repair is not silently
+bundled into the integrated UI patch. Index empty, HEAD unchanged.
+
+
+## Shared UI scoped local commit boundary (09/10/2026)
+
+Lead final review ACCEPTS integrated35-path UI candidate
+`a8f1e0643d481fbef5b3b7cbb4c3649833449532c375feaa665b6eedcab96664`, base
+`0f06fcbaf757d06f243b7385e3ca68fc0b0d3530`, with documentation-only clarification
+of the commit boundary and one probe-line whitespace correction. Product source
+bytes remain exactly those in the accepted manifest;
+revised docs and committed blob hashes are recorded in
+`/tmp/ui-scoped-commit-handoff-20261009.json`. This checkpoint supersedes earlier
+no-commit lifecycle statements for UI scope only; they remain historical evidence.
+Local staging/commit is authorized; no push or deployment.
+
+Reviewed shared SearchInput adoption and feature-owned apply/URL/page behavior;
+Combobox/Radix Select popup collision, keyboard focus and controlled values;
+Dialog lightbox modal focus/close/scroll ownership; Documents/News feedback branch
+precedence and feature retries; mobile title/wrapping/action targets and retained
+hero/reader/Daily/calendar/room variations. No concrete new product defect found.
+Existing build/lint,169-test regression and representative Chromium evidence is
+reused for unchanged UI source. Those checks exercised the integrated working tree,
+including the pending Daily repair; they are not a new isolated committed-tree run
+or exhaustive all-screen/live backend proof. Dedicated reduced-motion validation
+remains omitted/unverified; interrupted probes stay separate. The staged diff check found one trailing space in the new mobile browser probe;
+removed without changing logic. Only docs and that whitespace changed at this
+review; node syntax, link/diff/staged-scope and secret-exclusion checks suffice.
+
+Pending Daily recovery remains outside this commit: five modified source/test
+files plus its new browser probe retain their exact accepted hashes; the85-line
+Daily recovery section of this shared status document is preserved only in the
+working tree. The UI commit's status content is HEAD plus the UI audit/reference/
+adoption/mobile sections and this boundary record, excluding that exact Daily
+insertion. Daily mobile title CSS belongs to UI scope and is included separately.
+The component reference labels uncommitted Daily behavior explicitly. Unrelated
+authentication/deployment documentation remains dirty and uncommitted. Operator
+`.env` stays ignored, untracked, unread/unprinted and excluded from all artifacts.
