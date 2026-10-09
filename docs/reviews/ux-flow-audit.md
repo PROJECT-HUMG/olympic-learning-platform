@@ -2646,3 +2646,52 @@ the shrinkable logo at320px. Logo now cannot shrink; only narrow horizontal
 padding is compacted while all44px controls and labels remain.
 Owned runtimes cleaned at handoff. See [component ownership](../architecture/web-ui-components.md#mobile-and-recognition-evidence-owners-09102026)
 and [design rules](../architecture/web-ui.md#mobile-auth-navigation-and-private-recognition-evidence-09102026).
+
+## Public-derived mobile navbar — accepted local follow-up, 10/10/2026
+
+Base `e84f9886468765982f73d4011fd3b0e492201c78`. Lead directly implemented and
+accepts the bounded10-path follow-up for a new scoped local commit; no Peer,
+dependency, auth/API, environment, push or deployment change. Exact candidate,
+paths/index and working hashes, commit/preservation accounting:
+`/tmp/mobile-navbar-final-manifest-20261009.json`. Entry:
+`/tmp/mobile-navbar-entry-20261009.json`. The existing pending seven-path Daily
+recovery and unrelated authentication/deployment docs are excluded; only this
+new section is staged from the shared status file.
+
+MobileNavbar and its CSS now own the public-derived row in PublicHeader and
+DashboardLayout below768px: accessible logo left; ThemeToggle, account/login,
+labelled Menu right.64px row,44px controls,8px gaps, public Menu divider and
+shared focus treatment; below360px horizontal padding alone is compacted.
+Visible Menu remains: all controls fit320/390px and the label aids discovery.
+SheetTrigger retains accessible name and expanded/controls state. Workspace
+page context wraps beneath the sticky row. Role/account destinations, caller
+Sheet state/focus return and tablet/desktop navigation remain. Outlet stays in
+its existing owner/position; auth layout and Daily/room contracts are unchanged.
+
+Actual before:12 screenshots `/tmp/mobile-navbar-before-K3uIcp/`. Final after:
+14 passing scenario groups/19 screenshots `/tmp/mobile-navbar-after-e91RoJ/`.
+Public anonymous/account and workspace routes320×568/390×568 light/dark:
+44px targets,at least8px separation,no overflow,matching authenticated control
+geometry,visible Menu,keyboard Enter/Space,Tab containment,expanded/controls,
+Escape/return focus and shared3px focus offset. Also320×360,768/1440 variants,
+breakpoint-trigger focus fallback,keyboard account menu/theme persistence and
+admin destinations. Synthetic joined room retains player/scene identity and
+local playback state across drawer/theme/breakpoint handoffs. Its intentionally
+unavailable WebGL context uses the existing fallback; the expected renderer
+console error is recorded separately, not claimed as a GPU/renderer pass.
+
+Checks:175 Node tests passed,0 failed/skipped; TypeScript and production Vite
+bundle passed with envDir:false synthetic config; Oxlint passed with existing
+warnings. Logs `/tmp/mobile-navbar-{tests,tsc,build,lint}-20261009.log`. Diff and
+local docs links checked. Prior probes retain failed driver evidence separately:
+y9yKLd wrong filter selector;NqioM5 included page-header controls;njiIpv completed
+mobile checks then attempted DOM serialization;5Ie63p expected a workspace rail
+on the public-owned room route. Corrected final probe passed; no runtime fix was
+inferred from these driver failures. Isolated output/profile paths contain only
+synthetic fixtures; source/operator env and private screenshots were not read/copied.
+
+Limits:Chromium fixtures only,not live authorization/backend/streaming,physical
+mobile,AT speech,all-screen or dedicated reduced-motion proof. No new motion;
+existing support retained. The existing [component reference](../architecture/web-ui-components.md#mobile-and-recognition-evidence-owners-09102026)
+and [design authority](../architecture/web-ui.md#mobile-auth-navigation-and-private-recognition-evidence-09102026)
+reflect the actual owner. Pending Daily/status bytes are preserved separately.

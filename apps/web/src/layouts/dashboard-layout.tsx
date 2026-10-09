@@ -10,6 +10,7 @@ import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { UserDropdown } from "@/features/auth/components/user-dropdown";
 import { NavigationGroups } from "./components/navigation-groups";
 import { NavigationDrawer } from "./components/navigation-drawer";
+import { MobileNavbar } from "./components/mobile-navbar";
 import { getActiveNavigationItem, getDrawerNavigationGroups, getNavigationGroups, getWorkspaceNavigationGroups, getWorkspaceShortcuts } from "./navigation";
 import { ROUTES } from "@/router/route-constants";
 import "./navigation.css";
@@ -27,6 +28,7 @@ export function DashboardLayout() {
   const groups = getNavigationGroups(user?.role);
   const active = getActiveNavigationItem(groups.flatMap(group => group.items), location.pathname, location.search);
   const dailyArea = location.pathname === ROUTES.DAILY || location.pathname.startsWith(`${ROUTES.DAILY}/`);
+  const pageContext = dailyArea ? "Góc học tập" : active?.label ?? "Không gian cá nhân";
   const shortcuts = getWorkspaceShortcuts(user?.role);
   const roleLabel = user?.role === "ADMIN" ? "Quản trị viên" : user?.role === "LECTURER" ? "Giảng viên" : "Sinh viên";
   useEffect(() => setMenuOpen(false), [location.key, isDesktop, hasRail]);
@@ -74,13 +76,14 @@ export function DashboardLayout() {
       </aside>}
       <main className="workspace-main" id="workspace-main">
         <header className="workspace-topbar">
-          <div className="workspace-topbar__identity">
-            {!hasRail && <SheetTrigger asChild><Button variant="ghost" className="shell-menu-trigger" aria-label="Mở menu điều hướng"><Menu aria-hidden="true" /><span className="shell-menu-trigger__label">Menu</span></Button></SheetTrigger>}
-            {!hasRail && <Logo className="shell-brand__logo" />}
-            <div className="workspace-topbar__context"><span>{roleLabel}</span><p>{dailyArea ? "Góc học tập" : active?.label ?? "Không gian cá nhân"}</p></div>
-          </div>
-          <div className="workspace-topbar__actions"><ThemeToggle className="shell-icon-control" /><UserDropdown direction="down" compact className="shell-account" avatarClassName="size-9" /></div>
+          {!hasRail ? <MobileNavbar account={<UserDropdown direction="down" compact className="shell-account" avatarClassName="size-9" />} /> : <>
+            <div className="workspace-topbar__identity">
+              <div className="workspace-topbar__context"><span>{roleLabel}</span><p>{pageContext}</p></div>
+            </div>
+            <div className="workspace-topbar__actions"><ThemeToggle className="shell-icon-control" /><UserDropdown direction="down" compact className="shell-account" avatarClassName="size-9" /></div>
+          </>}
         </header>
+        {!hasRail && <p className="workspace-mobile-context">{pageContext}</p>}
         <div className="workspace-content" id="workspace-content" tabIndex={-1}><Outlet /></div>
       </main>
     </div>

@@ -9,19 +9,12 @@
 .public-header__actions { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
 .public-header__cta { min-height: 44px; padding-inline: .875rem; border-radius: .5rem; box-shadow: none; font-size: .8125rem; }
 .public-header :is(a, button):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; box-shadow: none; }
-.public-header .shell-menu-trigger { border-left: 1px solid var(--border); border-radius: 0; padding-left: .75rem; }
+.public-header__actions .shell-menu-trigger { border-left: 1px solid var(--border); border-radius: 0; padding-left: .75rem; }
 @media (min-width: 768px) and (max-width: 1199px) {
   .public-header__inner { gap: .75rem; }
   .public-header__nav { margin-left: auto; }
   .public-header__actions { gap: .375rem; }
   .public-header__actions > [aria-label="Đổi giao diện"] { display: none; }
-}
-@media (max-width: 767px) {
-  .public-header__inner { min-height: 64px; padding-inline: 1rem; gap: .5rem; }
-  .public-header .shell-brand { gap: .375rem; flex-shrink: 0; }
-  .public-header .shell-brand__name { display: none; }
-  .public-header .shell-brand__name > span { font-size: .625rem; }
-  .public-header__actions { gap: .5rem; }
 }
 @media (hover: hover) and (pointer: fine) {
   .public-header__link:hover { background: var(--accent); color: var(--primary); }
@@ -29,9 +22,7 @@
 }
 @media (prefers-reduced-motion: reduce) { .public-header__link, .public-header__link::after { transition: none; } }
 
-/* Keep anonymous logo/theme/login/Menu distinct at the narrowest viewport. */
+/* Anonymous login variant: the shared mobile row owns control spacing. */
 @media (max-width: 359px) {
-  .public-header__inner { padding-inline: .75rem; }
   .public-header__cta { padding-inline: .5rem; }
-  .public-header .shell-menu-trigger { padding-inline: .375rem; }
 }

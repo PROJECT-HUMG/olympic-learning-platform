@@ -311,8 +311,11 @@ inline error at the auth shell's ≤900px breakpoint. Keep the existing 52px
 floating fields, 44px recovery/reveal targets, validation associations and login
 Turnstile/token lifecycle. Desktop retains its compact above-field recovery link;
 other auth forms are unchanged. Mobile navigation (<768px) keeps logo-only public
-branding with its accessible home-link name; the workspace logo/control row has
-full page context in a compact second row instead of squeezing the title away.
+branding with its accessible home-link name. Both shells use the public-derived
+MobileNavbar row: logo left, ThemeToggle → account/login → labelled Menu right.
+Its 64px row has 1rem horizontal padding (12px below360px),8px control gaps,
+44px targets, Menu divider and shared focus ring. Workspace page context stays
+visible beneath the sticky row, wrapping independently of the controls.
 Theme preference/persistence remains with ThemeToggle/useThemeStore in the navbar.
 Mobile drawers omit the duplicate theme footer; tablet/desktop behavior remains.
 
