@@ -6,28 +6,31 @@
 
 Start here for modal work; follow the feature adapter for permissions, drafts and
 requests. Shared frames own presentation/focus, never access policy. This compact
-index is current against8773df0 plus the scoped mobile-modal repairs; the detailed
+index includes pushed1a3463d and the current production-geometry/floating-control repair; the detailed
 [construction-site ledger](#source-coverage-ledger) is historical audit coverage,
 not a promise that every screen was rendered.
 
 | Interaction → frame / styles | Feature or screen owner → what stays local |
 | --- | --- |
 | Ordinary context, review, confirmation → [Dialog](../../apps/web/src/components/ui/dialog.tsx); destructive/dirty confirmation → [AlertDialog](../../apps/web/src/components/ui/alert-dialog.tsx) | [Users permissions](../../apps/web/src/pages/admin/users/admin-users-page.tsx), [Recognition review/delete](../../apps/web/src/features/recognition/admin-page.tsx), [Documents reader edit](../../apps/web/src/pages/document-detail-page.tsx). Full title/description wraps; whole frame scrolls. Feature owns pending dismissal, action/error and exact return focus. |
-| Long Create/Edit → [CreationDialog](../../apps/web/src/components/ui/creation-dialog.tsx) → [creation-dialog.css](../../apps/web/src/components/ui/creation-dialog.css) → Dialog + nested AlertDialog | [Post management](../../apps/web/src/features/post/components/post-management-feature.tsx), [Document management](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx), [Categories](../../apps/web/src/features/system-categories/components/system-category-form-modal.tsx), [Recognition admin](../../apps/web/src/features/recognition/admin-page.tsx) / [my achievements](../../apps/web/src/features/recognition/private-pages.tsx). Fixed header, separate scroll body, mobile fullscreen; form owns dirty/busy/save. Other routed creators are in the ledger. |
+| Long Create/Edit → [CreationDialog](../../apps/web/src/components/ui/creation-dialog.tsx) → [creation-dialog.css](../../apps/web/src/components/ui/creation-dialog.css) → Dialog + nested AlertDialog | [Post management](../../apps/web/src/features/post/components/post-management-feature.tsx), [Document management](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx), [Categories](../../apps/web/src/features/system-categories/components/system-category-form-modal.tsx), [Recognition admin](../../apps/web/src/features/recognition/admin-page.tsx) / [my achievements](../../apps/web/src/features/recognition/private-pages.tsx). Compact title/Close header, scrolling context/form, inset/margin centering with zero translation; narrow/short mobile fullscreen. Form owns dirty/busy/save. Other routed creators are in the ledger. |
 | Protected thumbnail / +N / zoom → [EvidencePreviews / EvidenceViewer](../../apps/web/src/components/ui/evidence-gallery.tsx) → [evidence-gallery.css](../../apps/web/src/components/ui/evidence-gallery.css) → Dialog | [Daily EvidencePanel](../../apps/web/src/features/daily/evidence/evidence-panel.tsx) and [Recognition AchievementEvidence](../../apps/web/src/features/recognition/achievement-evidence.tsx) (my records and admin review). Only compact title/Close sticks; full privacy context scrolls. Adapters own current identity, access/revalidation, bytes/expiry/revocation and original downloads; [EvidenceDownload](../../apps/web/src/features/recognition/components.tsx) keeps the full filename accessible. |
 | Native Daily create group → [GroupList](../../apps/web/src/features/daily/groups/group-controls.tsx) → [.study-dialog](../../apps/web/src/features/daily/ui/study-notebook.css) | `/daily/groups`: native showModal/close/Escape/focus,44px actions and restored prior body overflow. Name/error/request state stays in GroupList; separate pending Daily recovery hunks remain pending. |
 | Daily task/reflection/upload → [DailyPlanEditor](../../apps/web/src/features/daily/components/daily-plan-editor.tsx) / [EvidencePanel](../../apps/web/src/features/daily/evidence/evidence-panel.tsx) → [DailyDialogHeader](../../apps/web/src/features/daily/ui/daily-dialog-header.tsx) / [notebook CSS](../../apps/web/src/features/daily/ui/study-notebook.css) → Dialog | `/daily`, `/daily/week`, authorized shared review. Daily retains serialized sync, private gates, upload-busy guards and local draft authority. |
 | Nested image/link chooser → [RichTextEditor](../../apps/web/src/components/ui/rich-text-editor.tsx) → Dialog; image chooser has bottom Cancel | [PostForm](../../apps/web/src/features/post/components/post-form.tsx) in Post creation/edit. Escape/Cancel returns to exact toolbar trigger; pending upload blocks dismissal. [POST validation](../../apps/web/src/features/post/lib/post-image-validation.ts) and storage service still own upload rules/results. |
 | Article image → [ImageLightbox](../../apps/web/src/components/ui/image-lightbox.tsx) → Dialog | [NewsDetailFeature](../../apps/web/src/features/post/components/news-detail-feature.tsx), fullscreen media with contained image; original trigger returns focus. |
+| Menu / Select / Combobox motion → [floating-controls.css](../../apps/web/src/components/ui/floating-controls.css) through [DropdownMenu](../../apps/web/src/components/ui/dropdown-menu.tsx), [Select](../../apps/web/src/components/ui/select.tsx), [Popover](../../apps/web/src/components/ui/popover.tsx) / [Combobox](../../apps/web/src/components/ui/combobox.tsx) | [Account menu](../../apps/web/src/features/auth/components/user-dropdown.tsx), [Documents filters](../../apps/web/src/features/documents/components/document-filters.tsx), Post/Document metadata and editor toolbar; Daily/room consumers retain their feature logic.140/90ms presence,110ms colors; Radix collision/focus owns placement. Native and item-aligned Select stay static. |
 | Persistent native room music → [RoomMusicDialog](../../apps/web/src/features/study-room/components/room-music-dialog.tsx) / [room styles](../../apps/web/src/features/study-room/components/study-room.css) | Room session keeps player children mounted across close; intentional native lifecycle, separate from Daily native group creation. |
 
 Quick lookup: **email/approval context** → Dialog + Users/Recognition;
 **draft close** → CreationDialog + owning form;
 **private image/download** → EvidenceGallery + feature adapter;
 **picker Cancel** → RichTextEditor;
+**cropped Create frame** → CreationDialog + creation-dialog.css (check production CSS);
+**menu/combobox motion** → floating-controls.css + the corresponding Radix owner;
 **native background scroll** → GroupList (or RoomMusicDialog for persistent music).
-[Current repair proof and limits](#mobile-modal-repairs-10102026) link back to the
-[existing status](../reviews/ux-flow-audit.md#mobile-modal-repairs-20261010).
+[Current geometry/motion proof and limits](#creation-frame-geometry-and-floating-controls-10102026) link back to the
+[existing status](../reviews/ux-flow-audit.md#creation-frame-geometry-and-floating-controls-20261010).
 
 ## Scope and how to read this reference
 
@@ -796,3 +799,34 @@ notice; it does not claim that pending creation-owned feedback shipped. Existing
 31-test/build/lint and41-screenshot integrated evidence is reused for unchanged
 contracts. A probe expectation mismatch (`OoEIWO`) was corrected to the actual
 feature-owned localized error status, with no business-policy change.
+
+
+## Creation frame geometry and floating controls 10/10/2026
+
+Base1a3463d (previous fixes committed/pushed, live deployment unobserved).
+The production-only cropping reproduction and new layout rules are in
+[UI authority](web-ui.md#creation-frame-geometry-and-floating-controls-10102026);
+[status/evidence](../reviews/ux-flow-audit.md#creation-frame-geometry-and-floating-controls-20261010)
+records exact artifacts and preservation accounting. Earlier development/synthetic
+string-overflow proof does not close this positioning defect.
+
+Quick reproduction: build with an env-safe Vite config (`envDir:false`), preview
+the minified bundle, then run `VISUAL_PRODUCTION=1 VISUAL_CREATION_FLOW=1` with
+`VISUAL_WEB_URL` pointing at the owned preview server and
+[mobile-modal-browser-check.mjs](../../apps/web/tests/mobile-modal-browser-check.mjs).
+The script uses actual admin routes with intercepted synthetic APIs, captures
+open/settled/static rectangles, and checks body/action/focus/dirty/busy/upload/error
+lifecycles at320/390/short/landscape/tablet/desktop.
+`VISUAL_FLOATING_FIXTURE=1` against an owned development server additionally mounts
+[actual submenu/item-aligned owners](../../apps/web/tests/fixtures/floating-controls.tsx)
+for nested keyboard checks. Fixture content is synthetic, never production data.
+
+PostForm/DocumentForm keep validation and requests; CreationDialog keeps only
+frame/dismissal/focus. PDF UploadDropzone keeps the same upload contract with a
+native overlaid chooser button and a separate visible44px Clear. Dialog,
+EvidenceGallery, Daily native lifecycle/private adapters and room continuity are
+unchanged by this correction. Shared floating motion has no mount-delay controller
+or dependency addition; account-specific animation is removed from navigation.css.
+Known limits: exact operator device/live bundle, physical keyboard/visual viewport
+and real upload/backend behavior remain unverified. The prior seven-path Daily
+recovery and unrelated documentation remain separately dirty.

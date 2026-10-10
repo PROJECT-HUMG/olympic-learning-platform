@@ -265,11 +265,13 @@ export function UploadDropzone({
           data-busy={isBusy || undefined}
           data-gulp={gulp || undefined}
           aria-live="polite"
-          onClick={handleClick}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
+          <button type="button" className="upl-choose" disabled={isPending}
+            aria-label={selectedFile ? "Chọn tệp tài liệu khác" : "Chọn tệp tài liệu PDF"}
+            onClick={handleClick} />
           {phase.kind === "idle" && !selectedFile ? (
             <>
               <span className="upl-icon">

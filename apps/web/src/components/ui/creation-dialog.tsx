@@ -29,7 +29,7 @@ export function CreationDialog({ open, onOpenChange, title, description, dirty =
   }
   return <>
     <Dialog open={open} onOpenChange={next => { if (!next) close(); else onOpenChange(true); }}>
-      <DialogContent className={["creation-dialog",className].filter(Boolean).join(" ")} showCloseButton={false}
+      <DialogContent className={["creation-dialog top-0 left-0 translate-x-0 translate-y-0",className].filter(Boolean).join(" ")} showCloseButton={false}
         onOpenAutoFocus={event => { event.preventDefault(); opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; titleRef.current?.focus(); }}
         onCloseAutoFocus={event => {
           event.preventDefault();
@@ -53,10 +53,10 @@ export function CreationDialog({ open, onOpenChange, title, description, dirty =
         }}>
 
         <DialogHeader className="creation-dialog__header">
-          <div><DialogTitle ref={titleRef} tabIndex={-1}>{title}</DialogTitle><DialogDescription>{description}</DialogDescription></div>
+          <DialogTitle ref={titleRef} tabIndex={-1}>{title}</DialogTitle>
           <Button type="button" variant="outline" disabled={busy} onClick={close}>Đóng</Button>
         </DialogHeader>
-        <div className="creation-dialog__body">{children(close)}</div>
+        <div className="creation-dialog__body"><DialogDescription className="creation-dialog__description">{description}</DialogDescription>{children(close)}</div>
       </DialogContent>
     </Dialog>
     <AlertDialog open={open && confirmClose} onOpenChange={setConfirmClose}>

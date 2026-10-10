@@ -47,6 +47,18 @@
     border-color 200ms ease;
 }
 
+.upl-choose {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+  z-index: 1;
+}
+.upl-choose:focus-visible { outline: 2px solid var(--ring); outline-offset: -4px; }
+.upl-choose:disabled { cursor: wait; }
+
 .upl-zone:hover {
   border-color: var(--primary);
   background: color-mix(in srgb, var(--primary) 4%, var(--card));
@@ -306,15 +318,16 @@
   top: 8px;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 0;
   border-radius: 50%;
   background: color-mix(in srgb, var(--foreground) 8%, var(--card));
   color: var(--muted-foreground);
   cursor: pointer;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 160ms ease, color 160ms ease, background-color 160ms ease;
 }
 

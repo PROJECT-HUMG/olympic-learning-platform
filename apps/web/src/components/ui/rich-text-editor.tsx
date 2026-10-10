@@ -237,7 +237,7 @@ const MenuBar = ({ editor, onUploadingChange }: { editor: Editor | null; onUploa
       {/* Kiểu chữ */}
       <div className="flex-shrink-0">
         <Select value={currentHeadingLevel} onValueChange={handleHeadingChange}>
-          <SelectTrigger size="sm" className="w-[170px] max-w-full bg-background text-sm font-medium">
+          <SelectTrigger size="sm" className="h-11 w-[170px] max-w-full bg-background text-sm font-medium">
             <SelectValue placeholder="Kiểu chữ" />
           </SelectTrigger>
           <SelectContent>
@@ -512,7 +512,7 @@ export function RichTextEditor({ value, onChange, placeholder = "Nhập nội du
     editorProps: {
       attributes: {
         class:
-          "tiptap prose prose-sm sm:prose-base dark:prose-invert max-w-none focus:outline-none min-h-[300px] max-h-[600px] overflow-y-auto p-4",
+          "tiptap prose prose-sm sm:prose-base dark:prose-invert max-w-none focus:outline-none min-h-[200px] sm:min-h-[300px] sm:max-h-[600px] sm:overflow-y-auto p-4",
       },
     },
     onUpdate: ({ editor }) => {
@@ -521,7 +521,7 @@ export function RichTextEditor({ value, onChange, placeholder = "Nhập nội du
   });
 
   return (
-    <div className="flex flex-col border border-input bg-background rounded-xl shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary overflow-hidden transition-all duration-200">
+    <div className="flex flex-col border border-input bg-background rounded-xl shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary overflow-hidden transition-[border-color,box-shadow] duration-150">
       <MenuBar editor={editor} onUploadingChange={onUploadingChange} />
       <EditorContent editor={editor} />
     </div>

@@ -163,14 +163,14 @@ export function Combobox({
             onFocus={() => !disabled && changeOpen(true)}
             placeholder={placeholder}
             className={cn(
-              "bg-background pr-12",
+              "floating-trigger bg-background pr-12",
               inputClassName
             )}
           />
           {value && !isOpen ? (
             <button
               type="button"
-              className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+              className="floating-trigger absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
               disabled={disabled}
               onClick={(e) => {
                 e.stopPropagation();
@@ -186,7 +186,7 @@ export function Combobox({
           ) : (
             <button
               type="button"
-              className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+              className="floating-trigger absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
               disabled={disabled}
               onPointerDown={(event) => event.preventDefault()}
               onClick={() => {
@@ -241,7 +241,7 @@ export function Combobox({
                   onClick={() => handleOptionClick(option.value)}
                   onMouseEnter={() => setActiveIndex(index)}
                   className={cn(
-                    "relative flex min-h-11 w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none transition-colors",
+                    "floating-option relative flex min-h-11 w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none",
                     isActive && "bg-accent text-accent-foreground",
                     isSelected && "font-medium text-primary"
                   )}

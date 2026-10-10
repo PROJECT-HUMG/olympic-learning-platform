@@ -83,13 +83,11 @@
   .navigation-drawer[data-state="open"] .navigation-groups > section:nth-child(2) { animation-delay: 35ms; }
   .navigation-drawer[data-state="open"] .navigation-groups > section:nth-child(3) { animation-delay: 70ms; }
   .navigation-drawer[data-state="open"] .navigation-groups > section:nth-child(n+4) { animation-delay: 100ms; }
-  .shell-account-menu[data-state="open"] { animation: navigation-account-in 240ms cubic-bezier(.22,1,.36,1) both; }
 }
 @keyframes navigation-drawer-in { from { transform: translateX(-100%); } to { transform: translateX(0); } }
 @keyframes navigation-drawer-out { from { transform: translateX(0); } to { transform: translateX(-100%); } }
 @keyframes navigation-group-in { from { opacity: .25; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
-@keyframes navigation-account-in { from { opacity: 0; transform: translateY(-8px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @media (prefers-reduced-motion: reduce) {
   .shell-account, .shell-icon-control, .workspace-sidebar, .navigation-groups__link, .navigation-groups__link::before, .navigation-groups__link svg, .workspace-rail__link { transition: none; }
-  .navigation-drawer[data-slot="sheet-content"], .navigation-drawer .navigation-groups > section, .shell-account-menu { animation: none !important; transition: none !important; }
+  .navigation-drawer[data-slot="sheet-content"], .navigation-drawer .navigation-groups > section { animation: none !important; transition: none !important; }
 }

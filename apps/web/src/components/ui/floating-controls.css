@@ -1,0 +1,36 @@
+/* Radix owns placement, collision and presence. Animate its content only;
+   never the positioning wrapper or a dialog's centering coordinates. */
+.floating-content {
+  --floating-x: 0px;
+  --floating-y: 0px;
+}
+.floating-content[data-side="bottom"] { --floating-y: -3px; }
+.floating-content[data-side="top"] { --floating-y: 3px; }
+.floating-content[data-side="right"] { --floating-x: -3px; }
+.floating-content[data-side="left"] { --floating-x: 3px; }
+.floating-content[data-state="open"] {
+  animation: floating-enter 140ms cubic-bezier(.16, 1, .3, 1) both;
+}
+.floating-content[data-state="closed"] {
+  animation: floating-exit 90ms ease-in both;
+  pointer-events: none;
+}
+/* Item-aligned Select must stay aligned with the selected row. */
+.floating-content[data-align-trigger="true"] { animation: none; }
+.floating-option, .floating-trigger {
+  transition-property: background-color, color, border-color;
+  transition-duration: 110ms;
+  transition-timing-function: ease-out;
+}
+@keyframes floating-enter {
+  from { opacity: 0; transform: translate(var(--floating-x), var(--floating-y)) scale(.98); }
+  to { opacity: 1; transform: translate(0, 0) scale(1); }
+}
+@keyframes floating-exit {
+  from { opacity: 1; transform: translate(0, 0) scale(1); }
+  to { opacity: 0; transform: translate(var(--floating-x), var(--floating-y)) scale(.98); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .floating-content[data-state] { animation: none; }
+  .floating-option, .floating-trigger { transition: none; }
+}

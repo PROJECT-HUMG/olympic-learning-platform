@@ -3373,3 +3373,82 @@ errors[]); prior adequate build/lint/31regressions/41screenshots reused. No live
 mutation. Scoped hashes, original accepted manifest, pending patch/reconstruction,
 actual commit/push result and runtime cleanup belong to the supplemental
 `/tmp/mobile-modal-publication-20261010.json`. No CI/deployment observation requested.
+
+
+## Creation frame geometry and floating controls 20261010
+
+Base1a3463d7df9fa55d7db3e0692ad44562cbff00c2. Previous12-path fixes were scoped
+committed/pushed as1a3463d; origin/main was verified at that SHA before this repair.
+No deployment monitoring: exact live bytes/phone browser version remain unknown.
+Physical feedback reopened geometry despite earlier narrow-string development proof.
+
+Root cause reproduced in the minified baseline bundle: the mobile translate reset
+was lowered to transform:translate(0,0), leaving inherited Tailwind individual−50%
+translations active. Both actual Post-create and Document-create routes measured
+−160/−284 at320×568 and−195/−140 at390×280, animated and animation-disabled.
+Body-portal/HTML/body ancestors had no transform/filter/contain containing block.
+Development routes stayed correctly positioned; animations were not the cause.
+Before artifacts: `/tmp/mobile-modal-fixes-after-ueNsrx/results.json` (baseline
+production despite historical directory naming), and development comparison
+`/tmp/mobile-modal-fixes-after-GykjqZ/results.json`. Private screenshot was viewed
+read-only and never copied into fixtures, docs or artifacts.
+
+CreationDialog now opts out of inherited centering translations and uses insets/
+auto margins. Compact fixed title/Close, scrolling context/body, all safe-area
+insets and narrow/short fullscreen frames keep controls reachable. Post metadata
+precedes cover upload, mobile editor shares body scroll, heading trigger is44px;
+Document gaps/actions fit narrow widths. PDF chooser is a native keyboard button,
+separate clear is visible44px. Feature validation/upload/save/permission and
+public-vs-draft contracts remain unchanged. Shared floating-controls.css owns
+140/90ms presence,3px/.98 travel/scale and110ms color transitions through Select,
+DropdownMenu/submenu and Popover/Combobox; competing account reveal is removed.
+Radix placement/focus/typeahead/presence remains authoritative; item-aligned and
+native Select stay static. No dependency or global modal framework.
+
+Consolidated production probe: `/tmp/mobile-modal-fixes-after-UyXUAd/results.json`,
+38 screenshots/20 passing groups, errors[].320×568 light,390×844 dark,320×280 dark,
+390×280 light,667×320 light,768×1024 dark,1280×800 light. Captures first25 mount
+frames plus settled/static rectangles, action/body overflow, background scroll,
+focused mobile/tablet viewport shrink, dirty Close/Escape/continue/discard/return.
+Actual Post/Document routes verify validation, nested picker pointer/focus, held
+upload/save dismissal, failed/retried upload with URL versus asset-ID completion,
+metadata retry and save failures retaining title/editor. Actual Select typeahead,
+Combobox draft/filtering without animation replay, account menu keyboard/collision/
+quick reopen cleanup pass. Nested submenu/item-aligned Select fixture passes at
+320×280/390×844/1280×800: `/tmp/mobile-modal-fixes-after-MmfOJ7/results.json`
+(3screenshots/3groups). The fixture imports actual shared owners; no live mutation.
+
+TypeScript, env-safe production Vite build, Oxlint and all180 Node tests pass.
+Build uses envDir:false and synthetic public constants, never operator env.
+Existing chunk-size/esbuild optional-import/lint warnings remain. Full suite log:
+`/tmp/modal-motion-all-tests-20261010.log`; build log:
+`/tmp/modal-motion-build-20261010.log`. Prior failed probes remain separate:9cAGqV
+passed mobile/tablet but failed artificial desktop focus shrink; pO7Kqm used a
+wrong validation selector; w7MMac exposed competing account motion, now removed.
+Nested fixture attempts nvEJt9/W5MmHT/P2LvOg recorded trigger/focus timing and
+artificial full-width-anchor geometry before correcting the fixture; they are
+not passing evidence. Final consolidated/fixture results above supersede them.
+
+Limits: representative synthetic Chromium, not physical-phone IME/iOS/notch/pinch
+zoom, screen-reader, all-screen/backend or deployment proof. Layout-viewport
+resize is controllable; visual-only keyboard shrink is not established. No live
+posts/uploads/publication/admin changes, external settings or dedicated reduced-
+motion validation. Existing OS reduced-motion handling is retained in source.
+
+Lead ACCEPT the coherent19-path repair for scoped commit/normal origin/main push,
+after exact index-only compilation and preservation checks.
+Index-only TypeScript/Vite build passed; focused minified probe
+`/tmp/mobile-modal-fixes-after-EdY15U/results.json` has4screenshots/errors[] and
+in-bounds open/settled/static Post/Document frames at320×568 and390×280. Final
+Oxlint passes with pre-existing warnings and one export-only warning in the new
+synthetic submenu fixture (no runtime error).
+[Owner lookup](../architecture/web-ui-components.md#interaction-owner-lookup) and
+[design rules](../architecture/web-ui.md#creation-frame-geometry-and-floating-controls-10102026)
+are updated in place. `/tmp/creation-frame-motion-final-manifest-20261010.json`
+records base, complete scoped hashes/patch and evidence;
+`/tmp/creation-frame-motion-publication-20261010.json` records staged/committed
+hashes and push. Entry pending patch/status prefix is preserved byte-for-byte;
+the85-line Daily status insertion is excluded from index alongside five tracked
+Daily files/untracked browser check and unrelated auth/deploy docs. Operator.env
+is ignored/untracked/excluded. Owned local runtimes close before completion.
+No post-push pipeline/deploy follow-up.

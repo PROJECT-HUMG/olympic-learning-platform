@@ -37,7 +37,7 @@ This decision supersedes the older floating-header/bottom-sheet/manual-motion ch
 
 Workspace navigation separates personal/content/system tasks from public discovery. Staff have Overview, content/system management, then personal Daily/profile destinations. Students retain personal work destinations. At >=1200px use a collapsible readable sidebar; at 768–1199px use an 88px labelled shortcut rail with direct Overview/Daily/Groups and staff Questions; below 768px use the compact header and full drawer. Discovery is accessible from the sidebar/rail without permanently repeating the public directory. Account/theme actions occupy a consistent top-right position. Use one drawer scroll region, 44px targets, modal focus trapping/Escape/return and collapse focus handoff; no route or authorization changes.
 
-Expressive user-triggered motion is allowed: a 360ms drawer reveal, staged group reveals, responsive sidebar width transition, account reveal and active-route markers. Do not delay links or add continuous navigation motion. OS prefers-reduced-motion suppresses these animations automatically. The visible “Nền động” control (HomeMotionToggle and PublicDisplaySettings switch) and its now-unused preference store are removed; the home-motion hook follows OS preference, preserving theme settings. This is not authority to override browser accessibility or add new background effects.
+Expressive user-triggered motion is allowed: a 360ms drawer reveal, staged group reveals, responsive sidebar width transition, shared floating-control account reveal and active-route markers. Do not delay links or add continuous navigation motion. OS prefers-reduced-motion suppresses these animations automatically. The visible “Nền động” control (HomeMotionToggle and PublicDisplaySettings switch) and its now-unused preference store are removed; the home-motion hook follows OS preference, preserving theme settings. This is not authority to override browser accessibility or add new background effects.
 
 Rendered recheck: retain the visible Menu label on tablet/mobile; below 768px keep the school logo but omit the adjacent brand text to make room for sign-in/Menu. Compact workspace rails have one Menu trigger, not a second discovery trigger to the same drawer. Staff rail order is Overview, Documents, Questions, Daily, Daily groups; the expanded sidebar/full drawer retain every destination and the same role restrictions. Active rail entries use a text-weight/background/edge marker, not color alone. Existing account/theme, draft blocking and focus return stay intact.
 
@@ -381,7 +381,7 @@ already have it; explicit modal dismissal is guarded.
 
 The frame is ≤68rem desktop, bounded to viewport height with a reachable header
 and internally scrolling body; `.creation-dialog--compact` is ≤36rem for shorter
-forms. At≤640px both use the full100dvh viewport with top-header/bottom-body safe-area padding; horizontal insets are not explicit. Do not constrain
+forms. At≤640px, or at≤1024px with height≤480px, both use the full100dvh viewport with safe-area padding on all sides. Desktop centering uses fixed insets/automatic margins; CreationDialog explicitly replaces inherited percentage translations with zero. Keep only title/Close fixed; full description and form scroll together. Do not constrain
 long editors to a tiny overlay, duplicate their page title under the dialog title,
 or shrink targets to make them fit. Nested installed choosers retain their own
 focus and completion contracts; post image uploads report busy to the owning form.
@@ -527,8 +527,46 @@ Recognition downloads show “Tải tệp” with the full filename accessible; 
 Daily group buttons are44px and the owner restores prior body overflow on native
 close/unmount; the nested POST image chooser has upload-guarded bottom Cancel.
 Creation frames retain fixed headers/scrolling bodies; ordinary Dialog scrolls
-the whole frame. Phone landscape wider than640px uses centered CreationDialog.
+the whole frame. The subsequent production-geometry repair below makes short phone/tablet landscape fullscreen too.
 Find responsible adapters/styles through the [interaction owner lookup](web-ui-components.md#interaction-owner-lookup)
 and [repair proof/limits](web-ui-components.md#mobile-modal-repairs-10102026).
 Safe-area/physical IME behavior remains bounded by Chromium evidence. Native
 room persistence and Daily draft/autosync authority remain distinct.
+
+
+### Creation frame geometry and floating controls (10/10/2026)
+
+The five-fix commit1a3463d is pushed; deployment bytes were not observed. Physical
+phone feedback reopened Post/Document positioning. Production compilation lowered
+the mobile `transform:none; translate:none` reset to `transform:translate(0,0)`
+and left Dialog’s inherited individual−50% translation active. Synthetic production
+Post and Document frames reproduced−160/−284 at320×568 and−195/−140 at390×280,
+including with animation disabled; development CSS did not reproduce it.
+
+[CreationDialog](../../apps/web/src/components/ui/creation-dialog.tsx) now replaces
+centering utilities explicitly with zero translations, and its
+[CSS](../../apps/web/src/components/ui/creation-dialog.css) uses fixed insets and
+auto margins. This remains stable through minification and animation. Header holds
+only title and44px Close; context scrolls with the form. Narrow/short frames use
+full100dvh with all safe-area insets; desktop remains bounded and centered.
+Post starts with metadata before cover upload, uses one mobile body scroll
+(the editor keeps its bounded desktop scroll), and keeps44px toolbar controls.
+Document fields have compact mobile gaps and stacked44px actions. Its actual PDF
+chooser is a native keyboard button; clear is visible and44px, without changing
+upload validation, immediate upload, retry or returned asset-ID semantics.
+
+[Floating controls CSS](../../apps/web/src/components/ui/floating-controls.css)
+owns Radix Select, DropdownMenu/submenu and Popover/Combobox presence:140ms opening,
+90ms closing,3px directional travel/.98 scale, correct Radix transform origin;
+110ms color/border transitions for triggers/options. Animate content, never the
+positioning wrapper or dialog coordinates. Closed content ignores pointers.
+Radix owns collision/presence/focus/typeahead; item-aligned Select stays static
+and native Select retains the OS popup. No extra GSAP/Framer controller is needed.
+Reduced-motion CSS suppresses these effects; no dedicated reduced-motion test.
+The account menu now uses this owner instead of a competing navigation animation.
+
+[Proof/status](../reviews/ux-flow-audit.md#creation-frame-geometry-and-floating-controls-20261010)
+distinguishes minified production regressions from development-only nested-control
+fixtures. Controlled viewport shrink does not establish physical IME, iOS visual
+viewport, pinch zoom or notch behavior; it does establish reachable controls when
+the layout viewport actually shrinks. No live admin mutations or deployment polling.

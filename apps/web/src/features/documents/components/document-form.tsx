@@ -168,10 +168,10 @@ export function DocumentForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8 w-full">
-        <div className={cn("grid grid-cols-1 gap-8", !isEditMode ? "lg:grid-cols-2" : "lg:grid-cols-1")}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="min-w-0 space-y-5 sm:space-y-8 w-full">
+        <div className={cn("grid min-w-0 grid-cols-1 gap-5 sm:gap-8", !isEditMode ? "lg:grid-cols-2" : "lg:grid-cols-1")}>
           {/* Left Column: Form Fields */}
-          <div className="min-w-0 space-y-6 max-w-3xl">
+          <div className="min-w-0 space-y-4 sm:space-y-6 max-w-3xl">
             {/* Title */}
             <FormField
               control={form.control}
@@ -196,7 +196,7 @@ export function DocumentForm({
                 <Button type="button" variant="outline" disabled={metadataQuery.isFetching} onClick={() => void metadataQuery.refetch()}>Thử lại bộ chọn</Button>
               </div>
             )}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-3">
               {/* Category */}
               <FormField
                 control={form.control}
@@ -314,7 +314,7 @@ export function DocumentForm({
 
           {/* Right Column: File Upload (Only Create Mode) */}
           {!isEditMode && (
-            <div className="space-y-2">
+            <div className="min-w-0 space-y-2">
               <Label>Tệp đính kèm <span className="text-destructive">*</span></Label>
 
               <UploadDropzone
@@ -332,7 +332,7 @@ export function DocumentForm({
           )}
         </div>
 
-        <div className="flex justify-end gap-4 pt-4 border-t">
+        <div className="flex flex-col-reverse gap-3 pt-4 border-t sm:flex-row sm:flex-wrap sm:justify-end">
           <Button
             type="button"
             variant="outline"

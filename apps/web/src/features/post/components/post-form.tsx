@@ -129,18 +129,18 @@ export function PostForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((values) => handleSubmit(values))} className="space-y-6">
+      <form onSubmit={form.handleSubmit((values) => handleSubmit(values))} className="min-w-0 space-y-5 sm:space-y-6">
         
         {/* NỬA TRÊN: THÔNG TIN & ẢNH BÌA */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
           
-          {/* Trái (Desktop) / Dưới (Mobile): Thông tin cơ bản */}
-          <div className="order-2 lg:order-1 lg:col-span-2 space-y-6">
+          {/* Thông tin cơ bản trước ảnh bìa trên mobile: Thông tin cơ bản */}
+          <div className="order-1 min-w-0 lg:col-span-2 space-y-5 sm:space-y-6">
             <Card className="border-border/50 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Thông tin bài viết</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="min-w-0 space-y-5 sm:space-y-6">
                 <FormField
                   control={form.control}
                   name="title"
@@ -227,8 +227,8 @@ export function PostForm({
             </Card>
           </div>
 
-          {/* Phải (Desktop) / Trên (Mobile): Ảnh bìa */}
-          <div className="order-1 lg:order-2 lg:col-span-1 space-y-6">
+          {/* Ảnh bìa sau thông tin cơ bản: Ảnh bìa */}
+          <div className="order-2 min-w-0 lg:col-span-1 space-y-5 sm:space-y-6">
             <Card className="border-border/50 shadow-sm h-full">
               <CardHeader>
                 <CardTitle className="text-lg">Ảnh bìa</CardTitle>
@@ -268,7 +268,7 @@ export function PostForm({
               name="content"
               render={({ field }) => (
                 <FormItem>
-                  <FormControl className="min-h-[400px]">
+                  <FormControl>
                     <RichTextEditor onUploadingChange={setIsEditorUploading}
                       value={field.value}
                       onChange={field.onChange}
