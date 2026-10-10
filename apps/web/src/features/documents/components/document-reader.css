@@ -1,0 +1,5 @@
+/* Reader and skeleton reserve the same viewport; short phones keep context reachable. */
+.document-reader__viewport { width: 100%; height: clamp(24rem, 75svh, 60rem); }
+@media (max-width: 640px) {
+  .document-reader__viewport { height: clamp(14rem, 65svh, 40rem); }
+}

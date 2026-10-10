@@ -30,6 +30,8 @@ import me.nghlong3004.olympic.document.response.DocumentResponse;
 import me.nghlong3004.olympic.document.service.SearchTextNormalizer;
 import me.nghlong3004.olympic.common.util.SlugGenerator;
 import me.nghlong3004.olympic.storage.entity.File;
+import me.nghlong3004.olympic.storage.enums.StorageFolder;
+import me.nghlong3004.olympic.storage.enums.StorageProvider;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
 import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.User;
@@ -223,4 +225,33 @@ class DocumentServiceImplTest {
     documentService.incrementViewCountBySlug(slug);
     verify(documentRepository).incrementViewCountBySlug(slug);
   }
+  @Test
+  void thumbnailIsOnlyRequestedForPublicDocumentPdfCandidates() {
+    File file = File.builder().storageKey("documents/00000000-0000-0000-0000-000000000001.pdf")
+        .provider(StorageProvider.CLOUDINARY).folder(StorageFolder.DOCUMENT)
+        .contentType("application/pdf").build();
+    Document document = Document.builder().file(file).build();
+    when(documentRepository.findBySlugAndDeletedAtIsNull("candidate")).thenReturn(Optional.of(document));
+    when(documentMapper.toResponse(document)).thenReturn(DocumentResponse.builder().build());
+    URI thumbnail = URI.create("https://example.invalid/public-page-1.jpg");
+    when(storageService.getThumbnailUri(file.getStorageKey())).thenReturn(thumbnail);
+    assertThat(documentService.getBySlug("candidate").thumbnailUrl()).isEqualTo(thumbnail.toString());
+    verify(storageService).getThumbnailUri(file.getStorageKey());
+
+    clearInvocations(storageService);
+    file.setFolder(StorageFolder.ASSESSMENT_SOURCE);
+    assertThat(documentService.getBySlug("candidate").thumbnailUrl()).isNull();
+    verify(storageService, never()).getThumbnailUri(anyString());
+
+    file.setFolder(StorageFolder.DOCUMENT);
+    file.setContentType("application/octet-stream");
+    assertThat(documentService.getBySlug("candidate").thumbnailUrl()).isNull();
+    verify(storageService, never()).getThumbnailUri(anyString());
+
+    file.setContentType("application/pdf");
+    file.setProvider(null);
+    assertThat(documentService.getBySlug("candidate").thumbnailUrl()).isNull();
+    verify(storageService, never()).getThumbnailUri(anyString());
+  }
+
 }

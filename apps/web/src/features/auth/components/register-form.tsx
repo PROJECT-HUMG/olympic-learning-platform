@@ -1,4 +1,5 @@
-import { useState } from "react";
+import type { CreationState } from "@/components/ui/creation-dialog";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -37,7 +38,7 @@ const registerSchema = z
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-export function RegisterForm() {
+export function RegisterForm({ onStateChange, onClose }: { onStateChange?: (state: CreationState) => void; onClose?: () => void }) {
   const turnstile = useTurnstileChallenge();
   const location = useLocation();
   const [challenge, setChallenge] = useState<RegistrationChallenge | null>(readRegistrationSession);
@@ -54,11 +55,12 @@ export function RegisterForm() {
     handleSubmit,
     setValue,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
   });
 
+  useEffect(() => { if (!resuming && !(showVerification && challenge)) onStateChange?.({ dirty: isDirty, busy: isSubmitting }); }, [onStateChange, resuming, showVerification, challenge, isDirty, isSubmitting]);
   const emailRegister = register("email");
   const usernameRegister = register("username");
 
@@ -100,22 +102,22 @@ export function RegisterForm() {
     }
   }
 
-  if (resuming) return <ResumeRegistrationForm
+  if (resuming) return <ResumeRegistrationForm onStateChange={onStateChange} onClose={onClose}
     onComplete={(value) => { updateChallenge(value); setShowVerification(true); setResuming(false); }}
     onBack={() => { updateChallenge(null); setShowVerification(false); setResuming(false); }}
   />;
 
-  if (showVerification && challenge) return <RegistrationVerification challenge={challenge}
+  if (showVerification && challenge) return <RegistrationVerification challenge={challenge} onStateChange={onStateChange} onClose={onClose}
     onUpdate={(value) => { if (value) updateChallenge(value); else storeRegistrationSession(null); }}
     onResume={() => { updateChallenge(null); setShowVerification(false); setResuming(true); }}
   />;
 
   return (
     <div className="auth-form">
-      <div>
+      {!onClose && <div>
         <h1 className="auth-heading">Tạo tài khoản</h1>
         <p className="auth-description">Bắt đầu từ đây.</p>
-      </div>
+      </div>}
 
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <FormField
@@ -186,6 +188,7 @@ export function RegisterForm() {
         <Link
           to={ROUTES.LOGIN}
           state={location.state}
+          onClick={onClose ? event => { event.preventDefault(); onClose(); } : undefined}
           className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
         >
           Đăng nhập

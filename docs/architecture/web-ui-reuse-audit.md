@@ -4,10 +4,13 @@
 
 ## Snapshot, method and conclusions
 
-Source-only inventory, 09/10/2026, HEAD `bd47c5b6bed35ce64900e39a5e5eea8c90e60c5b`.
+Original source-only inventory, 09/10/2026, HEAD `bd47c5b6bed35ce64900e39a5e5eea8c90e60c5b`.
 Includes the accepted **uncommitted** seven-path Daily recovery; it is not part of
-that commit. The original audit was source-only; the separately authorized uncommitted
-three-cluster implementation below adds bounded regressions/rendered evidence. Operator env files were not read or included.
+that commit. Shared-owner/three-cluster work was subsequently committed in `ec98761`.
+The current10/10 visual/creation candidate remains unstaged on `f7db010`; its
+[actual coverage](web-ui-components.md#visual-and-creation-coverage-10102026) and
+[status](../reviews/ux-flow-audit.md) separate current and historical evidence.
+Operator env files were not read or included.
 
 All **42 page entry files** and the route/lazy-page wiring were inspected, with a
 original scan of **372 source files** (222 TSX, 120 TS, 30 CSS), including the page entries. TypeScript AST
@@ -22,7 +25,7 @@ visuals alone do not establish equivalent behavior.
 - **Already shared:** ordinary search presentation; native/Radix select and menu
   mechanisms; functional page headings; pagination controls; modal primitives;
   Documents/News list feedback; several domain compositions and lifecycle helpers.
-- **Now shared in the incremental candidate:** POST image validation/native Button
+- **Shared since `ec98761`:** POST image validation/native Button
   activation (2 pickers), Daily explicitInstant (2 DTO consumers), RetryFeedback
   (3 management consumers). Completion/request ownership remains feature-local.
 - **Now also shared:** all eight equivalent residual clusters in the current adoption
@@ -41,8 +44,8 @@ contracts; this document supplies actual repetition and ownership evidence.
 
 ## Implemented follow-up / cluster dispositions
 
-Three of the original **13 clusters** are resolved in the current uncommitted
-candidate on `bd47c5b`; **10 originally inventoried clusters remain deferred**, including cosmetic management
+At the historical three-cluster checkpoint on `bd47c5b`, three of the original
+**13 clusters** were resolved and **10 were deferred** (later dispositions below), including cosmetic management
 rows/range summaries. That implementation was a targeted update; the subsequent
 [full-source residual sweep](#post-consolidation-residual-sweep) adds new findings
 and corrects earlier equivalence/counts without further runtime edits. See the [current owner APIs and exact
@@ -629,3 +632,79 @@ for semantic native activation/focus checks. They support judgment, not adoption
 counts or new product policy. Source files/imports/AST sites are the evidence; the original
 audit used source facts; the separate three-cluster probe adds only its recorded
 synthetic screen/state coverage (see status), not whole-application proof.
+
+
+## Visual presentation and creation ownership (10/10/2026)
+
+Shared import adoption was insufficient evidence of visual usability. The local
+candidate on `f7db010` extends responsible Card/PageSection/table/guidance tokens
+with visible edges and restrained elevation; semantic article/list cards reuse
+CSS rather than claim composed-component reuse. Honors groups media/body/metadata/
+participants/action; Documents, News, catalogue, management, exams, dashboard and
+GPA receive fitting surface/layout adoption. Readers, rankings, Daily calendars/
+notebooks, auth shells and persistent rooms retain purposeful differing structure.
+The [42-entry source ledger and complete creation inventory](web-ui-components.md#visual-and-creation-coverage-10102026)
+record actual owners and exceptions. CreationDialog has12 mounted frame call sites
+in11 consumer files; form validation, submission/query semantics, permissions,
+media access and publication remain local. No universal upload/editor/record engine,
+new dependency or speculative extraction. Superseded inline/new-route create
+presentation is removed from actual consumers; legacy unrouted management remains
+honestly outside routed adoption. Existing repeated business contracts are not
+merged solely for appearance. Representative rendered comparisons are separate
+from this source ownership evidence; see existing status for exact proof limits.
+
+### Visual follow-up beyond component reuse (10/10/2026)
+
+Reuse alone does not establish usable grouping. The current local candidate also
+extends actual owners for News occupied pinned columns, responsive document-reader
+viewport/action stacking, RankingList comparison surface, public chronological year
+groups, stacked tablet profile identity, compact divided GPA rows and44px category
+tabs. These remain feature compositions with existing shared surface tokens, not
+new universal wrappers. See the [responsible owners](web-ui-components.md#responsible-local-compositions-beyond-honors)
+and42-page ledger for changed/inherited/purposeful variants. No new cross-feature
+business contracts or dependencies are introduced.
+
+Question Bank now composes existing CardHeader/Content/Footer, while the two exam
+list variants share feature-local ExamListItem with Badge/Link/surface tokens.
+This is equivalent list presentation only; frozen reader/release contracts remain
+separate and no feature rules move into global UI.
+
+
+## Document discovery supplement (10/10/2026)
+
+On accepted62-path visual candidate1871e3d/basef7db010, three mounted document
+thumbnail sites now share the feature-owned
+[DocumentThumbnail](../../apps/web/src/features/documents/components/document-thumbnail.tsx):
+[public card](../../apps/web/src/features/documents/components/document-card.tsx),
+[public list row](../../apps/web/src/features/documents/components/document-list-item.tsx),
+[management row](../../apps/web/src/features/documents/components/dashboard-document-list.tsx).
+All three consume server thumbnailUrl; they share contained page sizing/load/error
+fallback, not storage authorization or download callbacks. Previously cards and
+management rows independently rendered img-or-icon, and list rows had no preview.
+No source-wide count refresh is claimed from this bounded supplement; the42-page
+ledger remains discoverable in the component reference. Unrouted legacy DocumentGrid
+is intentionally excluded from mounted adoption, not counted as migrated.
+
+Existing StorageService/CloudinaryStorageService already owned page1 URL generation.
+This supplement constrains unsigned public document/PDF candidates and improves
+presentation, rather than adding a PDF rendering/upload framework. Actual storage
+cases and retained metadata limitations are in the
+[component reference](web-ui-components.md#document-discovery-preview-storage-cases-10102026).
+Card/list metadata presentation shares document-owned CSS; different list/grid
+compositions and management permission/action semantics remain purposeful.
+
+
+## News discovery supplement (10/10/2026)
+
+The mounted public News discovery and reader extend existing feature compositions,
+not a new universal card/filter/reader system. PublicNewsFeature retains SearchInput,
+PageHeader, filter-panel, Button, native type Links, AppPagination and independent
+query ownership; only arrangement/clear guidance changes. NewsList and the pinned
+band still share PostListItem board presentation (two call sites); its related-card
+variant remains purposefully different. NewsDetailFeature still uses the installed
+ImageLightbox/Dialog and reader owners, with bounded measure/spacing and announced
+TOC state. The public research maps directly to learner tasks in
+[web-ui.md](web-ui.md#documents-and-news-catalogue--editorial-discovery-10102026).
+DocumentThumbnail has three actual consumers; no shadow PDF transform/render owner
+was introduced. These verified bounded changes supplement the prior42-page source
+ledger and do not claim a new all-screen scan or all-screen live validation.

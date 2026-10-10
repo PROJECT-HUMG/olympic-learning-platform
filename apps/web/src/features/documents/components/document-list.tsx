@@ -32,13 +32,13 @@ export function DocumentList({ documents, isLoading, isError, isEmpty, viewMode 
   if (isLoading) {
     if (viewMode === "list") {
       return (
-        <div role="status" className="flex flex-col">
+        <div role="status" className="page-table flex flex-col">
           <span className="sr-only">Đang tải tài liệu…</span>
           {/* Header */}
           <div className="flex items-center justify-between py-3 px-4 border-b border-border/60 text-sm font-medium text-muted-foreground">
             <div className="flex-1 pr-4">Tên</div>
-            <div className="hidden sm:block w-[180px] pr-4">Chủ sở hữu</div>
-            <div className="hidden md:block w-[150px]">Lần sửa đổi gần nhất</div>
+            <div className="hidden sm:block w-[180px] pr-4">Người đăng</div>
+            <div className="hidden md:block w-[150px]">Ngày đăng</div>
             <div className="w-[40px]"></div>
           </div>
           {Array.from({ length: 5 }).map((_, i) => (
@@ -49,7 +49,7 @@ export function DocumentList({ documents, isLoading, isError, isEmpty, viewMode 
     }
 
     return (
-      <div role="status" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+      <div role="status" className="document-results-grid">
         <span className="sr-only">Đang tải tài liệu…</span>
         {Array.from({ length: 10 }).map((_, i) => (
           <DocumentCardSkeleton key={i} />
@@ -68,12 +68,12 @@ export function DocumentList({ documents, isLoading, isError, isEmpty, viewMode 
 
   if (viewMode === "list") {
     return (
-      <div className="flex flex-col">
+      <div className="page-table flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between py-3 px-4 border-b border-border/60 text-sm font-medium text-muted-foreground">
           <div className="flex-1 pr-4">Tên</div>
-          <div className="hidden sm:block w-[180px] pr-4">Chủ sở hữu</div>
-          <div className="hidden md:block w-[150px]">Lần sửa đổi gần nhất</div>
+          <div className="hidden sm:block w-[180px] pr-4">Người đăng</div>
+          <div className="hidden md:block w-[150px]">Ngày đăng</div>
           <div className="w-[40px]"></div>
         </div>
         {documents.map((doc) => (
@@ -84,7 +84,7 @@ export function DocumentList({ documents, isLoading, isError, isEmpty, viewMode 
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+    <div className="document-results-grid">
       {documents.map((doc) => (
         <DocumentCard key={doc.id} document={doc} onDownload={onDownload} />
       ))}

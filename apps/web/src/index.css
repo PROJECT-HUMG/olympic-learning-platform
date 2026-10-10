@@ -7,6 +7,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --surface-border: #b9ccd6;
+  --surface-shadow: 0 1px 2px rgb(16 45 66 / 6%), 0 8px 24px rgb(16 45 66 / 6%);
   --card: #ffffff;
   --ring: #00387b;
   --input: #cddce3;
@@ -49,6 +51,8 @@
 }
 
 .dark {
+  --surface-border: #466b7d;
+  --surface-shadow: 0 1px 0 rgb(255 255 255 / 3%), 0 8px 24px rgb(0 0 0 / 16%);
   --action: rgb(207 236 251 / 10%);
   --action-hover: rgb(207 236 251 / 18%);
   --action-foreground: #e6f5ff;

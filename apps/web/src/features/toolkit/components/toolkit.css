@@ -1,10 +1,10 @@
-.toolkit-workspace { border: 1px solid var(--border); border-radius: 1rem; background: var(--card); }
+.toolkit-workspace { box-shadow:var(--surface-shadow); border: 1px solid var(--surface-border); border-radius: 1rem; background: var(--card); }
 .toolkit-workspace__tabs { display: flex; width: 100%; height: auto; padding: 0; border-bottom: 1px solid var(--border); border-radius: 1rem 1rem 0 0; background: transparent; }
 .toolkit-workspace__tabs [role="tab"] { min-height: 3.5rem; padding: .75rem 1rem; border: 0; border-bottom: 2px solid transparent; border-radius: 0; gap: .6rem; box-shadow: none; }
 .toolkit-workspace__tabs [role="tab"][data-state="active"] { border-bottom-color: var(--primary); background: transparent; color: var(--primary); box-shadow: none; }
 .toolkit-workspace [role="tabpanel"] { padding: 2rem; }
 /* Room discovery is a work surface, not another card inside the page. GPA stays unchanged. */
-.toolkit-workspace--rooms { border: 0; border-radius: 0; background: transparent; }
+.toolkit-workspace--rooms { box-shadow:none; border: 0; border-radius: 0; background: transparent; }
 .toolkit-workspace--rooms .toolkit-workspace__tabs { justify-content: flex-start; border-radius: 0; }
 .toolkit-workspace--rooms .toolkit-workspace__tabs [role="tab"] { flex: 0 1 auto; padding-inline: 1rem; }
 .toolkit-workspace.toolkit-workspace--rooms [role="tabpanel"] { padding: 1.5rem 0 0; }
@@ -13,11 +13,11 @@
 .toolkit-storage-note { margin-top: 1.5rem; color: var(--muted-foreground); font-size: .8125rem; line-height: 1.7; }
 .toolkit-page :is(button, a, select, input):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
 
-.toolkit-gpa__scale { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-block: 1.5rem 2rem; }
+.toolkit-gpa__scale { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-block: 1rem; }
 .toolkit-gpa__scale label { font-weight: 500; }
 .toolkit-gpa__scale p { flex-basis: 100%; max-width: 65ch; color: var(--muted-foreground); font-size: .8125rem; line-height: 1.7; }
-.toolkit-gpa__rows { display: grid; gap: 1.5rem; }
-.toolkit-gpa__row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 2.75rem; gap: 1rem; min-width: 0; }
+.toolkit-gpa__rows { display: grid; gap: 0; }
+.toolkit-gpa__row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 2.75rem; gap: 1rem; min-width: 0; padding-block: 1rem; border-bottom: 1px solid var(--border); }
 .toolkit-gpa__row > div { min-width: 0; }
 .toolkit-gpa__row label { display: block; margin-bottom: .5rem; font-size: .8125rem; font-weight: 500; }
 .toolkit-gpa__row label span { color: var(--muted-foreground); font-weight: 400; }
@@ -25,7 +25,7 @@
 .toolkit-gpa__error { margin-top: .4rem; color: var(--destructive); font-size: .75rem; line-height: 1.6; }
 .toolkit-gpa__remove { width: 2.75rem; height: 2.75rem; margin-top: 1.7rem; color: var(--muted-foreground); }
 .toolkit-gpa__add { min-height: 2.75rem; margin-top: 1.5rem; }
-.toolkit-gpa__result { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem 3rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.toolkit-gpa__result { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem 3rem; margin-top: 2rem; padding: 1.25rem; border: 1px solid var(--border); border-radius:.75rem; background:var(--muted); }
 .toolkit-gpa__result > div { flex-shrink: 0; }
 .toolkit-gpa__result p { color: var(--muted-foreground); font-size: .8125rem; line-height: 1.75; }
 .toolkit-gpa__result > p { max-width: 35ch; }
@@ -46,7 +46,7 @@
 
 
   .toolkit-workspace [role="tabpanel"] { padding: 1.25rem; }
-  .toolkit-gpa__row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.75rem; gap: .75rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+  .toolkit-gpa__row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.75rem; gap: .75rem; padding-block: 1rem; }
   .toolkit-gpa__name { grid-column: 1 / -1; }
   .toolkit-gpa__row input, .toolkit-gpa__scale select { font-size: 1rem; }
   .toolkit-gpa__result { display: block; }

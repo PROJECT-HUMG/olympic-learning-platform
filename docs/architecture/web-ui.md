@@ -41,7 +41,7 @@ Expressive user-triggered motion is allowed: a 360ms drawer reveal, staged group
 
 Rendered recheck: retain the visible Menu label on tablet/mobile; below 768px keep the school logo but omit the adjacent brand text to make room for sign-in/Menu. Compact workspace rails have one Menu trigger, not a second discovery trigger to the same drawer. Staff rail order is Overview, Documents, Questions, Daily, Daily groups; the expanded sidebar/full drawer retain every destination and the same role restrictions. Active rail entries use a text-weight/background/edge marker, not color alone. Existing account/theme, draft blocking and focus return stay intact.
 
-Study-room presentation (06/10/2026): `/toolkit?tool=rooms` retains flat discovery/create; GPA is unchanged. `/study-rooms/:roomId` keeps explicit preview/Join. The joined room is listening-first: real selected title and local controls, original Three.js observatory, then a compact rhythm/accounting band with the same aligned edges. Desktop >=1200px pairs the stage with a 19rem Queue/People companion; tablet/mobile move those tabs below it. Below 768px Play/Player/Volume form one deliberate control row and volume uses a bounded popover. Rounded stone/oak, an orbital window, smoother seated characters and daylight/evening lighting replace the prior dense timber/mountain scene; retain platform tokens and Be Vietnam Pro for DOM content, with no fabricated artwork or metadata. Character/DOM identity interactions remain accessible and fallback does not block controls. Music/TV use one persistent player modal; Add uses a focused shadcn dialog respecting the existing one-outstanding-track rule. Management/Leave occupy the compact More menu. Bell/phase feedback, OS reduced motion, keyboard/focus, routes/API/access remain. This supersedes the timer-first 320px rail, not room semantics; no group-room links, authoritative seats or saved customization.
+Study-room presentation (06/10/2026): `/toolkit?tool=rooms` retains flat discovery; creation now uses CreationDialog (10/10 update below). GPA calculation rules remain unchanged. `/study-rooms/:roomId` keeps explicit preview/Join. The joined room is listening-first: real selected title and local controls, original Three.js observatory, then a compact rhythm/accounting band with the same aligned edges. Desktop >=1200px pairs the stage with a 19rem Queue/People companion; tablet/mobile move those tabs below it. Below 768px Play/Player/Volume form one deliberate control row and volume uses a bounded popover. Rounded stone/oak, an orbital window, smoother seated characters and daylight/evening lighting replace the prior dense timber/mountain scene; retain platform tokens and Be Vietnam Pro for DOM content, with no fabricated artwork or metadata. Character/DOM identity interactions remain accessible and fallback does not block controls. Music/TV use one persistent player modal; Add uses a focused shadcn dialog respecting the existing one-outstanding-track rule. Management/Leave occupy the compact More menu. Bell/phase feedback, OS reduced motion, keyboard/focus, routes/API/access remain. This supersedes the timer-first 320px rail, not room semantics; no group-room links, authoritative seats or saved customization.
 
 Room music copy distinguishes shared track selection from personal playback: playback/seek/audio controls affect only this device; local ended offers replay and never advances the queue. Only explicit owner Next changes the shared selection. This supersedes timestamp-aligned playback/automatic-ended guidance; no new settings panel or layout redesign is required.
 
@@ -341,3 +341,157 @@ See the [component APIs and consumers](web-ui-components.md#mobile-and-recogniti
 Narrow anonymous public navigation also keeps the logo from shrinking into the
 theme target: at <360px only horizontal navbar/button padding is compacted,
 retaining44px height,8px target separation and complete login/Menu labels.
+
+
+## Visual hierarchy and creation entry flows (10/10/2026, local candidate)
+
+Extend the current academic blue/light and navy/dark palette; do not add a second
+brand system. `--surface-border` and `--surface-shadow` in
+[index.css](../../apps/web/src/index.css) give standalone content boundaries a
+visible edge and restrained depth. [Card](../../apps/web/src/components/ui/card.tsx),
+PageSection, `.page-table` and `.page-guidance` own panel treatment.
+`.content-card` shares this CSS for semantic article/list elements; this is style
+reuse, not a universal record component. Card headings have a muted band/divider,
+16px mobile/24px desktop padding and wrapping actions. Toolbars inside an existing
+panel stay flat; standalone `.filter-panel` bands use 12–16px padding and bounded
+wrapping44px controls. Keep sections separated by the existing page rhythm.
+
+Honors is the reference media card: one bounded16:10 image, contiguous16px mobile/
+20px desktop body, editorial label/subject/year/title, participant names with
+awards, and an explicit44px album action. Album imagery must not dominate the
+metadata or become detached from it. Do not nest a retry button inside a link.
+At narrow widths, the year occupies one filter row; Search and Tìm share the next.
+Documents retain contained file thumbnails; News keeps its editorial image/body
+variants. Tables and long readers are not turned into grids of decorative cards.
+Home's cinematic hero, auth shell, Daily notebook/calendar and persistent room
+scene keep their task-specific structure. Daily explicitly opts out of shared
+panel shadow/header fill; its draft, native-dialog and autosync owners are unchanged.
+
+[CreationDialog](../../apps/web/src/components/ui/creation-dialog.tsx) now owns the
+common entity-creation frame. Use a controlled `open`, a useful title/description,
+form-derived `dirty`/`busy`, and `children(close)`; Cancel calls that guarded close.
+Busy prevents dismissal, dirty asks explicit discard, and success closes directly
+through the form's existing callback. It does not validate, persist, upload,
+publish, retry or decide permissions. Installed Radix owns focus trapping, Escape,
+backdrop and scroll lock. Initial focus is the heading; external triggers regain
+focus. Routed new forms specify a return-focus target and retain their URLs,
+validated return paths and successful-save handoff to existing edit routes.
+This does not add browser-history/unload draft persistence to editors that did not
+already have it; explicit modal dismissal is guarded.
+
+The frame is ≤68rem desktop, bounded to viewport height with a reachable header
+and internally scrolling body; `.creation-dialog--compact` is ≤36rem for shorter
+forms. At≤640px both use the full100dvh viewport/safe-area gutters. Do not constrain
+long editors to a tiny overlay, duplicate their page title under the dialog title,
+or shrink targets to make them fit. Nested installed choosers retain their own
+focus and completion contracts; post image uploads report busy to the owning form.
+All default Dialog Close targets are44px. Daily's existing native/custom dialogs
+and room-track chooser remain their established modal owners; child option/part/
+participant insertion stays within the parent editor, not a second entity-create
+flow. See the [complete source/creation coverage ledger](web-ui-components.md#visual-and-creation-coverage-10102026)
+for actual adoption, exceptions and representative proof limits.
+
+### Broader page-family hierarchy follow-up (10/10/2026)
+
+Use the same surface owners while matching each task's information structure.
+News pinned posts use occupied responsive columns: one post fills the band rather
+than reserving two empty slots; feed membership, separate priority retries and URL
+submission remain unchanged. Rankings uses one `content-card` around the ordered
+comparison list with a context band, divided rows and44px profile links, not an
+album-card grid. Public milestones group the existing filtered chronology by year
+with a muted year band and divided records inside the existing section; this
+presentation does not mount private evidence or change scoring.
+
+The document reader and its skeleton share `document-reader__viewport`: desktop
+height `clamp(24rem,75svh,60rem)`, mobile≤640px `clamp(14rem,65svh,40rem)`. Keep
+reading context reachable on short phones instead of forcing600px. Reader metadata,
+preview and description use existing surfaces; edit/download actions stack on
+phones so complete labels remain reachable. Profile identity uses its existing
+compact two-column arrangement whenever the workspace stacks at≤1099px, preserving
+the desktop portrait band. GPA keeps editable rows in one working surface with
+row separators and tighter vertical rhythm; calculations/errors/local storage and
+Add modal remain feature-owned. Category tabs retain their scrollable Radix strip
+with44px triggers and color-only transitions. None of these require new tokens,
+per-record decorative nesting, motion or a new framework.
+
+Question Bank uses existing CardHeader/Content/Footer for metadata/status,
+question body and wrapping actions; each callback and permission remains local.
+Exam drafts and papers share the feature-local ExamListItem presentation: native
+44px title link, version/points badges and a separate release/timezone row. Long
+unbroken titles shrink/wrap inside the card. Frozen questions, release/solutions
+and authenticated figure owners remain unchanged; readers are not list cards.
+
+
+### Learner document discovery and first-page previews (10/10/2026)
+
+Keep the search-first Documents layout. Ordinary keyword submission still searches
+existing title/description data on Enter/Tìm; subject, kind and topic tags retain
+existing query parameters and page-reset rules. Use visible field labels, compact
+phone subject/kind columns and a full-width tag field; show removable active values
+and Xóa tất cả without clearing view or unrelated URL parameters. No invented
+sort, topic taxonomy or new metadata. Kind/subject/tags and distinguishing description
+belong beside the title, not only inside the reader. The result header's error state
+must match list feedback; view switches expose aria-pressed.
+
+[DocumentCard](../../apps/web/src/features/documents/components/document-card.tsx)
+uses a compact portrait preview beside context/title on phones, a bounded portrait
+above content on wider screens, and an explicit44px Mở tài liệu action. Two tablet /
+three desktop columns keep text readable rather than squeezing five catalogue
+columns. [DocumentListItem](../../apps/web/src/features/documents/components/document-list-item.tsx)
+keeps the same subject/kind/tag recognition cues with wrapping titles and a compact
+preview. The existing owner-hover, list-return and download-modal contracts remain.
+Created-at metadata is labelled Ngày đăng, not last modification.
+
+[DocumentThumbnail](../../apps/web/src/features/documents/components/document-thumbnail.tsx)
+is Document-owned presentation in public cards/list rows and management rows. It
+consumes only the server thumbnailUrl, reserves a3:4 frame, contains the whole page
+without cover cropping, and displays honest loading/loaded/unavailable states.
+Failed/absent previews leave title/context/open actions usable; no PDF original is
+fetched to manufacture a browser preview. Compact rows keep fallback copy accessible.
+The [storage case reference](web-ui-components.md#document-discovery-preview-storage-cases-10102026)
+explains actual eligibility and unknown live delivery. No private/signed URL
+conversion, account-setting workaround, upload, backfill or migration is added.
+
+
+### Documents and News: catalogue + editorial discovery (10/10/2026)
+
+Research informed this bounded refinement; it is not a new theme or publication
+policy. Public structures inspected10/10/2026:
+
+| Observed reference pattern | Repository task and decision |
+| --- | --- |
+| [Open Textbook Library catalogue](https://open.umn.edu/opentextbooks/textbooks): search, subject browsing, format filters and linked title/description/read-more records. | Locate material and distinguish similarly titled files. Keep existing subject/kind/tag choices visible; group available description/context with the title and explicit open action, with a bounded portrait page preview. Do not import their license/review/format filters or sorting. |
+| [Mathematics catalogue](https://open.umn.edu/opentextbooks/subjects/mathematics): subject context retained while descriptions distinguish linear-algebra/calculus books and editions. | Preserve subject/topic selections and list-return URLs; show actual kind and tags beside similarly named documents instead of relying on filename or image recognition. |
+| [MIT News](https://news.mit.edu/) and [education topic listing](https://news.mit.edu/topic/education): news search/browse, linked titles and short context, distinct attention/recent-update sections. | Find school announcements and scan stories. Search/type controls precede existing pinned posts; the chronological feed remains title-led editorial rows with publication date, deadline and summary grouped. Separate priority feedback remains; no new featured scoring, topic/course taxonomy or membership policy. |
+
+The reference inspection is public page-content/structure research, not measured
+third-party responsive usability. OCW/OpenStax client-rendered pages and Cambridge
+News could not be meaningfully inspected through the reader and were not used as
+design evidence. No assets, copy or fonts were imported. Large full-width phone
+story images and a universal image-card grid were rejected because they delay title
+scanning; copying richer reference taxonomies or a marketing hero would invent
+unsupported content. Current blue theme, serif heading and body tokens remain.
+
+News discovery uses its existing `filter-panel`, SearchInput, native type Links and
+Button owners. At320px, types deliberately form two columns; larger phones keep a
+wrapping row. All choices retain44px targets. The redundant same-page Xem bài viết
+header action is removed so discovery becomes reachable sooner. Active type/keyword
+and reset remain visible; keyword guidance says **title** because the API matches
+only title. Submit still trims on Enter/Tìm; type/search reset page, other parameters
+survive those changes, and existing News clear-all reset behavior is retained.
+Documents has a different existing reset contract that preserves view/unrelated
+parameters; do not harmonize them by styling accident.
+
+The actual News feed remains nine-item pages ordered publishedAt descending,
+with pinned membership unchanged. News images are supporting64px squares beside
+phone titles,160px16:10 media on wider rows, and absent/failed images yield usable
+text rows. Pinned items remain text-led occupied columns. No giant image above
+320px titles. Deadlines are separate from summary truncation, with existing urgent/
+expired calculations. The reader keeps its ImageLightbox Dialog and reading tools;
+body measure is bounded72ch, phone lead/section gaps compact, and the TOC toggle
+announces expanded state. Purposeful document portrait previews and editorial
+landscape cues stay feature-owned rather than one generic media framework.
+
+See [actual owners and proof boundaries](web-ui-components.md#documentsnews-discovery-owners-and-task-evidence-10102026)
+and the existing work status for accepted hashes, learner walks and synthetic/live
+limits. The42-page broad ledger remains source coverage, not all-screen rendering.

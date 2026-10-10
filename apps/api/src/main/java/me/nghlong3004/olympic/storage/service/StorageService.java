@@ -64,7 +64,8 @@ public interface StorageService {
    * depending on provider capabilities.
    *
    * @param storageKey unique storage key
-   * @return thumbnail URI
+   * @return thumbnail URI, or null when a safe supported preview cannot be resolved; a generated
+   *     public candidate still depends on provider delivery/derivative availability
    */
   URI getThumbnailUri(String storageKey);
 

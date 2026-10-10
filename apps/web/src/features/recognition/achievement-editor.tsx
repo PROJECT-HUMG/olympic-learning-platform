@@ -1,5 +1,5 @@
 import { NativeSelect } from "@/components/ui/native-select";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,8 +9,16 @@ import { recognitionService as service } from "./service";
 import { useRecognitionMutation } from "./hooks";
 import type { Achievement, AchievementInput, Award, Category } from "./types";
 import { validateRecognitionFiles } from "./validation";
+import { parseApiError } from "@/lib/api-error";
+import type { CreationState } from "@/components/ui/creation-dialog";
 
-export function AchievementEditor({ record, admin = false, onDone, onCancel }: { record?: Achievement; admin?: boolean; onDone?: () => void; onCancel?: () => void }) {
+export function AchievementEditor({ record, admin = false, onDone, onCancel, onStateChange }: {
+  record?: Achievement;
+  admin?: boolean;
+  onDone?: () => void;
+  onCancel?: () => void;
+  onStateChange?: (state: CreationState) => void;
+}) {
   const localDate = new Date();
   const today = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, "0")}-${String(localDate.getDate()).padStart(2, "0")}`;
   const [input, setInput] = useState<AchievementInput>(() => record ? {
@@ -23,6 +31,35 @@ export function AchievementEditor({ record, admin = false, onDone, onCancel }: {
   const mutation = useRecognitionMutation(() => service.submit(input, files, admin ? userId : undefined, record?.id), "Đã gửi thành tích để duyệt.", () => { onDone?.(); });
   const points = estimatePoints(input.category, input.award, input.includeParticipation);
   const update = <K extends keyof AchievementInput>(key: K, value: AchievementInput[K]) => setInput(previous => ({ ...previous, [key]: value }));
+  const busy = mutation.isPending;
+  const initialDate = useRef(today).current;
+  const dirty = record ? (
+    input.title !== record.title ||
+    (input.description || "") !== (record.description || "") ||
+    input.category !== record.category ||
+    input.award !== record.award ||
+    input.includeParticipation !== record.includeParticipation ||
+    input.achievedDate !== record.achievedDate ||
+    input.publicVisible !== record.publicVisible ||
+    files.length > 0
+  ) : Boolean(
+    input.title.trim() ||
+    input.description.trim() ||
+    input.category !== "OLYMPIC_SCHOOL" ||
+    input.award !== "FIRST" ||
+    input.includeParticipation ||
+    input.achievedDate !== initialDate ||
+    input.publicVisible ||
+    files.length > 0 ||
+    userId
+  );
+  const lastStateRef = useRef<CreationState | null>(null);
+  useEffect(() => {
+    if (!lastStateRef.current || lastStateRef.current.dirty !== dirty || lastStateRef.current.busy !== busy) {
+      lastStateRef.current = { dirty, busy };
+      onStateChange?.({ dirty, busy });
+    }
+  }, [dirty, busy, onStateChange]);
   function submit() {
     const fileError = validateRecognitionFiles(files);
     if (fileError) { setError(fileError); return; }
@@ -48,6 +85,7 @@ export function AchievementEditor({ record, admin = false, onDone, onCancel }: {
       <Checkbox title="Công khai thành tích sau khi được duyệt" checked={input.publicVisible} onChange={value => update("publicVisible", value)} />
       <p className="recognition-hint">Dự kiến {points} điểm sau khi được duyệt. Gửi hồ sơ chưa làm tăng điểm xếp hạng.</p>
       {error && <p role="alert" className="text-destructive">{error}</p>}
+      {mutation.isError && <p role="alert" className="text-destructive">{parseApiError(mutation.error).detail || "Chưa gửi được thành tích. Nội dung và minh chứng vẫn được giữ để thử lại."}</p>}
       <div className="recognition-actions"><Button type="submit" loading={mutation.isPending}>Gửi để duyệt</Button>{onCancel && <Button type="button" variant="outline" onClick={onCancel}>Hủy</Button>}</div>
     </fieldset>
   </form>;

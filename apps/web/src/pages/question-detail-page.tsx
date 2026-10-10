@@ -1,3 +1,4 @@
+import { CreationDialog, type CreationState } from "@/components/ui/creation-dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { getListReturnPath } from "@/lib/list-navigation";
 import { useState } from "react";
@@ -486,6 +487,7 @@ export default function QuestionDetailPage() {
     ? "/admin/questions"
     : "/lecturer/questions";
   const backPath = getListReturnPath(location.state?.from, listPath);
+  const [creationState, setCreationState] = useState<CreationState>({ dirty: false, busy: false });
   const [isEditing, setIsEditing] = useState(false);
   const currentUser = useCurrentUser();
 
@@ -513,6 +515,8 @@ export default function QuestionDetailPage() {
       <QuestionDetailSkeleton />
     </div>
   );
+
+  if (!id) return <CreationDialog returnFocusSelector={`main a[href="${listPath}/new"], main h1`} open onOpenChange={open => { if (!open) navigate(backPath); }} title="Tạo câu hỏi" description="Lưu bản nháp trước khi xuất bản hoặc tải hình minh họa." {...creationState}>{() => <ManualQuestionWorkspace routeId={null} question={null} handoff={handoffHere ? handoff : null} listPath={listPath} returnTo={backPath} onReload={() => refetch()} onStateChange={setCreationState} />}</CreationDialog>;
 
   if (manual) {
     if (id && !handoffHere && isLoading) return pending;

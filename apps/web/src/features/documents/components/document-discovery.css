@@ -1,0 +1,24 @@
+.document-results-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:1rem; }
+.document-card__primary { display:grid; grid-template-columns:5.5rem minmax(0,1fr); gap:1rem; padding:1rem; }
+.document-card__body { min-width:0; display:flex; flex-direction:column; gap:.5rem; }
+.document-card__title { font-size:1rem; font-weight:650; line-height:1.5; overflow-wrap:anywhere; }
+.document-card__context { display:flex; flex-wrap:wrap; gap:.375rem .5rem; font-size:.75rem; line-height:1.5; color:var(--muted-foreground); }
+.document-card__subject { color:var(--primary); font-weight:600; overflow-wrap:anywhere; }
+.document-thumbnail { position:relative; display:flex; align-items:center; justify-content:center; min-width:0; aspect-ratio:3/4; overflow:hidden; border:1px solid var(--border); border-radius:.375rem; background:var(--muted); }
+.document-thumbnail__image { width:100%; height:100%; object-fit:contain; background:white; }
+.document-thumbnail__fallback { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.5rem; padding:.5rem; text-align:center; }
+.document-thumbnail__loading { position:absolute; inset:.375rem; }
+.document-thumbnail__caption { position:absolute; right:.25rem; bottom:.25rem; padding:.125rem .375rem; border-radius:.25rem; background:var(--card); color:var(--muted-foreground); font-size:.625rem; }
+.document-thumbnail--compact { width:3rem; flex-shrink:0; }
+.document-thumbnail--compact .document-thumbnail__fallback { padding:.25rem; }
+.document-filter-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
+.document-filter-fields > :last-child { grid-column:1/-1; }
+.document-list-context { display:flex; flex-wrap:wrap; gap:.25rem .5rem; font-size:.75rem; line-height:1.5; color:var(--muted-foreground); }
+@media(min-width:640px) {
+  .document-results-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .document-card__primary { display:flex; flex-direction:column; }
+  .document-card__primary > .document-thumbnail { align-self:center; width:10.5rem; }
+  .document-filter-fields { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .document-filter-fields > :last-child { grid-column:auto; }
+}
+@media(min-width:1100px) { .document-results-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }

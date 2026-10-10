@@ -330,3 +330,7 @@
   .room-stage .room-scene-phase { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .room-volume-popover { animation: none !important; transition: none !important; } }
+
+.creation-dialog__body .study-room-create { max-width:none; margin:0; padding:0; border:0; }
+.study-rooms-lobby__list { display:grid; gap:.75rem; }
+.study-rooms-lobby__list li { border:1px solid var(--surface-border); border-radius:var(--panel-radius); background:var(--card); box-shadow:var(--surface-shadow); overflow:hidden; }

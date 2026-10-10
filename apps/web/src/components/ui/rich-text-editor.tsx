@@ -39,6 +39,7 @@ interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  onUploadingChange?: (uploading: boolean) => void;
 }
 
 interface ImageInsertDialogProps {
@@ -46,9 +47,10 @@ interface ImageInsertDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onInsert: (url: string) => void;
+  onUploadingChange?: (uploading: boolean) => void;
 }
 
-function ImageInsertDialog({ children, open, onOpenChange, onInsert }: ImageInsertDialogProps) {
+function ImageInsertDialog({ children, open, onOpenChange, onInsert, onUploadingChange }: ImageInsertDialogProps) {
   const [tab, setTab] = useState("upload");
   const [urlInput, setUrlInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -75,6 +77,7 @@ function ImageInsertDialog({ children, open, onOpenChange, onInsert }: ImageInse
     uploadInFlight.current = true;
     try {
       setIsUploading(true);
+      onUploadingChange?.(true);
       setProgress(0);
       
       const response = await storageService.uploadFile(file, "POST", (progressEvent) => {
@@ -93,12 +96,13 @@ function ImageInsertDialog({ children, open, onOpenChange, onInsert }: ImageInse
     } finally {
       uploadInFlight.current = false;
       setIsUploading(false);
+      onUploadingChange?.(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
   const handleUrlInsert = () => {
-    if (urlInput.trim()) {
+    if (!uploadInFlight.current && urlInput.trim()) {
       onInsert(urlInput.trim());
       setUrlInput("");
       onOpenChange(false);
@@ -106,7 +110,7 @@ function ImageInsertDialog({ children, open, onOpenChange, onInsert }: ImageInse
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={next => { if (!uploadInFlight.current) onOpenChange(next); }}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -114,8 +118,8 @@ function ImageInsertDialog({ children, open, onOpenChange, onInsert }: ImageInse
         </DialogHeader>
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="upload">Tải lên từ máy</TabsTrigger>
-            <TabsTrigger value="url">Đường dẫn URL</TabsTrigger>
+            <TabsTrigger value="upload" disabled={isUploading}>Tải lên từ máy</TabsTrigger>
+            <TabsTrigger value="url" disabled={isUploading}>Đường dẫn URL</TabsTrigger>
           </TabsList>
           
           <TabsContent value="upload" className="mt-4">
@@ -152,13 +156,14 @@ function ImageInsertDialog({ children, open, onOpenChange, onInsert }: ImageInse
           <TabsContent value="url" className="mt-4 space-y-4">
             <div className="space-y-2">
               <Input 
+                disabled={isUploading}
                 placeholder="https://example.com/image.jpg" 
                 value={urlInput} 
                 onChange={(e) => setUrlInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleUrlInsert()}
               />
             </div>
-            <Button onClick={handleUrlInsert} className="w-full" disabled={!urlInput.trim()}>
+            <Button onClick={handleUrlInsert} className="w-full" disabled={isUploading || !urlInput.trim()}>
               Chèn ảnh
             </Button>
           </TabsContent>
@@ -168,7 +173,7 @@ function ImageInsertDialog({ children, open, onOpenChange, onInsert }: ImageInse
   );
 }
 
-const MenuBar = ({ editor }: { editor: Editor | null }) => {
+const MenuBar = ({ editor, onUploadingChange }: { editor: Editor | null; onUploadingChange?: (uploading: boolean) => void }) => {
   const [isImageDialogOpen, setImageDialogOpen] = useState(false);
   const [isLinkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
@@ -253,7 +258,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${editor.isActive("bold") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-11 w-11 ${editor.isActive("bold") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => editor.chain().focus().toggleBold().run()}
           disabled={!editor.can().chain().focus().toggleBold().run()}
           type="button"
@@ -264,7 +269,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${editor.isActive("italic") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-11 w-11 ${editor.isActive("italic") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => editor.chain().focus().toggleItalic().run()}
           disabled={!editor.can().chain().focus().toggleItalic().run()}
           type="button"
@@ -275,7 +280,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${editor.isActive("underline") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-11 w-11 ${editor.isActive("underline") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           type="button"
           title="Gạch chân"
@@ -285,7 +290,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${editor.isActive("strike") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-11 w-11 ${editor.isActive("strike") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => editor.chain().focus().toggleStrike().run()}
           disabled={!editor.can().chain().focus().toggleStrike().run()}
           type="button"
@@ -302,7 +307,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${editor.isActive("bulletList") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-11 w-11 ${editor.isActive("bulletList") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           type="button"
           title="Danh sách dấu chấm"
@@ -312,7 +317,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${editor.isActive("orderedList") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-11 w-11 ${editor.isActive("orderedList") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           type="button"
           title="Danh sách số"
@@ -322,7 +327,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${editor.isActive("blockquote") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-11 w-11 ${editor.isActive("blockquote") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           type="button"
           title="Trích dẫn"
@@ -338,7 +343,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${editor.isActive({ textAlign: "left" }) ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-11 w-11 ${editor.isActive({ textAlign: "left" }) ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => editor.chain().focus().setTextAlign("left").run()}
           type="button"
           title="Căn trái"
@@ -348,7 +353,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${editor.isActive({ textAlign: "center" }) ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-11 w-11 ${editor.isActive({ textAlign: "center" }) ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => editor.chain().focus().setTextAlign("center").run()}
           type="button"
           title="Căn giữa"
@@ -358,7 +363,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${editor.isActive({ textAlign: "right" }) ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-11 w-11 ${editor.isActive({ textAlign: "right" }) ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => editor.chain().focus().setTextAlign("right").run()}
           type="button"
           title="Căn phải"
@@ -368,7 +373,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${editor.isActive({ textAlign: "justify" }) ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-11 w-11 ${editor.isActive({ textAlign: "justify" }) ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => editor.chain().focus().setTextAlign("justify").run()}
           type="button"
           title="Căn đều"
@@ -384,7 +389,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${editor.isActive("link") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-11 w-11 ${editor.isActive("link") ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={addLink}
           ref={linkTrigger}
           type="button"
@@ -396,6 +401,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
           <LinkIcon className="h-4 w-4" />
         </Button>
         <ImageInsertDialog
+          onUploadingChange={onUploadingChange}
           open={isImageDialogOpen}
           onOpenChange={setImageDialogOpen}
           onInsert={(url) => editor.chain().focus().setImage({ src: url }).run()}
@@ -403,7 +409,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="h-11 w-11 text-muted-foreground hover:text-foreground"
             type="button"
             title="Chèn Hình Ảnh"
             aria-label="Chèn hình ảnh"
@@ -420,7 +426,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          className="h-11 w-11 text-muted-foreground hover:text-foreground"
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().chain().focus().undo().run()}
           type="button"
@@ -431,7 +437,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          className="h-11 w-11 text-muted-foreground hover:text-foreground"
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().chain().focus().redo().run()}
           type="button"
@@ -475,7 +481,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
   );
 };
 
-export function RichTextEditor({ value, onChange, placeholder = "Nhập nội dung..." }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, placeholder = "Nhập nội dung...", onUploadingChange }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -512,7 +518,7 @@ export function RichTextEditor({ value, onChange, placeholder = "Nhập nội du
 
   return (
     <div className="flex flex-col border border-input bg-background rounded-xl shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary overflow-hidden transition-all duration-200">
-      <MenuBar editor={editor} />
+      <MenuBar editor={editor} onUploadingChange={onUploadingChange} />
       <EditorContent editor={editor} />
     </div>
   );

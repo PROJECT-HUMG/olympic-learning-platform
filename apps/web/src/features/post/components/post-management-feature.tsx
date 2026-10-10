@@ -16,13 +16,7 @@ import { useDeletePost } from "@/features/post/hooks/use-delete-post";
 import { usePost } from "@/features/post/hooks/use-post";
 import { PostForm } from "@/features/post/components/post-form";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { CreationDialog, type CreationState } from "@/components/ui/creation-dialog";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
   AlertDialog,
@@ -77,6 +71,10 @@ export function PostManagementFeature() {
   const [postToEdit, setPostToEdit] = useState<PostSummaryResponse | null>(
     null,
   );
+  const [formState, setFormState] = useState<CreationState>({
+    dirty: false,
+    busy: false,
+  });
 
   const {
     data: postDetails,
@@ -97,6 +95,7 @@ export function PostManagementFeature() {
           onSuccess: () => {
             toast.success("Cập nhật bài viết thành công");
             setPostToEdit(null);
+            setFormState({ dirty: false, busy: false });
           },
           onError: () => toast.error("Có lỗi xảy ra khi cập nhật bài viết"),
         },
@@ -106,6 +105,7 @@ export function PostManagementFeature() {
         onSuccess: () => {
           toast.success("Tạo bài viết mới thành công");
           setIsCreateModalOpen(false);
+          setFormState({ dirty: false, busy: false });
         },
         onError: () => toast.error("Có lỗi xảy ra khi tạo bài viết"),
       });
@@ -127,7 +127,7 @@ export function PostManagementFeature() {
   return (
     <div className="page-shell">
       <PageHeader title="Quản lý bài viết" description="Soạn và cập nhật tin tức, thông báo và bài viết."
-        actions={<Button onClick={() => setIsCreateModalOpen(true)}><Plus aria-hidden="true" className="size-4" />Tạo bài viết mới</Button>} />
+        actions={<Button onClick={() => { setFormState({ dirty: false, busy: false }); setIsCreateModalOpen(true); }}><Plus aria-hidden="true" className="size-4" />Tạo bài viết mới</Button>} />
 
       {counts && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -148,7 +148,7 @@ export function PostManagementFeature() {
         </div>
       )}
 
-      <div className="page-toolbar">
+      <div className="page-toolbar filter-panel">
         <div className="relative max-w-sm w-full">
           <SearchInput aria-label="Tìm kiếm bài viết"
             placeholder="Tìm kiếm bài viết..."
@@ -183,7 +183,10 @@ export function PostManagementFeature() {
           <DashboardPostList
             data={pageData?.content || []}
             onDeleteClick={setPostToDelete}
-            onEditClick={setPostToEdit}
+            onEditClick={(post) => {
+              setFormState({ dirty: false, busy: false });
+              setPostToEdit(post);
+            }}
           />
         )}
       </div>
@@ -231,62 +234,57 @@ export function PostManagementFeature() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog
+      <CreationDialog
         open={isCreateModalOpen || !!postToEdit}
         onOpenChange={(open) => {
           if (!open) {
             setIsCreateModalOpen(false);
             setPostToEdit(null);
+            setFormState({ dirty: false, busy: false });
           }
         }}
+        title={postToEdit ? "Chỉnh sửa bài viết" : "Tạo bài viết mới"}
+        description={
+          postToEdit
+            ? `Đang chỉnh sửa bài viết: ${postToEdit.title}`
+            : "Điền thông tin bên dưới để tạo bài viết mới."
+        }
+        dirty={formState.dirty}
+        busy={formState.busy || createPost.isPending || updatePost.isPending}
       >
-        <DialogContent className="w-[95vw] max-w-5xl sm:max-w-5xl max-h-[90vh] overflow-y-auto sm:rounded-xl">
-          <DialogHeader>
-            <DialogTitle>
-              {postToEdit ? "Chỉnh sửa bài viết" : "Tạo bài viết mới"}
-            </DialogTitle>
-            <DialogDescription>
-              {postToEdit
-                ? `Đang chỉnh sửa bài viết: ${postToEdit.title}`
-                : "Điền thông tin bên dưới để tạo bài viết mới."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            {postToEdit && detailsError ? (
-              <div role="alert" className="space-y-3 py-8 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Không thể tải nội dung bài viết để chỉnh sửa.
-                </p>
-                <Button
-                  variant="outline"
-                  disabled={fetchingDetails}
-                  onClick={() => void refetchDetails()}
-                >
-                  Thử lại
-                </Button>
-              </div>
-            ) : isFetchingDetails ? (
-              <div className="flex flex-col items-center justify-center py-10 gap-2">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  Đang tải thông tin bài viết...
-                </p>
-              </div>
-            ) : (
-              <PostForm
-                key={postToEdit?.id || "new"}
-                initialData={postToEdit ? postDetails : undefined}
-                onSubmit={handleFormSubmit}
-                onCancel={() => {
-                  setIsCreateModalOpen(false);
-                  setPostToEdit(null);
-                }}
-                isLoading={createPost.isPending || updatePost.isPending}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+        {(close) => (
+          postToEdit && detailsError ? (
+            <div role="alert" className="space-y-3 py-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Không thể tải nội dung bài viết để chỉnh sửa.
+              </p>
+              <Button
+                variant="outline"
+                disabled={fetchingDetails}
+                onClick={() => void refetchDetails()}
+              >
+                Thử lại
+              </Button>
+            </div>
+          ) : isFetchingDetails ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-2">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">
+                Đang tải thông tin bài viết...
+              </p>
+            </div>
+          ) : (
+            <PostForm
+              key={postToEdit?.id || "new"}
+              initialData={postToEdit ? postDetails : undefined}
+              onSubmit={handleFormSubmit}
+              onCancel={close}
+              onStateChange={setFormState}
+              isLoading={createPost.isPending || updatePost.isPending}
+            />
+          )
+        )}
+      </CreationDialog>
     </div>
   );
 }

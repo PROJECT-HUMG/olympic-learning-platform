@@ -1,18 +1,23 @@
 .recognition-page { min-width: 0; }
 .recognition-links,.recognition-actions,.recognition-filters,.recognition-pager { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
 .recognition-links a { color:var(--primary); text-decoration:underline; text-underline-offset:4px; padding:8px 0; }
-.recognition-filters { align-items:end; margin-bottom:24px; }
+.recognition-filters { align-items:end; margin-bottom:0; }
 .recognition-field { display:flex; flex-direction:column; gap:8px; min-width:0; }
 .recognition-filters .recognition-field { flex:1; min-width:min(180px,100%); max-width:320px; }
 .recognition-checkbox input:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }
 .recognition-hint,.recognition-field .recognition-hint { color:var(--muted-foreground); font-size:13px; line-height:1.7; overflow-wrap:anywhere; }
 .recognition-feedback { padding:32px 0; display:flex; flex-direction:column; align-items:start; gap:16px; color:var(--muted-foreground); }
-.recognition-gallery { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:32px 24px; }
-.recognition-memory { min-width:0; }
-.recognition-memory__photo { display:block; aspect-ratio:4/3; overflow:hidden; border-radius:12px; background:var(--muted); margin-bottom:16px; }
+.recognition-gallery { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; }
+.recognition-memory { min-width:0; overflow:hidden; display:flex; flex-direction:column; }
+.recognition-memory__body { display:flex; flex:1; flex-direction:column; align-items:start; gap:10px; padding:20px; }
+.recognition-memory__body .recognition-participants { width:100%; border-top:1px solid var(--border); padding-top:12px; }
+.recognition-memory__body .recognition-participants li { gap:4px 12px; padding:6px 0; }
+.recognition-memory__body .recognition-participants a { font-weight:600; }
+.recognition-memory__action { margin-top:auto; width:100%; }
+.recognition-memory__photo { display:block; aspect-ratio:16/10; overflow:hidden; border-bottom:1px solid var(--border); background:var(--muted); }
 .recognition-memory__photo img,.recognition-photo img { width:100%; height:100%; object-fit:cover; }
 .recognition-image { width:100%; height:100%; }
-.recognition-memory h2 { font-size:18px; font-weight:600; line-height:1.5; margin:6px 0 12px; overflow-wrap:anywhere; }
+.recognition-memory h2 { font-size:18px; font-weight:600; line-height:1.5; margin:0 0 2px; overflow-wrap:anywhere; }
 .recognition-memory a:focus-visible { outline:2px solid var(--ring); outline-offset:4px; }
 .recognition-participants { display:flex; flex-direction:column; gap:8px; }
 .recognition-participants li { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; }
@@ -46,8 +51,8 @@
 .recognition-file-input { display:block; width:100%; min-width:0; font:inherit; padding:12px; border:1px dashed var(--border); border-radius:8px; background:var(--card); }
 .recognition-file-input::file-selector-button { border:0; padding:8px 10px; background:var(--muted); color:var(--foreground); border-radius:6px; margin-right:12px; }
 .recognition-file-list { display:flex; flex-direction:column; gap:8px; overflow-wrap:anywhere; }
-.recognition-record { padding:24px 0; border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:12px; min-width:0; }
-.recognition-record:first-child { padding-top:0; }
+.recognition-record { padding:20px; margin-bottom:16px; border:1px solid var(--surface-border); border-radius:var(--panel-radius); background:var(--card); display:flex; flex-direction:column; gap:12px; min-width:0; }
+.recognition-record:last-child { margin-bottom:0; }
 .recognition-record__heading { display:flex; flex-wrap:wrap; align-items:start; justify-content:space-between; gap:12px; }
 .recognition-record h3 { font-size:16px; font-weight:600; overflow-wrap:anywhere; }
 .recognition-status { border:1px solid var(--border); border-radius:6px; padding:4px 8px; font-size:12px; white-space:nowrap; }
@@ -67,3 +72,7 @@
 
 .recognition-evidence-image { display: grid; place-items: center; width: 100%; height: 100%; min-width: 0; }
 .recognition-editor-panel form { scroll-margin-top: 88px; }
+
+@media(max-width:600px) { .recognition-gallery { gap:16px; } .recognition-memory__body { padding:16px; } .recognition-filters { display:grid; grid-template-columns:minmax(0,1fr) auto; padding:12px; gap:8px; } .recognition-filters .recognition-field { min-width:0; max-width:none; gap:6px; } .recognition-filters .recognition-field:first-child { grid-column:1 / -1; } .recognition-filters > button { min-height:44px; } .recognition-record { padding:16px; } }
+
+.recognition-actions > button { min-height:44px; }

@@ -10,9 +10,16 @@ interface PostImageUploadProps {
   value?: string;
   onChange: (id: string | null) => void;
   initialPreviewUrl?: string;
+  onUploadingChange?: (isUploading: boolean) => void;
+  onUploadError?: (hasError: boolean) => void;
 }
 
-export function PostImageUpload({ onChange, initialPreviewUrl }: PostImageUploadProps) {
+export function PostImageUpload({
+  onChange,
+  initialPreviewUrl,
+  onUploadingChange,
+  onUploadError,
+}: PostImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialPreviewUrl || null);
@@ -40,8 +47,10 @@ export function PostImageUpload({ onChange, initialPreviewUrl }: PostImageUpload
     }
 
     uploadInFlight.current = true;
+    onUploadError?.(false);
     try {
       setIsUploading(true);
+      onUploadingChange?.(true);
       setProgress(0);
       
       const response = await storageService.uploadFile(file, "POST", (progressEvent) => {
@@ -53,9 +62,11 @@ export function PostImageUpload({ onChange, initialPreviewUrl }: PostImageUpload
       
       onChange(response.id);
       setPreviewUrl(response.url);
+      onUploadError?.(false);
       toast.success("Tải lên thành công");
     } catch (error) {
       console.error("Upload failed", error);
+      onUploadError?.(true);
       toast.error("Tải lên thất bại", {
         description: "Đã có lỗi xảy ra khi tải ảnh lên. Vui lòng thử lại.",
       });
@@ -63,6 +74,7 @@ export function PostImageUpload({ onChange, initialPreviewUrl }: PostImageUpload
     } finally {
       uploadInFlight.current = false;
       setIsUploading(false);
+      onUploadingChange?.(false);
     }
   };
 
@@ -70,6 +82,7 @@ export function PostImageUpload({ onChange, initialPreviewUrl }: PostImageUpload
     e.stopPropagation();
     onChange(null);
     setPreviewUrl(null);
+    onUploadError?.(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 

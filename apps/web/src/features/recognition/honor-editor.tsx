@@ -9,12 +9,20 @@ import { validateRecognitionFiles } from "./validation";
 import { recognitionService as service } from "./service";
 import { useRecognitionMutation } from "./hooks";
 import type { Honor, HonorInput, Participant } from "./types";
+import type { CreationState } from "@/components/ui/creation-dialog";
 
-export function HonorEditor({ honor, publishIntent = false, onDone, onCancel }: { honor?: Honor; publishIntent?: boolean; onDone: () => void; onCancel: () => void }) {
+export function HonorEditor({ honor, publishIntent = false, onDone, onCancel, onStateChange }: {
+  honor?: Honor;
+  publishIntent?: boolean;
+  onDone: () => void;
+  onCancel: () => void;
+  onStateChange?: (state: CreationState) => void;
+}) {
   const form = useRef<HTMLFormElement>(null);
+  const defaultYear = useRef(new Date().getFullYear()).current;
   useEffect(() => { if (publishIntent) { form.current?.scrollIntoView({ block: "start", behavior: "instant" }); form.current?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true }); } }, [publishIntent]);
   const [saved, setSaved] = useState(honor);
-  const [input, setInput] = useState<HonorInput>(() => honor ? { title: honor.title, subject: honor.subject, year: honor.year, description: honor.description ?? "", scope: honor.scope, status: publishIntent ? "PUBLISHED" : honor.status, participants: honor.participants } : { title: "", subject: "", year: new Date().getFullYear(), description: "", scope: "SCHOOL", status: "DRAFT", participants: [] });
+  const [input, setInput] = useState<HonorInput>(() => honor ? { title: honor.title, subject: honor.subject, year: honor.year, description: honor.description ?? "", scope: honor.scope, status: publishIntent ? "PUBLISHED" : honor.status, participants: honor.participants } : { title: "", subject: "", year: defaultYear, description: "", scope: "SCHOOL", status: "DRAFT", participants: [] });
   const [files, setFiles] = useState<File[]>([]);
   const [fileKey, setFileKey] = useState(0);
   const [error, setError] = useState("");
@@ -40,6 +48,43 @@ export function HonorEditor({ honor, publishIntent = false, onDone, onCancel }: 
     const updated = await service.deletePhoto(saved.id, photoId);
     setSaved(updated);
   }, "Đã xóa ảnh khỏi album.");
+  const busy = mutation.isPending || removePhoto.isPending;
+  const dirty = honor ? (
+    input.title !== honor.title ||
+    input.subject !== honor.subject ||
+    input.year !== honor.year ||
+    (input.description || "") !== (honor.description || "") ||
+    input.scope !== honor.scope ||
+    input.status !== (publishIntent ? "PUBLISHED" : honor.status) ||
+    input.participants.length !== honor.participants.length ||
+    input.participants.some((p, i) => {
+      const orig = honor.participants[i];
+      return !orig || p.fullName !== orig.fullName || (p.award || "") !== (orig.award || "") || (p.userId || "") !== (orig.userId || "");
+    }) ||
+    files.length > 0 ||
+    saved !== honor ||
+    Boolean(manualName.trim() || participantAward.trim() || participantId)
+  ) : Boolean(
+    input.title.trim() ||
+    input.subject.trim() ||
+    input.year !== defaultYear ||
+    input.description.trim() ||
+    input.scope !== "SCHOOL" ||
+    input.status !== "DRAFT" ||
+    input.participants.length > 0 ||
+    files.length > 0 ||
+    saved !== undefined ||
+    manualName.trim() ||
+    participantAward.trim() ||
+    participantId
+  );
+  const lastStateRef = useRef<CreationState | null>(null);
+  useEffect(() => {
+    if (!lastStateRef.current || lastStateRef.current.dirty !== dirty || lastStateRef.current.busy !== busy) {
+      lastStateRef.current = { dirty, busy };
+      onStateChange?.({ dirty, busy });
+    }
+  }, [dirty, busy, onStateChange]);
   function addParticipant() {
     const name = (linkAccount ? participantName : manualName).trim();
     if (!name || (linkAccount && !participantId)) { setError("Nhập tên hoặc chọn tài khoản được vinh danh."); return; }

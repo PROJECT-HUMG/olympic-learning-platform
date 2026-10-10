@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
@@ -17,15 +18,85 @@ function Shell({ title, description, actions, children }: { title: string; descr
   return <div className="page-shell"><PageHeader title={title} description={description} actions={actions} />{children}</div>;
 }
 
+function ExamListItem({
+  title,
+  href,
+  from,
+  version,
+  points,
+  releaseAt,
+}: {
+  title: string;
+  href: string;
+  from: string;
+  version: string;
+  points: number;
+  releaseAt: string | null;
+}) {
+  return (
+    <li className="content-card space-y-3 p-4 sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Link
+          className="inline-flex min-h-11 items-center font-semibold text-primary underline underline-offset-4 break-words min-w-0 max-w-full"
+          to={href}
+          state={{ from }}
+        >
+          <span className="min-w-0 break-words">{title}</span>
+        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary">{version}</Badge>
+          <Badge variant="outline">{formatPoints(points)} điểm</Badge>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-muted-foreground">
+        <span>{formatRelease(releaseAt)}</span>
+        <span aria-hidden="true" className="text-muted-foreground/40">·</span>
+        <span>{zoneLabel()}</span>
+      </div>
+    </li>
+  );
+}
+
 export function ExamDraftList({ listPath, papersPath }: { listPath: string; papersPath: string }) {
   const query = useExamDrafts();
   const location = useLocation();
   const from = `${location.pathname}${location.search}`;
   if (query.isLoading) return <Shell title="Đề nháp"><ExamLoading label="Đang tải danh sách đề…" /></Shell>;
   if (query.isError) return <Shell title="Đề nháp"><ExamProblem message={examErrorMessage(query.error)} onRetry={() => void query.refetch()} /></Shell>;
-  return <Shell title="Đề nháp" description="Danh sách đề bạn được sửa." actions={<><Button asChild><Link to={`${listPath}/new`} state={{ from }}>Tạo đề</Link></Button><Button variant="outline" asChild><Link to={papersPath}>Đề đã xuất bản</Link></Button></>}>
-    {query.data?.length ? <ul className="space-y-4">{query.data.map((draft) => <li key={draft.id} className="space-y-1 border-t pt-4"><Link className="font-semibold" to={`${listPath}/${draft.id}`} state={{ from }}>{draft.title.trim() || "Đề chưa có tiêu đề"}</Link><p className="text-sm">{formatPoints(draft.totalPoints)} điểm · Bản nháp {draft.version} · {formatRelease(draft.releaseAt)} · {zoneLabel()}</p></li>)}</ul> : <p>Chưa có đề nháp.</p>}
-  </Shell>;
+  return (
+    <Shell
+      title="Đề nháp"
+      description="Danh sách đề bạn được sửa."
+      actions={
+        <>
+          <Button asChild>
+            <Link to={`${listPath}/new`} state={{ from }}>Tạo đề</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to={papersPath}>Đề đã xuất bản</Link>
+          </Button>
+        </>
+      }
+    >
+      {query.data?.length ? (
+        <ul className="space-y-4">
+          {query.data.map((draft) => (
+            <ExamListItem
+              key={draft.id}
+              title={draft.title.trim() || "Đề chưa có tiêu đề"}
+              href={`${listPath}/${draft.id}`}
+              from={from}
+              version={`Bản nháp ${draft.version}`}
+              points={draft.totalPoints}
+              releaseAt={draft.releaseAt}
+            />
+          ))}
+        </ul>
+      ) : (
+        <p>Chưa có đề nháp.</p>
+      )}
+    </Shell>
+  );
 }
 
 export function ExamPreview({ examId, listPath }: { examId: string; listPath: string }) {
@@ -48,9 +119,27 @@ export function ExamPaperList({ papersPath }: { papersPath: string }) {
   const from = `${location.pathname}${location.search}`;
   if (query.isLoading) return <Shell title="Đề đã xuất bản"><ExamLoading label="Đang tải danh sách đề…" /></Shell>;
   if (query.isError) return <Shell title="Đề đã xuất bản"><ExamProblem message={examErrorMessage(query.error)} onRetry={() => void query.refetch()} /></Shell>;
-  return <Shell title="Đề đã xuất bản" description="Mỗi dòng là một phiên bản đã xuất bản.">
-    {query.data?.length ? <ul className="space-y-4">{query.data.map((paper) => <li key={paper.id} className="space-y-1 border-t pt-4"><Link className="font-semibold" to={`${papersPath}/${paper.id}`} state={{ from }}>{paper.title}</Link><p className="text-sm">Phiên bản {paper.versionNumber} · {formatPoints(paper.totalPoints)} điểm · {formatRelease(paper.releaseAt)} · {zoneLabel()}</p></li>)}</ul> : <p>Chưa có đề đã xuất bản.</p>}
-  </Shell>;
+  return (
+    <Shell title="Đề đã xuất bản" description="Mỗi dòng là một phiên bản đã xuất bản.">
+      {query.data?.length ? (
+        <ul className="space-y-4">
+          {query.data.map((paper) => (
+            <ExamListItem
+              key={paper.id}
+              title={paper.title}
+              href={`${papersPath}/${paper.id}`}
+              from={from}
+              version={`Phiên bản ${paper.versionNumber}`}
+              points={paper.totalPoints}
+              releaseAt={paper.releaseAt}
+            />
+          ))}
+        </ul>
+      ) : (
+        <p>Chưa có đề đã xuất bản.</p>
+      )}
+    </Shell>
+  );
 }
 
 export function ExamPaperRead({ paperId, papersPath }: { paperId: string; papersPath: string }) {

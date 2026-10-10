@@ -1,3 +1,4 @@
+import { DocumentThumbnail } from "./document-thumbnail";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { DocumentResponse } from "@/features/documents/types/documents.types";
 import { ManagementListRow, ManagementRowActions } from "@/components/ui/management-list-row";
@@ -30,13 +31,7 @@ export function DashboardDocumentList({ data, onDeleteClick, onEditClick }: Dash
         return (
           <ManagementListRow key={doc.id} actions={<ManagementRowActions onEdit={() => onEditClick(doc)} onDelete={() => onDeleteClick(doc)} />}>
             <div className="flex items-start gap-4 flex-1 min-w-0 w-full sm:w-auto">
-              <div className="shrink-0 pt-1 w-12 h-16 flex items-center justify-center bg-muted/30 rounded border border-border/50 overflow-hidden">
-                {doc.thumbnailUrl ? (
-                  <img src={doc.thumbnailUrl} alt={doc.title} className="w-full h-full object-cover" />
-                ) : (
-                  <FileText className="w-8 h-8 text-red-500" />
-                )}
-              </div>
+              <DocumentThumbnail src={doc.thumbnailUrl} compact />
               <div className="flex flex-col gap-1 min-w-0 flex-1">
                 <Link 
                   to={`${ROUTES.DOCUMENTS}/${doc.slug}`} 

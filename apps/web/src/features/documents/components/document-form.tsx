@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -30,6 +30,7 @@ import { useDocumentMetadata } from "@/features/documents/hooks/use-documents";
 import { useUploadFile } from "@/features/documents/hooks/use-storage";
 import { UploadDropzone } from "@/features/documents/components/upload-dropzone";
 import { cn } from "@/lib/utils";
+import type { CreationState } from "@/components/ui/creation-dialog";
 
 const formSchema = z.object({
   title: z.string().min(1, "Tiêu đề không được để trống").max(255),
@@ -49,9 +50,16 @@ interface DocumentFormProps {
   onSubmit: (data: CreateDocumentRequest | UpdateDocumentRequest) => void;
   onCancel: () => void;
   isLoading?: boolean;
+  onStateChange?: (state: CreationState) => void;
 }
 
-export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: DocumentFormProps) {
+export function DocumentForm({
+  initialData,
+  onSubmit,
+  onCancel,
+  isLoading,
+  onStateChange,
+}: DocumentFormProps) {
   const isEditMode = !!initialData;
   const metadataQuery = useDocumentMetadata();
   const metadata = metadataQuery.data;
@@ -72,6 +80,21 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
       tagIds: initialData?.tags?.map((t) => t.id) || [],
     },
   });
+
+  const isDirty = form.formState.isDirty || !!selectedFile || !!uploadedFileId || !!uploadError;
+  const isBusy = !!isLoading || uploadFile.isPending;
+
+  const lastReportedState = useRef<CreationState | null>(null);
+  useEffect(() => {
+    if (
+      !lastReportedState.current ||
+      lastReportedState.current.dirty !== isDirty ||
+      lastReportedState.current.busy !== isBusy
+    ) {
+      lastReportedState.current = { dirty: isDirty, busy: isBusy };
+      onStateChange?.({ dirty: isDirty, busy: isBusy });
+    }
+  }, [isDirty, isBusy, onStateChange]);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
@@ -186,7 +209,7 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
                     <Select
                       disabled={metadataQuery.isPending || metadataQuery.isError}
                       value={field.value}
-                      onValueChange={(val) => form.setValue("categoryId", val, { shouldValidate: true })}
+                      onValueChange={(val) => form.setValue("categoryId", val, { shouldValidate: true, shouldDirty: true })}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -218,7 +241,7 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
                     <Select
                       disabled={metadataQuery.isPending || metadataQuery.isError}
                       value={field.value}
-                      onValueChange={(val) => form.setValue("subjectId", val, { shouldValidate: true })}
+                      onValueChange={(val) => form.setValue("subjectId", val, { shouldValidate: true, shouldDirty: true })}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -248,7 +271,7 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
                     <Select
                       disabled={metadataQuery.isPending || metadataQuery.isError}
                       value={field.value?.[0] || ""}
-                      onValueChange={(val) => form.setValue("tagIds", [val], { shouldValidate: true })}
+                      onValueChange={(val) => form.setValue("tagIds", [val], { shouldValidate: true, shouldDirty: true })}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -314,7 +337,7 @@ export function DocumentForm({ initialData, onSubmit, onCancel, isLoading }: Doc
             type="button"
             variant="outline"
             onClick={onCancel}
-            disabled={isLoading || uploadFile.isPending}
+            disabled={isBusy}
           >
             Hủy bỏ
           </Button>

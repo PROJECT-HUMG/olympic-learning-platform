@@ -1,4 +1,5 @@
-import { useState } from "react";
+import type { CreationState } from "@/components/ui/creation-dialog";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,16 +17,19 @@ const schema = z.object({
 });
 type Values = z.infer<typeof schema>;
 
-export function ResumeRegistrationForm({ onComplete, onBack }: {
+export function ResumeRegistrationForm({ onComplete, onBack, onStateChange, onClose }: {
+  onStateChange?: (state: CreationState) => void;
+  onClose?: () => void;
   onComplete: (value: RegistrationChallenge) => void;
   onBack: () => void;
 }) {
   const location = useLocation();
   const [error, setError] = useState("");
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Values>({
+  const { register, handleSubmit, formState: { errors, isSubmitting, isDirty } } = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { identifier: (location.state as { registrationIdentifier?: string } | null)?.registrationIdentifier ?? "", password: "" },
   });
+  useEffect(() => { onStateChange?.({ dirty: isDirty, busy: isSubmitting }); }, [onStateChange, isDirty, isSubmitting]);
   async function submit(values: Values) {
     setError("");
     try {
@@ -49,7 +53,7 @@ export function ResumeRegistrationForm({ onComplete, onBack }: {
       </form>
       <div className="flex flex-wrap justify-between gap-3 text-sm">
         <Button type="button" variant="ghost" disabled={isSubmitting} onClick={onBack}>Tạo tài khoản mới</Button>
-        <Link to={ROUTES.LOGIN} state={location.state} className="self-center underline underline-offset-4">Về đăng nhập</Link>
+        <Link to={ROUTES.LOGIN} state={location.state} onClick={onClose ? event => { event.preventDefault(); onClose(); } : undefined} className="self-center underline underline-offset-4">Về đăng nhập</Link>
       </div>
     </div>
   );

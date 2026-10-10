@@ -2,13 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { CreationDialog } from "@/components/ui/creation-dialog";
 import { FormField } from "@/components/ui/form-field";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -42,7 +36,7 @@ export function SystemCategoryFormModal({
   title,
   initialData,
   onSubmit,
-  isPending,
+  isPending = false,
   hideDescription,
 }: SystemCategoryFormModalProps) {
   const {
@@ -52,7 +46,7 @@ export function SystemCategoryFormModal({
     watch,
     setValue,
     clearErrors,
-    formState: { errors, dirtyFields },
+    formState: { errors, isDirty, dirtyFields },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -67,7 +61,7 @@ export function SystemCategoryFormModal({
   useEffect(() => {
     if (open && !initialData && !dirtyFields.code && nameValue !== undefined) {
       if (nameValue) {
-        setValue("code", generateCodeFromName(nameValue), { shouldValidate: true });
+        setValue("code", generateCodeFromName(nameValue), { shouldValidate: true, shouldDirty: true });
       } else {
         setValue("code", "");
         clearErrors("code");
@@ -97,13 +91,21 @@ export function SystemCategoryFormModal({
     onSubmit(values);
   };
 
+  const description = hideDescription
+    ? "Nhập thông tin thẻ phân loại vào hệ thống."
+    : "Nhập thông tin phân loại hoặc môn học vào hệ thống.";
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-        <form noValidate onSubmit={handleSubmit(onSubmitForm)} className="space-y-4 pt-4">
+    <CreationDialog className="creation-dialog--compact"
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      description={description}
+      dirty={isDirty}
+      busy={isPending}
+    >
+      {(close) => (
+        <form noValidate onSubmit={handleSubmit(onSubmitForm)} className="space-y-4 pt-2">
           <FormField
             id="name"
             label="Tên"
@@ -140,11 +142,11 @@ export function SystemCategoryFormModal({
               )}
             </div>
           )}
-          <DialogFooter className="pt-4">
+          <div className="flex justify-end gap-3 pt-4 border-t">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={close}
               disabled={isPending}
             >
               Hủy
@@ -152,9 +154,9 @@ export function SystemCategoryFormModal({
             <Button type="submit" loading={isPending}>
               Lưu
             </Button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      )}
+    </CreationDialog>
   );
 }

@@ -1,6 +1,7 @@
 .subject-directory__catalogue {
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--surface-border);
+  box-shadow:var(--surface-shadow);
   border-radius: 1rem;
   background: var(--card);
 }
@@ -10,7 +11,8 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem 2rem;
-  padding: 1.5rem 2rem;
+  padding: 1rem 1.5rem;
+  background:color-mix(in srgb,var(--muted) 40%,var(--card));
   border-bottom: 1px solid var(--border);
 }
 

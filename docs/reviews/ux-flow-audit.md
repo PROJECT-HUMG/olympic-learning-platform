@@ -2695,3 +2695,337 @@ mobile,AT speech,all-screen or dedicated reduced-motion proof. No new motion;
 existing support retained. The existing [component reference](../architecture/web-ui-components.md#mobile-and-recognition-evidence-owners-09102026)
 and [design authority](../architecture/web-ui.md#mobile-auth-navigation-and-private-recognition-evidence-09102026)
 reflect the actual owner. Pending Daily/status bytes are preserved separately.
+
+
+## Visual hierarchy and creation dialogs — accepted unstaged candidate, 10/10/2026
+
+Base `f7db010e25883c393aa1c7509e0f44abc073dc1d`. Lead accepts the integrated
+local visual/creation candidate identified by complete paths, working hashes,
+snapshot and incremental patch in `/tmp/visual-layout-final-manifest-20261010.json`.
+No staging, commit, push, deploy, API/policy, dependency or external-setting change.
+The prior seven-path Daily recovery and unrelated authentication/deployment docs
+remain separate. This section alone is the new status delta against the preserved
+entry bytes; the manifest records that overlap rather than including prior repairs.
+
+Actual owners: shared surface-border/shadow tokens, Card/PageSection/table/guidance,
+content-card CSS and standalone filter-panel. Honors now groups bounded16:10 media,
+metadata, title, participants/awards and44px album action in one card. Documents,
+News/Home news, Subjects, management, exams, dashboard and GPA receive fitting
+boundaries/layout. Daily explicitly opts out of panel shadow/header fill; persistent
+room, scientific/frozen readers, hero and auth shell keep purposeful structures.
+The [component reference](../architecture/web-ui-components.md#visual-and-creation-coverage-10102026)
+links every42 page entry and creation family; CSS reuse is distinguished from a
+composed component. Existing control/query/media owners remain authoritative.
+
+CreationDialog has12 actual frame sites in11 consumer files: Recognition album/
+personal/admin submissions; Documents; Posts; categories/subjects/tags; new
+Question/Exam routes; PDF import; room creation; GPA course Add; Register.
+Full100dvh below≤640px, bounded spacious desktop body, reachable header, guarded
+busy/dirty dismissal and installed Dialog focus/scroll/Escape/backdrop ownership.
+Routed forms retain addressable URLs/list return/save handoff; external triggers
+regain focus, with heading fallback while routed lists load. Register's portal
+uses a shrinkable grid/wrapping resume action and44px password/link controls to
+avoid the observed320px error-state overflow. No login/Turnstile request change.
+Daily/native creation, room track chooser and subordinate editor rows retain
+existing fitting modal/parent ownership; inactive legacy editors are excluded.
+
+Peer dispositions: four Recognition runtime paths from patch `b6a08f97...` and
+six content-management runtime paths from `1ba5d44b...` accepted for integration;
+both write scopes relinquished. Their two proposed source/duplicated-schema test
+files were rejected/removed: browser regressions exercise actual forms/owners
+instead. Lead owns shared interfaces, remaining migrations and final integration.
+
+Rendered proof uses intercepted synthetic APIs/widget and locally generated imagery,
+never production mutations, private screenshot data or operator env. Frozen before:
+40 screenshots `/tmp/visual-layout-before-OMnM4y/`. After matrix:
+`/tmp/visual-layout-after-T89QA3/` has47 screenshots; all five320×568,390×844,
+820×900,1440×900,320×360 comparisons and Exam dirty/focus checks completed before
+its later Post-tail driver DOM-serialization error. Focused final current runtime:
+18 checks/14 screenshots,0 errors `/tmp/visual-layout-after-B8TO0C/`: initial focus,
+Tab containment, Escape/opener return, dirty keep/discard, Document Select focus
+and selection-only dirty, nested Post image close/upload-busy/failure/retry URL,
+Question draft, GPA actual invalid-range/comma-decimal rules, room pending/failure
+draft, PDF invalid-file retention, short-mobile scroll-to-Submit, tablet backdrop/
+Close guard, nonadmin route gate, Register validation/44px/no horizontal overflow
+at320/390/820/1440 light/dark and no OTP request. Lead inspected Honors before/after,
+Documents dark, News desktop, Subjects tablet, short editor and failure/error views.
+
+Separate passing current-task Recognition regressions reused:
+`/tmp/mobile-four-after-RuZKwX/` explicit publish/version,503 draft retention/retry,
+eligibility,default draft/nonadmin; `/tmp/mobile-four-after-slqYkk/` private metadata
+revalidation unmount/failure/other-identity byte gates and reviewer reason/version/
+pending/approval. Earlier interrupted/driver failures remain recorded separately:
+wHIUPw/4ozLCH over-strict anchor-only return expectation; T89QA3 DOM serialization;
+Z8wY3e measurement during opening animation; no1XNR closing alert still mounted;
+gAun3g synchronous token-state expectation. Corrected focused proof passed; these
+failures did not justify auth/media/policy relaxation. The later genuine Register
+portal overflow was measured and corrected; TNBGsq isolated check found no residual
+overflow.
+
+Required checks:175 Node tests passed,0 failed/skipped; tsc -b passed; production
+Vite build passed with explicit envDir:false/synthetic public config; Oxlint passed
+with existing warnings. Logs `/tmp/visual-layout-final-{tests,tsc,build,lint}-20261010.log`.
+Build retains chunk-size notices. Diff whitespace and local documentation link
+existence checked. No new motion or dedicated reduced-motion probe. Owned Vites
+3132/3133 stopped; owned browsers terminated/profile cleanup completed.
+
+Limits: source coverage of42 entries is not42 rendered screens. Chromium fixtures
+do not prove live backend authorization/persistence, signed expiry, real Cloudflare
+verification/OTP, physical devices/screen-reader speech, streaming or1GiB capacity.
+Question/Exam browser-back/unload protection was not added where absent; explicit
+modal dismissal is guarded and existing save handoffs remain. The seven pending
+Daily paths retain original bytes; shared status prefix is preserved with an
+append-only delta. Operator env remains unread/excluded; index stays empty.
+
+
+## Accepted integrated broader visual/layout follow-up (10/10/2026)
+
+Local unstaged candidate on `f7db010e25883c393aa1c7509e0f44abc073dc1d`:
+complete hashes/snapshot/patch and preservation accounting in
+`/tmp/visual-broad-final-manifest-20261010.json`. This supersedes the earlier56-path
+visual candidate for review; that immutable manifest/snapshot remains available.
+No staging, commit, push, deploy, backend/policy or dependency changes. The existing
+[42-page ledger](../architecture/web-ui-components.md#page-family-adoption-ledger)
+and [creation coverage](../architecture/web-ui-components.md#creation-entry-coverage-and-boundaries)
+remain source facts, not exhaustive rendered evidence. There are12 CreationDialog
+frame sites in11 consumer files, confirmed from actual JSX/imports.
+
+The broader pass deliberately improves other weak layouts beyond Honors:
+News pinned columns expand into occupied space rather than leaving empty thirds;
+RankingList owns one comparison panel/context band/divided ordered rows;
+public achievement history uses bounded year bands/divided chronology;
+profile identity uses its existing compact composition through stacked tablet
+widths; GPA editable rows are compact/divided rather than nested cards;
+category Radix tabs retain internal scroll with44px triggers. Document metadata,
+preview/skeleton and description reuse content-card tokens; reader height uses one
+feature-owned responsive CSS rule instead of a forced600px phone minimum. Mobile
+edit/download actions stack with complete labels and44px minimums. Questions group
+metadata/status, summary and actions using actual CardHeader/Content/Footer.
+Feature-local ExamListItem shares draft/paper list hierarchy, version/points badges
+and release context; native title links wrap long unbroken text. Frozen staff/student
+readers, release/figure gates and all query/mutation callbacks remain unchanged.
+Hero/article/scientific readers, Daily/native dialogs and persistent rooms keep
+purposeful layouts. Surface tokens/CSS reuse do not claim composed behavioral reuse.
+
+Assessment delegation disposition: failed configured Grok scope reported no write
+capability; its placeholder patch and claimed compile proof were rejected against
+unchanged actual files. No Grok retry or native substitute was used. Human explicitly
+authorized the Antigravity replacement. Verified runtime antigravity /
+`gemini-3.8-flash-high` / full-access / null thinking / features[]; separate scope only
+QuestionBankPage and exam-read.tsx. Actual artifacts and min-width repair accepted;
+peer write ownership closed. Peer hashes at closure: Question Bank
+`c2ced923368c6e4d3ba0451920628b5651902db52d3b87120dd857e2cc225f0c`,
+exam-read `8f6f531294ad7687470fb194d7c5889b9c4c155e0732fac9ac86c7e78b02607a`.
+Lead's subsequent rendered long-word overflow finding required a shrinkable span
+inside the title Link; the integrated manifest records the newer exact exam hash.
+Recognition/content peers' earlier accepted runtime dispositions remain above;
+all shared contracts/docs/integration and verification are Lead-owned.
+
+Additional before/after proof uses synthetic intercepted APIs on actual local
+routes, never production mutations or private screenshot data. Frozen follow-up
+before tree is the accepted56-path UI candidate, including preserved Daily runtime
+bytes solely for faithful rendering, without any env files:
+
+- `/tmp/visual-layout-before-RH9JEA/results.json`:50 screenshots of ten nonempty
+  families at320×568/light,390×844/dark,820×900/light,1440×900/dark,320×360/dark.
+- `/tmp/visual-layout-after-x3icru/results.json`:50 counterpart screenshots;
+  all five layout checkpoints pass no page overflow, reader action-label/44px checks,
+  one pinned item occupying available width, ranking44px links, category44px tabs
+  and compact tablet profile. Its later keyboard tail failed before adequate mounting
+  wait; these layout results remain valid but the whole run is not claimed passing.
+- `/tmp/visual-layout-before-g4kAi3/results.json`:15 final assessment baseline views
+  with deliberately retained existing long-title overflow (draft320 scrollWidth718).
+  Old baseline check labels saying no-overflow do not override measured geometry.
+- `/tmp/visual-layout-after-LkPGPy/results.json`:15 final assessment views across the
+  same five checkpoints; long titles now wrap with320 scrollWidth320. All layout
+  checks pass; its later interaction-driver tail was interrupted, not a full pass.
+- `/tmp/visual-layout-after-lZrupW/results.json`:six final focused checks,0 errors:
+  native ranking Enter/public chronology/private exclusion/no private evidence fetch;
+  News Enter trim/URL/priority visibility; GPA row/modal/focus continuity;
+  category ArrowRight/subject-create/Escape; Question Enter trim/subject preservation,
+  native duplicate callback/pending disablement/503 card retention/44px actions;
+  Exam Create native Enter/dirty keep-discard/return path. No live content created.
+
+Lead inspected rendered News tablet, ranking/mobile, profile/tablet, document/mobile
+and final Question/mobile, Exam/mobile and paper/desktop-dark views against before.
+Earlier owned creation proof18 checks/14 screenshots at B8TO0C, plus publication
+RuZKwX and privacy/reviewer slqYkk, remains adequate for unchanged modal/domain
+contracts. Interrupted follow-up runs retained separately: before7z4I49/O01kGE/
+7WxdIM/HwNTUS/XPKN1C; afterSKhFrp/5wyCU8/7mxujK/NiRP2H/Wn0THH/2pmVMs/c4ay3W/
+ayW1j3/2uGkn9. Startup/HMR-router/selector timing errors were driver failures;
+Wn0THH exposed reader44px sizing and XPKN1C exposed long-title overflow, both fixed.
+AaKPe9 separately passed four focused checks; lZrupW supersedes the final interaction
+tail. No interrupted run is silently promoted to a complete pass.
+
+Required checks:175 Node tests passed,0 failed/skipped
+(`/tmp/visual-broad-tests-20261010.log`); app `tsc -b` passed; final production Vite
+build refreshed after title-wrap fix with envDir:false and synthetic public config
+(`/tmp/visual-broad-final-build-20261010.log`); Oxlint passed with existing warnings
+(`/tmp/visual-broad-final-lint-20261010.log`). Chunk-size/plugin-timing and optional
+esbuild config-bundling notices remain; all required commands exit0.
+Whitespace, actual creation imports/site counts, local doc links, exact snapshot/
+patch round trips and empty index checked. No new animation/dependency or dedicated
+reduced-motion probe. Owned3132/3133 Vites and browser processes cleaned up.
+
+Limits: all42 page entries have source coverage; representative fixtures are not
+42 live rendered routes. No real backend authorization/persistence, signed expiry,
+Cloudflare/OTP, physical device/AT, streaming or capacity proof. Browser-back/unload
+draft guards were not added where absent in Question/Exam; explicit modal dismissal
+is guarded. Existing submission/upload/private gates were retained and synthetic
+regressions reused, without claiming live-policy verification. Original Daily and
+unrelated auth/deploy files remain byte-identical; the shared status preserves its
+372726-byte entry prefix and appends only these UI task sections. Manifest separates
+that overlap and the original56-to-final incremental patch. Operator env stays
+unread/unhashed/uncopied/excluded; no index or external changes.
+
+
+## Documents/PDF + News learner discovery extension (10/10/2026)
+
+**Disposition: ACCEPTED local integrated unstaged candidate. Exact hash ledger and
+round-trip verification are recorded in the handoff manifest below.**
+Base remains f7db010e25883c393aa1c7509e0f44abc073dc1d. This extends accepted62-path
+candidate1871e3d956116d84068fe9465bb37dd763c2867f58074b7f28befda028b5ead5;
+it does not replace its broad/modal work or retain superseded file hashes. No
+staging, commit, push, deployment, live content mutation or external settings.
+
+### Decisions and actual implementation
+
+Concrete reference patterns, rejected alternatives and responsible owners are in
+[web-ui.md](../architecture/web-ui.md#documents-and-news-catalogue--editorial-discovery-10102026)
+and [component reference](../architecture/web-ui-components.md#documentsnews-discovery-owners-and-task-evidence-10102026).
+Inspected public Open Textbook Library catalogue/Mathematics and MIT News homepage/
+education topic structures; no third-party assets/copy/brand imported. Unsupported
+client-rendered OCW/OpenStax and inaccessible Cambridge pages are not evidence.
+Documents uses a compact subject/kind/topic catalogue, News title-led editorial rows;
+not a universal card grid. Existing tokens and shared primitive owners retained.
+
+Documents: visible subject/kind/tag labels, keyword/selected chips/reset, grouped
+context/description for similarly titled records,88px portrait beside phone content,
+bounded168px portrait and2tablet/3desktop columns, explicit44px open. Card/list/
+management share DocumentThumbnail (three files/sites), whole-page containment,
+reserved loading frame and honest blocked/absent fallback. Original owner hover,
+download/list-return contracts retained; createdAt label corrected to Ngày đăng.
+
+News: search/type/active filters ahead of actual pinned band, intentional two-column
+types at320px, same-page redundant jump action removed. Title-only search guidance
+matches actual PostSpecifications predicate. Editorial rows retain type/date/
+deadline/summary/open grouping and64px supporting phone media,160px wider16:10 media;
+failed/no image leaves usable text. Deadline is not summary-clamped. Nine-item feed,
+publishedAt descending, pinned-only unfiltered page1 query and full-feed membership
+unchanged. Existing clear-all News reset differs intentionally from Documents reset.
+Reader retains Lightbox/Dialog, reading progress/share/related owners;72ch body
+measure, compact lead/related spacing, TOC aria-expanded/controls and44px toggle.
+
+PDF: existing nullable thumbnailUrl/storage owner reused, no schema/framework.
+DocumentService checks Cloudinary+DOCUMENT+application/pdf; storage only constructs
+public image/upload pg1 c_limit600x800 JPG for generated documents/UUID.pdf keys.
+No signed/private/authenticated/raw namespace fallback, original PDF fetch, metadata
+account call, upload, migration or external setting. Official PDF/resource/access
+links and actual cases are in the component reference. Uploader resource_type:auto
+metadata is discarded: legacy key eligibility is a candidate, not verified live
+resource/access evidence. Raw/blocked/strict transformation/missing derivative
+failures fall back; reliable broader support requires a separate metadata/operator
+decision, not a visibility workaround. Daily/Recognition protected media untouched.
+
+### Learner walks and rendered evidence
+
+Side-by-side80synthetic screenshots/40pairs:
+`/tmp/discovery-before-after-20261010.html`, pair ledger
+`/tmp/discovery-comparison-pairs-20261010.json`.
+Eight width/theme combinations:320,390,820,1440 each light/dark. Documents search/
+recognition and News discovery/scan/reader; before is frozen accepted62 source.
+No private screenshot imagery/data copied. These are local Chromium fixtures, not
+production content, live backend permissions or physical-device/assistive-tech proof.
+
+Concrete observations:320 before News pinned card consumed the first screen with
+search below; after search/type controls are reachable ahead of pinned content.
+Initial type wrapping orphaned Blog, repaired to two deliberate columns at320.
+390 feed supports title/date/deadline/context scanning with small supporting images;
+missing/broken thumbnails leave text rows.820/1440 retain supporting landscape cues,
+readable titles and separate pinned band. Documents390 distinguishes identical
+Giải tích titles using Giáo trình versus Đề thi, description and topic; failed page
+preview leaves explicit open usable.820 has two readable catalogue columns,1440
+three;320 controls fit without page overflow. Reader body remains bounded on desktop.
+
+Passing Documents evidence:
+- `/tmp/visual-layout-before-lTkxUB/results.json`:4checkpoints/8screens.
+- `/tmp/visual-layout-before-vNqpzR/results.json`:4/8 complementary themes.
+- `/tmp/visual-layout-after-TiFyDK/results.json`:4/8 complementary themes.
+- `/tmp/visual-layout-after-TAS4J4/results.json`:5checks/5screens; subject/kind/tag
+  keyboard selection, trimmed Enter without type-to-submit, page reset/view/unrelated
+  URL retention, native open/filter return/reset, empty/query retry/pending precedence,
+  metadata retry/disabled selectors, preview pending/loaded/error/absent.
+
+News passing evidence:
+- `/tmp/visual-layout-before-jzgBAX/results.json`:4/12.
+- `/tmp/visual-layout-before-x92Sq8/results.json`:4/12 complementary themes.
+- `/tmp/visual-layout-after-As8HYs/results.json`:4/12 complementary themes.
+- `/tmp/visual-layout-after-Jt1qPs/results.json`:2checks/3screens; announcement/native
+  Enter/type/page reset/trim/search/list return, TOC, image Dialog Escape/focus return,
+  empty clear-all reset, pending feed retry/query preservation, independent pinned
+  retry while feed remains usable. No original/private media/content mutation.
+- `/tmp/visual-layout-after-EiNemx/results.json`:8checks/8screens. At each320/390/
+  820/1440: learner keyboard-selects subject and kind, distinguishes same-title files,
+  opens/returns with document filters; selects announcements, submits title search,
+  opens/reads/returns with News type/q. Stable synthetic student identity.
+
+Partial/interrupted evidence retained separately: Documents after-DdfTmP completed
+four layout checkpoints and query/open interactions (12screens) before a retry-driver
+assertion expecting disabled Button where owner correctly switches to loading.
+Its completed matrix screenshots are used in comparisons; final focused TAS4J4
+proves corrected pending expectation. Prior Documents interrupted probes remain in
+the evidence manifest. News after-wpa64D completed four matrix checkpoints and
+find/open/TOC/lightbox checks (13screens), then stale keyed search after reset caused
+an empty-state driver timeout; fresh-field wait fixed in final Jt1qPs. After-4meBs4
+and one complementary-theme attempt exited143 without results and are not passes.
+Anonymous-fixture after-6tu60Q/before-zwD1Lq reader runs timed out during401startup/
+refresh cancellation; stable authenticated fixture used for subsequent complete walks.
+No auth code changed; anonymous live startup is not established by this proof.
+
+### Checks, boundary and downstream inputs
+
+175web tests pass (0fail/skipped), final TypeScript/build/lint pass with existing
+warnings. Logs: `/tmp/discovery-final-{tests,tsc,build,lint}-20261010.log`.
+Unchanged API source retains12focused passing tests (447main/55test sources compiled,
+Java25): `/tmp/document-discovery-api-final-20261010.log`. Offline SDK URL and
+provider/folder/MIME/key rejection exercised; no Docker/live API/Cloudinary proof.
+Local documentation links and diff whitespace checked. No new dependencies/motion
+or dedicated reduced-motion run; no whole-app live authorization/rendering claim.
+Prior broad42-page source ledger and accepted modal/publication/private-media proof
+remain inherited, not rerun by this bounded extension.
+
+Exact integrated74-path manifest/snapshot:
+`/tmp/discovery-final-manifest-20261010.json`, `/tmp/discovery-final-snapshot-20261010`.
+Full UI patch `/tmp/discovery-final-20261010.patch`; incremental24-path extension
+against accepted62 `/tmp/discovery-followup-20261010.patch`. Complete per-path before/
+after/file hashes, evidence/image/log hashes and patch round-trip checks live there.
+Original372726-byte status prefix and eight separate preserved Daily/unrelated paths
+remain byte-identical. Status overlap is append-only against preserved prefix;
+full UI patch excludes prior Daily repairs and unrelated auth/deploy docs. Seven
+Daily recovery paths remain pending separately. Root .env ignored/untracked, never
+read, printed, hashed, copied or included. Index remains empty. Owned Vite/Chromium
+fixtures are stopped at handoff; no production runtime/settings touched.
+
+
+## Scoped UI publication preparation (10/10/2026)
+
+Accepted integrated candidate1a9f057e9086be64262c5cbac29a6298c54b3eccebf41b7dae2298480e77050b
+(basef7db010,74paths) is ready for scoped commit and normal origin/main push under
+explicit publication authority. All runtime/source hashes and passing evidence
+remain unchanged.175web tests,12focused API tests,build/TypeScript/lint and owned
+responsive/modal/find/open/retry proof are reused; interrupted runs are not passes.
+Documents/News/PDF implementation is complete within documented delivery limits.
+Live Cloudinary eligibility,anonymous startup and all-screen/live authorization
+remain unverified, not secretly completed by publishing. No account setting,asset
+migration or private access workaround is included.
+
+Commit scope includes the broad surfaces/CreationDialog work and completed learner
+Documents/PDF/News supplement. The seven prior pending Daily recovery paths and
+unrelated authentication/deployment docs remain separate. This status commit uses
+HEAD status plus accepted UI appendices; the original372726-byte working prefix
+(and its prior Daily/operator hunks) stays unchanged in the working tree. Working
+status hash therefore intentionally differs from the committed status hash. Exact
+index/commit/path/patch accounting is in /tmp/ui-publish-handoff-20261010.json; the
+accepted unstaged manifest is retained at /tmp/discovery-final-manifest-20261010.json.
+Root env remains unread/untracked/ignored and excluded. No CI/deployment monitoring
+or live smoke is requested after push.

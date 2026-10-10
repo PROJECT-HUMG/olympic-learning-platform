@@ -1,4 +1,4 @@
-import { X, SlidersHorizontal } from "lucide-react";
+import { X } from "lucide-react";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { SearchInput } from "@/components/ui/search-input";
@@ -27,7 +27,7 @@ function KeywordSearch({
         <SearchInput
           type="text"
           aria-label="Tìm trong kho tài liệu"
-          placeholder="Tìm trong kho tài liệu"
+          placeholder="Tìm tên hoặc mô tả tài liệu…"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           className="bg-background pr-12"
@@ -84,19 +84,17 @@ export function DocumentFilters() {
   ];
   const hasFilters = keyword || filters.some(({ key }) => params.has(key));
   return (
-    <div className="flex w-full flex-col gap-3">
+    <div className="filter-panel !flex-col !items-stretch w-full gap-3">
       <KeywordSearch
         key={keyword}
         keyword={keyword}
         onApply={(value) => updateFilter("keyword", value)}
       />
-      <div className="page-toolbar !justify-start !gap-2">
-        <span className="hidden items-center gap-1 text-sm text-muted-foreground sm:flex">
-          <SlidersHorizontal aria-hidden="true" className="size-4" />
-          Bộ lọc
-        </span>
+      <p className="text-sm leading-5 text-muted-foreground">Chọn môn học, loại hoặc thẻ để thu hẹp kết quả.</p>
+      <div className="document-filter-fields">
         {filters.map(({ key, label, options }) => (
-          <div key={key} className="min-w-0 flex-[1_1_12rem]">
+          <div key={key} className="min-w-0 space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">{label}</p>
             <Combobox
               aria-label={label}
               options={options.map((item) => ({
@@ -105,7 +103,7 @@ export function DocumentFilters() {
               }))}
               value={params.get(key) ?? ""}
               onChange={(value) => updateFilter(key, value)}
-              placeholder={metadata.isLoading ? "Đang tải…" : label}
+              placeholder={metadata.isLoading ? "Đang tải…" : "Tất cả"}
               emptyText={`Không tìm thấy ${label.toLowerCase()}`}
               disabled={metadata.isLoading || metadata.isError}
             />
@@ -130,9 +128,10 @@ export function DocumentFilters() {
       {hasFilters && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           {keyword && (
-            <span className="break-all text-muted-foreground">
-              Từ khóa: {keyword}
-            </span>
+            <Button variant="secondary" className="min-h-11 h-auto max-w-full whitespace-normal text-left"
+              aria-label="Bỏ lọc từ khóa" onClick={() => updateFilter("keyword", "")}>
+              <span className="min-w-0 [overflow-wrap:anywhere]">Từ khóa: {keyword}</span><X aria-hidden="true" className="size-3.5" />
+            </Button>
           )}
           {filters
             .filter(({ key }) => params.has(key))
@@ -144,7 +143,7 @@ export function DocumentFilters() {
                 aria-label={`Bỏ lọc ${label.toLowerCase()}`}
                 onClick={() => updateFilter(key, "")}
               >
-                <span className="min-w-0 [overflow-wrap:anywhere]">{options.find((item) => item.id === params.get(key))?.name ?? label}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere]">{label}: {options.find((item) => item.id === params.get(key))?.name ?? "Đã chọn"}</span>
                 <X aria-hidden="true" className="size-3.5" />
               </Button>
             ))}

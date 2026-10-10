@@ -1,3 +1,4 @@
+import type { CreationState } from "@/components/ui/creation-dialog";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { z } from "zod";
@@ -11,12 +12,14 @@ import { parseApiError } from "@/lib/api-error";
 import { ROUTES } from "@/router/route-constants";
 
 type Props = {
+  onStateChange?: (state: CreationState) => void;
+  onClose?: () => void;
   challenge: RegistrationChallenge;
   onUpdate: (challenge: RegistrationChallenge | null) => void;
   onResume: () => void;
 };
 
-export function RegistrationVerification({ challenge, onUpdate, onResume }: Props) {
+export function RegistrationVerification({ challenge, onUpdate, onResume, onStateChange, onClose }: Props) {
   const location = useLocation();
   const [code, setCode] = useState("");
   const [email, setEmail] = useState(challenge.email);
@@ -40,6 +43,8 @@ export function RegistrationVerification({ challenge, onUpdate, onResume }: Prop
     if (notice) codeRef.current?.focus();
   }, [notice]);
 
+  const dirty = !verified && (!!code || (editingEmail && email !== challenge.email));
+  useEffect(() => { onStateChange?.({ dirty, busy: busy !== null }); }, [onStateChange, dirty, busy]);
   const resendSeconds = secondsUntil(challenge.resendAvailableAt, now);
   const codeSeconds = secondsUntil(challenge.expiresAt, now);
   const sessionExpired = invalidSession || secondsUntil(challenge.sessionExpiresAt, now) === 0;
@@ -98,7 +103,7 @@ export function RegistrationVerification({ challenge, onUpdate, onResume }: Prop
       <CheckCircle2Icon className="auth-status__icon" />
       <h1 className="auth-heading">Email đã xác thực.</h1>
       <p className="auth-status__message">Tài khoản đã sẵn sàng. Đăng nhập để bắt đầu học nhé.</p>
-      <Button asChild><Link to={ROUTES.LOGIN} state={location.state}>Đăng nhập ngay</Link></Button>
+      <Button asChild><Link to={ROUTES.LOGIN} state={location.state} onClick={onClose ? event => { event.preventDefault(); onClose(); } : undefined}>Đăng nhập ngay</Link></Button>
     </div>
   );
 
@@ -150,7 +155,7 @@ export function RegistrationVerification({ challenge, onUpdate, onResume }: Prop
       )}
       {error && !sessionExpired && <p role="alert" className="text-sm text-destructive">{error}</p>}
       {notice && <p role="status" className="text-sm leading-relaxed text-muted-foreground">{notice}</p>}
-      <Link to={ROUTES.LOGIN} state={location.state} className="text-center text-sm underline underline-offset-4">Về đăng nhập</Link>
+      <Link to={ROUTES.LOGIN} state={location.state} onClick={onClose ? event => { event.preventDefault(); onClose(); } : undefined} className="text-center text-sm underline underline-offset-4">Về đăng nhập</Link>
     </div>
   );
 }

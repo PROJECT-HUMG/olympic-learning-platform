@@ -4,7 +4,7 @@ import { Button } from "./button";
 
 /** A presentation frame; feature-specific record content and actions stay with the list. */
 export function ManagementListRow({ children, actions }: { children: ReactNode; actions: ReactNode }) {
-  return <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border border-border/50 rounded-xl bg-card hover:bg-accent/20 transition-colors">
+  return <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 content-card hover:bg-accent/20 transition-colors">
     {children}{actions}
   </div>;
 }

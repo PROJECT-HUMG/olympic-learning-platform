@@ -11,7 +11,12 @@ import { Archive, Copy, Eye, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { parseApiError } from "@/lib/api-error";
 import {
@@ -113,7 +118,7 @@ export default function QuestionBankPage() {
           </Button>
         }
       />
-      <div className="page-toolbar !items-end">
+      <div className="page-toolbar filter-panel !items-end">
         <QuestionSearch
           key={bank.search ?? ""}
           value={bank.search ?? ""}
@@ -174,7 +179,7 @@ export default function QuestionBankPage() {
           <div className="grid gap-4 md:grid-cols-2">
             {query.data?.content.map((question) => (
               <Card key={question.id}>
-                <CardContent className="space-y-4 p-5">
+                <CardHeader className="space-y-0">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="min-w-0 break-words text-sm font-semibold">
                       {question.subjectName} · {question.topicName}
@@ -191,77 +196,79 @@ export default function QuestionBankPage() {
                       {statusLabel[question.status]}
                     </Badge>
                   </div>
+                </CardHeader>
+                <CardContent className="flex-1">
                   <p className="line-clamp-4 break-words text-sm leading-6">
                     {questionBankLabel(question.content)}
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="min-h-11"
+                  >
+                    <Link
+                      to={`${location.pathname}/${question.id}`}
+                      state={{ from: location.pathname + location.search }}
+                    >
+                      <Eye aria-hidden="true" className="size-4" />
+                      Chi tiết
+                    </Link>
+                  </Button>
+                  {questionPermissions(currentUser.data, question).duplicate ? (
                     <Button
-                      asChild
                       size="sm"
                       variant="outline"
                       className="min-h-11"
+                      disabled={pending}
+                      onClick={() =>
+                        duplicate.mutate(
+                          question.id,
+                          feedback("Đã sao chép câu hỏi"),
+                        )
+                      }
                     >
-                      <Link
-                        to={`${location.pathname}/${question.id}`}
-                        state={{ from: location.pathname + location.search }}
-                      >
-                        <Eye aria-hidden="true" className="size-4" />
-                        Chi tiết
-                      </Link>
+                      <Copy aria-hidden="true" className="size-4" />
+                      Sao chép
                     </Button>
-                    {questionPermissions(currentUser.data, question).duplicate ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="min-h-11"
-                        disabled={pending}
-                        onClick={() =>
-                          duplicate.mutate(
-                            question.id,
-                            feedback("Đã sao chép câu hỏi"),
-                          )
-                        }
-                      >
-                        <Copy aria-hidden="true" className="size-4" />
-                        Sao chép
-                      </Button>
-                    ) : null}
-                    {questionPermissions(currentUser.data, question).archive ? (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="min-h-11"
-                        disabled={pending}
-                        onClick={() =>
-                          archive.mutate(
-                            question.id,
-                            feedback("Đã lưu trữ câu hỏi"),
-                          )
-                        }
-                      >
-                        <Archive aria-hidden="true" className="size-4" />
-                        Lưu trữ
-                      </Button>
-                    ) : null}
-                    {questionPermissions(currentUser.data, question).restore ? (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="min-h-11"
-                        disabled={pending}
-                        onClick={() =>
-                          restore.mutate(
-                            question.id,
-                            feedback("Đã khôi phục câu hỏi"),
-                          )
-                        }
-                      >
-                        <RotateCcw aria-hidden="true" className="size-4" />
-                        Khôi phục
-                      </Button>
-                    ) : null}
-                  </div>
-                </CardContent>
+                  ) : null}
+                  {questionPermissions(currentUser.data, question).archive ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="min-h-11"
+                      disabled={pending}
+                      onClick={() =>
+                        archive.mutate(
+                          question.id,
+                          feedback("Đã lưu trữ câu hỏi"),
+                        )
+                      }
+                    >
+                      <Archive aria-hidden="true" className="size-4" />
+                      Lưu trữ
+                    </Button>
+                  ) : null}
+                  {questionPermissions(currentUser.data, question).restore ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="min-h-11"
+                      disabled={pending}
+                      onClick={() =>
+                        restore.mutate(
+                          question.id,
+                          feedback("Đã khôi phục câu hỏi"),
+                        )
+                      }
+                    >
+                      <RotateCcw aria-hidden="true" className="size-4" />
+                      Khôi phục
+                    </Button>
+                  ) : null}
+                </CardFooter>
               </Card>
             ))}
           </div>

@@ -105,11 +105,20 @@ public class CloudinaryStorageService implements StorageService {
 
   @Override
   public URI getThumbnailUri(String storageKey) {
+    // Legacy keys do not retain resource_type/access metadata. Only attempt the existing
+    // unsigned public image/upload namespace; never guess raw/private/authenticated delivery.
+    if (storageKey == null || !storageKey.matches(
+        "documents/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\.pdf")) {
+      return null;
+    }
     String publicId = extractPublicId(storageKey);
     String url =
         cloudinary
             .url()
-            .transformation(new Transformation<>().page(1).width(320).crop("scale"))
+            .resourceType("image")
+            .type("upload")
+            .signed(false)
+            .transformation(new Transformation<>().page(1).width(600).height(800).crop("limit"))
             .format("jpg")
             .secure(true)
             .generate(publicId);

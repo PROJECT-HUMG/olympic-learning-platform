@@ -4,8 +4,8 @@
 .study-notebook .page-heading { align-items: center; gap: 1rem; border: 0; padding-bottom: 0; }
 .study-notebook .page-heading__title { font-size: 1.875rem; line-height: 1.25; font-weight: 600; letter-spacing: -.025em; }
 .study-notebook .page-heading__description { margin-top: .5rem; font-size: .8125rem; }
-.study-notebook .page-section { border: 0; border-radius: 0; background: transparent; overflow: visible; }
-.study-notebook .page-section__heading { padding: 0 0 1rem; border: 0; gap: .5rem 1rem; align-items: center; }
+.study-notebook .page-section { box-shadow:none; border: 0; border-radius: 0; background: transparent; overflow: visible; }
+.study-notebook .page-section__heading { background:transparent; padding: 0 0 1rem; border: 0; gap: .5rem 1rem; align-items: center; }
 .study-notebook .page-section__heading h2 { font-size: 1rem; font-weight: 600; }
 .study-notebook .page-section__heading > .page-heading__actions { width: auto; }
 .study-notebook .page-section__content { padding: 0; }
@@ -175,7 +175,7 @@
   .study-notebook .page-heading { align-items: flex-start; gap: .75rem; }
   .study-notebook .page-heading__title { font-size: var(--page-title-size); }
   .study-area-nav { align-self: stretch; gap: 1.5rem; }
-  .study-notebook .page-section__heading { padding-bottom: .75rem; }
+  .study-notebook .page-section__heading { background:transparent; padding-bottom: .75rem; }
   .study-task { padding: .5rem 0; }
   .study-task__controls { padding-inline-start: 0; gap: .5rem; }
   .study-task--editable .study-evidence:not([open]) > summary { width: 44px; justify-content: center; padding: 0; }

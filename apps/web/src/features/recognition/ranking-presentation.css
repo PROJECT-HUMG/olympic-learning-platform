@@ -13,6 +13,7 @@
   --rank-neutral-border: var(--border);
   min-width: 0;
   max-width: 100%;
+  overflow: hidden;
   color: var(--foreground);
   font-family: var(--font-sans);
 }
@@ -53,7 +54,9 @@
 }
 
 .ranking-presentation__context {
-  margin-bottom: 0.25rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--muted);
 }
 
 .ranking-presentation__list {
@@ -70,9 +73,11 @@
   row-gap: 0.25rem;
   align-items: start;
   min-width: 0;
-  padding: 0.75rem 0;
+  padding: 1rem;
   border-bottom: 1px solid var(--border);
 }
+
+.ranking-presentation__row:last-child { border-bottom: 0; }
 
 .ranking-presentation__rank {
   position: relative;
@@ -118,7 +123,9 @@
 }
 
 .ranking-presentation__identity a {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
   max-width: 100%;
   color: var(--primary);
   font-size: 0.875rem;

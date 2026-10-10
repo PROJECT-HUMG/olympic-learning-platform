@@ -1,3 +1,4 @@
+import type { CreationState } from "@/components/ui/creation-dialog";
 import { SearchInput } from "@/components/ui/search-input";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -22,17 +23,17 @@ import { useCreateExam, useExamDraft, usePublishExam, useUpdateExam } from "../h
 import type { ExamDraft } from "../types";
 import { ExamLoading, ExamProblem } from "./exam-feedback";
 
-export function ExamEditor({ examId, listPath, papersPath }: { examId?: string; listPath: string; papersPath: string }) {
+export function ExamEditor({ examId, listPath, papersPath, onStateChange, onClose }: { examId?: string; listPath: string; papersPath: string; onStateChange?: (state: CreationState) => void; onClose?: () => void }) {
   const draft = useExamDraft(examId);
   const location = useLocation();
   const back = getListReturnPath((location.state as { from?: unknown } | null)?.from, listPath);
   if (examId && draft.isLoading) return <div className="page-shell"><ExamLoading label="Đang tải đề…" /></div>;
   if (examId && draft.isError) return <div className="page-shell"><ExamProblem message={examErrorMessage(draft.error)} onRetry={() => void draft.refetch()} /></div>;
   if (examId && !draft.data) return <div className="page-shell"><ExamProblem message="Không tìm thấy đề." onRetry={() => void draft.refetch()} /></div>;
-  return <ExamForm key={examId ?? "new"} examId={examId} initial={draft.data ?? null} reload={() => draft.refetch()} listPath={listPath} papersPath={papersPath} back={back} />;
+  return <ExamForm key={examId ?? "new"} examId={examId} initial={draft.data ?? null} reload={() => draft.refetch()} listPath={listPath} papersPath={papersPath} back={back} onStateChange={onStateChange} onClose={onClose} />;
 }
 
-function ExamForm({ examId, initial, reload, listPath, papersPath, back }: { examId?: string; initial: ExamDraft | null; reload: () => Promise<{ data?: ExamDraft }>; listPath: string; papersPath: string; back: string }) {
+function ExamForm({ examId, initial, reload, listPath, papersPath, back, onStateChange, onClose }: { onStateChange?: (state: CreationState) => void; onClose?: () => void; examId?: string; initial: ExamDraft | null; reload: () => Promise<{ data?: ExamDraft }>; listPath: string; papersPath: string; back: string }) {
   const navigate = useNavigate();
   const location = useLocation();
   const metadata = useDocumentMetadata();
@@ -95,9 +96,10 @@ function ExamForm({ examId, initial, reload, listPath, papersPath, back }: { exa
     setNotice("Đã tải bản trên máy chủ.");
   }
   const busy = create.isPending || update.isPending || publish.isPending;
+  useEffect(() => { onStateChange?.({ dirty, busy }); }, [onStateChange, dirty, busy]);
   const eligibility = publishEligibility({ dirty, conflict, examId, draft: form });
   return <div className="page-shell">
-    <PageHeader title={examId ? "Sửa đề" : "Tạo đề"} description="Câu hỏi lấy từ ngân hàng đã xuất bản. Điểm và hướng dẫn thuộc về đề, không ghi ngược vào câu hỏi." actions={<Button variant="outline" asChild><Link to={back}>Quay lại danh sách</Link></Button>} />
+    {onClose ? <p className="page-note">Câu hỏi lấy từ ngân hàng đã xuất bản. Điểm và hướng dẫn thuộc về đề, không ghi ngược vào câu hỏi.</p> : <PageHeader title={examId ? "Sửa đề" : "Tạo đề"} description="Câu hỏi lấy từ ngân hàng đã xuất bản. Điểm và hướng dẫn thuộc về đề, không ghi ngược vào câu hỏi." actions={<Button variant="outline" asChild><Link to={back}>Quay lại danh sách</Link></Button>} />}
     {notice ? <p className="mb-4 text-sm" role="status">{notice}</p> : null}
     {conflict ? <div className="mb-4 space-y-3" role="alert"><p>Đề vừa được sửa ở nơi khác. Bản bạn đang nhập vẫn được giữ.</p><Button type="button" variant="outline" onClick={() => void loadServer()}>Tải bản trên máy chủ</Button></div> : null}
     <form className="space-y-8" onSubmit={(event) => { event.preventDefault(); void save(); }}>
@@ -125,6 +127,7 @@ function ExamForm({ examId, initial, reload, listPath, papersPath, back }: { exa
       {eligibility.notice ? <p className="text-sm" role="status">{eligibility.notice}</p> : null}
       <div className="flex flex-wrap gap-3">
         <Button type="submit" disabled={busy}>Lưu đề</Button>
+        {onClose && <Button type="button" variant="outline" disabled={busy} onClick={onClose}>Hủy</Button>}
         <Button type="button" variant="outline" disabled={busy || !eligibility.enabled} onClick={() => void publishDraft()}>Xuất bản phiên bản</Button>
         {examId ? <Button variant="outline" asChild><Link to={`${listPath}/${examId}/preview`} state={{ from: `${listPath}/${examId}` }}>Xem đề</Link></Button> : null}
       </div>

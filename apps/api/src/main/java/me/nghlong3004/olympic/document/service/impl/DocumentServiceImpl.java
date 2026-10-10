@@ -30,6 +30,8 @@ import me.nghlong3004.olympic.document.service.SearchTextNormalizer;
 import me.nghlong3004.olympic.common.util.SlugGenerator;
 import me.nghlong3004.olympic.document.specification.DocumentSpecification;
 import me.nghlong3004.olympic.storage.entity.File;
+import me.nghlong3004.olympic.storage.enums.StorageFolder;
+import me.nghlong3004.olympic.storage.enums.StorageProvider;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
 import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.User;
@@ -257,9 +259,14 @@ public class DocumentServiceImpl implements DocumentService {
         if (dUri != null) {
             downloadUrl = dUri.toString();
         }
-        URI tUri = storageService.getThumbnailUri(document.getFile().getStorageKey());
-        if (tUri != null) {
-            thumbnailUrl = tUri.toString();
+        File file = document.getFile();
+        if (file.getProvider() == StorageProvider.CLOUDINARY
+            && file.getFolder() == StorageFolder.DOCUMENT
+            && "application/pdf".equalsIgnoreCase(file.getContentType())) {
+            URI tUri = storageService.getThumbnailUri(file.getStorageKey());
+            if (tUri != null) {
+                thumbnailUrl = tUri.toString();
+            }
         }
     }
     

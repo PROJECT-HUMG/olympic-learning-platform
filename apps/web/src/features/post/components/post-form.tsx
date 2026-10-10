@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -19,6 +19,7 @@ import type { PostSummaryResponse, CreatePostRequest } from "../types/post.types
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { PostImageUpload } from "./post-image-upload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { CreationState } from "@/components/ui/creation-dialog";
 
 const postSchema = z.object({
   title: z.string().min(2, "Tiêu đề phải có ít nhất 2 ký tự").max(200, "Tiêu đề không được vượt quá 200 ký tự"),
@@ -71,9 +72,19 @@ interface PostFormProps {
   onSubmit: (data: CreatePostRequest) => void;
   onCancel: () => void;
   isLoading?: boolean;
+  onStateChange?: (state: CreationState) => void;
 }
 
-export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFormProps) {
+export function PostForm({
+  initialData,
+  onSubmit,
+  onCancel,
+  isLoading,
+  onStateChange,
+}: PostFormProps) {
+  const [isImageUploading, setIsImageUploading] = useState(false);
+  const [isEditorUploading, setIsEditorUploading] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState(false);
   const form = useForm<PostFormValues>({
     resolver: zodResolver(postSchema),
     defaultValues: {
@@ -87,6 +98,21 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
       pinned: initialData?.pinned || false,
     },
   });
+
+  const isDirty = form.formState.isDirty || imageUploadError;
+  const isBusy = !!isLoading || isImageUploading || isEditorUploading;
+
+  const lastReportedState = useRef<CreationState | null>(null);
+  useEffect(() => {
+    if (
+      !lastReportedState.current ||
+      lastReportedState.current.dirty !== isDirty ||
+      lastReportedState.current.busy !== isBusy
+    ) {
+      lastReportedState.current = { dirty: isDirty, busy: isBusy };
+      onStateChange?.({ dirty: isDirty, busy: isBusy });
+    }
+  }, [isDirty, isBusy, onStateChange]);
 
   const handleSubmit = (values: PostFormValues, forcedStatus?: "DRAFT" | "PUBLISHED") => {
     const status = initialData ? values.status : (forcedStatus || "PUBLISHED");
@@ -135,7 +161,10 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Trạng thái</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          value={field.value}
+                          onValueChange={(val) => form.setValue("status", val as any, { shouldValidate: true, shouldDirty: true })}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Chọn trạng thái" />
@@ -176,7 +205,10 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Loại bài viết</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          value={field.value}
+                          onValueChange={(val) => form.setValue("type", val as any, { shouldValidate: true, shouldDirty: true })}
+                        >
                           <FormControl><SelectTrigger><SelectValue placeholder="Chọn loại bài viết" /></SelectTrigger></FormControl>
                           <SelectContent>
                             <SelectItem value="NEWS">Tin tức</SelectItem>
@@ -212,6 +244,8 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
                           value={field.value}
                           onChange={field.onChange}
                           initialPreviewUrl={initialData?.thumbnailUrl || undefined}
+                          onUploadingChange={setIsImageUploading}
+                          onUploadError={setImageUploadError}
                         />
                       </FormControl>
                       <FormMessage />
@@ -235,7 +269,7 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
               render={({ field }) => (
                 <FormItem>
                   <FormControl className="min-h-[400px]">
-                    <RichTextEditor
+                    <RichTextEditor onUploadingChange={setIsEditorUploading}
                       value={field.value}
                       onChange={field.onChange}
                       placeholder="Nhập nội dung bài viết ở đây..."
@@ -250,15 +284,15 @@ export function PostForm({ initialData, onSubmit, onCancel, isLoading }: PostFor
         </Card>
 
         <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isBusy}>
             Hủy
           </Button>
-          {!initialData && <Button type="button" variant="secondary" disabled={isLoading} onClick={() => {
+          {!initialData && <Button type="button" variant="secondary" disabled={isBusy} onClick={() => {
             void form.handleSubmit((values) => handleSubmit(values, "DRAFT"))();
           }}>
             Lưu bản nháp
           </Button>}
-          <Button type="submit" loading={isLoading}>
+          <Button type="submit" loading={isLoading} disabled={isImageUploading || isEditorUploading}>
             {initialData ? "Cập nhật bài viết" : "Xuất bản bài viết"}
           </Button>
         </div>

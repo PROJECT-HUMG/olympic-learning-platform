@@ -52,7 +52,7 @@ export default function AdminUsersPage() {
     <div className="page-shell">
       <PageHeader title="Quản lý người dùng" description="Quản lý tài khoản và phân quyền hệ thống." />
 
-      <div className="page-toolbar">
+      <div className="page-toolbar filter-panel">
         <div className="relative flex-1 max-w-md">
           <SearchInput aria-label="Tìm theo email, tên"
             placeholder="Tìm theo email, tên..."

@@ -1,0 +1,18 @@
+.creation-dialog[data-slot="dialog-content"] { display: flex; flex-direction: column; gap: 0; width: min(68rem, calc(100vw - 3rem)); max-width: none; max-height: calc(100dvh - 3rem); padding: 0; overflow: hidden; border: 1px solid var(--surface-border); box-shadow: var(--surface-shadow); }
+.creation-dialog__header { flex: 0 0 auto; display: flex; flex-direction: row; align-items: start; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--card); }
+.creation-dialog__header > div { min-width: 0; }
+.creation-dialog__header [data-slot="dialog-title"] { padding: 0; font-size: 1.25rem; overflow-wrap: anywhere; }
+.creation-dialog__header [data-slot="dialog-description"] { max-width: 65ch; margin-top: .375rem; line-height: 1.6; }
+.creation-dialog__header > button { flex-shrink: 0; min-height: 44px; }
+.creation-dialog__body { flex: 1; min-height: 0; min-width: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1.5rem; }
+.creation-dialog__body > .page-shell { gap: 1.25rem; }
+.creation-dialog.creation-dialog--compact[data-slot="dialog-content"] { width:min(36rem,calc(100vw - 3rem)); }
+.creation-dialog__body .auth-form { width:100%; max-width:32rem; min-width:0; grid-template-columns:minmax(0,1fr); margin-inline:auto; }
+.creation-dialog__body .auth-form > [data-slot="button"] { height:auto; min-height:44px; white-space:normal; }
+.creation-dialog__body .auth-form .lbi-eye { right:4px; width:44px; height:44px; margin-top:-22px; }
+.creation-dialog__body .auth-form > p:last-child a { display:inline-flex; align-items:center; min-height:44px; }
+@media (max-width: 640px) {
+  .creation-dialog[data-slot="dialog-content"], .creation-dialog.creation-dialog--compact[data-slot="dialog-content"] { inset: 0; top: 0; left: 0; transform: none; translate: none; width: 100%; max-width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+  .creation-dialog__header { padding: max(.875rem, env(safe-area-inset-top)) 1rem .875rem; gap: .75rem; }
+  .creation-dialog__body { padding: 1rem 1rem max(1rem, env(safe-area-inset-bottom)); }
+}

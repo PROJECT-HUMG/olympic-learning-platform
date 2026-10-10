@@ -79,15 +79,9 @@ export default function DocumentsPage() {
 
       <DocumentFilters />
 
-      <hr className="mb-4 border-t border-border/40" />
-
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center gap-2">
         <h2 className="text-sm font-medium text-muted-foreground">
-          {data
-            ? `${data.totalElements} tài liệu`
-            : isError
-              ? "Chưa tải được tài liệu"
-              : "Đang tìm kiếm…"}
+          {isError ? "Chưa tải được tài liệu" : data ? `${data.totalElements} tài liệu` : "Đang tìm kiếm…"}
         </h2>
         <div className="flex items-center gap-1">
           <Button
@@ -96,8 +90,9 @@ export default function DocumentsPage() {
             className={`h-11 w-11 rounded-full ${viewMode === "list" ? "bg-accent/80 text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
             onClick={() => setViewMode("list")}
             aria-label="Xem dạng danh sách"
+            aria-pressed={viewMode === "list"}
           >
-            <ListIcon className="w-5 h-5" />
+            <ListIcon aria-hidden="true" className="w-5 h-5" />
           </Button>
           <Button
             variant={viewMode === "grid" ? "secondary" : "ghost"}
@@ -105,8 +100,9 @@ export default function DocumentsPage() {
             className={`h-11 w-11 rounded-full ${viewMode === "grid" ? "bg-accent/80 text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
             onClick={() => setViewMode("grid")}
             aria-label="Xem dạng lưới"
+            aria-pressed={viewMode === "grid"}
           >
-            <LayoutGrid className="w-5 h-5" />
+            <LayoutGrid aria-hidden="true" className="w-5 h-5" />
           </Button>
         </div>
       </div>

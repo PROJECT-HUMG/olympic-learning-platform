@@ -1,3 +1,4 @@
+import { CreationDialog } from "@/components/ui/creation-dialog";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
@@ -11,6 +12,11 @@ const STORAGE_KEY = "olympic-toolkit-gpa-v1";
 
 export function GpaCalculator() {
   const [state, setState] = useState<GpaState>(() => restoreGpa(readToolState(STORAGE_KEY)));
+  const [adding, setAdding] = useState(false);
+  const [course, setCourse] = useState(newCourse);
+  const [attempted, setAttempted] = useState(false);
+  const courseResult = calculateGpa([course], state.scale);
+  const courseError = attempted ? courseResult.errors[course.id] : undefined;
   const [canSave, setCanSave] = useState(true);
   useEffect(() => { setCanSave(saveToolState(STORAGE_KEY, state)); }, [state]);
   const result = calculateGpa(state.courses, state.scale);
@@ -57,7 +63,13 @@ export function GpaCalculator() {
           );
         })}
       </div>
-      <Button className="toolkit-gpa__add" variant="outline" onClick={() => setState((current) => ({ ...current, courses: [...current.courses, newCourse()] }))}><Plus aria-hidden="true" /> Thêm học phần</Button>
+      <Button className="toolkit-gpa__add" variant="outline" onClick={() => { setCourse(newCourse()); setAttempted(false); setAdding(true); }}><Plus aria-hidden="true" /> Thêm học phần</Button>
+      <CreationDialog className="creation-dialog--compact" open={adding} onOpenChange={setAdding} title="Thêm học phần" description={`Nhập tín chỉ và điểm trên thang ${state.scale}; tên học phần không bắt buộc.`} dirty={!!(course.name || course.credits || course.grade)}>{close => <form className="space-y-4" onSubmit={event => { event.preventDefault(); setAttempted(true); if (courseResult.invalid || !courseResult.courseCount) return; setState(current => ({ ...current, courses: [...current.courses, course] })); setAdding(false); }}>
+        <div className="space-y-2"><label htmlFor="new-course-name">Tên học phần (không bắt buộc)</label><Input id="new-course-name" value={course.name} onChange={e => setCourse({ ...course, name:e.target.value })} /></div>
+        <div className="space-y-2"><label htmlFor="new-course-credits">Tín chỉ</label><Input id="new-course-credits" required inputMode="decimal" value={course.credits} onChange={e => setCourse({ ...course, credits:e.target.value })} aria-invalid={!!courseError?.credits} aria-describedby={courseError?.credits ? "new-course-credits-error" : undefined} />{courseError?.credits && <p id="new-course-credits-error" role="alert" className="toolkit-gpa__error">{courseError.credits}</p>}</div>
+        <div className="space-y-2"><label htmlFor="new-course-grade">Điểm / {state.scale}</label><Input id="new-course-grade" required inputMode="decimal" value={course.grade} onChange={e => setCourse({ ...course, grade:e.target.value })} aria-invalid={!!courseError?.grade} aria-describedby={courseError?.grade ? "new-course-grade-error" : undefined} />{courseError?.grade && <p id="new-course-grade-error" role="alert" className="toolkit-gpa__error">{courseError.grade}</p>}</div>
+        <div className="flex flex-wrap gap-2"><Button type="submit">Thêm học phần</Button><Button type="button" variant="ghost" onClick={close}>Hủy</Button></div>
+      </form>}</CreationDialog>
       <div className="toolkit-gpa__result" role="status">
         <div>
           <p>{state.scale === 4 ? "GPA dự tính" : "Điểm trung bình dự tính"}</p>

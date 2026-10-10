@@ -1,3 +1,4 @@
+import type { CreationState } from "@/components/ui/creation-dialog";
 import { FigureNotices } from "./figure-notices";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useState, type ReactNode } from "react";
@@ -174,7 +175,9 @@ export function ManualQuestionWorkspace({
   listPath,
   returnTo,
   onReload,
+  onStateChange,
 }: {
+  onStateChange?: (state: CreationState) => void;
   routeId: string | null;
   question: Question | null;
   handoff: ManualAuthorHandoff | null;
@@ -232,6 +235,8 @@ export function ManualQuestionWorkspace({
   const topicName = topics.data?.find((topic) => topic.id === draft.topicId)?.name ?? question?.topicName ?? (draft.topicId || "Chưa chọn chủ đề");
   const badgeStatus = effectiveStatus ?? "DRAFT";
   const busy = createQuestion.isPending || updateQuestion.isPending || publishQuestion.isPending || archiveQuestion.isPending || restoreQuestion.isPending || duplicateQuestion.isPending || reloading;
+  const creationDirty = JSON.stringify(draft) !== savedJson;
+  useEffect(() => { onStateChange?.({ dirty: creationDirty, busy }); }, [onStateChange, creationDirty, busy]);
   const choice = draft.type === "single_choice" || draft.type === "multiple_choice";
 
   function redirectTo(saved: { id: string; version: number; status: QuestionStatus }, next: ManualDraft, nextNotice: string | null, nextLossy: boolean) {
@@ -439,6 +444,16 @@ export function ManualQuestionWorkspace({
     }
   }
 
+  const workspaceActions = (<div className="flex flex-wrap items-center gap-2">
+          {canEdit && !showEditor ? <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={() => { setPreviewRevealing(false); setEditing(true); }}><Pencil className="size-4" />Chỉnh sửa</Button> : null}
+          {showEditor ? <Button type="button" variant="ghost" size="sm" className="min-h-11" onClick={() => { setPreviewRevealing(true); setEditing(false); }}><Eye className="size-4" />Xem</Button> : null}
+          {showEditor ? <Button type="submit" form="manual-question-form" size="sm" className="min-h-11" loading={createQuestion.isPending || updateQuestion.isPending} disabled={busy}><Save className="size-4" />Lưu bản nháp</Button> : null}
+          {canPublish ? <Button type="button" size="sm" className="min-h-11" loading={publishQuestion.isPending} disabled={busy} onClick={() => void publish()}><Send className="size-4" />Xuất bản</Button> : null}
+          {permissions.duplicate && activeId != null ? <Button type="button" variant="outline" size="sm" className="min-h-11" loading={duplicateQuestion.isPending} disabled={busy} onClick={() => void duplicate()}><Copy className="size-4" />Sao chép</Button> : null}
+          {permissions.archive && activeId != null ? <Button type="button" variant="outline" size="sm" className="min-h-11" loading={archiveQuestion.isPending} disabled={busy} onClick={() => void runStatus(archiveQuestion.mutateAsync, "Đã lưu trữ câu hỏi.")}><Archive className="size-4" />Lưu trữ</Button> : null}
+          {permissions.restore && activeId != null ? <Button type="button" variant="outline" size="sm" className="min-h-11" loading={restoreQuestion.isPending} disabled={busy} onClick={() => void runStatus(restoreQuestion.mutateAsync, "Đã khôi phục câu hỏi.")}><RotateCcw className="size-4" />Khôi phục</Button> : null}
+        </div>);
+
   const newDraft = (
     <Link className="mt-2 inline-flex min-h-11 items-center underline" to={`${listPath}/new`} state={{ from: returnTo }}>
       Tạo bản nháp mới
@@ -447,19 +462,7 @@ export function ManualQuestionWorkspace({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={routeId == null && createdId == null ? "Câu hỏi mới" : (draft.title.trim() || "Câu hỏi chưa có tiêu đề")}
-        description={<><span>{subjectName} · {topicName}</span>{" "}<Badge variant={STATUS_VARIANT[badgeStatus]}>{STATUS_LABEL[badgeStatus]}</Badge></>}
-        actions={<div className="flex flex-wrap items-center gap-2">
-          {canEdit && !showEditor ? <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={() => { setPreviewRevealing(false); setEditing(true); }}><Pencil className="size-4" />Chỉnh sửa</Button> : null}
-          {showEditor ? <Button type="button" variant="ghost" size="sm" className="min-h-11" onClick={() => { setPreviewRevealing(true); setEditing(false); }}><Eye className="size-4" />Xem</Button> : null}
-          {showEditor ? <Button type="submit" form="manual-question-form" size="sm" className="min-h-11" loading={createQuestion.isPending || updateQuestion.isPending} disabled={busy}><Save className="size-4" />Lưu bản nháp</Button> : null}
-          {canPublish ? <Button type="button" size="sm" className="min-h-11" loading={publishQuestion.isPending} disabled={busy} onClick={() => void publish()}><Send className="size-4" />Xuất bản</Button> : null}
-          {permissions.duplicate && activeId != null ? <Button type="button" variant="outline" size="sm" className="min-h-11" loading={duplicateQuestion.isPending} disabled={busy} onClick={() => void duplicate()}><Copy className="size-4" />Sao chép</Button> : null}
-          {permissions.archive && activeId != null ? <Button type="button" variant="outline" size="sm" className="min-h-11" loading={archiveQuestion.isPending} disabled={busy} onClick={() => void runStatus(archiveQuestion.mutateAsync, "Đã lưu trữ câu hỏi.")}><Archive className="size-4" />Lưu trữ</Button> : null}
-          {permissions.restore && activeId != null ? <Button type="button" variant="outline" size="sm" className="min-h-11" loading={restoreQuestion.isPending} disabled={busy} onClick={() => void runStatus(restoreQuestion.mutateAsync, "Đã khôi phục câu hỏi.")}><RotateCcw className="size-4" />Khôi phục</Button> : null}
-        </div>}
-      />
+      {routeId == null ? <div className="space-y-3"><p className="page-note">{subjectName} · {topicName} <Badge variant={STATUS_VARIANT[badgeStatus]}>{STATUS_LABEL[badgeStatus]}</Badge></p>{workspaceActions}</div> : <PageHeader title={draft.title.trim() || "Câu hỏi chưa có tiêu đề"} description={<><span>{subjectName} · {topicName}</span>{" "}<Badge variant={STATUS_VARIANT[badgeStatus]}>{STATUS_LABEL[badgeStatus]}</Badge></>} actions={workspaceActions} />}
       {notice ? <p role={conflict ? "alert" : "status"} className="rounded-lg border border-border p-3 text-sm">{notice}</p> : null}
       {conflict && activeId != null ? (
         <Button type="button" variant="outline" className="min-h-11" disabled={busy} onClick={() => void discardServer()}>

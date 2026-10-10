@@ -16,13 +16,7 @@ import {
 import { DashboardDocumentList } from "@/features/documents/components/dashboard-document-list";
 import { DocumentForm } from "@/features/documents/components/document-form";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { CreationDialog, type CreationState } from "@/components/ui/creation-dialog";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
   AlertDialog,
@@ -77,6 +71,10 @@ export default function DocumentsManagementPage() {
   const [documentToEdit, setDocumentToEdit] = useState<DocumentResponse | null>(
     null,
   );
+  const [formState, setFormState] = useState<CreationState>({
+    dirty: false,
+    busy: false,
+  });
 
   const createDocument = useCreateDocument();
   const updateDocument = useUpdateDocument();
@@ -89,6 +87,7 @@ export default function DocumentsManagementPage() {
           onSuccess: () => {
             toast.success("Cập nhật tài liệu thành công");
             setDocumentToEdit(null);
+            setFormState({ dirty: false, busy: false });
           },
           onError: () => toast.error("Có lỗi xảy ra khi cập nhật tài liệu"),
         },
@@ -98,6 +97,7 @@ export default function DocumentsManagementPage() {
         onSuccess: () => {
           toast.success("Tạo tài liệu mới thành công");
           setIsCreateModalOpen(false);
+          setFormState({ dirty: false, busy: false });
         },
         onError: () => toast.error("Có lỗi xảy ra khi tạo tài liệu"),
       });
@@ -119,10 +119,10 @@ export default function DocumentsManagementPage() {
   return (
     <div className="page-shell">
       <PageHeader title="Quản lý tài liệu" description="Thêm và cập nhật tài liệu trong kho học tập."
-        actions={<Button onClick={() => setIsCreateModalOpen(true)}><Plus aria-hidden="true" className="size-4" />Thêm tài liệu mới</Button>} />
+        actions={<Button onClick={() => { setFormState({ dirty: false, busy: false }); setIsCreateModalOpen(true); }}><Plus aria-hidden="true" className="size-4" />Thêm tài liệu mới</Button>} />
 
       {/* Toolbar */}
-      <div className="page-toolbar">
+      <div className="page-toolbar filter-panel">
         <div className="relative max-w-sm w-full">
           <SearchInput aria-label="Tìm kiếm tài liệu"
             placeholder="Tìm kiếm tài liệu..."
@@ -158,7 +158,10 @@ export default function DocumentsManagementPage() {
         <DashboardDocumentList
           data={pageData?.content || []}
           onDeleteClick={setDocumentToDelete}
-          onEditClick={setDocumentToEdit}
+          onEditClick={(doc) => {
+            setFormState({ dirty: false, busy: false });
+            setDocumentToEdit(doc);
+          }}
         />
       )}
 
@@ -208,40 +211,35 @@ export default function DocumentsManagementPage() {
       </AlertDialog>
 
       {/* Create/Edit Modal */}
-      <Dialog
+      <CreationDialog
         open={isCreateModalOpen || !!documentToEdit}
         onOpenChange={(open) => {
           if (!open) {
             setIsCreateModalOpen(false);
             setDocumentToEdit(null);
+            setFormState({ dirty: false, busy: false });
           }
         }}
+        title={documentToEdit ? "Chỉnh sửa tài liệu" : "Thêm tài liệu mới"}
+        description={
+          documentToEdit
+            ? `Đang chỉnh sửa tài liệu: ${documentToEdit.title}`
+            : "Điền thông tin bên dưới để thêm tài liệu mới vào hệ thống."
+        }
+        dirty={formState.dirty}
+        busy={formState.busy || createDocument.isPending || updateDocument.isPending}
       >
-        <DialogContent className="grid-cols-1 w-[95vw] max-w-5xl sm:max-w-5xl max-h-[90vh] overflow-y-auto sm:rounded-xl">
-          <DialogHeader>
-            <DialogTitle>
-              {documentToEdit ? "Chỉnh sửa tài liệu" : "Thêm tài liệu mới"}
-            </DialogTitle>
-            <DialogDescription>
-              {documentToEdit
-                ? `Đang chỉnh sửa tài liệu: ${documentToEdit.title}`
-                : "Điền thông tin bên dưới để thêm tài liệu mới vào hệ thống."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <DocumentForm
-              key={documentToEdit?.id || "new"}
-              initialData={documentToEdit || undefined}
-              onSubmit={handleFormSubmit}
-              onCancel={() => {
-                setIsCreateModalOpen(false);
-                setDocumentToEdit(null);
-              }}
-              isLoading={createDocument.isPending || updateDocument.isPending}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+        {(close) => (
+          <DocumentForm
+            key={documentToEdit?.id || "new"}
+            initialData={documentToEdit || undefined}
+            onSubmit={handleFormSubmit}
+            onCancel={close}
+            onStateChange={setFormState}
+            isLoading={createDocument.isPending || updateDocument.isPending}
+          />
+        )}
+      </CreationDialog>
     </div>
   );
 }

@@ -8,7 +8,7 @@ export function RankingList({ records, year, from }: { records: Ranking[]; year?
   const contextId = useId();
   const presentation = presentRankingList(records, year, from);
   return (
-    <div className="ranking-presentation">
+    <div className="ranking-presentation content-card">
       <p className="ranking-presentation__context" id={contextId}>{presentation.contextLabel}</p>
       <ol className="ranking-presentation__list" aria-labelledby={contextId}>
         {presentation.rows.map((row) => (

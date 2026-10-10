@@ -33,6 +33,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import "@/features/documents/components/document-reader.css";
 export default function DocumentDetailPage() {
   const location = useLocation();
   const backPath = getListReturnPath(location.state?.from, "/documents");
@@ -113,7 +114,7 @@ export default function DocumentDetailPage() {
         </div>
 
         <div className="flex flex-col gap-6">
-          <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+          <div className="content-card p-4 sm:p-6 md:p-8">
             <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
               <div className="flex-1 min-w-0">
                 <div className="flex gap-2 flex-wrap mb-4">
@@ -144,8 +145,8 @@ export default function DocumentDetailPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-start lg:items-end gap-3 shrink-0">
-                <div className="flex flex-wrap gap-2 w-full lg:w-auto">
+              <div className="flex flex-col items-stretch lg:items-end gap-3 shrink-0">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto">
                   <Skeleton className="h-12 w-[120px] rounded-md" />
                   <Skeleton className="h-12 w-[200px] rounded-md" />
                 </div>
@@ -153,13 +154,12 @@ export default function DocumentDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border/40 bg-card/60 overflow-hidden shadow-sm flex flex-col ring-1 ring-black/5">
-            <div className="px-6 py-4 border-b border-border/40 bg-muted/20">
+          <div className="content-card overflow-hidden flex flex-col">
+            <div className="px-4 sm:px-6 py-4 border-b border-border bg-muted/20">
               <Skeleton className="w-40 h-6" />
             </div>
             <div
-              className="w-full bg-muted/10 relative"
-              style={{ height: "75vh", minHeight: "600px" }}
+              className="document-reader__viewport bg-muted/10 relative"
             >
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
                 <Skeleton className="w-12 h-12 rounded-full" />
@@ -168,7 +168,7 @@ export default function DocumentDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-4">
+          <div className="content-card p-4 sm:p-6 md:p-8 space-y-4">
             <Skeleton className="w-32 h-6 mb-4" />
             <Skeleton className="w-full h-4" />
             <Skeleton className="w-full h-4" />
@@ -196,7 +196,7 @@ export default function DocumentDetailPage() {
 
       <div className="flex flex-col gap-6">
         {/* Header Metadata */}
-        <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 md:p-8">
+        <div className="content-card p-4 sm:p-6 md:p-8">
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 sm:gap-6">
             <div className="flex-1 min-w-0">
               <div className="flex gap-2 flex-wrap mb-3 sm:mb-4">
@@ -276,14 +276,14 @@ export default function DocumentDetailPage() {
               </div>
             </div>
 
-            <div className="flex flex-col items-start lg:items-end gap-3 shrink-0">
-              <div className="flex flex-wrap gap-2 w-full lg:w-auto">
+            <div className="flex flex-col items-stretch lg:items-end gap-3 shrink-0">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto">
                 {(currentUser?.id === document.owner.id ||
                   currentUser?.role === "ADMIN") && (
                   <Button
                     variant="outline"
                     size="lg"
-                    className="flex-1 lg:flex-none shadow-sm transition-all"
+                    className="w-full min-h-11 sm:w-auto sm:flex-1 lg:flex-none shadow-sm transition-colors"
                     onClick={() => setIsEditModalOpen(true)}
                   >
                     <Edit className="w-4 h-4 mr-2" />
@@ -292,7 +292,7 @@ export default function DocumentDetailPage() {
                 )}
                 <Button
                   size="lg"
-                  className="flex-1 lg:flex-none min-w-0 shadow-md hover:shadow-lg transition-all"
+                  className="w-full min-h-11 sm:w-auto sm:flex-1 lg:flex-none min-w-0 shadow-md hover:shadow-lg transition-shadow"
                   onClick={() => openDownloadModal(document)}
                 >
                   <Download className="w-5 h-5 mr-2" />
@@ -304,16 +304,15 @@ export default function DocumentDetailPage() {
         </div>
 
         {/* Inline Viewer */}
-        <div className="rounded-2xl border border-border/40 bg-card/60 overflow-hidden shadow-sm flex flex-col ring-1 ring-black/5">
-          <div className="px-6 py-4 border-b border-border/40 flex justify-between items-center bg-muted/20">
+        <div className="content-card overflow-hidden flex flex-col">
+          <div className="px-4 sm:px-6 py-4 border-b border-border flex justify-between items-center bg-muted/20">
             <h3 className="font-semibold flex items-center gap-2 text-foreground/80">
               <FileText className="size-5 text-primary/60" />
               Nội dung tài liệu
             </h3>
           </div>
           <div
-            className="w-full bg-muted/10 relative"
-            style={{ height: "75vh", minHeight: "600px" }}
+            className="document-reader__viewport bg-muted/10 relative"
           >
             {documentUrl ? (
               <iframe
@@ -324,7 +323,7 @@ export default function DocumentDetailPage() {
                 allowFullScreen
               />
             ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center text-muted-foreground">
                 <FileText className="size-12 mb-3 opacity-20" />
                 <p>Không thể hiển thị bản xem trước cho tài liệu này.</p>
               </div>
@@ -334,7 +333,7 @@ export default function DocumentDetailPage() {
 
         {/* Description */}
         {document.description && (
-          <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+          <div className="content-card p-4 sm:p-6 md:p-8">
             <h3 className="font-semibold mb-4 text-foreground/80">
               Mô tả tài liệu
             </h3>

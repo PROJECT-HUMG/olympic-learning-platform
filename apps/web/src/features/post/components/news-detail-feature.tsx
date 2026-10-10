@@ -87,7 +87,7 @@ function NewsDetailSkeleton() {
       </div>
 
       {/* Article content skeleton */}
-      <div className="mx-auto mt-6 max-w-4xl px-4 sm:mt-10 sm:px-6">
+      <div className="mx-auto mt-6 max-w-[72ch] px-4 sm:mt-8 sm:px-6">
         <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
           <Skeleton className="h-4 w-36" />
           <div className="mt-3 space-y-2">
@@ -132,7 +132,9 @@ function MobileToc({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground"
+        aria-expanded={isOpen}
+        aria-controls="news-article-toc"
+        className="flex min-h-11 w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground"
       >
         <span>Mục lục bài viết</span>
         <ChevronDown
@@ -148,6 +150,7 @@ function MobileToc({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.2, ease: "easeInOut" }}
+            id="news-article-toc"
             className="overflow-hidden"
           >
             <div className="border-t border-border/30 px-4 pb-4 pt-2">
@@ -330,7 +333,7 @@ export function NewsDetailFeature() {
       </motion.header>
 
       {/* ── Content Area: Sidebar + Article ── */}
-      <div className="mx-auto mt-6 max-w-4xl px-4 sm:mt-10 sm:px-6">
+      <div className="mx-auto mt-6 max-w-[72ch] px-4 sm:mt-8 sm:px-6">
         {/* ── Article Content ── */}
         <motion.article
           initial={reduceMotion ? false : { opacity: 0, y: 24 }}
@@ -342,7 +345,7 @@ export function NewsDetailFeature() {
 
           {/* Summary / Lead text */}
           {post.summary && (
-            <p className="mb-10 border-l-2 border-primary/40 pl-4 text-lg font-medium leading-relaxed text-muted-foreground md:text-xl">
+            <p className="mb-6 border-l-2 border-primary/40 pl-4 text-base font-medium leading-relaxed text-muted-foreground sm:mb-8 sm:text-lg">
               {post.summary}
             </p>
           )}
@@ -373,10 +376,10 @@ export function NewsDetailFeature() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: reduceMotion ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto mt-20 max-w-5xl px-4 sm:px-6 lg:px-8"
+          className="mx-auto mt-10 max-w-5xl sm:mt-16 px-4 sm:px-6 lg:px-8"
         >
-          <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-2xl font-bold tracking-tight">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-xl font-bold tracking-tight">
               Bài viết liên quan
             </h2>
             <Button variant="ghost" asChild>

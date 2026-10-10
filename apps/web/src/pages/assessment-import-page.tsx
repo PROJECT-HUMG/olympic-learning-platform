@@ -1,8 +1,9 @@
 import { PageHeader } from "@/components/ui/page-header";
+import { CreationDialog } from "@/components/ui/creation-dialog";
 import { useState } from "react";
 import { FileUp, RefreshCw, Send, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { AssessmentDraftList } from "@/features/assessment/components/assessment-draft-list";
 import { AssessmentImportProgress } from "@/features/assessment/components/assessment-import-progress";
 import {
@@ -18,6 +19,7 @@ import {
 } from "@/features/assessment/hooks/use-assessment-import";
 
 export default function AssessmentImportPage() {
+  const [creating, setCreating] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [importId, setImportId] = useState<string>();
   const [error, setError] = useState<string>();
@@ -38,6 +40,8 @@ export default function AssessmentImportPage() {
     try {
       const result = await createImport.mutateAsync(file);
       setImportId(result.id);
+      setCreating(false);
+      setFile(null);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Không thể tải file lên.");
     }
@@ -86,15 +90,9 @@ export default function AssessmentImportPage() {
         description="Nhập đề Toán vào ngân hàng câu hỏi. Hệ thống đọc từng trang và giữ lại hình minh họa; bạn kiểm duyệt trước khi sử dụng."
       />
 
-      {!importId && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <UploadCloud className="size-5 text-primary" />
-              Chọn đề cần phân tích
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      {!importId && <div className="page-guidance"><p>Chọn PDF để tạo một phiên nhập đề. Kiểm duyệt và xuất bản vẫn là các bước riêng.</p><Button className="mt-4" onClick={() => setCreating(true)}><UploadCloud aria-hidden="true" />Nhập đề từ PDF</Button></div>}
+      <CreationDialog className="creation-dialog--compact" open={creating} onOpenChange={open => { setCreating(open); if (!open) { setFile(null); setError(undefined); } }} title="Nhập đề từ PDF" description="Chọn PDF tối đa 25 MB. Bản phân tích được giữ để kiểm duyệt trước khi xuất bản." dirty={!!file} busy={createImport.isPending}>{close => (
+        <div className="space-y-4">
             <label
               htmlFor="assessment-pdf"
               className="relative flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/20 px-5 text-center transition-colors hover:border-primary/50 hover:bg-primary/5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
@@ -133,9 +131,9 @@ export default function AssessmentImportPage() {
             >
               Bắt đầu phân tích
             </Button>
-          </CardContent>
-        </Card>
-      )}
+            <Button variant="ghost" disabled={createImport.isPending} onClick={close}>Hủy</Button>
+        </div>
+      )}</CreationDialog>
 
       {importId && isStatusLoading && <AssessmentImportSkeleton />}
 

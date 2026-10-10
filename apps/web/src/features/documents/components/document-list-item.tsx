@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { FileText, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { UserHoverCard } from "@/features/user/components/user-hover-card";
+import { DocumentThumbnail } from "./document-thumbnail";
 import type { DocumentResponse } from "../types/documents.types";
 
 interface DocumentListItemProps {
@@ -23,11 +24,16 @@ export function DocumentListItem({
         state={{ from: location.pathname + location.search }}
         className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-md pr-2 focus-visible:outline-2 focus-visible:outline-ring"
       >
-        <FileText
-          aria-hidden="true"
-          className="size-5 shrink-0 text-primary/60"
-        />
-        <span className="truncate text-sm font-medium">{document.title}</span>
+        <DocumentThumbnail src={document.thumbnailUrl} compact />
+        <div className="min-w-0 flex-1">
+          <h3 className="line-clamp-3 break-words text-sm font-semibold leading-5">{document.title}</h3>
+          <p className="document-list-context mt-1">
+            <span className="font-medium text-primary">{document.subject?.name}</span>
+            <span>{document.category?.name}</span>
+            {document.tags?.slice(0, 2).map(tag => <span key={tag.id}>#{tag.name}</span>)}
+          </p>
+          <span className="mt-1 inline-flex min-h-11 items-center text-xs font-medium text-primary">Mở tài liệu →</span>
+        </div>
       </Link>
       <div className="hidden w-[180px] shrink-0 truncate pr-4 text-xs text-muted-foreground sm:block">
         <UserHoverCard user={document.owner}>

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowUpRight, Plus, Users } from "lucide-react";
+import { CreationDialog } from "@/components/ui/creation-dialog";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { parseApiError } from "@/lib/api-error";
@@ -16,10 +17,7 @@ export function StudyRoomsLobby() {
   const user = useCurrentUser();
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
-  const createTrigger = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (creating) document.getElementById("study-room-name")?.focus();
-  }, [creating]);
+
   const [form, setForm] = useState<CreateRoomInput>({ name: "", focusMinutes: 25, breakMinutes: 5, longBreakMinutes: 15, requestPolicy: "AFTER_FOCUS", minimumStudyMinutes: 15 });
   const rooms = useQuery({
     queryKey: ["study-rooms", user.data?.id],
@@ -44,11 +42,10 @@ export function StudyRoomsLobby() {
     <section className="study-rooms-lobby">
       <header className="study-rooms-lobby__heading">
         <div><h2>Chọn một phòng để học cùng</h2><p>Xem bàn học trước khi tham gia. Hoặc tạo phòng và mời bạn bè.</p></div>
-        <Button ref={createTrigger} disabled={create.isPending} onClick={() => setCreating((value) => !value)} aria-expanded={creating} aria-controls="create-study-room"><Plus aria-hidden="true" /> {creating ? "Đóng biểu mẫu" : "Tạo phòng"}</Button>
+        <Button disabled={create.isPending} onClick={() => setCreating(true)} aria-expanded={creating} aria-controls="create-study-room"><Plus aria-hidden="true" /> Tạo phòng</Button>
       </header>
-      {creating && (
+      <CreationDialog open={creating} onOpenChange={open => { setCreating(open); if (!open) { setForm({ name: "", focusMinutes: 25, breakMinutes: 5, longBreakMinutes: 15, requestPolicy: "AFTER_FOCUS", minimumStudyMinutes: 15 }); create.reset(); } }} title="Tạo phòng học" description="Chọn nhịp học, chính sách và mời bạn bè sau khi tạo." dirty={form.name !== "" || form.focusMinutes !== 25 || form.breakMinutes !== 5 || form.longBreakMinutes !== 15 || form.requestPolicy !== "AFTER_FOCUS" || form.minimumStudyMinutes !== 15} busy={create.isPending}>{close => (
         <form id="create-study-room" className="study-room-create" onSubmit={submit}>
-          <h3>Tạo phòng học</h3>
           <label htmlFor="study-room-name">Tên phòng</label>
           <input id="study-room-name" required maxLength={80} value={form.name} placeholder="Ví dụ: Cùng ôn Giải tích" onChange={(event) => setForm({ ...form, name: event.target.value })} />
           <fieldset className="study-room-create__rhythm">
@@ -60,9 +57,9 @@ export function StudyRoomsLobby() {
           <p className="study-room-note">Nghỉ dài sau mỗi 4 phiên. Đồng hồ chung bắt đầu khi tạo phòng; bạn có thể rời bàn nghỉ thêm khi cần.</p>
           <RoomPolicyFields prefix="create" value={form} onChange={(value) => setForm({ ...form, ...value })} disabled={create.isPending} />
           {create.isError && <p className="study-room-error" role="alert">{parseApiError(create.error).detail}</p>}
-          <div className="study-room-create__actions"><Button type="submit" disabled={create.isPending || !form.name.trim()}>{create.isPending ? "Đang tạo…" : "Tạo phòng và vào học"}</Button><Button type="button" variant="ghost" disabled={create.isPending} onClick={() => { setCreating(false); createTrigger.current?.focus(); }}>Hủy</Button></div>
+          <div className="study-room-create__actions"><Button type="submit" disabled={create.isPending || !form.name.trim()}>{create.isPending ? "Đang tạo…" : "Tạo phòng và vào học"}</Button><Button type="button" variant="ghost" disabled={create.isPending} onClick={close}>Hủy</Button></div>
         </form>
-      )}
+      )}</CreationDialog>
       <div className="study-rooms-lobby__list-heading"><h3>Phòng đang mở{rooms.data && !rooms.isError ? ` (${rooms.data.length})` : ""}</h3><span>Lofi Girl · nhạc mặc định</span></div>
       {rooms.isPending ? <p className="study-room-feedback" role="status">Đang tìm phòng học…</p> : rooms.isError ? (
         <div className="study-room-feedback" role="alert"><p>Chưa tải được phòng học.</p><Button variant="outline" onClick={() => void rooms.refetch()} disabled={rooms.isFetching}>Thử lại</Button></div>

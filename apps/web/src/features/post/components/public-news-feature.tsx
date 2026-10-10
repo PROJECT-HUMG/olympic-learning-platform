@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/ui/page-header";
 import type { FormEvent } from "react";
-import { Bell, Newspaper, Pin, RefreshCw } from "lucide-react";
+import { Bell, Pin, RefreshCw } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
@@ -56,8 +56,44 @@ export function PublicNewsFeature() {
 
   return (
     <div className="page-shell page-shell--public school-news">
-      <PageHeader title="Bảng tin học đường" description="Thông báo cần nhớ, chuyện trong trường và những điều đáng đọc."
-        actions={<Button asChild variant="outline"><a href="#school-news-feed"><Newspaper aria-hidden="true" />Xem bài viết</a></Button>} />
+      <PageHeader title="Bảng tin học đường" description="Thông báo cần nhớ, chuyện trong trường và những điều đáng đọc." />
+
+      <section className="school-news__discovery filter-panel" aria-labelledby="school-news-discovery-title">
+        <div className="school-news__discovery-header">
+          <div>
+            <h2 id="school-news-discovery-title">Tìm bài viết</h2>
+            <p aria-live="polite">
+              {keyword ? <>Từ khóa “{keyword}”{feed.data && !feed.isError ? ` · ${feed.data.totalElements} bài viết` : ""}</> : "Tìm theo tiêu đề, chọn loại bài viết cần xem."}
+            </p>
+          </div>
+          <form key={searchParams.toString()} role="search" onSubmit={search} className="school-news__search">
+            <label className="sr-only" htmlFor="school-news-search">Tìm bài viết</label>
+            <SearchInput id="school-news-search" type="search" name="q" defaultValue={keyword} placeholder="Tìm trong bảng tin…" className="bg-card" />
+            <Button type="submit" variant="secondary">Tìm</Button>
+          </form>
+        </div>
+
+        <nav className="school-news__categories" aria-label="Loại bài viết">
+          {categories.map((category) => (
+            <Link
+              key={category.value}
+              to={{ search: changedParams({ type: category.value === "ALL" ? undefined : category.value, page: undefined }).toString() }}
+              aria-current={type === category.value ? "page" : undefined}
+            >
+              {category.value === "ANNOUNCEMENT" && <Bell aria-hidden="true" />}
+              {category.label}
+            </Link>
+          ))}
+        </nav>
+
+        {hasFilters && (
+          <div className="school-news__filter-summary">
+            <span>{type !== "ALL" && categories.find(category => category.value === type)?.label}{type !== "ALL" && keyword ? " · " : ""}{keyword && <>“{keyword}”</>}</span>
+            <Button type="button" variant="ghost" onClick={reset}>Xóa bộ lọc</Button>
+          </div>
+        )}
+
+      </section>
 
       {showPriority && (priority.isLoading || priority.isError || Boolean(priority.data?.content.length)) && (
         <section className="school-news__pinned" aria-labelledby="school-news-pinned-title" aria-busy={priority.isFetching}>
@@ -86,39 +122,10 @@ export function PublicNewsFeature() {
       )}
 
       <section className="school-news__feed" id="school-news-feed" aria-labelledby="school-news-feed-title">
-        <div className="school-news__feed-header">
-          <div>
-            <h2 id="school-news-feed-title">{hasFilters ? "Tìm trong bảng tin" : "Tất cả bài viết"}</h2>
-            <p aria-live="polite">
-              {keyword ? <>Từ khóa “{keyword}”{feed.data ? ` · ${feed.data.totalElements} bài viết` : ""}</> : "Theo dõi những cập nhật mới nhất."}
-            </p>
-          </div>
-          <form key={searchParams.toString()} role="search" onSubmit={search} className="school-news__search">
-            <label className="sr-only" htmlFor="school-news-search">Tìm bài viết</label>
-            <SearchInput id="school-news-search" type="search" name="q" defaultValue={keyword} placeholder="Tìm trong bảng tin…" className="bg-card" />
-            <Button type="submit" variant="secondary">Tìm</Button>
-          </form>
+        <div className="school-news__feed-heading">
+          <h2 id="school-news-feed-title">{hasFilters ? "Bài viết phù hợp" : "Tất cả bài viết"}</h2>
+          {!feed.isError && feed.data && <p>{feed.data.totalElements} bài viết · Mới nhất trước</p>}
         </div>
-
-        <nav className="school-news__categories" aria-label="Loại bài viết">
-          {categories.map((category) => (
-            <Link
-              key={category.value}
-              to={{ search: changedParams({ type: category.value === "ALL" ? undefined : category.value, page: undefined }).toString() }}
-              aria-current={type === category.value ? "page" : undefined}
-            >
-              {category.value === "ANNOUNCEMENT" && <Bell aria-hidden="true" />}
-              {category.label}
-            </Link>
-          ))}
-        </nav>
-
-        {hasFilters && (
-          <div className="school-news__filter-summary">
-            <span>{feed.isError ? "Chưa tải được kết quả" : feed.data ? `${feed.data.totalElements} bài viết phù hợp` : "Đang tìm bài viết…"}</span>
-            <Button type="button" variant="ghost" onClick={reset}>Xóa bộ lọc</Button>
-          </div>
-        )}
 
         {pageOutOfRange && !feed.isError ? (
           <div className="school-news__state" role="status">
