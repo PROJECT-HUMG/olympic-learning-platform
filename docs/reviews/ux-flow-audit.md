@@ -3237,3 +3237,139 @@ Daily tests/browser fixture, auth/deploy docs) remain unchanged. Root operator
 .env stays ignored/untracked: no contents read, printed, copied, hashed or staged.
 After commit verify exact committed blobs, empty index and preserved dirty work;
 normal push to the inspected configured origin/main only, then report and stop.
+
+
+## Mobile modal frame audit (8773df0)
+
+10/10/2026; READ-ONLY runtime/source audit, documentation-only supplement. Actual
+HEAD8773df072c58b0b52a33e5f6116fd70918320458; index empty at entry. Full owner/site
+coverage, priorities and smallest remedies are in the [component reference](../architecture/web-ui-components.md#mobile-modal-frame-audit-8773df0):43construction sites/34files, shared primitives plus Sheet/Select and native variants inspected.
+
+### Disposition / concrete observations
+
+ACCEPT the audit findings as follow-up inputs, **not runtime fixes or release
+approval**. High priority: shared Dialog implicit grid intrinsic width clips long
+identity/review content (288px frame →903/1783px scroll width); Recognition's long
+filename download label expands shared evidence frame to668px and moves Close
+off-screen; independently, a191-character achievement title makes the full sticky
+evidence header286px high inside248px at320×280, completely covering a focused
+zoom button. Keep only title/Close sticky and scroll full context; constrain/wrap
+content/actions in their owners. Medium: native Daily group bottom actions36px
+and outside-wheel background scroll163→226; nested image chooser scrolling54px
+moves sole Close to y=-30. Purposeful room/native/Daily owners remain distinct.
+These are evidenced defects/usability costs, not authority to change lifecycle,
+private-media/business gates, pending dismissal or draft behavior.
+
+### Evidence and bounds
+
+- `/tmp/mobile-modal-audit-7Az1sC/results.json`: first three complete form/context/
+  delete matrices (320×568 light,390×844 dark,320×280 dark), plus partial844×390.
+ 42screenshots and7recorded checks; run stopped on a hidden responsive Users
+  trigger selected by the probe. Valid earlier screenshots remain observations;
+  this is **not a clean whole run**. `/tmp/mobile-modal-audit-X19GUC/results.json`
+  completes844×390 light/667×320 dark matrices (24screenshots,4checks), then stops
+  on an incorrect rich-editor title selector. No product timeout inferred.
+- `/tmp/mobile-modal-audit-eVzQgB/results.json`: completed nested image/link,
+  protected evidence/zoom/focus and populated reader-edit probes (11screenshots,
+ 3checks); tail interrupted by incomplete synthetic News DTO. Exclude its failed
+  reader-tail readiness from proof. `/tmp/mobile-modal-audit-50MS77/results.json`
+  completes the corrected actual News lightbox/native Daily group tail
+  (4screenshots,2checks,errors[]); no live server was contacted.
+- `/tmp/mobile-modal-owner-audit-uy09OK/results.json`: actual crop/native-music/
+  track/rhythm owners plus assembled Daily reflection composition;40screenshots,
+ 20checks,errors[],320/390 portrait,320short/844landscape,representative light/dark.
+  Persistent player sentinel stays the same DOM node; this is not YouTube playback
+  or Daily serialized-sync proof.
+- `/tmp/mobile-modal-owner-audit-9dKC6E/results.json`: viewer long record-title
+  stress with short download label isolates sticky-header height from filename
+  overflow (12screenshots,4checks,errors[]). `/tmp/mobile-modal-owner-audit-nZrL5x/results.json`
+  explicitly focuses enabled “Phóng to” at320×280 (3screenshots,1check,errors[]):
+  focused rect y143.64–187.64 is fully covered by header ending y247.64.
+- `/tmp/mobile-modal-owner-audit-FufTcr/results.json`: focused resize/draft retained,
+  reflection last-field/retry focus, crop14Tab trap and Radix/native-room outside
+  wheel lock (5screenshots,4checks,errors[]). A390×844→390×280 resize leaves focused
+  room input at y454–498 until Tab reveals the next control; only emulation,
+  not a physical keyboard/browser verdict.
+- `/tmp/mobile-modal-audit-5o4W6b/results.json`: native Daily outside wheel scroll
+  observation (2screenshots,1check,errors[]),body overflow visible. Close/Input44px,
+  Cancel/Create36px. This pending Daily source was inspected without alteration.
+
+Earlier failed harness artifacts5maTAZ/ukdqtz (disabled-document-submit/validation
+selectors),k9D7zP (virtual fixture resolver),A9oUSn (stale fixture module) andC6zvX4
+(incomplete News DTO) remain excluded from passing evidence. External fonts/media
+are blocked; expected fixture503s and navigation-aborted resources are recorded.
+No exhaustive all-screen render/live authorization/persistence/real Turnstile,
+physical Android/iOS IME,notch/browser chrome or screen-reader proof. Prior adequate
+creation/publication/private-media/pending-delete evidence is reused explicitly,
+not called fresh. No unrelated build/lint/test suite,CI/deploy monitoring,secret
+reads,live mutations or runtime fixes. Development Query Devtools launcher can
+appear in screenshots; do not diagnose it as a production modal action.
+
+### Preservation / supplemental handoff
+
+Entry `/tmp/mobile-modal-audit-entry-20261010.json` and docs entry
+`/tmp/mobile-modal-docs-entry-20261010.json`. The complete425208-byte pre-audit
+status prefix remains bit-identical with SHA256
+`dfdaf779f2dd2805c6cf27f913cfbbd1f01f75e94ec4164bedf33de760f29936`;
+all eight independent dirty Daily/auth/deploy file hashes are retained. Documentation
+changes are only this audit/reference/authority clarification, without changing
+prior candidate manifests. Exact new doc hashes, incremental entry-to-final patch,
+source inventory/probe identities and final preservation result:
+`/tmp/mobile-modal-audit-handoff-20261010.json`. Runtime and index remain unchanged;
+no staging,commit,push/deploy. Owned synthetic Vite/Chromium are stopped after probes.
+
+
+## Mobile modal repairs 20261010
+
+Lead accepts all five local remedies on base8773df072c58b0b52a33e5f6116fd70918320458,
+following the [historical modal audit](#mobile-modal-frame-audit-8773df0).
+Scoped commit and normal origin/main push are authorized; no post-push CI/deploy
+monitoring. Pending Daily recovery and unrelated auth/deploy work remain excluded.
+[Owner lookup](../architecture/web-ui-components.md#interaction-owner-lookup) and
+[actual before/after results, rules and limits](../architecture/web-ui-components.md#mobile-modal-repairs-10102026)
+are the discoverable reference; this resolves the audit findings rather than
+opening another tracker.
+
+Dialog now shrinks/wraps complete contextual text; EvidenceViewer bounds its
+controls, keeps only compact title/Close sticky and scrolls full privacy context;
+Recognition download keeps full original filename accessible with concise visible
+label; native Daily group has44px actions and restores its own prior body overflow
+on close/unmount; nested POST image picker has guarded bottom Cancel. Existing
+business/media/draft/pending policies stay with their owning features.
+
+Clean final Chromium probe: `/tmp/mobile-modal-fixes-after-Vs667I/results.json`
+(41 screenshots,10 check groups, no assertion/runtime exceptions), paired with
+exact entry-source before `/tmp/mobile-modal-fixes-before-eKZfEx/results.json`.
+Focused zoom center hit-test, narrow long identity/review text, native wheel lock
+and close/focus/unmount restoration, nested upload pending/failure/retry and
+retained parent draft are observed.320/390/short/landscape/light-dark plus tablet
+and desktop are representative, not all-screen or live-backend proof. Controlled
+viewport shrink is not physical IME/notch/screen-reader validation. Earlier failed
+probe attempts remain recorded in the reference.31 focused Node tests, TypeScript,
+Vite production build and lint passed; existing warnings/blocked synthetic traffic
+are retained as limits. No whole-app repeat scan or live mutation.
+
+Accounting: `/tmp/mobile-modal-fixes-entry-20261010/entry.json` preserves all entry
+bytes. The task's GroupList scroll-lock hunks are incremental to the prior accepted
+Daily recovery; entry reconstruction excludes them and reproduces that file's
+original hash. Independent Daily/auth/deploy paths and this file's430720-byte entry
+prefix remain identical. Complete paths/hashes, prior doc supplement identity,
+patch/reconstruction proof and runtime cleanup are recorded in
+`/tmp/mobile-modal-fixes-final-manifest-20261010.json`; old doc hashes are historical,
+not falsely reused for these updated documents. Publication records scoped committed hashes separately in
+`/tmp/mobile-modal-publication-20261010.json`. Original accepted candidate hashes
+remain historical. The native44px CSS rule also guarantees minimum width, so
+committed targets do not depend on the pending Daily Close class change.
+
+
+Publication acceptance: Lead ACCEPT the scoped12-path result, excluding the prior
+Daily GroupList error/Close-class hunks and the85-line Daily recovery status section.
+Only the directly relevant historical modal audit and current remedy/index/design
+updates accompany this task. Native minimum-width CSS makes44×44 targets independent
+of the pending Close class. Probe whitespace and a scoped-mode fixture expectation
+were corrected. Index-only TypeScript and the scoped native/nested Chromium probe
+passed (`/tmp/mobile-modal-fixes-after-ex9eGh/results.json`,6screenshots/3checks,
+errors[]); prior adequate build/lint/31regressions/41screenshots reused. No live
+mutation. Scoped hashes, original accepted manifest, pending patch/reconstruction,
+actual commit/push result and runtime cleanup belong to the supplemental
+`/tmp/mobile-modal-publication-20261010.json`. No CI/deployment observation requested.

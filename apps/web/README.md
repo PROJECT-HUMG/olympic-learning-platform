@@ -6,6 +6,8 @@ separately. See [authentication setup](../../docs/architecture/authentication.md
 
 SPA React 19 + TypeScript + Vite 8 của Olympic Learning Platform. Tailwind CSS 4 và các UI primitive trong `src/components/ui` tạo giao diện; React Router quản lý route; TanStack Query giữ server state; Zustand giữ một số trạng thái client.
 
+For UI source discovery, start with the [interaction owner lookup](../../docs/architecture/web-ui-components.md#interaction-owner-lookup): Dialog/CreationDialog, protected evidence, native Daily and nested POST choosers, with feature adapters and styles. [Mobile repair proof](../../docs/architecture/web-ui-components.md#mobile-modal-repairs-10102026) distinguishes current local fixes from historical audits.
+
 ## Chạy local
 
 Yêu cầu Node.js tương thích Vite 8 và pnpm. Từ `apps/web`:

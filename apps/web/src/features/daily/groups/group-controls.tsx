@@ -24,6 +24,22 @@ export function GroupList({userId,warning,retry}:{userId:string;warning:boolean;
   const navigate=useNavigate();
   const [name,setName]=useState("");
   const createDialogRef=useRef<HTMLDialogElement|null>(null);
+  const restoreCreateScroll=useRef<(() => void)|null>(null);
+  useEffect(() => () => { restoreCreateScroll.current?.(); restoreCreateScroll.current=null; }, []);
+  function openCreate() {
+    const dialog=createDialogRef.current;
+    if (!dialog || dialog.open) return;
+    restoreCreateScroll.current?.();
+    const previousOverflow=document.body.style.overflow;
+    dialog.showModal();
+    document.body.style.overflow="hidden";
+    restoreCreateScroll.current=() => { document.body.style.overflow=previousOverflow; };
+  }
+  function restoreScroll() {
+    // A queued native close event must not unlock a dialog already reopened.
+    if (createDialogRef.current?.open) return;
+    restoreCreateScroll.current?.(); restoreCreateScroll.current=null;
+  }
   const action=useGroupAction();
   const groups=useQuery({queryKey:["daily-groups",userId,"list"],queryFn:({signal})=>groupService.list(signal),retry:false,staleTime:0,gcTime:0});
   const invites=useQuery({queryKey:["daily-groups",userId,"invitations"],queryFn:({signal})=>groupService.invitations(userId,signal),retry:false,staleTime:0,gcTime:0});
@@ -74,7 +90,7 @@ export function GroupList({userId,warning,retry}:{userId:string;warning:boolean;
           <Button
             type="button"
             className="gap-1.5"
-            onClick={() => createDialogRef.current?.showModal()}
+            onClick={openCreate}
           >
             <Plus className="h-4 w-4" /> Tạo nhóm mới
           </Button>
@@ -85,6 +101,7 @@ export function GroupList({userId,warning,retry}:{userId:string;warning:boolean;
     {/* Create group dialog */}
     <dialog
       ref={createDialogRef}
+      onClose={restoreScroll}
       aria-labelledby="create-group-title"
       className="study-dialog rounded-xl border bg-card p-6 shadow-xl text-card-foreground m-auto"
     >

@@ -381,7 +381,7 @@ already have it; explicit modal dismissal is guarded.
 
 The frame is ≤68rem desktop, bounded to viewport height with a reachable header
 and internally scrolling body; `.creation-dialog--compact` is ≤36rem for shorter
-forms. At≤640px both use the full100dvh viewport/safe-area gutters. Do not constrain
+forms. At≤640px both use the full100dvh viewport with top-header/bottom-body safe-area padding; horizontal insets are not explicit. Do not constrain
 long editors to a tiny overlay, duplicate their page title under the dialog title,
 or shrink targets to make them fit. Nested installed choosers retain their own
 focus and completion contracts; post image uploads report busy to the owning form.
@@ -514,3 +514,21 @@ record query. Private PDF review restoration validates the URL job identity and
 revalidates access before media/actions, while recoverable errors preserve local
 corrections. See [actual owners and adoption](web-ui-components.md#admin-recovery-and-discovery-owners-10102026)
 and [fix disposition/evidence](../reviews/ux-flow-audit.md#admin-ui-audit-remedies-20261010).
+
+
+### Mobile modal audit boundary (10/10/2026)
+
+The original [modal owner/variant audit](web-ui-components.md#mobile-modal-frame-audit-8773df0)
+against8773df0 remains historical before evidence. Its five issues are repaired
+in the scoped mobile-modal UI change (commit/push authorized): Dialog has a shrinking grid column
+and fully wrapping context; EvidenceViewer bounds controls and sticks only the
+compact title/44px Close, with full record/privacy description scrolling normally;
+Recognition downloads show “Tải tệp” with the full filename accessible; native
+Daily group buttons are44px and the owner restores prior body overflow on native
+close/unmount; the nested POST image chooser has upload-guarded bottom Cancel.
+Creation frames retain fixed headers/scrolling bodies; ordinary Dialog scrolls
+the whole frame. Phone landscape wider than640px uses centered CreationDialog.
+Find responsible adapters/styles through the [interaction owner lookup](web-ui-components.md#interaction-owner-lookup)
+and [repair proof/limits](web-ui-components.md#mobile-modal-repairs-10102026).
+Safe-area/physical IME behavior remains bounded by Chromium evidence. Native
+room persistence and Daily draft/autosync authority remain distinct.

@@ -8,7 +8,8 @@
 .evidence-file span { overflow-wrap: anywhere; font-size: .8125rem; line-height: 1.4; }
 .evidence-file small { grid-column: 2; color: var(--muted-foreground); }
 .evidence-all { min-height: 44px; padding-inline: .5rem; }
-.evidence-viewer[data-slot="dialog-content"] { width: min(100% - 2rem, 50rem); max-width: none; padding: 1.5rem; gap: 1.25rem; line-height: 1.6; overscroll-behavior: contain; }
+.evidence-viewer[data-slot="dialog-content"] { width: min(100% - 2rem, 50rem); max-width: none; padding: 1.5rem; gap: 1.25rem; line-height: 1.6; overscroll-behavior: contain; scroll-padding-top: 5rem; }
+.evidence-viewer > * { min-width: 0; }
 .evidence-gallery-header { position: sticky; top: -1.5rem; z-index: 2; background: var(--popover); padding: 1.5rem 2rem .75rem 0; margin-top: -1.5rem; overflow-wrap: anywhere; }
 .evidence-gallery-header [data-slot="dialog-title"] { font-size: 1.375rem; letter-spacing: -.02em; }
 .evidence-gallery-close { position: absolute; top: 1rem; right: -.5rem; }
@@ -18,7 +19,8 @@
 .evidence-gallery-caption { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; font-size: .875rem; }
 .evidence-gallery-caption strong { min-width: 0; overflow-wrap: anywhere; }
 .evidence-gallery-caption > span { white-space: nowrap; color: var(--muted-foreground); }
-.evidence-gallery-controls, .evidence-gallery-index { display: flex; flex-wrap: wrap; gap: .5rem; }
+.evidence-gallery-controls, .evidence-gallery-index { display: flex; min-width: 0; flex-wrap: wrap; gap: .5rem; }
+.evidence-gallery-controls > :is(button, a) { min-width: 0; max-width: 100%; height: auto; min-height: 44px; white-space: normal; overflow-wrap: anywhere; }
 .evidence-viewer button { min-height: 44px; }
 .evidence-gallery-index button { min-width: 44px; }
 .evidence-previews button:focus-visible, .evidence-viewer :is(button,a):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }

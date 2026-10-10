@@ -50,9 +50,10 @@ export function EvidenceViewer<T extends EvidenceGalleryItem>({ items, open, onO
     <DialogContent className="evidence-viewer" showCloseButton={false}
       onOpenAutoFocus={event => { event.preventDefault(); title.current?.focus(); }} onCloseAutoFocus={onCloseAutoFocus}>
       <DialogHeader className="evidence-gallery-header">
-        <DialogTitle ref={title} tabIndex={-1}>Minh chứng</DialogTitle><DialogDescription>{description}</DialogDescription>
+        <DialogTitle ref={title} tabIndex={-1}>Minh chứng</DialogTitle>
         <DialogClose asChild><Button type="button" variant="ghost" size="icon" aria-label="Đóng hộp thoại" className="evidence-gallery-close"><X size={18} aria-hidden="true" /></Button></DialogClose>
       </DialogHeader>
+      <DialogDescription>{description}</DialogDescription>
       {feedback}
       {selected ? <>
         <div className={cn("evidence-gallery-view", zoomed && "evidence-gallery-view--zoomed")} aria-live="polite" tabIndex={zoomed ? 0 : undefined} aria-label={zoomed ? "Ảnh phóng to; cuộn để xem" : undefined}>

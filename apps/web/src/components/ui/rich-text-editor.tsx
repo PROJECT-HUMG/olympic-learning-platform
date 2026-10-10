@@ -1,6 +1,6 @@
 import { useState, useRef, useId, type ReactNode } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -168,6 +168,10 @@ function ImageInsertDialog({ children, open, onOpenChange, onInsert, onUploading
             </Button>
           </TabsContent>
         </Tabs>
+        <DialogFooter>
+          <Button type="button" variant="outline" disabled={isUploading}
+            onClick={() => { if (!uploadInFlight.current) onOpenChange(false); }}>Hủy</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

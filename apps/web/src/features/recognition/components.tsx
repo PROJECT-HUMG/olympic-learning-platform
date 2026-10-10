@@ -65,7 +65,8 @@ export function EvidenceDownload({ achievementId, attachment }: { achievementId:
     catch (error) { if (!controller.signal.aborted) toast.error(parseApiError(error).detail || "Chưa tải được minh chứng. Hãy thử lại."); }
     finally { if (!controller.signal.aborted) setPending(false); if (active.current === controller) active.current = null; }
   }
-  return <Button size="sm" variant="outline" onClick={() => void download()} disabled={pending}>{pending ? "Đang tải…" : `Tải ${attachment.originalName}`}</Button>;
+  return <Button size="sm" variant="outline" onClick={() => void download()} disabled={pending}
+    aria-label={`${pending ? "Đang tải tệp" : "Tải tệp"} ${attachment.originalName}`}>{pending ? "Đang tải…" : "Tải tệp"}</Button>;
 }
 export function ScoringRules() {
   return <details className="recognition-rules" onToggle={event => {
