@@ -368,3 +368,28 @@ Possible future additions:
 -   backend-architecture.md
 -   request-lifecycle.md
 -   technology-decisions.md
+
+## Public profile boundary — 10/10/2026 decision
+
+The earlier pending default-public scope is resolved: public profiles and visibility
+for all existing achievements, plus a public default for new achievements. This does
+not enroll anyone in rankings or auto-approve claims. [Recognition policy/V24](recognition.md#duyệt-và-quyền-riêng-tư)
+describes affected old records, deployment and reversal limits. No live backfill occurred.
+
+`GET /api/v1/recognition/profiles/{userId}` remains explicitly anonymous-readable,
+returns the same minimal result for anonymous/other-user/owner/admin, and uses
+`Cache-Control: no-store`. Only active, nondeleted users qualify, regardless of role.
+The public payload contains name/username/avatar crop, approved public academic details
+and source-backed public counts/points; no email, credentials, security/login/role/status
+fields, internal review notes or evidence. News/document public attribution and the
+legacy authenticated `GET /users/{id}` now also use minimal public identity instead of
+the account DTO. `/users/me`, account editing/security and admin user management retain
+their existing private contracts. Daily/private media is unchanged.
+
+Anonymous refresh expiry previously cleared even public Recognition queries. Explicit
+`meta.publicRead` on the verified public profile/Honors/ranking reads now preserves those
+public-only caches while existing private caches are cancelled and cleared. This marker
+is not authorization: the server still enforces visibility/approval/active-account gates,
+and profile reads revalidate/mask stale data. Never mark private evidence, admin, Daily
+or account queries public. Owner/admin evidence remains authenticated, identity-checked
+and `no-store`; profile visibility does not expose original media or signed links.

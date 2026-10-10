@@ -1,4 +1,3 @@
-import { AvatarImage } from "@/features/user/components/avatar-image";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { EyeIcon } from "lucide-react";
@@ -9,7 +8,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { PostThumbnail } from "./post-thumbnail";
-import { UserHoverCard } from "@/features/user/components/user-hover-card";
+import { UserIdentity } from "@/features/user/components/user-hover-card";
 import type { PostSummaryResponse } from "../types/post.types";
 
 interface PostCardProps {
@@ -72,18 +71,7 @@ export function PostCard({ post, className, onClick }: PostCardProps) {
       <CardFooter className="p-5 pt-0 flex items-center justify-between text-xs text-muted-foreground mt-auto">
         <div onClick={(e) => e.stopPropagation()}>
           {post.author ? (
-            <UserHoverCard user={post.author as any}>
-              <div className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
-                {post.author.avatarUrl ? (
-                  <AvatarImage crop={post.author.avatarCrop} src={post.author.avatarUrl} alt={post.author.fullName} className="w-6 h-6 rounded-full object-cover ring-1 ring-border" />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-medium text-muted-foreground ring-1 ring-border">
-                    {post.author.fullName?.charAt(0) || "U"}
-                  </div>
-                )}
-                <span className="font-medium">{post.author.fullName || post.author.username || "Ẩn danh"}</span>
-              </div>
-            </UserHoverCard>
+            <UserIdentity user={post.author} />
           ) : (
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-medium text-muted-foreground ring-1 ring-border">

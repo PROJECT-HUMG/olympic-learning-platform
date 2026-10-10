@@ -1,4 +1,3 @@
-import { AvatarImage } from "@/features/user/components/avatar-image";
 import { useRef } from "react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -30,7 +29,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { PostListItem } from "@/features/post/components/post-list-item";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserHoverCard } from "@/features/user/components/user-hover-card";
+import { UserIdentity } from "@/features/user/components/user-hover-card";
 import { ReadingProgressBar } from "@/features/post/components/reading-progress-bar";
 import { ArticleToc } from "@/features/post/components/article-toc";
 import { ShareButtons } from "@/features/post/components/share-buttons";
@@ -275,31 +274,7 @@ export function NewsDetailFeature() {
             {/* Author strip */}
             <div className="mt-4 border-t border-border/40 pt-4 sm:mt-6 sm:pt-6">
           {post.author ? (
-            <UserHoverCard user={post.author as any}>
-              <div className="-ml-1 flex cursor-pointer items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-muted/50">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-primary/10">
-                    {post.author.avatarUrl ? (
-                      <AvatarImage crop={post.author.avatarCrop}
-                        src={post.author.avatarUrl}
-                        alt={post.author.fullName}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-sm font-bold text-primary">
-                        {(post.author.fullName || post.author.username || "U").charAt(0)}
-                      </span>
-                    )}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">
-                    {post.author.fullName || post.author.username}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Cập nhật {format(new Date(post.updatedAt), "dd/MM/yyyy", { locale: vi })}
-                  </p>
-                </div>
-              </div>
-            </UserHoverCard>
+            <UserIdentity user={post.author} />
           ) : (
             <div className="-ml-1 flex items-center gap-3 p-1.5">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-primary/10">

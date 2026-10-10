@@ -3,6 +3,7 @@ package me.nghlong3004.olympic.document.mapper;
 import me.nghlong3004.olympic.document.entity.Document;
 import me.nghlong3004.olympic.document.response.DocumentResponse;
 import org.mapstruct.Mapper;
+import me.nghlong3004.olympic.user.mapper.UserMapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
@@ -16,7 +17,7 @@ import org.mapstruct.ReportingPolicy;
  * @author nghlong3004 (Long Nguyen Hoang)
  * @since 7/26/2026
  */
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, uses = UserMapper.class)
 public interface DocumentMapper {
 
   /**

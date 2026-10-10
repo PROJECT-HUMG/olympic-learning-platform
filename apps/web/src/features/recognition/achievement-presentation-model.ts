@@ -1,5 +1,5 @@
 import { AWARDS, CATEGORIES, STATUS_LABELS } from "./scoring.ts";
-import type { Achievement, Award, Category } from "./types.ts";
+import type { PublicAchievement, Award, Category } from "./types.ts";
 
 export const EDITORIAL_HONOR_LABEL = "Được vinh danh";
 export const PUBLIC_LABEL_PREVIEW_LIMIT = 2;
@@ -50,12 +50,12 @@ function calendarParts(value: string): { year: number; month: number; day: numbe
 }
 
 // Approved and publicly visible only. Description and participation are copied after this filter. Totals and ranking opt-in do not grant a public label or card.
-export function isPublicAchievement(record: Achievement): boolean {
+export function isPublicAchievement(record: PublicAchievement): boolean {
   return !!record && record.status === "APPROVED" && record.publicVisible === true;
 }
 
 // Later calendar dates come first. The same day uses the raw timestamp, then id, so input order cannot change the result.
-function comparePublicChronological(left: Achievement, right: Achievement): number {
+function comparePublicChronological(left: PublicAchievement, right: PublicAchievement): number {
   const leftDate = calendarParts(left.achievedDate)?.iso ?? null;
   const rightDate = calendarParts(right.achievedDate)?.iso ?? null;
   if (leftDate && rightDate && leftDate !== rightDate) return leftDate < rightDate ? 1 : -1;
@@ -69,7 +69,7 @@ function comparePublicChronological(left: Achievement, right: Achievement): numb
   return 0;
 }
 
-function orderedPublic(records: readonly Achievement[]): Achievement[] {
+function orderedPublic(records: readonly PublicAchievement[]): PublicAchievement[] {
   const source = Array.isArray(records) ? records : [];
   return source.filter(isPublicAchievement).slice().sort(comparePublicChronological);
 }
@@ -82,7 +82,7 @@ function awardText(award: Award): string {
   return AWARDS[award] ?? award;
 }
 
-function toLabel(record: Achievement): PublicAchievementLabel {
+function toLabel(record: PublicAchievement): PublicAchievementLabel {
   return {
     id: record.id,
     category: categoryText(record.category),
@@ -102,13 +102,13 @@ function formatPoints(points: number): string | null {
   return `${points} điểm nền tảng`;
 }
 
-function formatParticipation(record: Achievement): string | null {
+function formatParticipation(record: PublicAchievement): string | null {
   if (record.includeParticipation !== true) return null;
   if (!Number.isFinite(record.awardPoints) || !Number.isFinite(record.participationPoints)) return null;
   return `Gồm ${record.awardPoints} điểm giải và ${record.participationPoints} điểm tham gia.`;
 }
 
-function toMilestone(record: Achievement): PublicAchievementMilestone {
+function toMilestone(record: PublicAchievement): PublicAchievementMilestone {
   return {
     id: record.id,
     title: record.title,
@@ -122,7 +122,7 @@ function toMilestone(record: Achievement): PublicAchievementMilestone {
   };
 }
 
-export function presentPublicLabels(records: readonly Achievement[]): PublicLabelSplit {
+export function presentPublicLabels(records: readonly PublicAchievement[]): PublicLabelSplit {
   const labels = orderedPublic(records).map(toLabel);
   const visible = labels.slice(0, PUBLIC_LABEL_PREVIEW_LIMIT);
   const overflow = labels.slice(PUBLIC_LABEL_PREVIEW_LIMIT);
@@ -133,7 +133,7 @@ export function publicLabelControlLabel(hiddenCount: number, expanded: boolean):
   return expanded ? "Thu gọn nhãn thành tích" : `Xem thêm ${hiddenCount} nhãn thành tích công khai`;
 }
 
-export function presentMilestones(records: readonly Achievement[]): MilestoneYearGroup[] {
+export function presentMilestones(records: readonly PublicAchievement[]): MilestoneYearGroup[] {
   const groups: MilestoneYearGroup[] = [];
   for (const record of orderedPublic(records)) {
     const year = calendarParts(record.achievedDate)?.year ?? null;

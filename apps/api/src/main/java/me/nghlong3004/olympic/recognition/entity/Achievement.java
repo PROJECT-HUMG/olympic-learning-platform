@@ -41,7 +41,7 @@ public class Achievement {
   @Enumerated(EnumType.STRING) @Column(name = "award", nullable = false, length = 30) private AchievementAward award;
   @Column(name = "include_participation", nullable = false) private boolean includeParticipation;
   @Column(name = "achieved_date", nullable = false) private LocalDate achievedDate;
-  @Column(name = "public_visible", nullable = false) private boolean publicVisible;
+  @Column(name = "public_visible", nullable = false) @Builder.Default private boolean publicVisible = true;
   @Enumerated(EnumType.STRING) @Column(name = "status", nullable = false, length = 30) private AchievementStatus status;
   @Column(name = "award_points", nullable = false) private int awardPoints;
   @Column(name = "participation_points", nullable = false) private int participationPoints;

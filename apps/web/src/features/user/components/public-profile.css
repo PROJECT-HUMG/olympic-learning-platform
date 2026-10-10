@@ -1,0 +1,19 @@
+.user-avatar { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; flex-shrink: 0; overflow: hidden; border-radius: 50%; background: var(--muted); color: var(--foreground); border: 1px solid var(--border); font-size: .8rem; font-weight: 600; }
+.user-avatar--preview { width: 3rem; height: 3rem; }
+.user-avatar--profile { width: 5rem; height: 5rem; font-size: 1.5rem; }
+.user-identity { display: inline-flex; align-items: center; gap: .6rem; min-width: 0; min-height: 44px; max-width: 100%; overflow-wrap: anywhere; border-radius: .4rem; }
+a.user-identity:hover { color: var(--primary); }
+a.user-identity:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.identity-preview { width: min(20rem, calc(100vw - 24px)); padding: 1rem; overflow-wrap: anywhere; }
+.identity-preview__heading { display: flex; align-items: center; gap: .75rem; }
+.identity-preview__heading > div { min-width: 0; }
+.identity-preview__summary { margin-block: .85rem .4rem; font-size: .875rem; }
+.identity-preview__latest { margin-bottom: .75rem; font-size: .875rem; }
+.public-profile-layout { display: grid; gap: 1.5rem; align-items: start; min-width: 0; }
+.public-profile-identity { min-width: 0; padding: 1.5rem; overflow-wrap: anywhere; }
+.public-profile-identity h1 { margin-top: 1rem; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 650; line-height: 1.2; }
+.public-profile-identity dl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; margin-block: 1.5rem; padding-block: 1rem; border-block: 1px solid var(--border); }
+.public-profile-identity dt { font-size: .8rem; color: var(--muted-foreground); }
+.public-profile-identity dd { font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.public-profile-main { min-width: 0; display: grid; gap: 1rem; }
+@media (min-width: 900px) { .public-profile-layout { grid-template-columns: minmax(0, 18rem) minmax(0, 1fr); } }

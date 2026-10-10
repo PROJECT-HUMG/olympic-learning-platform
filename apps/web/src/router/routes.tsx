@@ -86,6 +86,7 @@ export const router = createBrowserRouter([
       { path: ROUTES.HONORS, element: <RouteSuspense><HonorsPage /></RouteSuspense> },
       { path: `${ROUTES.HONORS}/:id`, element: <RouteSuspense><HonorDetailPage /></RouteSuspense> },
       { path: ROUTES.RANKINGS, element: <RouteSuspense><RankingsPage /></RouteSuspense> },
+      { path: "/users/:userId", element: <RouteSuspense><AchievementProfilePage /></RouteSuspense> },
       { path: `${ROUTES.ACHIEVEMENTS}/:userId`, element: <RouteSuspense><AchievementProfilePage /></RouteSuspense> },
       {
         path: ROUTES.HOME,

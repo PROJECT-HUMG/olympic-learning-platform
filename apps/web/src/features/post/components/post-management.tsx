@@ -130,7 +130,7 @@ export function PostManagement() {
                     {post.author ? (
                       <div className="flex items-center gap-2">
                         {post.author.avatarUrl && (
-                          <AvatarImage crop={post.author.avatarCrop} src={post.author.avatarUrl} alt={post.author.fullName} className="w-6 h-6 rounded-full object-cover" />
+                          <AvatarImage crop={post.author.avatarCrop} src={post.author.avatarUrl} alt={post.author.fullName || post.author.username || "Thành viên"} className="w-6 h-6 rounded-full object-cover" />
                         )}
                         <span className="text-sm">{post.author.fullName}</span>
                       </div>

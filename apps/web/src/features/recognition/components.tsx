@@ -1,8 +1,9 @@
+import { UserIdentity } from "@/features/user/components/user-hover-card";
+import { UserAvatar } from "@/features/user/components/user-avatar";
 import { AppPagination } from "@/components/ui/app-pagination";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +34,7 @@ export function YearField({ value, onChange, allTime = false }: { value: string;
   return <Field title={allTime ? "Khoảng thời gian" : "Năm"}>{id => <NativeSelect id={id} value={value} onChange={e => onChange(e.target.value)}><option value="">{allTime ? "Tất cả thời gian" : "Tất cả năm"}</option>{Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => new Date().getFullYear() - i).map(year => <option key={year} value={year}>{year}</option>)}</NativeSelect>}</Field>;
 }
 export function Participants({ items }: { items: Participant[] }) {
-  return <ul className="recognition-participants">{items.map((person, index) => <li key={`${person.userId ?? person.fullName}-${index}`}><span>{person.userId ? <Link to={`/achievements/${person.userId}`}>{person.fullName}</Link> : person.fullName}</span>{person.award && <span className="recognition-hint">{person.award}</span>}</li>)}</ul>;
+  return <ul className="recognition-participants">{items.map((person, index) => <li key={`${person.userId ?? person.fullName}-${index}`}><span>{person.userId ? <UserIdentity user={{ id: person.userId, ...person }} /> : <span className="user-identity"><UserAvatar user={person} /><span>{person.fullName}</span></span>}</span>{person.award && <span className="recognition-hint">{person.award}</span>}</li>)}</ul>;
 }
 export function HonorImage({ honor, photoId, alt, management = false, interactive = true }: { honor: Honor; photoId: string; alt: string; management?: boolean; interactive?: boolean }) {
   const container = useRef<HTMLDivElement>(null);

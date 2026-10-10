@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,9 @@ import me.nghlong3004.olympic.recognition.service.RecognitionPointsPolicy;
 import me.nghlong3004.olympic.recognition.service.RecognitionService;
 import me.nghlong3004.olympic.recognition.service.RecognitionUploadPolicy;
 import me.nghlong3004.olympic.user.entity.User;
+import me.nghlong3004.olympic.user.service.UserService;
+import me.nghlong3004.olympic.recognition.response.PublicAchievementResponse;
+import me.nghlong3004.olympic.recognition.response.HonorParticipantResponse;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -63,6 +67,7 @@ public class RecognitionServiceImpl implements RecognitionService {
   private final RecognitionFileRepository files;
   private final RecognitionPreferenceRepository preferences;
   private final UserRepository users;
+  private final UserService userService;
   private final CurrentUserProvider currentUserProvider;
   private final RecognitionUploadPolicy uploads;
   private final Clock clock;
@@ -279,17 +284,29 @@ public class RecognitionServiceImpl implements RecognitionService {
   @Override
   public Page<RankingResponse> rankings(Integer year, int page, int size) {
     validateYear(year);
-    return achievements.rankings(year, page(page, size, Sort.unsorted())).map(mapper::toRanking);
+    var result = achievements.rankings(year, page(page, size, Sort.unsorted()));
+    var identities = userService.publicIdentities(result.stream().map(AchievementRepository.RankingProjection::getUserId).toList());
+    return result.map(row -> {
+      var identity = identities.get(row.getUserId());
+      return new RankingResponse(row.getRank(), row.getUserId(), row.getFullName(), row.getUsername(),
+          row.getTotalPoints(), row.getApprovedCount(), identity == null ? null : identity.avatarUrl(),
+          identity == null ? null : identity.avatarCrop());
+    });
   }
 
   @Override
   public RecognitionProfileResponse profile(UUID userId) {
-    var user = users.findByIdAndDeletedAtIsNull(userId).orElseThrow(ErrorCode.USER_NOT_FOUND::throwIt);
-    if (!user.active() || user.getRole() != Role.STUDENT) throw ErrorCode.USER_NOT_FOUND.throwIt();
+    var identity = userService.publicIdentities(List.of(userId)).get(userId);
+    if (identity == null) throw ErrorCode.USER_NOT_FOUND.throwIt();
     var published = achievements.findByUserIdAndStatusAndPublicVisibleTrueOrderByAchievedDateDescCreatedAtDesc(userId, AchievementStatus.APPROVED)
-        .stream().map(record -> achievementResponse(record, user, false)).toList();
-    long publicPoints = published.stream().mapToLong(AchievementResponse::totalPoints).sum();
-    return mapper.toProfile(userId, name(user), user.getUsername(),
+        .stream().map(record -> new PublicAchievementResponse(record.getId(), record.getTitle(),
+            record.getDescription(), record.getCategory(), record.getAward(), record.isIncludeParticipation(),
+            record.getAchievedDate(), true, AchievementStatus.APPROVED, record.getAwardPoints(),
+            record.getParticipationPoints(), record.getAwardPoints() + record.getParticipationPoints())).toList();
+    long publicPoints = published.stream().mapToLong(PublicAchievementResponse::totalPoints).sum();
+    return new RecognitionProfileResponse(userId,
+        StringUtils.hasText(identity.fullName()) ? identity.fullName() : identity.username(), identity.username(),
+        identity.avatarUrl(), identity.avatarCrop(),
         preferences.findById(userId).map(RecognitionPreference::isRankingOptIn).orElse(false), publicPoints, published);
   }
 
@@ -364,7 +381,7 @@ public class RecognitionServiceImpl implements RecognitionService {
     achievement.setAward(request.award());
     achievement.setIncludeParticipation(request.includeParticipation());
     achievement.setAchievedDate(request.achievedDate());
-    achievement.setPublicVisible(request.publicVisible());
+    achievement.setPublicVisible(request.publicVisible() == null || request.publicVisible());
     achievement.setStatus(AchievementStatus.PENDING);
     achievement.setAwardPoints(RecognitionPointsPolicy.awardPoints(request.category(), request.award()));
     achievement.setParticipationPoints(RecognitionPointsPolicy.participationPoints(request.category(), request.includeParticipation()));
@@ -395,7 +412,14 @@ public class RecognitionServiceImpl implements RecognitionService {
     var prefix = admin && honor.getStatus() == HonorStatus.DRAFT ? "/api/v1/admin/recognition/honors/" : "/api/v1/recognition/honors/";
     var photos = files.metadataForHonor(honor.getId()).stream().map(file ->
         mapper.toFile(file, prefix + honor.getId() + "/photos/" + file.getId())).toList();
-    return mapper.toHonor(honor, mapper.toParticipants(honor.getParticipants()), photos);
+    var identities = userService.publicIdentities(honor.getParticipants().stream()
+        .map(HonorParticipant::getUserId).filter(Objects::nonNull).toList());
+    var participants = honor.getParticipants().stream().map(person -> {
+      var identity = identities.get(person.getUserId());
+      return new HonorParticipantResponse(person.getUserId(), person.getFullName(), person.getAward(),
+          identity == null ? null : identity.avatarUrl(), identity == null ? null : identity.avatarCrop(), identity != null);
+    }).toList();
+    return mapper.toHonor(honor, participants, photos);
   }
 
   private AchievementResponse achievementResponse(Achievement record, User owner, boolean privileged) {

@@ -1,3 +1,5 @@
+import { publicProfilePath } from "../user/lib/public-identity.ts";
+
 export type RankTone = "gold" | "silver" | "bronze" | "neutral";
 
 export interface RankingSource {
@@ -51,7 +53,7 @@ export function presentRankingList(records: readonly RankingSource[], year: numb
       fullName: record.fullName,
       approvedCount: record.approvedCount,
       totalPoints: record.totalPoints,
-      href: `/achievements/${encodeURIComponent(record.userId)}`,
+      href: publicProfilePath(record.userId),
       accessibleRank: `Hạng ${record.rank}, ${contextLabel}`,
       approvedLabel: `${record.approvedCount} thành tích đã duyệt`,
       pointsLabel: `${record.totalPoints} điểm nền tảng`,

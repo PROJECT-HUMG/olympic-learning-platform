@@ -19,6 +19,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
+import me.nghlong3004.olympic.recognition.response.RecognitionProfileResponse;
+import me.nghlong3004.olympic.user.controller.UserController;
+import me.nghlong3004.olympic.user.service.UserService;
+import me.nghlong3004.olympic.user.response.PublicUserIdentityResponse;
 import me.nghlong3004.olympic.common.security.BearerTokenConfig;
 import me.nghlong3004.olympic.common.security.JwtCurrentUserAuthenticationConverter;
 import me.nghlong3004.olympic.common.security.SecurityFilterChainsConfig;
@@ -31,6 +35,9 @@ import me.nghlong3004.olympic.recognition.request.ReviewAchievementRequest;
 import me.nghlong3004.olympic.recognition.request.SubmitAchievementRequest;
 import me.nghlong3004.olympic.recognition.response.RankingResponse;
 import me.nghlong3004.olympic.recognition.response.RecognitionProfileResponse;
+import me.nghlong3004.olympic.user.controller.UserController;
+import me.nghlong3004.olympic.user.service.UserService;
+import me.nghlong3004.olympic.user.response.PublicUserIdentityResponse;
 import me.nghlong3004.olympic.recognition.service.RecognitionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +60,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
  * @author nghlong3004 (Long Nguyen Hoang)
  * @since 10/02/2026
  */
-@WebMvcTest({RecognitionController.class, AdminRecognitionController.class})
+@WebMvcTest({RecognitionController.class, AdminRecognitionController.class, UserController.class})
 @Import({SecurityFilterChainsConfig.class, BearerTokenConfig.class,
     JwtCurrentUserAuthenticationConverter.class, RecognitionInputExceptionHandler.class})
 @TestPropertySource(properties = {
@@ -71,6 +78,7 @@ class RecognitionControllerTest {
       """;
   @Autowired private MockMvc mvc;
   @MockitoBean private RecognitionService service;
+  @MockitoBean private UserService userService;
   @MockitoBean private JwtDecoder decoder;
   @MockitoBean private CorsConfigurationSource cors;
 
@@ -78,6 +86,34 @@ class RecognitionControllerTest {
   void tokenRoles() {
     when(decoder.decode("student-token")).thenReturn(token("student-token", "STUDENT"));
     when(decoder.decode("admin-token")).thenReturn(token("admin-token", "ADMIN"));
+  }
+
+  @Test
+  void legacyAuthenticatedUserLookupAlsoReturnsOnlyMinimalPublicIdentity() throws Exception {
+    when(userService.findById(ID)).thenReturn(new PublicUserIdentityResponse(ID, "Synthetic member", "member", null, null, true));
+    mvc.perform(get("/api/v1/users/{id}", ID)).andExpect(status().isUnauthorized());
+    for (String token : List.of("student-token", "admin-token")) {
+      mvc.perform(get("/api/v1/users/{id}", ID).header("Authorization", "Bearer " + token))
+          .andExpect(status().isOk()).andExpect(jsonPath("$.username").value("member"))
+          .andExpect(jsonPath("$.email").doesNotExist()).andExpect(jsonPath("$.status").doesNotExist())
+          .andExpect(jsonPath("$.lastLoginAt").doesNotExist()).andExpect(jsonPath("$.role").doesNotExist());
+    }
+  }
+
+  @Test
+  void profileIsPublicMinimalAndNotStoredForAnonymousOwnerOtherUserAndAdmin() throws Exception {
+    when(service.profile(ID)).thenReturn(new RecognitionProfileResponse(ID, "Synthetic member", "member",
+        null, null, false, 0, List.of()));
+    mvc.perform(get("/api/v1/recognition/profiles/{id}", ID)).andExpect(status().isOk())
+        .andExpect(header().string("Cache-Control", "no-store"))
+        .andExpect(jsonPath("$.username").value("member"))
+        .andExpect(jsonPath("$.email").doesNotExist()).andExpect(jsonPath("$.role").doesNotExist())
+        .andExpect(jsonPath("$.lastLoginAt").doesNotExist()).andExpect(jsonPath("$.achievements").isEmpty());
+    for (String token : List.of("student-token", "admin-token")) {
+      mvc.perform(get("/api/v1/recognition/profiles/{id}", ID).header("Authorization", "Bearer " + token))
+          .andExpect(status().isOk()).andExpect(jsonPath("$.email").doesNotExist());
+    }
+    mvc.perform(get("/api/v1/recognition/profiles/not-a-uuid")).andExpect(status().isBadRequest());
   }
 
   @Test
@@ -113,8 +149,8 @@ class RecognitionControllerTest {
   void anonymousPublicReadsUseOnlyPublicServiceBoundariesAndStablePageContent() throws Exception {
     when(service.listHonors(null, null, 0, 20, false)).thenReturn(Page.empty());
     when(service.rankings(2026, 0, 20)).thenReturn(new PageImpl<>(List.of(
-        new RankingResponse(1, ID, "Student", "student", 16, 1))));
-    when(service.profile(ID)).thenReturn(new RecognitionProfileResponse(ID, "Student", "student", true, 0, List.of()));
+        new RankingResponse(1, ID, "Student", "student", 16, 1, null, null))));
+    when(service.profile(ID)).thenReturn(new RecognitionProfileResponse(ID, "Student", "student", null, null, true, 0, List.of()));
     mvc.perform(get("/api/v1/recognition/honors")).andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray());
     mvc.perform(get("/api/v1/recognition/rankings").param("year", "2026")).andExpect(status().isOk())

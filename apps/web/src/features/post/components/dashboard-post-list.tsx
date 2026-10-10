@@ -67,12 +67,12 @@ export function DashboardPostList({ data, onDeleteClick, onEditClick }: Dashboar
                   {post.author && (
                     <>
                       <span className="hidden sm:inline">•</span>
-                      <div className="flex items-center gap-1.5 max-w-[120px] truncate" title={post.author.fullName}>
+                      <div className="flex items-center gap-1.5 max-w-[120px] truncate" title={post.author.fullName || post.author.username || undefined}>
                         <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-[8px] font-semibold text-primary border shrink-0 overflow-hidden">
                           {post.author.avatarUrl ? (
                             <AvatarImage crop={post.author.avatarCrop} src={post.author.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                           ) : (
-                            (post.author.fullName)[0].toUpperCase()
+                            (post.author.fullName || post.author.username || "?")[0].toUpperCase()
                           )}
                         </div>
                         <span className="truncate">{post.author.fullName}</span>

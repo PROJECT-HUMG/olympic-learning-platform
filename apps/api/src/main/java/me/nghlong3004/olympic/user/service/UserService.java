@@ -5,6 +5,9 @@ package me.nghlong3004.olympic.user.service;
  * @since 7/23/2026
  */
 import java.util.UUID;
+import java.util.Collection;
+import java.util.Map;
+import me.nghlong3004.olympic.user.response.PublicUserIdentityResponse;
 import me.nghlong3004.olympic.auth.response.CurrentUserResponse;
 import me.nghlong3004.olympic.user.request.UpdateProfileRequest;
 import me.nghlong3004.olympic.user.request.UpdateAvatarCropRequest;
@@ -30,12 +33,20 @@ public interface UserService {
   CurrentUserResponse me();
 
   /**
-   * Retrieves the public profile of a user.
+   * Resolves minimal public identities in one user query. Inactive/deleted users are excluded.
+   *
+   * @param userIds requested public identity IDs
+   * @return active identities keyed by ID; no account or security fields
+   */
+  Map<UUID, PublicUserIdentityResponse> publicIdentities(Collection<UUID> userIds);
+
+  /**
+   * Retrieves minimal identity for an active user via the legacy authenticated endpoint.
    *
    * @param userId unique identifier of the user
-   * @return the user's public profile
+   * @return minimal public identity, never account or security data
    */
-  UserResponse findById(UUID userId);
+  PublicUserIdentityResponse findById(UUID userId);
 
   /**
    * Updates the profile information of the currently authenticated user.

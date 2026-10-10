@@ -38,7 +38,7 @@ import me.nghlong3004.olympic.user.entity.User;
 import me.nghlong3004.olympic.user.enums.Permission;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.repository.UserRepository;
-import me.nghlong3004.olympic.user.response.UserResponse;
+import me.nghlong3004.olympic.user.response.PublicUserIdentityResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -270,7 +270,7 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
     
-    UserResponse enrichedOwner = response.owner();
+    PublicUserIdentityResponse enrichedOwner = response.owner();
     if (document.getOwner() != null && enrichedOwner != null) {
         if (document.getOwner().getAvatar() != null) {
             URI avatarUri = storageService.getDownloadUri(document.getOwner().getAvatar().getStorageKey());

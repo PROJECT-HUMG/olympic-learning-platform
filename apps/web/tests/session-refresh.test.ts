@@ -113,3 +113,20 @@ it("clears observed data without disconnecting a pending screen or leaving it lo
   unsubscribe();
   client.clear();
 });
+
+it("anonymous expiry preserves explicitly public reads while clearing private observed data", async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const publicKey = ["recognition", "profile", "public-user"];
+  const privateKey = ["recognition", "mine"];
+  const publicObserver = new QueryObserver(client, { queryKey: publicKey, queryFn: async () => ({ publicPoints: 16 }), meta: { publicRead: true }, enabled: false });
+  const privateObserver = new QueryObserver(client, { queryKey: privateKey, queryFn: async () => ["private evidence"], enabled: false });
+  const stopPublic = publicObserver.subscribe(() => {});
+  const stopPrivate = privateObserver.subscribe(() => {});
+  client.setQueryData(publicKey, { publicPoints: 16 });
+  client.setQueryData(privateKey, ["private evidence"]);
+  expireAuthSession(client, () => {});
+  assert.deepEqual(publicObserver.getCurrentResult().data, { publicPoints: 16 });
+  assert.equal(privateObserver.getCurrentResult().data, undefined);
+  assert.equal(privateObserver.getCurrentResult().isError, true);
+  stopPublic(); stopPrivate(); client.clear();
+});

@@ -10,6 +10,7 @@ import me.nghlong3004.olympic.auth.response.CurrentUserResponse;
 import me.nghlong3004.olympic.user.request.UpdateProfileRequest;
 import me.nghlong3004.olympic.user.request.UpdateAvatarCropRequest;
 import me.nghlong3004.olympic.user.response.UserResponse;
+import me.nghlong3004.olympic.user.response.PublicUserIdentityResponse;
 import me.nghlong3004.olympic.user.service.UserService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,10 +46,10 @@ public class UserController {
   }
 
   @GetMapping("/{userId}")
-  @Operation(summary = "Get a user profile by id")
+  @Operation(summary = "Get minimal public identity by id (authentication required)")
   @ApiResponse(responseCode = "200", description = "User profile")
   @ApiResponse(responseCode = "404", description = "User not found")
-  public UserResponse findById(@PathVariable UUID userId) {
+  public PublicUserIdentityResponse findById(@PathVariable UUID userId) {
     return userService.findById(userId);
   }
 

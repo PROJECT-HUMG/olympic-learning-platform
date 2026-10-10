@@ -7,7 +7,7 @@ import me.nghlong3004.olympic.post.enums.PostStatus;
 import me.nghlong3004.olympic.post.enums.PostType;
 
 import lombok.Builder;
-import me.nghlong3004.olympic.user.response.UserResponse;
+import me.nghlong3004.olympic.user.response.PublicUserIdentityResponse;
 
 /**
  * @author nghlong3004 (Long Nguyen Hoang)
@@ -47,7 +47,7 @@ public record PostSummaryResponse(
 
     String thumbnailUrl,
 
-    UserResponse author,
+    PublicUserIdentityResponse author,
 
     @Schema(example = "2026-08-04T15:00:00Z")
     OffsetDateTime updatedAt

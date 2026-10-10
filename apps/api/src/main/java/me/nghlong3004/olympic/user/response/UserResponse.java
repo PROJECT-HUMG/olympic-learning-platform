@@ -10,7 +10,7 @@ import me.nghlong3004.olympic.user.enums.Status;
  * @author nghlong3004 (Long Nguyen Hoang)
  * @since 7/15/2026
  */
-@Schema(name = "UserResponse", description = "Public user payload")
+@Schema(name = "UserResponse", description = "Authenticated account payload; never public attribution")
 public record UserResponse(
     @Schema(
             description = "Id user identifier. Internal numeric ids are never exposed.",

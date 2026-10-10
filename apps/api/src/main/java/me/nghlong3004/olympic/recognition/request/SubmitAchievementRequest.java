@@ -22,4 +22,4 @@ public record SubmitAchievementRequest(
     @NotNull AchievementAward award,
     boolean includeParticipation,
     @NotNull @PastOrPresent LocalDate achievedDate,
-    boolean publicVisible) {}
+    @Schema(description = "Defaults to public when omitted; owner can opt out") Boolean publicVisible) {}

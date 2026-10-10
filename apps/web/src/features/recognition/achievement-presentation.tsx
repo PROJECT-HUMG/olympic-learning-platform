@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import { EDITORIAL_HONOR_LABEL, presentMilestones, presentPublicLabels, publicLabelControlLabel } from "./achievement-presentation-model.ts";
 import type { PublicAchievementLabel } from "./achievement-presentation-model.ts";
-import type { Achievement } from "./types.ts";
+import type { PublicAchievement } from "./types.ts";
 import "./achievement-presentation.css";
 
 function AchievementLabelText({ label }: { label: PublicAchievementLabel }) {
@@ -14,7 +14,7 @@ function AchievementLabelText({ label }: { label: PublicAchievementLabel }) {
   );
 }
 
-export function PublicAchievementLabels({ records }: { records: Achievement[] }) {
+export function PublicAchievementLabels({ records }: { records: PublicAchievement[] }) {
   const split = presentPublicLabels(records);
   const [expanded, setExpanded] = useState(false);
   const overflowId = useId();
@@ -57,7 +57,7 @@ export function PublicAchievementLabels({ records }: { records: Achievement[] })
   );
 }
 
-export function PublicAchievementMilestones({ records }: { records: Achievement[] }) {
+export function PublicAchievementMilestones({ records }: { records: PublicAchievement[] }) {
   const groups = presentMilestones(records);
   if (groups.length === 0) return null;
   return (

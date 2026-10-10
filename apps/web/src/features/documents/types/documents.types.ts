@@ -1,4 +1,4 @@
-import type { UserProfile } from "@/features/user/types/user.types";
+import type { PublicUserIdentity } from "@/features/user/types/user.types";
 import type { 
   CategorySummaryResponse, 
   SubjectSummaryResponse, 
@@ -18,7 +18,7 @@ export interface DocumentResponse {
   category: CategorySummaryResponse;
   subject: SubjectSummaryResponse;
   tags: TagSummaryResponse[];
-  owner: UserProfile;
+  owner: PublicUserIdentity;
   createdAt: string;
 }
 

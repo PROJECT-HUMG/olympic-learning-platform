@@ -1,7 +1,6 @@
 package me.nghlong3004.olympic.recognition.mapper;
 
 import java.util.List;
-import java.util.UUID;
 import me.nghlong3004.olympic.recognition.dto.AchievementMappingSource;
 import me.nghlong3004.olympic.recognition.dto.RecognitionDownload;
 import me.nghlong3004.olympic.recognition.entity.Honor;
@@ -14,7 +13,6 @@ import me.nghlong3004.olympic.recognition.response.HonorParticipantResponse;
 import me.nghlong3004.olympic.recognition.response.HonorResponse;
 import me.nghlong3004.olympic.recognition.response.RankingResponse;
 import me.nghlong3004.olympic.recognition.response.RecognitionFileResponse;
-import me.nghlong3004.olympic.recognition.response.RecognitionProfileResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
@@ -30,7 +28,7 @@ import org.mapstruct.ReportingPolicy;
 public interface RecognitionMapper {
 
   default HonorParticipantResponse toParticipant(HonorParticipant participant) {
-    return new HonorParticipantResponse(participant.getUserId(), participant.getFullName(), participant.getAward());
+    return new HonorParticipantResponse(participant.getUserId(), participant.getFullName(), participant.getAward(), null, null, false);
   }
 
   default List<HonorParticipantResponse> toParticipants(List<HonorParticipant> participants) {
@@ -75,20 +73,6 @@ public interface RecognitionMapper {
   AchievementResponse toAchievement(AchievementMappingSource source);
 
   RankingResponse toRanking(AchievementRepository.RankingProjection row);
-
-  @Mapping(target = "userId", source = "userId")
-  @Mapping(target = "fullName", source = "fullName")
-  @Mapping(target = "username", source = "username")
-  @Mapping(target = "rankingOptIn", source = "rankingOptIn")
-  @Mapping(target = "publicPoints", source = "publicPoints")
-  @Mapping(target = "achievements", expression = "java(achievements)")
-  RecognitionProfileResponse toProfile(
-      UUID userId,
-      String fullName,
-      String username,
-      boolean rankingOptIn,
-      long publicPoints,
-      List<AchievementResponse> achievements);
 
   default RecognitionFileResponse toFile(RecognitionFileRepository.Metadata metadata, String url) {
     return new RecognitionFileResponse(

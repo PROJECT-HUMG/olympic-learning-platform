@@ -1,4 +1,4 @@
-import type { AvatarCrop } from "@/features/user/types/user.types";
+import type { PublicUserIdentity } from "@/features/user/types/user.types";
 import type { CreatePostInput, UpdatePostInput } from "../schemas/post.schema";
 
 export type PostType = "BLOG" | "NEWS" | "ANNOUNCEMENT";
@@ -28,14 +28,7 @@ export interface PostSummaryResponse {
   publishedAt: string | null;
   expiredAt: string | null;
   pinned: boolean;
-  author: {
-    id: string;
-    email: string;
-    username: string;
-    fullName: string;
-    avatarUrl: string | null;
-  avatarCrop?: AvatarCrop | null;
-  } | null;
+  author: PublicUserIdentity | null;
   viewCount: number;
   updatedAt: string;
 }

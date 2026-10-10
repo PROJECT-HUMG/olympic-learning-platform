@@ -25,7 +25,7 @@ it("gives tied server ranks the same place and does not renumber by index", () =
     [3, "bronze"],
   ]);
   assert.equal(list.rows[1].tone, list.rows[0].tone);
-  assert.equal(list.rows[1].href, "/achievements/b");
+  assert.equal(list.rows[1].href, "/users/b");
   assert.notEqual(list.rows[1].tone, "silver");
 });
 
@@ -53,7 +53,7 @@ it("keeps a later page on its server rank instead of treating the first row as f
   assert.equal(list.rows[0].rank, 4);
   assert.equal(list.rows[0].tone, "neutral");
   assert.equal(list.rows[0].fullName, name);
-  assert.equal(list.rows[0].href, "/achievements/d%2Fe");
+  assert.equal(list.rows[0].href, "/users/d%2Fe");
   assert.equal(list.rows[0].accessibleRank, "Hạng 4, Năm 2024");
   assert.equal(list.rows[0].approvedLabel, "3 thành tích đã duyệt");
   assert.equal(list.rows[0].pointsLabel, "18 điểm nền tảng");
@@ -101,7 +101,7 @@ it("keeps the rank presentation files free of profile lookup and fixed name heig
   assert.match(view, /ranking-presentation\.css/);
   assert.match(view, /data-tone=\{row\.tone\}/);
   assert.match(view, /aria-hidden="true"/);
-  assert.match(view, /state=\{\{ from: presentation\.from \}\}/);
+  assert.match(view, /from=\{presentation\.from\}/);
   assert.doesNotMatch(view, /recognitionService|useQuery|achievement-presentation|from ["']\.\/service|from ["']\.\/scoring|from ["']\.\/hooks|fetch\(/);
   for (const color of ["#795600", "#fff3cf", "#46576b", "#eaf0f5", "#82452b", "#f9e8dd"]) {
     assert.match(css, new RegExp(color));

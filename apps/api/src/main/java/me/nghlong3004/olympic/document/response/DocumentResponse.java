@@ -3,7 +3,7 @@ package me.nghlong3004.olympic.document.response;
 import java.time.OffsetDateTime;
 import java.util.Set;
 import java.util.UUID;
-import me.nghlong3004.olympic.user.response.UserResponse;
+import me.nghlong3004.olympic.user.response.PublicUserIdentityResponse;
 
 import lombok.Builder;
 
@@ -25,5 +25,5 @@ public record DocumentResponse(
     CategorySummaryResponse category,
     SubjectSummaryResponse subject,
     Set<TagSummaryResponse> tags,
-    UserResponse owner,
+    PublicUserIdentityResponse owner,
     OffsetDateTime createdAt) {}

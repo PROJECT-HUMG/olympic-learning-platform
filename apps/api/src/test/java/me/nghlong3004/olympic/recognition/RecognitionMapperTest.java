@@ -50,13 +50,13 @@ class RecognitionMapperTest {
     assertThatThrownBy(() -> mapper.toParticipants(nullElement)).isInstanceOf(NullPointerException.class);
     var empty = mapper.toParticipants(List.of());
     assertThat(empty).isEmpty();
-    assertThatThrownBy(() -> empty.add(new HonorParticipantResponse(null, "X", null)))
+    assertThatThrownBy(() -> empty.add(new HonorParticipantResponse(null, "X", null, null, null, false)))
         .isInstanceOf(UnsupportedOperationException.class);
     var participants = mapper.toParticipants(List.of(guest, linked));
     assertThat(participants).containsExactly(
-        new HonorParticipantResponse(null, "Guest", null),
-        new HonorParticipantResponse(account, "Student", "First"));
-    assertThatThrownBy(() -> participants.add(new HonorParticipantResponse(account, "X", null)))
+        new HonorParticipantResponse(null, "Guest", null, null, null, false),
+        new HonorParticipantResponse(account, "Student", "First", null, null, false));
+    assertThatThrownBy(() -> participants.add(new HonorParticipantResponse(account, "X", null, null, null, false)))
         .isInstanceOf(UnsupportedOperationException.class);
 
     var honor = Honor.builder().id(UUID.randomUUID()).title("Album").subject("Math").year(2024)
@@ -64,8 +64,8 @@ class RecognitionMapperTest {
         .participants(List.of(linked, guest)).createdBy(account).createdAt(created).updatedAt(updated).version(2)
         .build();
     var reversed = List.of(
-        new HonorParticipantResponse(null, "Guest", null),
-        new HonorParticipantResponse(account, "Student", "First"));
+        new HonorParticipantResponse(null, "Guest", null, null, null, false),
+        new HonorParticipantResponse(account, "Student", "First", null, null, false));
     var second = UUID.randomUUID();
     var first = UUID.randomUUID();
     var photos = List.of(
@@ -114,17 +114,6 @@ class RecognitionMapperTest {
   @Test
   void profileRankingAndFilesCopyPreparedValuesWithoutRecomputingPoints() {
     var userId = UUID.randomUUID();
-    var first = achievement(UUID.randomUUID(), 5);
-    var second = achievement(UUID.randomUUID(), 7);
-    var achievements = List.of(second, first);
-    var profile = mapper.toProfile(userId, null, "student", false, 99, achievements);
-    assertThat(profile.userId()).isEqualTo(userId);
-    assertThat(profile.fullName()).isNull();
-    assertThat(profile.username()).isEqualTo("student");
-    assertThat(profile.rankingOptIn()).isFalse();
-    assertThat(profile.publicPoints()).isEqualTo(99);
-    assertThat(profile.achievements()).isSameAs(achievements);
-
     var ranking = mapper.toRanking(new Rank(2, userId, "Student", "student", 40, 3));
     assertThat(ranking.rank()).isEqualTo(2);
     assertThat(ranking.userId()).isEqualTo(userId);

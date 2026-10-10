@@ -570,3 +570,21 @@ distinguishes minified production regressions from development-only nested-contr
 fixtures. Controlled viewport shrink does not establish physical IME, iOS visual
 viewport, pinch zoom or notch behavior; it does establish reachable controls when
 the layout viewport actually shrinks. No live admin mutations or deployment polling.
+
+## Public identity and profile presentation — 10/10/2026
+
+Identity is a real44px-minimum avatar/name Link. Reuse UserIdentity and UserAvatar
+for public attribution; initials and image-error fallback share the existing crop owner.
+Radix HoverCard supplements pointer hover and keyboard focus with a compact public
+summary; touch/Enter always open the same detail route without requiring the preview.
+Use only the public DTO, never login/email/role/admin metadata or private cache seeds.
+Preview and full page share a revalidated query and mask old data on denied/error reads.
+
+The profile uses a contained identity/confirmed-public-count-and-score panel beside
+an existing dated milestone timeline on desktop, stacking on mobile. This borrows
+LeetCode's identity-before-history hierarchy, not its stats, assets or gamification.
+Existing colors/type/surfaces stay authoritative. Empty approved-public history is an
+honest empty state; no synthetic activity heatmap or inferred participation. Approval,
+public visibility, evidence permission and ranking enrollment remain separate gates.
+See [owner lookup](web-ui-components.md#public-identity-and-profile-quick-lookup--10102026)
+and [actual exposure/migration policy](recognition.md#duyệt-và-quyền-riêng-tư).

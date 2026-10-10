@@ -1,0 +1,95 @@
+// Actual routes/components; synthetic public APIs only. No live data or credentials.
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {mkdtemp,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+const web=process.env.PROFILE_WEB_URL??'http://127.0.0.1:3142';
+const dir=await mkdtemp(join(tmpdir(),'public-profile-proof-'));
+const id='00000000-0000-0000-0000-000000009001',other='00000000-0000-0000-0000-000000009002';
+const name='Nguyễn Hoàng An '+ 'N'.repeat(55);
+const identity={id,fullName:name,username:'synthetic-member',avatarUrl:'/synthetic-avatar-broken.png',avatarCrop:null,profileAvailable:true};
+const achievement={id:'record-public',title:'Olympic Toán — kết quả đã xác nhận',description:'Synthetic academic context only.',category:'OLYMPIC_NATIONAL',award:'FIRST',includeParticipation:true,achievedDate:'2026-09-01',publicVisible:true,status:'APPROVED',awardPoints:10,participationPoints:6,totalPoints:16};
+const profile={userId:id,fullName:name,username:identity.username,avatarUrl:identity.avatarUrl,avatarCrop:null,rankingOptIn:false,publicPoints:16,achievements:[achievement]};
+let profileStatus=200,delay=0,empty=false;
+const page={content:[],totalElements:0,totalPages:0,number:0,size:20,first:true,last:true};
+const honors={...page,content:[{id:'synthetic-honor',title:'Olympic Toán 2026',subject:'Toán',year:2026,description:'Synthetic album only',status:'PUBLISHED',scope:'SCHOOL',version:1,participants:[{userId:id,...identity,award:'Giải Nhất'},{userId:null,fullName:'Historical guest',award:'Tham gia'},{userId:other,fullName:'Unavailable account',profileAvailable:false}],photos:[]}],totalElements:1,totalPages:1};
+const ranks={...page,content:[{rank:1,userId:id,...identity,totalPoints:16,approvedCount:1}],totalElements:1,totalPages:1};
+const requests=[],checks=[],screenshots=[],errors=[];
+const chrome=spawn('/home/nghlong3004/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome',['--headless','--no-sandbox','--disable-background-timer-throttling','--remote-debugging-port=0',`--user-data-dir=${dir}/chromium`,'about:blank']);
+let socket;
+try {
+ const endpoint=await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error('Chrome startup timeout')),30000);chrome.stderr.on('data',b=>{const m=String(b).match(/DevTools listening on (ws:\/\/\S+)/);if(m){clearTimeout(t);resolve(m[1]);}});chrome.on('error',reject);});
+ const target=await(await fetch(`http://127.0.0.1:${new URL(endpoint).port}/json/new?about:blank`,{method:'PUT'})).json();
+ socket=new WebSocket(target.webSocketDebuggerUrl);await new Promise(resolve=>socket.onopen=resolve);
+ let serial=0;const pending=new Map();
+ const call=(method,params={})=>new Promise((resolve,reject)=>{const n=++serial;pending.set(n,{resolve,reject});socket.send(JSON.stringify({id:n,method,params}));});
+ const reply=(e,status,obj,type='application/json')=>call('Fetch.fulfillRequest',{requestId:e.requestId,responseCode:status,responseHeaders:[{name:'Content-Type',value:type},{name:'Cache-Control',value:'no-store'}],body:Buffer.from(typeof obj==='string'?obj:JSON.stringify(obj)).toString('base64')});
+ socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);m.error?p?.reject(Error(m.error.message)):p?.resolve(m.result);}else if(m.method==='Fetch.requestPaused'){
+ const e=m.params,path=new URL(e.request.url).pathname;requests.push(path);let work;
+ if(path.includes('synthetic-avatar-ok'))work=()=>reply(e,200,'<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#64748b"/><circle cx="50" cy="50" r="25" fill="#ffffff"/></svg>','image/svg+xml');
+ else if(path.includes('synthetic-avatar'))work=()=>reply(e,404,'','text/plain');
+ else if(path.endsWith('/users/me')||path.endsWith('/auth/refresh'))work=()=>reply(e,401,{status:401,title:'Synthetic anonymous'});
+ else if(path.endsWith('/recognition/honors'))work=()=>reply(e,200,honors);
+ else if(path.includes('/recognition/honors/'))work=()=>reply(e,200,honors.content[0]);
+ else if(path.endsWith('/recognition/rankings'))work=()=>reply(e,200,ranks);
+ else if(path.includes('/recognition/profiles/'))work=()=>reply(e,profileStatus,profileStatus===200?{...profile,achievements:empty?[]:[achievement],publicPoints:empty?0:16}:{status:profileStatus,title:'Synthetic unavailable'});
+ else work=()=>reply(e,200,page);
+ (delay&&path.includes('/profiles/')?new Promise(r=>setTimeout(r,delay)).then(work):work()).catch(e=>errors.push(e.message));
+ }else if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.text);};
+ const js=async expression=>{const r=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.text);return r.result.value;};
+ const wait=async expression=>{for(let i=0;i<70;i++){if(await js(expression))return;await new Promise(r=>setTimeout(r,100));}await writeFile(join(dir,'failure.json'),JSON.stringify({expression,requests,errors,body:await js('document.body.innerText'),html:await js('document.querySelector(".page-shell")?.outerHTML'),url:await js('location.href')},null,2));const failureShot=await call('Page.captureScreenshot');await writeFile(join(dir,'failure.png'),Buffer.from(failureShot.data,'base64'));throw Error('Timed out: '+expression+' evidence '+dir);};
+ const nav=async path=>{const old=await js('window.__profileDocument');await call('Page.navigate',{url:web+path});await wait(`window.__profileDocument!==${JSON.stringify(old??null)} && !!window.__profileDocument`);await wait('!!document.querySelector(".page-shell")');await wait('!document.getElementById("startup-loader") && !document.getElementById("root").inert');};
+ const shot=async label=>{const r=await call('Page.captureScreenshot',{captureBeyondViewport:false});const p=join(dir,label+'.png');await writeFile(p,Buffer.from(r.data,'base64'));screenshots.push(p);};
+ await call('Page.enable');await call('Page.addScriptToEvaluateOnNewDocument',{source:'window.__profileDocument=Math.random().toString(36)'});await call('Page.bringToFront');await call('Emulation.setFocusEmulationEnabled',{enabled:true});await call('Runtime.enable');await call('Fetch.enable',{patterns:[{urlPattern:'*/api/*'},{urlPattern:'*synthetic-avatar*'}]});
+ for(const width of (process.env.PROFILE_INTERACTIONS_ONLY ? [390] : [320,390,768,1280]))for(const dark of (process.env.PROFILE_INTERACTIONS_ONLY ? [false] : [false,true])){
+  await call('Emulation.setDeviceMetricsOverride',{width,height:width<500?780:900,deviceScaleFactor:1,mobile:width<500});
+  await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:dark?'dark':'light'}]});
+  for(const [path,label] of [['/honors','honors'],['/rankings','rankings'],['/users/'+id,'profile']]){
+   await nav(path);await js(`document.documentElement.classList.toggle('dark',${dark})`);
+   await wait(label==='profile'?'!!document.querySelector(".public-profile-layout")':'!!document.querySelector(".user-identity")');
+   assert(await js('document.documentElement.scrollWidth <= innerWidth+1'),`${label} horizontal overflow ${width}`);
+   assert(!(await js('document.querySelector(".page-shell").innerText')).includes('@test.invalid'));
+   if(label!=='profile')assert(await js('Array.from(document.querySelectorAll("a.user-identity")).every(a=>a.getBoundingClientRect().height>=44)'));
+   await shot(`${label}-${width}-${dark?'dark':'light'}`);
+  }
+  checks.push({width,dark,layouts:'Honors, rankings, full profile: no horizontal overflow; identity44px'});
+ }
+ await nav('/honors');await wait('!!document.querySelector("a.user-identity")');
+ assert.equal(await js('document.querySelectorAll("a.user-identity").length'),1,'historical/unavailable names are not links');
+ const hoverRect=await js('(()=>{const r=document.querySelector("a.user-identity").getBoundingClientRect();return {x:r.x+10,y:r.y+10};})()');
+ await call('Input.dispatchMouseEvent',{type:'mouseMoved',...hoverRect});
+ await wait('document.querySelector(".identity-preview")?.innerText.includes("16 điểm")');await shot('pointer-preview');
+ await call('Input.dispatchMouseEvent',{type:'mouseMoved',x:1,y:1});await wait('!document.querySelector(".identity-preview")');checks.push('Pointer hover opens bounded preview; pointer leave closes it');
+ await js('document.querySelector("a.user-identity").focus()');
+ await wait('!!document.querySelector(".identity-preview") && document.querySelector(".identity-preview").innerText.includes("16 điểm")');
+ assert((await js('document.querySelector(".identity-preview").innerText')).includes('1 thành tích công khai đã duyệt'));
+ await shot('keyboard-preview');
+ await wait('Array.from(document.querySelectorAll("a.user-identity .user-avatar")).every(a=>a.textContent.trim().length>0)');
+ checks.push('Keyboard focus preview and broken-avatar initials; minimal preview summary matches full page');
+ await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+ await call('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+ await wait(`location.pathname==='/users/${id}' && !!document.querySelector('.public-profile-layout')`);
+ await js(`document.querySelector('a[href="/honors"]').click()`);await wait(`location.pathname==='/honors' && !!document.querySelector('a.user-identity')`);
+ await call('Emulation.setDeviceMetricsOverride',{width:390,height:780,deviceScaleFactor:1,mobile:true});
+ await call('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+ const rect=await js('(()=>{const r=document.querySelector("a.user-identity").getBoundingClientRect();return {x:r.x+10,y:r.y+10};})()');
+ await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[rect]});await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ await wait(`location.pathname==='/users/${id}'`);checks.push('Enter and emulated touch open identical public route; Honors return path retained');
+ await call('Emulation.setTouchEmulationEnabled',{enabled:false});
+ profileStatus=404;await nav('/rankings');await wait('!!document.querySelector("a.user-identity")');await js('document.querySelector("a.user-identity").focus()');
+ await wait('!!document.querySelector(".identity-preview [role=alert]")');
+ assert(!(await js('document.querySelector(".identity-preview").innerText')).includes('16 điểm'));await shot('unavailable-preview');profileStatus=200;
+ await js('document.querySelector(".identity-preview button").click()');await wait('document.querySelector(".identity-preview")?.innerText.includes("16 điểm")');
+ checks.push('Denied/refetched preview masks cached stats; retry restores public result');
+ await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await wait('!document.querySelector(".identity-preview")');checks.push('Preview Escape dismisses without navigation');
+ profileStatus=503;await nav('/users/'+other);await wait('!!document.querySelector(".recognition-feedback[role=alert]")');await shot('profile-error');
+ profileStatus=200;empty=true;await js('document.querySelector(".recognition-feedback button").click()');await wait('document.querySelector(".page-shell")?.innerText.includes("Chưa có thành tích công khai đã duyệt")');await shot('profile-empty');
+ checks.push('Full profile failure, retry and empty approved-public state');empty=false;delay=900;
+ await nav('/rankings');await wait('!!document.querySelector("a.user-identity")');await js('document.querySelector("a.user-identity").focus()');await wait('document.querySelector(".identity-preview")?.innerText.includes("Đang tải")');await shot('preview-loading');delay=0;
+ profile.avatarUrl='/synthetic-avatar-ok.svg';await nav('/users/'+id);await wait('!!document.querySelector(".public-profile-identity img")?.naturalWidth');await shot('valid-avatar-390');checks.push('Successful source-backed avatar rendered through cropped AvatarImage owner');
+ await nav('/achievements/'+id);await wait('!!document.querySelector(".public-profile-layout")');checks.push('Legacy achievements route uses same full profile owner');
+ assert(!requests.some(p=>p.includes('/evidence/')||p.includes('/daily')||p.includes('/admin/')),'public identity never fetches private APIs');assert.deepEqual(errors,[]);
+ await writeFile(join(dir,'results.json'),JSON.stringify({checks,screenshots,requests,errors,limits:['Synthetic intercepted APIs, not physical-device/live proof','No live mutation/publication','No private evidence exposed']},null,2));
+ console.log(JSON.stringify({evidence:dir,checks:checks.length,screenshots:screenshots.length,errors},null,2));
+}finally{socket?.close();chrome.kill('SIGTERM');setTimeout(()=>{if(chrome.exitCode===null)chrome.kill('SIGKILL');},2000).unref();}

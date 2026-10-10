@@ -1,6 +1,11 @@
 package me.nghlong3004.olympic.user.service.impl;
 
 import java.util.Objects;
+import java.util.Collection;
+import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
+import me.nghlong3004.olympic.user.response.PublicUserIdentityResponse;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -62,14 +67,18 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public UserResponse findById(UUID userId) {
+  public Map<UUID, PublicUserIdentityResponse> publicIdentities(Collection<UUID> userIds) {
+    return userRepository.findAllById(userIds).stream()
+        .filter(user -> user.active() && user.getDeletedAt() == null)
+        .map(user -> PublicUserIdentityResponse.fromUser(user).withAvatarUrl(user.getAvatar() == null ? null : resolveAvatarUrl(user)))
+        .collect(Collectors.toMap(PublicUserIdentityResponse::id, identity -> identity));
+  }
 
-    User user =
-        userRepository
-            .findByIdAndDeletedAtIsNull(userId)
-            .orElseThrow(ErrorCode.USER_NOT_FOUND::throwIt);
-
-    return userMapper.toResponse(user).withAvatarUrl(resolveAvatarUrl(user));
+  @Override
+  public PublicUserIdentityResponse findById(UUID userId) {
+    var identity = publicIdentities(List.of(userId)).get(userId);
+    if (identity == null) throw ErrorCode.USER_NOT_FOUND.throwIt();
+    return identity;
   }
 
   @Override

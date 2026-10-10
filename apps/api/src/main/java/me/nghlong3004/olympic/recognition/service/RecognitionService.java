@@ -152,7 +152,7 @@ public interface RecognitionService {
   /**
    * Reads public approved academic details and their public-only point subtotal.
    *
-   * @param userId active student identifier
+   * @param userId active user identifier (any role)
    * @return public profile, never evidence, review notes or private points
    */
   RecognitionProfileResponse profile(UUID userId);

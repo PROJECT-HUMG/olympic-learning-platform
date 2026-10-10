@@ -1,3 +1,4 @@
+import { publicProfilePath } from "@/features/user/lib/public-identity";
 import { InlineRetryFeedback } from "@/components/ui/inline-retry-feedback";
 import { Link } from "react-router-dom";
 import { useUserProfile } from "@/features/user/hooks/use-user-profile";
@@ -30,11 +31,14 @@ export default function ProfilePage() {
         description="Thông tin của bạn, cách bạn xuất hiện và bảo mật tài khoản."
         actions={
           canRenderEditor && user ? (
+            <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline"><Link to={publicProfilePath(user.id)}>Xem hồ sơ công khai</Link></Button>
             <Button asChild variant="outline">
               <Link to={getDashboardRoute(user.role)}>
                 {staff ? "Về không gian quản lý" : "Về góc học tập"}
               </Link>
             </Button>
+            </div>
           ) : undefined
         }
       />

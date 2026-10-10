@@ -17,3 +17,13 @@ export interface UserProfile {
 export interface UpdateProfileRequest {
   fullName: string;
 }
+
+/** Basic public attribution. Account DTOs must not be passed to public identity UI. */
+export interface PublicUserIdentity {
+  id: string;
+  fullName: string | null;
+  username?: string | null;
+  avatarUrl?: string | null;
+  avatarCrop?: AvatarCrop | null;
+  profileAvailable?: boolean;
+}

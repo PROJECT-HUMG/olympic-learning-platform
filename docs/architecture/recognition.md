@@ -22,6 +22,31 @@ Thành tích học thuật là hồ sơ người dùng gửi kèm minh chứng, 
 
 ## Duyệt và quyền riêng tư
 
+**Current policy — 10/10/2026, local candidate:** profiles are public for every active,
+nondeleted user, independently of ranking enrollment. New achievements default to public
+when the request omits `publicVisible`; explicit owner opt-out remains supported.
+[V24](../../apps/api/src/main/resources/db/migration/V24__public_achievement_defaults.sql)
+sets **all existing false visibility flags to true**, including previously private approved,
+pending, rejected and revoked records and records of inactive users. It changes the database
+default, advances versions and updates timestamps only on changed rows; it does not change
+review status, scores, files or ranking preferences. After normal deployment/Flyway startup,
+previously private **approved** titles, descriptions, category/award/date and confirmed point
+breakdowns of active users become anonymously readable. Pending/rejected/revoked records
+remain approval-ineligible; inactive/deleted profiles remain unavailable. No migration or
+publication has run on live data during implementation. This is one-time publication:
+owners can subsequently opt out again; no trigger re-publishes future changes. Rollback must
+not guess which originally private rows to restore; any data reversal needs a bounded
+operator decision/backup, never editing V24 after application.
+
+The authoritative public projection is
+[PublicAchievementResponse](../../apps/api/src/main/java/me/nghlong3004/olympic/recognition/response/PublicAchievementResponse.java),
+not `AchievementResponse`. It has no evidence metadata/URLs, reviewer notes/times/IDs,
+submitter IDs or version. Evidence remains available only through the existing active
+owner/admin authorized, `no-store` byte endpoint; public visibility is **not** permission to
+view evidence. Ranking consent remains opt-in and ranking totals still include approved
+private records after a future opt-out. No unresolved consent-policy change is inferred.
+
+
 Người gửi xem hồ sơ của mình và sửa khi chưa được duyệt. Admin duyệt hoặc từ chối hồ sơ chờ; hồ sơ đã duyệt có thể bị thu hồi. Từ chối và thu hồi cần lý do. Request duyệt mang `expectedVersion`; thay đổi từ màn hình cũ phải trả xung đột thay vì ghi đè quyết định mới. Gửi lại quyết định đang có với phiên bản hiện tại giữ nguyên điểm.
 
 Mỗi thành tích có lựa chọn hiển thị riêng. Hồ sơ đã duyệt nhưng riêng tư vẫn tính vào tổng cá nhân và tổng xếp hạng khi người dùng tham gia bảng; thông tin chi tiết không xuất hiện trên hồ sơ công khai. `publicPoints` của hồ sơ công khai chỉ tính hồ sơ đã duyệt và được bật hiển thị; `totalPoints` trên bảng xếp hạng tính mọi hồ sơ đã duyệt của người tham gia, kể cả riêng tư. Đổi lựa chọn hiển thị không đổi điểm đã xác nhận. Minh chứng luôn riêng tư, kể cả với thành tích hiển thị công khai: chỉ chủ hồ sơ và admin được tải; DTO công khai không chứa dữ liệu, đường dẫn hoặc tên minh chứng.
@@ -30,7 +55,7 @@ Bảng xếp hạng yêu cầu chủ tài khoản tự bật tham gia; mặc đ�
 
 ## Route và contract
 
-Web công khai có `/honors`, `/honors/:id`, `/rankings` và `/achievements/:userId`. Người dùng quản lý gửi hồ sơ/lịch sử/quyền riêng tư/xếp hạng tại `/profile/achievements`; admin biên tập vinh danh, duyệt và gửi thay sinh viên tại `/admin/recognition`.
+Web công khai có `/honors`, `/honors/:id`, `/rankings` và `/users/:userId` (giữ `/achievements/:userId` làm alias cùng owner). Người dùng quản lý gửi hồ sơ/lịch sử/quyền riêng tư/xếp hạng tại `/profile/achievements`; admin biên tập vinh danh, duyệt và gửi thay sinh viên tại `/admin/recognition`.
 
 | API | Quyền và nội dung |
 | --- | --- |

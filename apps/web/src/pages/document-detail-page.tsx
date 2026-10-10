@@ -1,4 +1,3 @@
-import { AvatarImage } from "@/features/user/components/avatar-image";
 import { getListReturnPath } from "@/lib/list-navigation";
 import { useParams, Link, useLocation } from "react-router-dom";
 import {
@@ -19,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserHoverCard } from "@/features/user/components/user-hover-card";
+import { UserIdentity } from "@/features/user/components/user-hover-card";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useDocumentDownloadModal } from "@/features/documents/hooks/use-document-download-modal";
 import { DocumentDownloadModal } from "@/features/documents/components/document-download-modal";
@@ -225,35 +224,7 @@ export default function DocumentDetailPage() {
               </h1>
 
               <div className="flex items-center flex-wrap gap-4 text-sm text-muted-foreground">
-                <UserHoverCard user={document.owner}>
-                  <div className="flex items-center gap-2 cursor-pointer hover:bg-muted/60 p-1.5 -ml-1.5 rounded-lg transition-colors">
-                    <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 border border-border/50">
-                      {document.owner.avatarUrl ? (
-                        <AvatarImage crop={document.owner.avatarCrop}
-                          src={document.owner.avatarUrl}
-                          alt={document.owner.fullName || "User"}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center font-bold text-primary text-xs">
-                          {(document.owner.fullName || "U")[0]}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-foreground/90 truncate max-w-[150px] leading-none mb-1">
-                        {document.owner.fullName || document.owner.username}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground leading-none">
-                        {document.owner.role === "ADMIN"
-                          ? "Quản trị viên"
-                          : document.owner.role === "LECTURER"
-                            ? "Giảng viên"
-                            : "Sinh viên"}
-                      </span>
-                    </div>
-                  </div>
-                </UserHoverCard>
+                <UserIdentity user={document.owner} />
                 <div className="w-1 h-1 rounded-full bg-border" />
                 <div className="flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-primary/60" />

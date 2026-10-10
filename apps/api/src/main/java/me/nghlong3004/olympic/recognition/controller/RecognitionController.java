@@ -77,9 +77,11 @@ public class RecognitionController {
   }
 
   @GetMapping("/profiles/{userId}")
-  @Operation(summary = "Read only public approved academic details, never evidence")
+  @Operation(summary = "Read an active user profile and public approved academic details, never evidence or account data")
   @ApiResponse(responseCode = "200", description = "Public profile and public-only points")
-  public RecognitionProfileResponse profile(@PathVariable UUID userId) { return service.profile(userId); }
+  public ResponseEntity<RecognitionProfileResponse> profile(@PathVariable UUID userId) {
+    return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(service.profile(userId));
+  }
 
   @GetMapping("/achievements/me")
   @Operation(summary = "Read the current student's private achievement and review history")

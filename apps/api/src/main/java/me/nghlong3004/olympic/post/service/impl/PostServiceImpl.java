@@ -29,7 +29,7 @@ import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.User;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.repository.UserRepository;
-import me.nghlong3004.olympic.user.response.UserResponse;
+import me.nghlong3004.olympic.user.response.PublicUserIdentityResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -252,7 +252,7 @@ public class PostServiceImpl implements PostService {
         }
     }
     
-    UserResponse enrichedAuthor = response.author();
+    PublicUserIdentityResponse enrichedAuthor = response.author();
     if (post.getAuthor() != null && enrichedAuthor != null) {
         if (post.getAuthor().getAvatar() != null) {
             URI avatarUri = storageService.getDownloadUri(post.getAuthor().getAvatar().getStorageKey());
@@ -279,7 +279,7 @@ public class PostServiceImpl implements PostService {
         }
     }
     
-    UserResponse enrichedAuthor = response.author();
+    PublicUserIdentityResponse enrichedAuthor = response.author();
     if (post.getAuthor() != null && enrichedAuthor != null) {
         if (post.getAuthor().getAvatar() != null) {
             URI avatarUri = storageService.getDownloadUri(post.getAuthor().getAvatar().getStorageKey());

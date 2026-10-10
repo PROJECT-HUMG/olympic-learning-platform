@@ -3,7 +3,7 @@ import { Download } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { UserHoverCard } from "@/features/user/components/user-hover-card";
+import { UserIdentity } from "@/features/user/components/user-hover-card";
 import { DocumentThumbnail } from "./document-thumbnail";
 import type { DocumentResponse } from "../types/documents.types";
 
@@ -36,15 +36,7 @@ export function DocumentListItem({
         </div>
       </Link>
       <div className="hidden w-[180px] shrink-0 truncate pr-4 text-xs text-muted-foreground sm:block">
-        <UserHoverCard user={document.owner}>
-          <button
-            type="button"
-            className="min-h-11 max-w-full truncate rounded-md px-1 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-            aria-label={`Thông tin ${document.owner.fullName || document.owner.username}`}
-          >
-            {document.owner.fullName || document.owner.username}
-          </button>
-        </UserHoverCard>
+        <UserIdentity user={document.owner} />
       </div>
       <p className="hidden w-[150px] shrink-0 truncate text-xs text-muted-foreground md:block">
         {formatDistanceToNow(new Date(document.createdAt), {

@@ -4,6 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Clock;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.lang.reflect.RecordComponent;
+import me.nghlong3004.olympic.recognition.response.PublicAchievementResponse;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -35,6 +39,12 @@ import me.nghlong3004.olympic.user.exception.UserDisabledException;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import me.nghlong3004.olympic.user.service.impl.UserServiceImpl;
+import me.nghlong3004.olympic.user.mapper.UserMapper;
+import me.nghlong3004.olympic.common.properties.UserProperties;
+import me.nghlong3004.olympic.storage.service.StorageService;
+import me.nghlong3004.olympic.storage.mapper.FileMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -57,7 +67,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
  */
 @DataJpaTest(properties = {"spring.jpa.hibernate.ddl-auto=validate", "spring.flyway.enabled=true"}, showSql = false)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({RecognitionServiceImpl.class, RecognitionUploadPolicy.class, RecognitionMapperImpl.class,
+@Import({UserServiceImpl.class, RecognitionServiceImpl.class, RecognitionUploadPolicy.class, RecognitionMapperImpl.class,
     RecognitionIntegrationTest.Dependencies.class})
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @Testcontainers(disabledWithoutDocker = true)
@@ -73,6 +83,10 @@ class RecognitionIntegrationTest {
   private static final byte[] PNG = Base64.getDecoder().decode(
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l1sAAAAASUVORK5CYII=");
   @Autowired private RecognitionService service;
+  @MockitoBean private UserMapper userMapper;
+  @MockitoBean private UserProperties userProperties;
+  @MockitoBean private StorageService storageService;
+  @MockitoBean private FileMapper fileMapper;
   @Autowired private JdbcTemplate jdbc;
   @Autowired private TestUsers users;
 
@@ -123,9 +137,9 @@ class RecognitionIntegrationTest {
     var profile = service.profile(OWNER);
     assertThat(profile.publicPoints()).isEqualTo(16);
     assertThat(profile.achievements()).hasSize(1);
-    assertThat(profile.achievements().getFirst().evidence()).isEmpty();
-    assertThat(profile.achievements().getFirst().reviewNote()).isNull();
-    assertThat(profile.achievements().getFirst().reviewedAt()).isNull();
+    assertPublicProjection();
+
+
     service.setVisibility(approved.id(), false);
     assertThat(score(OWNER, null)).isEqualTo(16);
     assertThat(service.profile(OWNER).publicPoints()).isZero();
@@ -259,7 +273,7 @@ class RecognitionIntegrationTest {
     assertThatThrownBy(() -> service.getEvidence(pending.id(), file.id())).isInstanceOf(ApiException.class);
     approve(pending);
     assertThat(service.getEvidence(pending.id(), file.id()).content()).isEqualTo(PNG);
-    assertThat(service.profile(OWNER).achievements().getFirst().evidence()).isEmpty();
+    assertPublicProjection();
     users.id.set(OTHER);
     var other = submit("Other certificate", true, AchievementAward.FIRST, DATE);
     users.id.set(OWNER);
@@ -452,6 +466,68 @@ class RecognitionIntegrationTest {
         .matches(error -> ((ApiException) error).getErrorCode() == ErrorCode.RECOGNITION_CONFLICT);
     assertThat(service.profile(OWNER).publicPoints()).isZero();
     assertThat(jdbc.queryForObject("SELECT count(*) FROM recognition_achievements", Long.class)).isZero();
+  }
+
+  @Test
+  void publicProfileIsActorIndependentAllActiveRolesAllowedAndDisabledDeletedPendingExcluded() {
+    var approved = approve(submit("Public verified", true, AchievementAward.FIRST, DATE));
+    users.id.set(OWNER);
+    var privateRecord = approve(submit("Future owner private", false, AchievementAward.SECOND, DATE.minusDays(1)));
+    users.id.set(OWNER);
+    submit("Unconfirmed claim", true, AchievementAward.THIRD, DATE.minusDays(2));
+    for (UUID reader : List.of(OWNER, OTHER, ADMIN)) {
+      users.id.set(reader);
+      var profile = service.profile(OWNER);
+      assertThat(profile.achievements()).extracting(PublicAchievementResponse::id).containsExactly(approved.id());
+      assertThat(profile.publicPoints()).isEqualTo(approved.totalPoints());
+      assertThat(profile.rankingOptIn()).isFalse();
+      assertThat(profile.achievements()).extracting(PublicAchievementResponse::id).doesNotContain(privateRecord.id());
+    }
+    assertThat(service.profile(LECTURER).achievements()).isEmpty();
+    assertThat(service.profile(ADMIN).achievements()).isEmpty();
+    for (String status : List.of("DISABLED", "PENDING")) {
+      jdbc.update("UPDATE users SET status=?::user_status WHERE id=?", status, OWNER);
+      assertThatThrownBy(() -> service.profile(OWNER)).isInstanceOf(ApiException.class);
+    }
+    jdbc.update("UPDATE users SET status='ACTIVE', deleted_at=CURRENT_TIMESTAMP WHERE id=?", OWNER);
+    assertThatThrownBy(() -> service.profile(OWNER)).isInstanceOf(ApiException.class);
+  }
+
+  @Test
+  void additiveVisibilityMigrationPublishesExistingEligibleRecordsWithoutApprovingOrEnrolling() throws Exception {
+    var approved = approve(submit("Old private approved", false, AchievementAward.FIRST, DATE));
+    users.id.set(OWNER);
+    var pending = submit("Old private pending", false, AchievementAward.SECOND, DATE.minusDays(1));
+    var rejectedClaim = submit("Old private rejected", false, AchievementAward.THIRD, DATE.minusDays(2));
+    users.id.set(ADMIN);
+    var rejected = service.reviewAchievement(rejectedClaim.id(), new ReviewAchievementRequest(AchievementStatus.REJECTED, "Internal review note", rejectedClaim.version()));
+    users.id.set(OWNER);
+    var revokedApproved = approve(submit("Old private revoked", false, AchievementAward.THIRD, DATE.minusDays(3)));
+    var revoked = service.reviewAchievement(revokedApproved.id(), new ReviewAchievementRequest(AchievementStatus.REVOKED, "Internal revocation note", revokedApproved.version()));
+    users.id.set(OWNER);
+    var sql = Files.readString(Path.of("src/main/resources/db/migration/V24__public_achievement_defaults.sql"));
+    jdbc.execute(sql);
+    assertThat(jdbc.queryForObject("SELECT count(*) FROM recognition_achievements WHERE public_visible", Long.class)).isEqualTo(4);
+    assertThat(jdbc.queryForObject("SELECT version FROM recognition_achievements WHERE id=?", Long.class, approved.id())).isEqualTo(approved.version() + 1);
+    assertThat(jdbc.queryForObject("SELECT status FROM recognition_achievements WHERE id=?", String.class, pending.id())).isEqualTo("PENDING");
+    assertThat(jdbc.queryForObject("SELECT status FROM recognition_achievements WHERE id=?", String.class, rejected.id())).isEqualTo("REJECTED");
+    assertThat(jdbc.queryForObject("SELECT status FROM recognition_achievements WHERE id=?", String.class, revoked.id())).isEqualTo("REVOKED");
+    assertThat(jdbc.queryForObject("SELECT review_note FROM recognition_achievements WHERE id=?", String.class, rejected.id())).isEqualTo("Internal review note");
+    assertThat(jdbc.queryForObject("SELECT count(*) FROM recognition_preferences", Long.class)).isZero();
+    assertThat(service.profile(OWNER).achievements()).extracting(PublicAchievementResponse::id).containsExactly(approved.id());
+    assertThat(service.profile(OWNER).publicPoints()).isEqualTo(approved.totalPoints());
+    assertThat(service.rankings(null, 0, 20)).isEmpty();
+    service.setVisibility(approved.id(), false);
+    assertThat(service.profile(OWNER).achievements()).isEmpty();
+    var defaults = new SubmitAchievementRequest(null, "New default public", "Test", AchievementCategory.OLYMPIC_NATIONAL,
+        AchievementAward.FIRST, true, DATE.minusDays(4), null);
+    assertThat(service.submitAchievement(defaults, List.of(proof()), false).publicVisible()).isTrue();
+  }
+
+  private void assertPublicProjection() {
+    assertThat(PublicAchievementResponse.class.getRecordComponents())
+        .extracting(RecordComponent::getName)
+        .doesNotContain("evidence", "reviewNote", "reviewedAt", "reviewedBy", "submittedBy", "version");
   }
 
   private AchievementResponse submit(String title, boolean visible, AchievementAward award, LocalDate date) {

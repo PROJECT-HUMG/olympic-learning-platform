@@ -1,57 +1,36 @@
-import { AvatarImage } from "@/features/user/components/avatar-image";
-import type { ReactNode } from "react";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale";
-import { User, Calendar } from "lucide-react";
-import type { UserProfile } from "@/features/user/types/user.types";
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Button } from "@/components/ui/button";
+import { UserAvatar } from "./user-avatar";
+import { usePublicProfile } from "../hooks/use-public-profile";
+import { hasUuidFormat } from "@/lib/uuid";
+import { publicProfilePath } from "../lib/public-identity";
+import type { PublicUserIdentity } from "../types/user.types";
+import "./public-profile.css";
 
-interface UserHoverCardProps {
-  user: UserProfile;
-  children: ReactNode;
-  align?: "start" | "center" | "end";
-}
-
-export function UserHoverCard({ user, children, align = "start" }: UserHoverCardProps) {
-  return (
-    <HoverCard>
-      <HoverCardTrigger asChild>
-        {children}
-      </HoverCardTrigger>
-      <HoverCardContent align={align} className="w-72 shadow-xl border-border/50 z-50" onClick={(e) => e.preventDefault()}>
-        <div className="flex space-x-4">
-          <div className="w-12 h-12 rounded-full overflow-hidden bg-primary/10 shrink-0 shadow-sm border border-border/50">
-            {user.avatarUrl ? (
-              <AvatarImage crop={user.avatarCrop} src={user.avatarUrl} alt={user.fullName || "User"} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-lg font-bold text-primary">
-                {(user.fullName || "U")[0]}
-              </div>
-            )}
-          </div>
-          <div className="space-y-1.5 flex-1">
-            <h4 className="text-sm font-bold leading-none">{user.fullName || user.username}</h4>
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <User className="size-3" /> @{user.username}
-            </p>
-            <div className="flex flex-col gap-1.5 pt-2 border-t border-border/40 mt-2">
-              <Badge variant="secondary" className="w-fit text-[10px] uppercase tracking-wider">
-                {user.role === "ADMIN" ? "Quản trị viên" : user.role === "LECTURER" ? "Giảng viên" : "Sinh viên"}
-              </Badge>
-              {user.lastLoginAt && (
-                <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                  <Calendar className="size-3" /> Hoạt động: {formatDistanceToNow(new Date(user.lastLoginAt), { addSuffix: true, locale: vi })}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </HoverCardContent>
-    </HoverCard>
-  );
+export function UserIdentity({ user, from }: {
+  user: PublicUserIdentity; from?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const profile = usePublicProfile(user.id, open);
+  const name = user.fullName || user.username || "Thành viên";
+  const content = <><UserAvatar user={user} /><span>{name}</span></>;
+  // Historical/unavailable accounts retain attribution without a misleading profile link.
+  if (user.profileAvailable === false || !hasUuidFormat(user.id)) return <span className="user-identity">{content}</span>;
+  return <HoverCard open={open} onOpenChange={setOpen} openDelay={250} closeDelay={150}>
+    <HoverCardTrigger asChild><Link className="user-identity" to={publicProfilePath(user.id)}
+      onClick={event => event.stopPropagation()} state={{ from: from ?? location.pathname + location.search }} aria-label={`Xem hồ sơ ${name}`}>{content}</Link></HoverCardTrigger>
+    <HoverCardContent className="identity-preview" align="start" collisionPadding={12}>
+      {profile.isPending || profile.isFetching ? <p role="status">Đang tải hồ sơ…</p>
+        : profile.isError ? <div role="alert"><p>Hồ sơ chưa khả dụng. Hãy thử lại.</p><Button variant="outline" size="sm" loading={profile.isFetching} onClick={() => void profile.refetch()}>Thử lại</Button></div>
+        : profile.data ? <>
+          <div className="identity-preview__heading"><UserAvatar user={profile.data} className="user-avatar--preview" /><div><p className="font-semibold">{profile.data.fullName}</p><p className="text-muted-foreground">@{profile.data.username}</p></div></div>
+          <p className="identity-preview__summary">{profile.data.achievements.length} thành tích công khai đã duyệt · {profile.data.publicPoints} điểm nền tảng</p>
+          {profile.data.achievements[0] && <p className="identity-preview__latest">Gần nhất: {profile.data.achievements[0].title}</p>}
+          <p className="text-xs text-muted-foreground">Nhấn tên để mở hồ sơ đầy đủ.</p>
+        </> : null}
+    </HoverCardContent>
+  </HoverCard>;
 }

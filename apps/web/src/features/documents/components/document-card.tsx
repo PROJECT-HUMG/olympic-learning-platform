@@ -4,7 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserHoverCard } from "@/features/user/components/user-hover-card";
+import { UserIdentity } from "@/features/user/components/user-hover-card";
 import { DocumentThumbnail } from "./document-thumbnail";
 import type { DocumentResponse } from "../types/documents.types";
 
@@ -37,12 +37,7 @@ export function DocumentCard({ document, onDownload }: DocumentCardProps) {
       </Link>
       <div className="border-t border-border/50 px-4 pb-3 pt-1">
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 text-xs text-muted-foreground">
-          <UserHoverCard user={document.owner}>
-            <button type="button" className="min-h-11 max-w-full truncate rounded-md text-left hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-              aria-label={`Thông tin ${document.owner.fullName || document.owner.username}`}>
-              {document.owner.fullName || document.owner.username}
-            </button>
-          </UserHoverCard>
+          <UserIdentity user={document.owner} />
           <span className="break-words">Đăng {formattedDate}</span>
         </div>
         <div className="mt-1 flex items-center justify-between gap-2">

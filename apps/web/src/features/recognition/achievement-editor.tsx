@@ -24,7 +24,7 @@ export function AchievementEditor({ record, admin = false, onDone, onCancel, onS
   const [input, setInput] = useState<AchievementInput>(() => record ? {
     title: record.title, description: record.description ?? "", category: record.category, award: record.award,
     includeParticipation: record.includeParticipation, achievedDate: record.achievedDate, publicVisible: record.publicVisible,
-  } : { title: "", description: "", category: "OLYMPIC_SCHOOL", award: "FIRST", includeParticipation: false, achievedDate: today, publicVisible: false });
+  } : { title: "", description: "", category: "OLYMPIC_SCHOOL", award: "FIRST", includeParticipation: false, achievedDate: today, publicVisible: true });
   const [files, setFiles] = useState<File[]>([]);
   const [userId, setUserId] = useState("");
   const [error, setError] = useState("");
@@ -49,7 +49,7 @@ export function AchievementEditor({ record, admin = false, onDone, onCancel, onS
     input.award !== "FIRST" ||
     input.includeParticipation ||
     input.achievedDate !== initialDate ||
-    input.publicVisible ||
+    !input.publicVisible ||
     files.length > 0 ||
     userId
   );
