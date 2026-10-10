@@ -1,3 +1,4 @@
+import { OptionQueryFeedback } from "@/components/ui/option-query-feedback";
 import { RetryFeedback } from "@/components/ui/retry-feedback";
 import { SearchInput } from "@/components/ui/search-input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -128,10 +129,12 @@ export default function QuestionBankPage() {
           <label className="flex min-w-0 flex-[1_1_12rem] flex-col gap-1 text-sm">
             Môn học
             <NativeSelect
+              disabled={metadata.isPending || metadata.isError}
               value={params.get("subjectId") ?? ""}
               onChange={(event) => setParams((previous) => replaceQuestionBankParam(previous, "subjectId", event.target.value))}
             >
               <option value="">Tất cả</option>
+              {params.get("subjectId") && !subjects.some(subject => subject.id === params.get("subjectId")) && <option value={params.get("subjectId")!}>Môn đã lọc (chưa tải tên)</option>}
               {subjects.map((subject) => (
                 <option key={subject.id} value={subject.id}>{subject.name}</option>
               ))}
@@ -151,6 +154,7 @@ export default function QuestionBankPage() {
           </label>
         </div>
       </div>
+      <OptionQueryFeedback label="môn học" pending={metadata.isLoading} error={metadata.isError} retrying={metadata.isFetching} onRetry={() => void metadata.refetch()} />
       {query.isLoading ? (
         <div role="status" aria-busy="true" className="grid gap-4 md:grid-cols-2">
           <span className="sr-only">Đang tải câu hỏi…</span>

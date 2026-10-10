@@ -17,15 +17,15 @@ export const assessmentImportService = {
       .then((response) => response.data);
   },
 
-  getStatus(id: string) {
+  getStatus(id: string, signal?: AbortSignal) {
     return apiClient
-      .get<AssessmentImportStatusResponse>(`/assessment-imports/${id}`)
+      .get<AssessmentImportStatusResponse>(`/assessment-imports/${id}`, { signal })
       .then((response) => response.data);
   },
 
-  getDrafts(id: string) {
+  getDrafts(id: string, signal?: AbortSignal) {
     return apiClient
-      .get<AssessmentQuestionDraft[]>(`/assessment-imports/${id}/drafts`)
+      .get<AssessmentQuestionDraft[]>(`/assessment-imports/${id}/drafts`, { signal })
       .then((response) => response.data);
   },
 

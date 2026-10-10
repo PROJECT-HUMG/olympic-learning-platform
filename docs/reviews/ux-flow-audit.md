@@ -3029,3 +3029,211 @@ index/commit/path/patch accounting is in /tmp/ui-publish-handoff-20261010.json; 
 accepted unstaged manifest is retained at /tmp/discovery-final-manifest-20261010.json.
 Root env remains unread/untracked/ignored and excluded. No CI/deployment monitoring
 or live smoke is requested after push.
+
+<a id="admin-ui-task-audit-a4821ed"></a>
+## Admin UI task audit (10/10/2026, pushed a4821ed)
+
+**Disposition:** audit complete; findings accepted as follow-up work, not runtime
+repairs. HEAD is `a4821ed8c869baa7131aa2a10ace3b10cab632be`, matching the recorded
+normal origin/main push. No new staging, commit, push, deployment observation or
+live mutation. Existing seven-path Daily recovery and unrelated operator docs are
+separate and preserved. This section appends after the unchanged396024-byte status
+prefix. The [component reference](../architecture/web-ui-components.md) links here.
+
+Applied frontend-design, ui-ux-pro-max and freshly fetched
+[Web Interface Guidelines](https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md).
+Judgment follows administrator tasks and the current UI authority: finding the
+right record, reading its actual status, inspecting authorized evidence and taking
+a safe action. Shared ownership is evidence from imports/JSX, not matching CSS.
+
+### Route and creation coverage
+
+[Actual router](../../apps/web/src/router/routes.tsx) mounts **8 admin families,
+16 screen paths**, including six role-generated exam routes. `/admin` is a redirect,
+not a seventeenth screen. Lecturer aliases reuse owners; shared authenticated
+Daily/Profile/Toolkit routes are not additional admin families. Unrouted legacy
+PostManagement/DocumentManagement implementations are excluded from this ledger.
+
+| Family / concrete admin paths | Actual owners and task assessment | Inspection evidence |
+| --- | --- | --- |
+| Dashboard: `/admin/dashboard` | [DashboardPage](../../apps/web/src/pages/dashboard-page.tsx) uses PageHeader/PageSection and role navigation shortcuts; useful task groups, no invented metrics or Create action. Keep this purposeful simpler surface. | Source; prior broad shell evidence, no new dashboard render. |
+| Users: `/admin/users` | [AdminUsersPage](../../apps/web/src/pages/admin/users/admin-users-page.tsx) uses SearchInput/Table/AppPagination and a bounded permission Dialog. No Create User action exists. Grant/revoke are immediate permission operations, not draft creation. F6 below. | Populated320/390/820/1440; native Enter opens permission Dialog, Escape closes,44px actions measured. No grant/revoke performed. |
+| Categories: `/admin/categories` (categories/subjects/tags) | [AdminCategoriesPage](../../apps/web/src/pages/dashboard/categories/admin-categories-page.tsx) → [SystemCategoryDataTable](../../apps/web/src/features/system-categories/components/system-category-data-table.tsx) and [SystemCategoryFormModal](../../apps/web/src/features/system-categories/components/system-category-form-modal.tsx). Installed Radix Tabs, three Create intents through CreationDialog, floating-field exception retained. F3/F6. | Populated category table at four widths; all three branches source-inspected. Prior subject-tab keyboard/modal evidence reused; tags not freshly rendered. |
+| Documents: `/admin/documents` | [DocumentsManagementPage](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx) → [DashboardDocumentList](../../apps/web/src/features/documents/components/dashboard-document-list.tsx). Real ManagementListRow/ManagementRowActions, DocumentThumbnail, RetryFeedback, PaginationFooter and guarded CreationDialog adoption. Cohesive rows already exist; F3/F5/F7 concern task usability. | Two similarly titled synthetic records at four widths; existing modal/dropdown-dirty/upload evidence reused. |
+| Posts: `/admin/posts` | [PostManagementFeature](../../apps/web/src/features/post/components/post-management-feature.tsx) → [DashboardPostList](../../apps/web/src/features/post/components/dashboard-post-list.tsx). Same shared management row/actions, feedback/range footer and CreationDialog; rich editor/nested image chooser retained. F2/F3/F5/F7. | Draft/archive with past deadlines and blocked thumbnails at four widths; pending-delete Escape503 probe. Prior nested-dialog/upload proof reused. |
+| Recognition: `/admin/recognition` (honors/reviews/admin-submit) | [AdminRecognitionPage](../../apps/web/src/features/recognition/admin-page.tsx) → HonorEditor/AchievementEditor/AchievementRecord. Both creation intents use CreationDialog. Drafts have explicit **Công bố album**; reviewer evidence uses [AchievementEvidence](../../apps/web/src/features/recognition/achievement-evidence.tsx) → shared EvidencePreviews/EvidenceViewer. Review lists remain purposefully flat; approval/rejection/revocation keep separate confirmation/reason/version contracts. F8. | Honors list at four widths; cold error/retry. Existing publication/eligibility/draft-failure and reviewer/private-revalidation evidence reused. No live publication or evidence download. |
+| Questions: `/admin/questions`, `/admin/questions/import`, `/admin/questions/new`, `/admin/questions/:id` | [QuestionBankPage](../../apps/web/src/pages/question-bank-page.tsx), [AssessmentImportPage](../../apps/web/src/pages/assessment-import-page.tsx), [QuestionDetailPage](../../apps/web/src/pages/question-detail-page.tsx). CardHeader/body/footer grouping, labeled native filters, shared search/URL helper and compact RetryFeedback are real reuse. New manual question and PDF import open CreationDialog; editing remains a dedicated workspace, schema/asset/permission differences retained. F1/F4/F9. | Bank at four widths and failed metadata; synthetic import modal→review/save/reject failures at320. Earlier bank duplicate/search and new-question dirty evidence reused. Legacy detail branch source-only. |
+| Exams: `/admin/exams`, `/admin/exams/new`, `/admin/exams/:examId`, `/admin/exams/:examId/preview`, `/admin/exams/papers`, `/admin/exams/papers/:paperId` | [ExamEditorPage](../../apps/web/src/pages/exam-editor-page.tsx), [ExamEditor](../../apps/web/src/features/exams/components/exam-editor.tsx), [exam-read](../../apps/web/src/features/exams/components/exam-read.tsx). Shared ExamListItem groups title/version/points/release context; new exam is routed CreationDialog, save transitions to its dedicated edit route. Explicit publish eligibility/conflict/version remains. Frozen readers stay article/question lists, not nested cards. F4/F8. | All six route branches and owners source-inspected; existing list/modal/dirty/search evidence reused. No fresh frozen reader or live release-gate test. |
+
+**Create coverage:** ten top-level record/job creation intents: documents1, posts1,
+categories3, honors/admin-submit2, manual question1, PDF import1, exam1. All use
+CreationDialog directly or through the existing form modal. Routed `/new` URLs
+retain deep links; they now render dialogs, not an unguarded creation page. Inline
+participant/placement additions mutate the current editor draft, not a separate
+record-creation flow; forcing another modal there adds unnecessary nesting.
+Existing reading/editing routes and the immediate permission Dialog are deliberate
+variants. Source adoption alone does not prove every submission branch at runtime.
+
+### Prioritized findings and smallest remedies
+
+Priorities express administrator impact, not blanket WCAG severity. P1 is the first
+correctness/recovery slice; P2 is meaningful usability/lifecycle work; P3 is polish.
+No finding changes publication/access policy or implies a proven backend exploit.
+
+| ID / priority | Exact source and concrete task problem | Evidence / smallest responsible remedy |
+| --- | --- | --- |
+| **F1 / P1: import review failures disappear; sibling actions remain live** | [AssessmentDraftCard:42](../../apps/web/src/features/assessment/components/assessment-draft-list.tsx#L42), [actions:77](../../apps/web/src/features/assessment/components/assessment-draft-list.tsx#L77), [mutation hooks:34](../../apps/web/src/features/assessment/hooks/use-assessment-import.ts#L34): save/approve/reject use uncaught mutateAsync; no row error presentation or hook onError. While rejection is pending, Save and Approve remain enabled. An administrator cannot tell whether a correction/review failed and can start competing row operations. | Synthetic503 save and reject produce unhandled rejections, no alert/toast, unchanged draft text; held rejection leaves Save/Approve enabled. Add row-owned caught error/role=alert and one explicit-operation busy gate across its actions (and fields where snapshot consistency requires it). Keep save→approve order, feature callbacks, retained text and existing eligibility. Do not move business review into a generic feedback framework. |
+| **F2 / P2: expiry replaces real draft/archive status** | [DashboardPostList:30](../../apps/web/src/features/post/components/dashboard-post-list.tsx#L30) derives EXPIRED from deadline regardless of stored status; [backend expired-count policy:57](../../apps/api/src/main/java/me/nghlong3004/olympic/post/repository/PostSpecifications.java#L57) counts expired **PUBLISHED** posts. Admins see “Hết hiệu lực” for a draft/archive while counters say draft1/archive1/expired0. | Both synthetic DRAFT and ARCHIVED records with past deadlines render the wrong badge at every matrix width. Restrict display expiry to published records, retaining real status and separate deadline context. Add a small status/deadline regression; no API/public-access change. |
+| **F3 / P2: pending destructive confirmation can vanish on Escape** | [Posts:206](../../apps/web/src/features/post/components/post-management-feature.tsx#L206), [Documents:182](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx#L182), [Categories:311](../../apps/web/src/pages/dashboard/categories/admin-categories-page.tsx#L311) clear target unconditionally in onOpenChange despite disabled Cancel/Confirm. Recognition already guards its close handler while pending. | Held synthetic Post delete: Escape closes the confirmation before503 completes, losing the visible target/retry context. Documents/categories have equivalent source handlers; their extra probe was interrupted before navigation and is **not** a runtime pass. Gate close on the feature mutation's pending state and retain target/failure feedback. Reuse Radix/AlertDialog; don't disable dismissal globally for idle dialogs. |
+| **F4 / P2: required metadata failure resembles missing options** | [Question Bank:90](../../apps/web/src/pages/question-bank-page.tsx#L90), [manual question:233](../../apps/web/src/features/questions/components/manual-question-form.tsx#L233), [exam subject:109](../../apps/web/src/features/exams/components/exam-editor.tsx#L109), [import subject/topic:63](../../apps/web/src/features/assessment/components/assessment-draft-list.tsx#L63). These four owners default failed metadata to absent options without recovery presentation; topic errors likewise have no useful retry. | Failed Bank metadata renders enabled “Môn học: Tất cả” with no subjects/alert while records load normally. Other owners source-confirmed, not separately failure-rendered. Reuse existing status/Button/InlineRetryFeedback presentation beside the controls, feature-owned refetch/disabled states and cached-data distinction. Preserve main query, typed drafts, selected identities and URL semantics. DocumentForm already demonstrates a fitting metadata loading/error/retry pattern. |
+| **F5 / P2: mobile record identity loses the distinguishing text** | [Document title:39](../../apps/web/src/features/documents/components/dashboard-document-list.tsx#L39) is single-line truncate; [Post media/title:34](../../apps/web/src/features/post/components/dashboard-post-list.tsx#L34) reserves96×64px at every width and lacks an image-error fallback. Shared ManagementListRow is adopted; these are local content decisions, not duplicate row owners. | At320 two different document suffixes collapse into the same visible prefix (175px title width versus478/488px text); DOM accessible names remain full, so this is primarily sighted record-finding, not missing link names. Blocked Post images show broken-image alt text and squeeze titles to two short lines. Permit useful document wrapping/detail disclosure and add a bounded Post error/media fallback at the feature owner. Preserve native open/edit/delete targets and avoid a universal media framework. |
+| **F6 / P2: mobile tables separate record identity from safe action** | [Users table/action:71](../../apps/web/src/pages/admin/users/admin-users-page.tsx#L71), [category table:85](../../apps/web/src/features/system-categories/components/system-category-data-table.tsx#L85), [Table:5](../../apps/web/src/components/ui/table.tsx#L5). Five-column Users and four-column categories keep actions at the far right with no scroll guidance/retained identity. | Users table is743px inside271px at320,356px at390 and666px at820; its first action starts at x659 on320. Category382px table exceeds286/356px mobile container; desktop fits. Overflow stays inside Table, and keyboard activation reaches the permission Dialog: **not** page overflow or an unreachable keyboard action. Add contextual scroll guidance and retain record identity/action during narrow use (bounded sticky columns or a genuinely useful compact record composition). Keep desktop table, semantic headers,44px actions and current pagination. |
+| **F7 / P2: status counters consume space but cannot find records** | [Post query:51](../../apps/web/src/features/post/components/post-management-feature.tsx#L51), [counts:133](../../apps/web/src/features/post/components/post-management-feature.tsx#L133), [available request fields](../../apps/web/src/features/post/types/post.types.ts#L48); [document toolbar:129](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx#L129). Posts show four noninteractive counters but offer keyword only; Documents offers keyword only despite known subject/kind. | At320 Post search begins y469, after176px of counter/section space; at390 y447. Administrators must scan pages to find drafts or a subject. A next product slice can group a labeled status control with search (existing status/expired request contract), compact counters on phones, and consider subject/kind management controls where actual fields fit. Preserve debounce/page reset/ownership; do not turn counters into unexplained buttons or invent new sort/publication policy. This is usability work, not a current broken filter promise. |
+| **F8 / P3: local feedback and active navigation omit state semantics** | [Recognition QueryFeedback:15](../../apps/web/src/features/recognition/components.tsx#L15), [admin navigation:46](../../apps/web/src/features/recognition/admin-page.tsx#L46), [ExamProblem:7](../../apps/web/src/features/exams/components/exam-feedback.tsx#L7). Retry owners accept no fetching/busy state; Recognition active buttons differ only by variant with no aria-current/pressed. | Cold Recognition retry **correctly changes to pending/loading** (no button); cached-data retry remains a source-identified missing busy contract, not a reproduced cached-state pass. Extend these feature feedback owners with fetching state or reuse shared presentation where equivalent; propagate callbacks locally. Add aria-current/pressed to existing section buttons without pretending they are Radix tabs. TanStack may deduplicate queries; no duplicate writes claimed. |
+| **F9 / P2: PDF review session has no return path** | [AssessmentImportPage:24](../../apps/web/src/pages/assessment-import-page.tsx#L24) keeps importId only in component state; [progress:39](../../apps/web/src/features/assessment/components/assessment-import-progress.tsx#L39) says the job continues when leaving. Current service reads known IDs but this screen provides no history/resume entry. | Source fact: leaving/reloading loses the UI's ID; server job continuation is not evidence of resumable review. Smallest fitting follow-up: preserve a validated job ID in the route/query and revalidate it through the existing authorized status/draft endpoints, with honest missing/forbidden/error/reset states. No new job history framework, uploads, or backend policy inferred. Navigation/reload behavior not newly browser-exercised. |
+
+Additional accessible-context polish can use the existing ManagementRowActions and
+SystemCategoryDataTable owners for record-specific Edit/Delete names. Current
+buttons have text/sr-only names and44px targets; generic repeated names are weaker
+context, not unnamed controls. Keep purposeful dense NativeSelect exceptions,
+floating FormField, reader layouts and permission/review semantics.
+
+### Evidence, limits and preservation
+
+Fresh owned Chromium inspection uses actual source at HEAD, an envDir:false local
+Vite config and intercepted synthetic APIs/assets. Six populated admin list
+families at320×568 light,390×844 dark,820×900 light and1440×900 dark produced no
+page horizontal overflow.29 completed screenshots include the matrix, permission
+dialog, metadata/cold-retry state and import failures; this is **not** all16-screen
+rendering, complementary themes at every width, physical-device or screen-reader
+proof. No live backend policy, persistence, Cloudinary, Turnstile or release gate
+was newly exercised. No production mutation/request was used for the probes.
+
+Completed results: `/tmp/admin-audit-after-2DCK11/results.json` (two320 checkpoints,
+then fixture Badge-selector failure), `/tmp/admin-audit-after-SgVY2B/results.json`
+(remaining22 matrix shots +3 interaction shots; no probe errors), and
+`/tmp/admin-import-audit-after-x1dUSG/results.json` (two failure states; expected
+unhandled row rejections captured explicitly, no probe errors). `/tmp` audit
+drivers leave repository runtime/tests untouched. The initial fixture intercepted
+the SPA route accidentally; corrected to API-only before usable inspection.
+Interrupted/failed artifacts are retained as failures, not passes. An extra
+cached-retry/documents/categories lifecycle probe at
+`/tmp/admin-state-audit-after-k9FYHS/results.json` stopped on local
+ERR_CONNECTION_REFUSED before app navigation; its requested observations remain
+unverified. No repeated unchanged retry or provider substitution followed.
+
+Reused completed evidence: `/tmp/visual-layout-after-B8TO0C/results.json`
+(modal focus/Escape/backdrop/dirty-close/short viewport/nested upload),
+`/tmp/visual-layout-after-lZrupW/results.json` (categories/Bank/exam native keyboard
+and query/draft return), `/tmp/mobile-four-after-RuZKwX/results.json`
+(publication/eligibility/failure/pending/draft/nonadmin), and
+`/tmp/mobile-four-after-slqYkk/results.json` (reviewer evidence/identity/private
+revalidation/reason/version/approval). Their completed checks are reused for the
+unchanged owners, not claimed as fresh exhaustive/live proof. Prior175web tests,
+12focused API tests and build/lint are recorded publication evidence; no unrelated
+suite rerun is warranted for this source/docs audit.
+
+Exact documentation hashes, incremental patch and preserved entry hashes are in
+`/tmp/admin-ui-audit-handoff-20261010.json`. Runtime source remains unchanged;
+index stays empty. Owned Chromium fixtures are closed and local Vite is stopped
+at handoff. Operator env was never read/printed/hashed/copied/staged; no external
+settings or CI/deployment monitoring performed.
+
+
+<a id="admin-ui-audit-remedies-20261010"></a>
+## Admin audit remedies — implementation and acceptance (10/10/2026)
+
+Follow-up authority covers the evidenced F1–F9 remedies from
+`/tmp/admin-ui-audit-handoff-20261010.json` on actual base
+`a4821ed8c869baa7131aa2a10ace3b10cab632be`, scoped local commit and normal
+origin/main push. No live admin/content mutations, external settings changes or
+post-push pipeline/deployment monitoring. Lead implemented directly; no Peer
+scope/profile was launched or substituted. Existing frontend-design, UI/UX Pro Max
+and Web Interface Guidelines informed the task-based fixes; brand/creation owners
+remain unchanged. [Actual owner/API reference](../architecture/web-ui-components.md#admin-recovery-and-discovery-owners-10102026)
+and [layout rules](../architecture/web-ui.md#admin-record-finding-and-recovery-refinements-10102026)
+are updated rather than introducing another tracker.
+
+### Finding dispositions and concrete before/after
+
+| Finding | Implemented owner / observed result |
+| --- | --- |
+| **F1 accepted/resolved** | AssessmentDraftCard catches save/approve/reject failures, focuses a row alert and preserves corrections; one operation lock gates fields/sibling actions. Per-job mutation keys also gate publish. Held reject previously left Save/Approve enabled and503 produced unhandled rejections; now all siblings/publish are blocked and save/reject503 retain text with a visible error. Save→approve order remains. |
+| **F2 accepted/resolved** | POST-owned postDisplayStatus derives expiry only for PUBLISHED; a past DRAFT/ARCHIVED deadline no longer contradicts real badges/counters. Deadline context and stored status/API policy remain unchanged. Pure boundary tests and actual rendered badges agree. |
+| **F3 accepted/resolved** | Posts/Documents/Categories use their existing AlertDialog owners with pending-close gates and retained inline target/error. Escape and backdrop stay blocked during held deletion;503 preserves target/retry, explicit successful retry closes. Earlier interrupted Documents/Categories evidence is now replaced by completed synthetic checks. |
+| **F4 accepted/resolved** | OptionQueryFeedback is a small presentation beside existing queries: nine direct JSX sites across six files (Bank, manual question, legacy QuestionEditForm, ExamForm, import rows, Documents management). Loading/error/retry and dependent-option disablement distinguish failure from absence; cold unavailable options retain selected identity fallbacks. Bank results/query remain independent. All three question/exam editor variants and import retain typed corrections through metadata/topic failure/retry; retry is type=button. |
+| **F5 accepted/resolved** | Management document links wrap full distinguishing title suffixes (175px frame,90px wrapped height on320) rather than single-line truncate. POST thumbnail is64×48 on phones /96×64 wider and has an honest failed/no-image fallback. Existing ManagementListRow/DocumentThumbnail/native open targets remain. No general gallery/media owner or access policy added. |
+| **F6 requested Users remedy accepted/resolved** | Local UserIdentity/UserPermissions serve compact rows below768px and the existing wider Table. Mobile identity/email/status/permissions/date/action stay together;44px contextual action names identify the exact account. Tablet scroll guidance retains desktop table semantics. A newly observed keyboard close-focus defect is repaired by restoring the exact permission trigger. Categories retain their bounded relational table and44px actions; optional additional record-context polish is not a new blocking refactor. |
+| **F7 accepted/resolved** | Posts status/expiry and Documents subject/category use supported PostSearchRequest/DocumentSearchRequest fields. URL filters use replaceListParam/getPageNumber, preserve keyword500ms debounce, reset pagination, support Back and feature-only Reset without deleting unrelated context. Phone Post counters are compact (search y469.28→387.28 at320). Documents pairs subject/kind controls to reduce filter-band height without shrinking44px selects. No new backend filter/sort/publication policy. |
+| **F8 accepted/resolved** | Recognition section navigation has aria-current; all nine QueryFeedback uses in four files pass retrying. All seven ExamProblem uses in two files pass isFetching. Cached failure retries stay disabled/busy during held requests; cold pending keeps its existing loading precedence. |
+| **F9 accepted/resolved** | PDF import stores a UUID-only importId in URL, then revalidates existing staff/owner-authorized status/drafts endpoints. Reload makes no new upload/job. Invalid IDs make no job request. Account/token query scope, AbortSignal and on-mount checks protect identity. Same-account review composition preserves local corrections through transient503/token revalidation; current successful queries alone authorize media/writes.401/403/404/410 suppress cached private content; denied draft requests retain visible failure/retry rather than silently blanking the screen. Non-staff routes request no job/evidence. Denied jobs can return explicitly to PDF selection. No fabricated expiry/history or permissions bypass. |
+
+The unchanged server contracts were traced in AssessmentImportServiceImpl
+(requireStaff/requireImport/requireOwnedImportForUpdate), PostSpecifications and
+PostSearchRequest/DocumentSearchRequest. No Java/API/schema changes were needed.
+CreationDialog, Recognition publication/review/private viewer policy, frozen exams,
+auth/Turnstile, room continuity and Daily autosync/native dialog authority remain
+with their existing owners. The prior seven-path Daily recovery remains pending.
+
+### Actual proof and limits
+
+- `rtk pnpm build`: TypeScript + production bundle pass on final runtime edits;
+  existing large-chunk warning remains. `rtk pnpm lint`: exit0, existing fast-refresh
+  and upload-dropzone dependency warnings, no new remedy warnings.
+- `rtk proxy node --test --test-isolation=none tests/*.test.ts`:180pass,0fail,
+  including five new pure status/filter/UUID/denial regressions. This working-tree
+  suite also includes the separately pending accepted Daily tests; it does not
+  stage or publish those repairs. Pure helper inputs are unchanged by subsequent
+  layout/editor integration fixes.
+- Owned actual-source Chromium driver:
+  `apps/web/tests/admin-remedies-browser-check.mjs`, envDir:false Vite3137,
+  synthetic intercepted API/assets only. `/tmp/admin-remedies-after-CefMjU/results.json`:
+  **26completed checks,41screenshots,errors[]**. Six populated list families at
+  320×568 light,390×844 dark,820×900 light and1440×900 dark; no page horizontal
+  overflow. Users keyboard open/identity/Escape/focus, all three held-delete
+  Escape/backdrop/failure/retry lifecycles, URL/debounce/pagination/Back/reset,
+  Bank metadata, cached Recognition/Exam retries, import corrections/pending/
+  save→approve/reload/identity/token/transient503/403/404/410/draft denial/session
+  expiry/non-staff gates, and three question/exam editor metadata cases complete.
+- A final Documents-only layout supplement records the paired mobile filter
+  arrangement after that integrated run. Earlier
+  `/tmp/admin-remedies-after-cwiROc/results.json` contains four Documents matrix
+  shots plus three editor checks; its inherited matrix description incorrectly
+  says six families, so count only its actual routes/screenshots. The driver label
+  is corrected; exact supplemental result/path is in the candidate handoff.
+- Development Vite output also reports the existing ManualQuestionWorkspace
+  paragraph containing Badge's div (DOM-nesting warning). Its source is unchanged
+  from base; browser `errors[]` tracks probe assertions/runtime exceptions, not a
+  claim of zero console warnings. This separate markup cleanup remains outside
+  the requested remedies.
+- Prior unchanged modal/publication/private-viewer/room evidence is reused from
+  the audit handoff. No all16-admin-screen/live backend authorization/persistence,
+  physical device, screen-reader, live Cloudinary or deployment proof is claimed.
+  No backend suite rerun (Java/contracts unchanged), new dependency or dedicated
+  reduced-motion test. No live content/upload/publication/deletion/permission change.
+
+Interrupted probe artifacts remain distinct from passes: R6MrGZ selected a shell
+hidden label instead of card fallback; DOCHgx completed the matrix then exposed
+Users focus return; b6OlL1 used an outdated SPA transition during lifecycle tests;
+C8DkbY/0GlwAX/KebPka used cold-retry/asynchronous/reset or retained-alert selectors;
+9FIp1z exposed missing independent draft-denial feedback. Their concrete issues or
+fixtures were corrected, and CefMjU completed the integrated checks. They are not
+counted as clean whole runs. Focused successful BJRXOh/xHpslF proofs remain recorded.
+
+### Candidate, overlap and publication boundary
+
+Exact accepted path/full-hash ledger and patch accounting:
+`/tmp/admin-remedies-final-manifest-20261010.json`; incremental UI patch and
+preserved status patch paths/hashes are listed there. **ACCEPT** the final scoped
+runtime/docs/tests candidate after completed proof and source/import review for
+normal commit/push. Technical acceptance does not claim deployment success.
+
+Entry preservation: `/tmp/admin-remedies-entry-20261010.json`. The first396024bytes
+of the working status document retain SHA256
+`7259094169972b771355e67bc63f8ebe5710595c7531e335b44466ad3850c8cf`.
+Only HEAD's status plus the authorized admin-audit/remedy suffix is staged;
+whole dirty status is not staged. All eight independent file hashes (Daily code,
+Daily tests/browser fixture, auth/deploy docs) remain unchanged. Root operator
+.env stays ignored/untracked: no contents read, printed, copied, hashed or staged.
+After commit verify exact committed blobs, empty index and preserved dirty work;
+normal push to the inspected configured origin/main only, then report and stop.

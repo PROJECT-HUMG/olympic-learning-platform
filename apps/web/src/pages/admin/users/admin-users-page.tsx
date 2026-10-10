@@ -1,7 +1,7 @@
 import { SearchInput } from "@/components/ui/search-input";
 import { AvatarImage } from "@/features/user/components/avatar-image";
 import { PageHeader } from "@/components/ui/page-header";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   useAdminUsers,
   useGrantPermission,
@@ -44,6 +44,7 @@ export default function AdminUsersPage() {
     size: 10,
   });
 
+  const permissionTrigger = useRef<HTMLButtonElement | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const selectedUser =
     data?.content.find((user) => user.id === selectedUserId) ?? null;
@@ -67,7 +68,19 @@ export default function AdminUsersPage() {
       </div>
 
       <div className="page-table flex flex-col min-h-[400px]">
-        <Table>
+        {!isLoading && !isError && !!data?.content.length && <>
+          <ul className="divide-y divide-border md:hidden">
+            {data.content.map(user => <li key={user.id} className="space-y-3 p-4">
+              <UserIdentity user={user} />
+              <div className="flex flex-wrap items-center gap-2"><Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>{user.role}</Badge><span className="text-xs text-muted-foreground">Tham gia {format(new Date(user.createdAt), "dd/MM/yyyy", { locale: vi })}</span></div>
+              <UserPermissions user={user} />
+              <Button variant="outline" className="min-h-11" disabled={isFetching} aria-label={`Sửa quyền cho ${user.fullName || user.username} (${user.email})`} onClick={event => { permissionTrigger.current = event.currentTarget; setSelectedUserId(user.id); }}>Sửa quyền</Button>
+            </li>)}
+          </ul>
+          <p className="hidden px-4 pt-3 text-xs text-muted-foreground md:block xl:hidden" id="users-scroll-hint">Cuộn ngang bảng để xem ngày tham gia và thao tác. Nút Sửa quyền có tên tài khoản tương ứng.</p>
+        </>}
+        <div className={!isLoading && !isError && !!data?.content.length ? "hidden md:block" : ""}>
+        <Table aria-describedby="users-scroll-hint">
           <TableHeader className="bg-muted/50">
             <TableRow>
               <TableHead>Người dùng</TableHead>
@@ -120,29 +133,7 @@ export default function AdminUsersPage() {
                   className="hover:bg-muted/30 transition-colors"
                 >
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary border shrink-0">
-                        {user.avatarUrl ? (
-                          <AvatarImage crop={user.avatarCrop}
-                            src={user.avatarUrl}
-                            alt="Avatar"
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        ) : (
-                          (user.fullName ||
-                            user.username ||
-                            "U")[0].toUpperCase()
-                        )}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium text-foreground">
-                          {user.fullName || user.username}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {user.email}
-                        </span>
-                      </div>
-                    </div>
+                    <UserIdentity user={user} />
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -152,23 +143,7 @@ export default function AdminUsersPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {user.permissions.length === 0 ? (
-                        <span className="text-xs text-muted-foreground italic">
-                          Không có
-                        </span>
-                      ) : (
-                        user.permissions.map((p) => (
-                          <Badge
-                            key={p}
-                            variant="outline"
-                            className="text-[10px] py-0"
-                          >
-                            {p}
-                          </Badge>
-                        ))
-                      )}
-                    </div>
+                    <UserPermissions user={user} />
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {format(new Date(user.createdAt), "dd/MM/yyyy", {
@@ -179,7 +154,8 @@ export default function AdminUsersPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setSelectedUserId(user.id)}
+                      aria-label={`Sửa quyền cho ${user.fullName || user.username} (${user.email})`}
+                      onClick={event => { permissionTrigger.current = event.currentTarget; setSelectedUserId(user.id); }}
                       disabled={isFetching}
                       className="min-h-11"
                     >
@@ -191,6 +167,7 @@ export default function AdminUsersPage() {
             )}
           </TableBody>
         </Table>
+        </div>
 
         {data && data.totalPages > 1 && (
           <div className="p-4 border-t mt-auto">
@@ -205,6 +182,7 @@ export default function AdminUsersPage() {
 
       <PermissionDialog
         user={selectedUser}
+        onRestoreFocus={() => permissionTrigger.current?.focus()}
         open={!!selectedUser}
         onOpenChange={(open) => !open && setSelectedUserId(null)}
       />
@@ -212,11 +190,28 @@ export default function AdminUsersPage() {
   );
 }
 
+function UserIdentity({ user }: { user: AdminUserResponse }) {
+  return <div className="flex min-w-0 items-center gap-3">
+    <div className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-primary/10 font-semibold text-primary">
+      {user.avatarUrl ? <AvatarImage crop={user.avatarCrop} src={user.avatarUrl} alt="" className="size-full rounded-full object-cover" /> : (user.fullName || user.username || "U")[0].toUpperCase()}
+    </div>
+    <div className="min-w-0"><p className="break-words font-medium text-foreground">{user.fullName || user.username}</p><p className="break-all text-xs text-muted-foreground">{user.email}</p></div>
+  </div>;
+}
+
+function UserPermissions({ user }: { user: AdminUserResponse }) {
+  return <div className="flex flex-wrap gap-1">
+    {user.permissions.length ? user.permissions.map(permission => <Badge key={permission} variant="outline" className="max-w-full break-all whitespace-normal text-xs">{permission}</Badge>) : <span className="text-xs italic text-muted-foreground">Không có quyền bổ sung</span>}
+  </div>;
+}
+
 function PermissionDialog({
   user,
   open,
   onOpenChange,
+  onRestoreFocus,
 }: {
+  onRestoreFocus: () => void;
   user: AdminUserResponse | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -246,7 +241,7 @@ function PermissionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85dvh] overflow-y-auto">
+      <DialogContent className="max-h-[85dvh] overflow-y-auto" onCloseAutoFocus={event => { event.preventDefault(); onRestoreFocus(); }}>
         <DialogHeader>
           <DialogTitle>Quản lý phân quyền</DialogTitle>
           <DialogDescription>

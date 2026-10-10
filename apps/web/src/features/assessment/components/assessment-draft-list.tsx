@@ -1,5 +1,7 @@
+import { parseApiError } from "@/lib/api-error";
+import { OptionQueryFeedback } from "@/components/ui/option-query-feedback";
 import { NativeSelect } from "@/components/ui/native-select";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, Image as ImageIcon, Save, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,19 +19,19 @@ function readText(value: Record<string, unknown>) {
   return typeof text === "string" ? text : JSON.stringify(value, null, 2);
 }
 
-export function AssessmentDraftList({ drafts, importId }: { drafts: AssessmentQuestionDraft[]; importId: string }) {
+export function AssessmentDraftList({ drafts, importId, blocked = false, mediaAllowed = true }: { drafts: AssessmentQuestionDraft[]; importId: string; blocked?: boolean; mediaAllowed?: boolean }) {
   return (
     <section className="space-y-4" aria-labelledby="draft-review-title">
       <div>
         <h2 id="draft-review-title" className="text-lg font-semibold">Kiểm duyệt câu hỏi</h2>
         <p className="text-sm text-muted-foreground">Hãy kiểm tra lại công thức, đáp án và hình trước khi đưa vào ngân hàng câu hỏi.</p>
       </div>
-      {drafts.map((draft) => <AssessmentDraftCard key={draft.id} draft={draft} importId={importId} />)}
+      {drafts.map((draft) => <AssessmentDraftCard key={draft.id} draft={draft} importId={importId} blocked={blocked} mediaAllowed={mediaAllowed} />)}
     </section>
   );
 }
 
-function AssessmentDraftCard({ draft, importId }: { draft: AssessmentQuestionDraft; importId: string }) {
+function AssessmentDraftCard({ draft, importId, blocked, mediaAllowed }: { draft: AssessmentQuestionDraft; importId: string; blocked: boolean; mediaAllowed: boolean }) {
   const [text, setText] = useState(readText(draft.content));
   const [confidence, setConfidence] = useState(String(Math.round((draft.confidence ?? 0) * 100)));
   const updateDraft = useUpdateAssessmentDraft(importId);
@@ -39,6 +41,21 @@ function AssessmentDraftCard({ draft, importId }: { draft: AssessmentQuestionDra
   const [topicId, setTopicId] = useState(typeof draft.content.topicId === "string" ? draft.content.topicId : "");
   const topics = useAssessmentTopics(subjectId);
   const reducedMotion = useReducedMotion();
+  const [operating, setOperating] = useState(false);
+  const [error, setError] = useState("");
+  const active = useRef(false);
+  const errorElement = useRef<HTMLParagraphElement>(null);
+  const busy = blocked || operating;
+  useEffect(() => { if (error) errorElement.current?.focus(); }, [error]);
+  async function run(action: () => Promise<unknown>) {
+    if (busy || active.current) return;
+    active.current = true;
+    setOperating(true);
+    setError("");
+    try { await action(); }
+    catch (reason) { setError(`${parseApiError(reason).detail} Nội dung đang sửa được giữ lại. Hãy thử lại.`); }
+    finally { active.current = false; setOperating(false); }
+  }
   const save = async () => {
     await updateDraft.mutateAsync({
       draftId: draft.id,
@@ -57,32 +74,35 @@ function AssessmentDraftCard({ draft, importId }: { draft: AssessmentQuestionDra
         <span className="text-xs text-muted-foreground">Trang {draft.sourcePage ?? "?"} · confidence {confidence}%</span>
       </CardHeader>
       <CardContent className="grid grid-cols-1 gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_220px]">
-        <div className="min-w-0 space-y-3">
+        <fieldset disabled={busy} className="min-w-0 space-y-3">
+          <OptionQueryFeedback label="môn học" pending={metadata.isLoading} error={metadata.isError} retrying={metadata.isFetching} onRetry={() => void metadata.refetch()} />
+          {subjectId && <OptionQueryFeedback label="chủ đề" pending={topics.isLoading} error={topics.isError} retrying={topics.isFetching} onRetry={() => void topics.refetch()} />}
           <Textarea value={text} onChange={(event) => { setText(event.target.value); }} rows={5} aria-label={`Nội dung câu ${draft.ordinal}`} />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="min-w-0 space-y-1 text-xs text-muted-foreground">Môn
-              <NativeSelect controlSize="sm" value={subjectId} onChange={(event) => { setSubjectId(event.target.value); setTopicId(""); }}>
-                <option value="">Chọn môn</option>{metadata.data?.subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}
+              <NativeSelect controlSize="sm" className="h-11 sm:h-9" disabled={metadata.isPending || metadata.isError} value={subjectId} onChange={(event) => { setSubjectId(event.target.value); setTopicId(""); }}>
+                <option value="">Chọn môn</option>{subjectId && !metadata.data?.subjects.some(subject => subject.id === subjectId) && <option value={subjectId}>Môn đã chọn (chưa tải tên)</option>}{metadata.data?.subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}
               </NativeSelect>
             </label>
             <label className="min-w-0 space-y-1 text-xs text-muted-foreground">Chủ đề
-              <NativeSelect controlSize="sm" value={topicId} onChange={(event) => { setTopicId(event.target.value); }} disabled={!subjectId}>
-                <option value="">Chọn chủ đề</option>{topics.data?.map((topic) => <option key={topic.id} value={topic.id}>{topic.name}</option>)}
+              <NativeSelect controlSize="sm" className="h-11 sm:h-9" value={topicId} onChange={(event) => { setTopicId(event.target.value); }} disabled={!subjectId || topics.isLoading || topics.isError}>
+                <option value="">Chọn chủ đề</option>{topicId && !topics.data?.some(topic => topic.id === topicId) && <option value={topicId}>Chủ đề đã chọn (chưa tải tên)</option>}{topics.data?.map((topic) => <option key={topic.id} value={topic.id}>{topic.name}</option>)}
               </NativeSelect>
             </label>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <label className="text-xs text-muted-foreground" htmlFor={`confidence-${draft.id}`}>Độ tin cậy</label>
             <Input id={`confidence-${draft.id}`} className="w-24" value={confidence} onChange={(event) => { setConfidence(event.target.value); }} inputMode="numeric" />
-            <Button size="sm" loading={updateDraft.isPending} onClick={() => void save()}><Save className="size-4" />Lưu</Button>
-            <Button size="sm" variant="outline" loading={review.approve.isPending || updateDraft.isPending} disabled={draft.status === "APPROVED" || updateDraft.isPending || !subjectId || !topicId} onClick={() => void approve()}><ThumbsUp className="size-4" />Duyệt</Button>
-            <Button size="sm" variant="ghost" loading={review.reject.isPending} disabled={draft.status === "REJECTED"} onClick={() => void review.reject.mutateAsync(draft.id)}><ThumbsDown className="size-4" />Từ chối</Button>
+            <Button size="sm" className="min-h-11" loading={updateDraft.isPending} disabled={busy} onClick={() => void run(save)}><Save className="size-4" />Lưu</Button>
+            <Button size="sm" className="min-h-11" variant="outline" loading={review.approve.isPending || updateDraft.isPending} disabled={busy || draft.status === "APPROVED" || metadata.isError || topics.isError || !subjectId || !topicId} onClick={() => void run(approve)}><ThumbsUp className="size-4" />Duyệt</Button>
+            <Button size="sm" className="min-h-11" variant="ghost" loading={review.reject.isPending} disabled={busy || draft.status === "REJECTED"} onClick={() => void run(() => review.reject.mutateAsync(draft.id))}><ThumbsDown className="size-4" />Từ chối</Button>
           </div>
+          {error && <p ref={errorElement} tabIndex={-1} role="alert" className="text-sm text-destructive">{error}</p>}
           {draft.warnings.length > 0 && <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">{draft.warnings.join(" · ")}</p>}
-        </div>
+        </fieldset>
         <div className="min-w-0 space-y-3">
-          {draft.sourcePageUrl && <figure className="overflow-hidden rounded-xl border border-border bg-muted/20"><img src={draft.sourcePageUrl} alt={`Trang gốc của câu ${draft.ordinal}`} className="max-h-72 w-full object-contain" /><figcaption className="px-3 py-2 text-xs text-muted-foreground">Trang gốc để đối chiếu</figcaption></figure>}
-          {draft.assets.length === 0 ? <div className="flex min-h-32 items-center justify-center rounded-xl border border-dashed border-border text-xs text-muted-foreground">Không có hình minh họa</div> : draft.assets.map((asset) => <figure key={asset.id} className="overflow-hidden rounded-xl border border-border bg-muted/20"><img src={asset.url} alt={asset.altText ?? `Hình của câu ${draft.ordinal}`} className="max-h-56 w-full object-contain" /><figcaption className="flex items-center gap-1 px-3 py-2 text-xs text-muted-foreground"><ImageIcon className="size-3.5" />{asset.role}</figcaption></figure>)}
+          {mediaAllowed && draft.sourcePageUrl && <figure className="overflow-hidden rounded-xl border border-border bg-muted/20"><img src={draft.sourcePageUrl} alt={`Trang gốc của câu ${draft.ordinal}`} className="max-h-72 w-full object-contain" /><figcaption className="px-3 py-2 text-xs text-muted-foreground">Trang gốc để đối chiếu</figcaption></figure>}
+          {!mediaAllowed ? <p role="status" className="text-sm text-muted-foreground">Minh họa tạm ẩn trong khi kiểm tra quyền và trạng thái.</p> : draft.assets.length === 0 ? <div className="flex min-h-32 items-center justify-center rounded-xl border border-dashed border-border text-xs text-muted-foreground">Không có hình minh họa</div> : draft.assets.map((asset) => <figure key={asset.id} className="overflow-hidden rounded-xl border border-border bg-muted/20"><img src={asset.url} alt={asset.altText ?? `Hình của câu ${draft.ordinal}`} className="max-h-56 w-full object-contain" /><figcaption className="flex items-center gap-1 px-3 py-2 text-xs text-muted-foreground"><ImageIcon className="size-3.5" />{asset.role}</figcaption></figure>)}
           <AnimatePresence initial={false}>
             {(draft.status === "APPROVED" || draft.status === "REJECTED") && (
               <motion.span

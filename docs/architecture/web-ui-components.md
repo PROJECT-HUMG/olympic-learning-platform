@@ -4,8 +4,8 @@
 
 ## Scope and how to read this reference
 
-Current visual/creation candidate is local and unstaged on base
-`f7db010e25883c393aa1c7509e0f44abc073dc1d`; see the
+The visual/creation and Documents/News discovery work is committed and pushed as
+`a4821ed8c869baa7131aa2a10ace3b10cab632be` (parent `f7db010`); see the
 [actual 42-entry visual/creation ledger](#visual-and-creation-coverage-10102026).
 The original cross-file inventory was verified on 09/10/2026 at UI commit
 `bd47c5b6bed35ce64900e39a5e5eea8c90e60c5b`, including the separately pending Daily
@@ -23,13 +23,17 @@ screens/states; see the [existing audit](../reviews/ux-flow-audit.md).
 
 Boundary: prior shared-owner consolidation is committed in `ec98761`; mobile/Recognition
 and navbar work is committed in `e84f988` / `f7db010`. The10/10 visual/creation
-refactor and reference updates are an unstaged candidate recorded in the
-[existing status](../reviews/ux-flow-audit.md).
+refactor and discovery supplement shipped in `a4821ed`. Dated candidate sections
+below retain their original checkpoint/evidence descriptions; they do not denote
+new pending runtime work. Publication and the subsequent read-only
+[admin task audit](../reviews/ux-flow-audit.md#admin-ui-task-audit-a4821ed) are recorded
+in the existing status. The subsequent admin remedies are described in
+[Admin recovery and discovery owners](#admin-recovery-and-discovery-owners-10102026).
 The separately accepted seven-path Daily recovery remains uncommitted: creation-owned
 error feedback, task-row invalid/error association and the native Create-dialog44px
 Close fix are pending Daily changes, not behavior shipped by this UI commit. Daily's
 mobile title token adjustment is committed UI. The earlier control table describes
-those owners; the10/10 ledger additionally describes unstaged visual/creation
+those owners; the10/10 ledger additionally describes the shipped visual/creation
 adoption. Pending Daily recovery is marked explicitly.
 
 Adoption means different things:
@@ -535,3 +539,30 @@ record concrete alternatives and token decisions. The existing browser probe has
 content/images, never screenshot personal data. Results/side-by-side comparisons,
 keyboard/find/open/return/retry observations and interrupted probes are recorded in
 [existing status](../reviews/ux-flow-audit.md), not inferred from import counts.
+
+
+### Admin recovery and discovery owners (10/10/2026)
+
+Follow-up to the [a4821ed admin task audit](../reviews/ux-flow-audit.md#admin-ui-task-audit-a4821ed).
+These changes preserve the existing creation/publication/permission contracts.
+The current remedy disposition and bounded evidence live in the
+[existing status](../reviews/ux-flow-audit.md#admin-ui-audit-remedies-20261010).
+
+| Owner / actual consumers | Contract and task benefit |
+| --- | --- |
+| [OptionQueryFeedback](../../apps/web/src/components/ui/option-query-feedback.tsx) | Presentation only: `label`, `pending`, `error`, `retrying`, `onRetry`. Pending status precedes error; error uses InlineRetryFeedback and Button loading/disablement. Six consumer files: Documents management, Question Bank, manual question workspace, legacy QuestionEditForm, ExamForm and import AssessmentDraftCard. Callers retain values, queries, dependent subject/topic gates and drafts. A failed options request is never represented as a genuinely empty list. |
+| [post-status](../../apps/web/src/features/post/post-status.ts) → DashboardPostList / PostManagementFeature | `postDisplayStatus` derives EXPIRED only for PUBLISHED; draft/archive keep their real status and separate deadline. `postManagementStatusQuery` maps EXPIRED to existing published+expired predicates and active PUBLISHED to published+not-expired. No API/filter/publication policy added. |
+| [PostManagementFeature](../../apps/web/src/features/post/components/post-management-feature.tsx), [DocumentsManagementPage](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx) → replaceListParam | Search keeps500ms debounce; status or subject/category selects use existing request fields. URL-backed filters reset one-based page; Documents pairs its subject/kind controls on phones. Reset removes only each feature's filters/page, preserving other URL context. Posts counters stay informational and become compact on phones. CreationDialog/form owners unchanged. |
+| Posts / Documents / [AdminCategoriesPage](../../apps/web/src/pages/dashboard/categories/admin-categories-page.tsx) → AlertDialog | Pending mutation blocks every close request, not just Cancel. Failure keeps target and visible inline error; idle cancel and success close remain available. Mutation/callback/policy authority stays local; no universal delete state engine. |
+| [AdminUsersPage](../../apps/web/src/pages/admin/users/admin-users-page.tsx) | Local UserIdentity/UserPermissions are reused in mobile record rows and desktop Table. Below768px identity, email, role, permissions, joined date and44px action stay together; wider table retains headers with tablet scroll guidance. Action accessible names identify the user; programmatically opened permission Dialog restores focus to its exact trigger. One query/pagination/permission mutation owner. |
+| [DashboardDocumentList](../../apps/web/src/features/documents/components/dashboard-document-list.tsx), [DashboardPostList](../../apps/web/src/features/post/components/dashboard-post-list.tsx) | ManagementListRow remains shared. Document titles wrap to reveal distinguishing suffixes; native detail/open targets retained. POST-owned thumbnail reserves64×48 on phones /96×64 wider and falls back honestly on error. DocumentThumbnail/PDF policy remains the separate existing owner. |
+| [import-session](../../apps/web/src/features/assessment/import-session.ts), [AssessmentImportPage](../../apps/web/src/pages/assessment-import-page.tsx), [hooks](../../apps/web/src/features/assessment/hooks/use-assessment-import.ts) | `?importId=UUID` restores a known job through authorized endpoints, not a new upload. Invalid IDs make no job request. Query identities include account/token revision, consume AbortSignal and revalidate on mount. Same-account retained review rows preserve local corrections through transient token/query failures; placeholders/errors never authorize media or writes. Account changes reset local rows.401/403/404/410 suppress cached private content; transient failures retain text and expose explicit retry. No invented job lifetime or history. |
+| [AssessmentDraftCard](../../apps/web/src/features/assessment/components/assessment-draft-list.tsx) | Caught save/approve/reject failure focuses role=alert and retains fields. One row-operation lock gates sibling fields/actions; per-job mutation keys coordinate publish gates. Approve still saves first. Denied writes revalidate authorized status/drafts; media mounts only after successful current checks. |
+| [Recognition QueryFeedback](../../apps/web/src/features/recognition/components.tsx), [ExamProblem](../../apps/web/src/features/exams/components/exam-feedback.tsx) | Required fetching/busy prop is passed by all direct consumers; retries remain disabled throughout cached refetch. Recognition section buttons have aria-current for the active destination; existing native navigation remains, not simulated tab semantics. |
+
+Intentional variants remain: desktop relational tables, immediate permission changes,
+exam frozen/release gates, Recognition review/publication and private-media adapters,
+feature-specific metadata validation, reader layouts and Daily native-dialog/autosync
+contracts. These changes do not consolidate business state merely because markup
+looks similar. The seven-path Daily recovery and unrelated auth/deploy status remain
+separately pending; source adoption is not all-screen/live validation.

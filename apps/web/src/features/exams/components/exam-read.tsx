@@ -62,7 +62,7 @@ export function ExamDraftList({ listPath, papersPath }: { listPath: string; pape
   const location = useLocation();
   const from = `${location.pathname}${location.search}`;
   if (query.isLoading) return <Shell title="Đề nháp"><ExamLoading label="Đang tải danh sách đề…" /></Shell>;
-  if (query.isError) return <Shell title="Đề nháp"><ExamProblem message={examErrorMessage(query.error)} onRetry={() => void query.refetch()} /></Shell>;
+  if (query.isError) return <Shell title="Đề nháp"><ExamProblem message={examErrorMessage(query.error)} retrying={query.isFetching} onRetry={() => void query.refetch()} /></Shell>;
   return (
     <Shell
       title="Đề nháp"
@@ -108,7 +108,7 @@ export function ExamPreview({ examId, listPath }: { examId: string; listPath: st
   return <Shell title="Xem trước đề" actions={<Button variant="outline" asChild><Link to={back}>Quay lại đề</Link></Button>}>
     <div className="mb-4 flex flex-wrap gap-2"><Button type="button" variant={solutions ? "outline" : "default"} onClick={() => setParams({})}>Xem đề</Button><Button type="button" variant={solutions ? "default" : "outline"} onClick={() => setParams({ solutions: "1" })}>Xem lời giải</Button></div>
     {query.isLoading ? <ExamLoading label="Đang tải bản xem trước…" /> : null}
-    {query.isError ? <ExamProblem message={examErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : null}
+    {query.isError ? <ExamProblem message={examErrorMessage(query.error)} retrying={query.isFetching} onRetry={() => void query.refetch()} /> : null}
     {query.data ? <StaffBody view={query.data} source="question" showSolutions={solutions} /> : null}
   </Shell>;
 }
@@ -118,7 +118,7 @@ export function ExamPaperList({ papersPath }: { papersPath: string }) {
   const location = useLocation();
   const from = `${location.pathname}${location.search}`;
   if (query.isLoading) return <Shell title="Đề đã xuất bản"><ExamLoading label="Đang tải danh sách đề…" /></Shell>;
-  if (query.isError) return <Shell title="Đề đã xuất bản"><ExamProblem message={examErrorMessage(query.error)} onRetry={() => void query.refetch()} /></Shell>;
+  if (query.isError) return <Shell title="Đề đã xuất bản"><ExamProblem message={examErrorMessage(query.error)} retrying={query.isFetching} onRetry={() => void query.refetch()} /></Shell>;
   return (
     <Shell title="Đề đã xuất bản" description="Mỗi dòng là một phiên bản đã xuất bản.">
       {query.data?.length ? (
@@ -153,7 +153,7 @@ export function ExamPaperRead({ paperId, papersPath }: { paperId: string; papers
   return <Shell title="Đề" actions={<Button variant="outline" asChild><Link to={back}>Quay lại danh sách</Link></Button>}>
     {staff ? <div className="mb-4 flex flex-wrap gap-2"><Button type="button" variant={solutions ? "outline" : "default"} onClick={() => setParams({})}>Xem đề</Button><Button type="button" variant={solutions ? "default" : "outline"} onClick={() => setParams({ solutions: "1" })}>Xem lời giải</Button></div> : null}
     {user.isLoading || query.isLoading ? <ExamLoading label="Đang tải đề…" /> : null}
-    {query.isError ? <ExamProblem message={examErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : null}
+    {query.isError ? <ExamProblem message={examErrorMessage(query.error)} retrying={query.isFetching} onRetry={() => void query.refetch()} /> : null}
     {query.data && audience === "staff" ? <StaffBody view={query.data as StaffExamView} source="paper" paperId={paperId} showSolutions={solutions} /> : null}
     {query.data && audience === "student" ? <StudentBody paper={query.data as StudentExamPaper} /> : null}
   </Shell>;

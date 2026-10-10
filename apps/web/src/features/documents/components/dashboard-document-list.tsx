@@ -35,10 +35,10 @@ export function DashboardDocumentList({ data, onDeleteClick, onEditClick }: Dash
               <div className="flex flex-col gap-1 min-w-0 flex-1">
                 <Link 
                   to={`${ROUTES.DOCUMENTS}/${doc.slug}`} 
-                  target="_blank"
-                  className="font-medium text-[15px] text-foreground hover:text-primary transition-colors truncate"
+                  target="_blank" rel="noreferrer"
+                  className="font-medium text-[15px] text-foreground hover:text-primary transition-colors break-words min-h-11 flex items-center"
                 >
-                  {doc.title}
+                  <span className="min-w-0 break-words">{doc.title}</span>
                 </Link>
                 {doc.description && (
                   <p className="text-sm text-muted-foreground line-clamp-2">

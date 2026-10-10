@@ -1,3 +1,8 @@
+import { OptionQueryFeedback } from "@/components/ui/option-query-feedback";
+import { useDocumentMetadata } from "@/features/documents/hooks/use-documents";
+import { useSearchParams } from "react-router-dom";
+import { getPageNumber, replaceListParam } from "@/lib/list-navigation";
+import { NativeSelect } from "@/components/ui/native-select";
 import { PaginationFooter } from "@/components/ui/pagination-footer";
 import { RetryFeedback } from "@/components/ui/retry-feedback";
 import { SearchInput } from "@/components/ui/search-input";
@@ -31,10 +36,13 @@ import {
 import type { DocumentResponse } from "@/features/documents/types/documents.types";
 
 export default function DocumentsManagementPage() {
-  const [keyword, setKeyword] = useState("");
+  const [params, setParams] = useSearchParams();
+  const keyword = params.get("keyword") ?? "";
   const debouncedKeyword = useDebounce(keyword, 500);
-  const [currentPage, setCurrentPage] = useState(1);
+  const currentPage = getPageNumber(params.get("page"));
+  const setCurrentPage = (page: number) => setParams(previous => replaceListParam(previous, "page", String(page)), { replace: true });
   const { data: user } = useCurrentUser();
+  const metadata = useDocumentMetadata();
 
   // Convert 1-based visible page to 0-based offset for the API in exactly one place
   const apiPageOffset = currentPage - 1;
@@ -47,6 +55,8 @@ export default function DocumentsManagementPage() {
     isFetching,
   } = useSearchDocuments({
     keyword: debouncedKeyword,
+    subjectId: params.get("subjectId") || undefined,
+    categoryId: params.get("categoryId") || undefined,
     page: apiPageOffset,
     size: 10,
     ownerId: user?.role === "LECTURER" ? user.id : undefined,
@@ -58,10 +68,10 @@ export default function DocumentsManagementPage() {
   useEffect(() => {
     if (totalPages && totalPages > 0) {
       if (currentPage > totalPages) {
-        setCurrentPage(totalPages);
+        setParams(previous => replaceListParam(previous, "page", String(totalPages)), { replace: true });
       }
     }
-  }, [totalPages, currentPage]);
+  }, [totalPages, currentPage, setParams]);
 
   const deleteDocument = useDeleteDocument();
   const [documentToDelete, setDocumentToDelete] =
@@ -105,7 +115,7 @@ export default function DocumentsManagementPage() {
   };
 
   const handleDeleteConfirm = () => {
-    if (documentToDelete) {
+    if (documentToDelete && !deleteDocument.isPending) {
       deleteDocument.mutate(documentToDelete.id, {
         onSuccess: () => {
           setDocumentToDelete(null);
@@ -122,19 +132,36 @@ export default function DocumentsManagementPage() {
         actions={<Button onClick={() => { setFormState({ dirty: false, busy: false }); setIsCreateModalOpen(true); }}><Plus aria-hidden="true" className="size-4" />Thêm tài liệu mới</Button>} />
 
       {/* Toolbar */}
-      <div className="page-toolbar filter-panel">
+      <div className="page-toolbar filter-panel !items-end">
         <div className="relative max-w-sm w-full">
           <SearchInput aria-label="Tìm kiếm tài liệu"
             placeholder="Tìm kiếm tài liệu..."
             className="pl-9 h-11"
             value={keyword}
             onChange={(e) => {
-              setKeyword(e.target.value);
-              setCurrentPage(1); // Reset page on search
+              setParams(previous => replaceListParam(previous, "keyword", e.target.value), { replace: true }); // Reset page on search
             }}
           />
         </div>
+        <div className="grid w-full grid-cols-2 gap-3 sm:w-auto sm:flex-[1_1_20rem]">
+          <label className="flex min-w-0 flex-col gap-1 text-sm">Môn học
+            <NativeSelect disabled={metadata.isPending || metadata.isError} value={params.get("subjectId") ?? ""} onChange={event => setParams(previous => replaceListParam(previous, "subjectId", event.target.value))}>
+              <option value="">Tất cả</option>{params.get("subjectId") && !metadata.data?.subjects.some(item => item.id === params.get("subjectId")) && <option value={params.get("subjectId")!}>Môn đã lọc (chưa tải tên)</option>}{metadata.data?.subjects.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </NativeSelect>
+          </label>
+          <label className="flex min-w-0 flex-col gap-1 text-sm">Loại tài liệu
+            <NativeSelect disabled={metadata.isPending || metadata.isError} value={params.get("categoryId") ?? ""} onChange={event => setParams(previous => replaceListParam(previous, "categoryId", event.target.value))}>
+              <option value="">Tất cả</option>{params.get("categoryId") && !metadata.data?.categories.some(item => item.id === params.get("categoryId")) && <option value={params.get("categoryId")!}>Loại đã lọc (chưa tải tên)</option>}{metadata.data?.categories.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </NativeSelect>
+          </label>
+        </div>
+        {(keyword || params.get("subjectId") || params.get("categoryId")) && <Button type="button" variant="ghost" onClick={() => setParams(previous => {
+          const next = new URLSearchParams(previous); for (const key of ["keyword", "subjectId", "categoryId", "page"]) next.delete(key); return next;
+        })}>Xóa bộ lọc</Button>}
+
       </div>
+
+      <OptionQueryFeedback label="môn học và loại tài liệu" pending={metadata.isPending} error={metadata.isError} retrying={metadata.isFetching} onRetry={() => void metadata.refetch()} />
 
       {/* Content */}
       {isLoading ? (
@@ -157,7 +184,7 @@ export default function DocumentsManagementPage() {
       ) : (
         <DashboardDocumentList
           data={pageData?.content || []}
-          onDeleteClick={setDocumentToDelete}
+          onDeleteClick={item => { deleteDocument.reset(); setDocumentToDelete(item); }}
           onEditClick={(doc) => {
             setFormState({ dirty: false, busy: false });
             setDocumentToEdit(doc);
@@ -179,7 +206,7 @@ export default function DocumentsManagementPage() {
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={!!documentToDelete}
-        onOpenChange={(open) => !open && setDocumentToDelete(null)}
+        onOpenChange={(open) => { if (!open && !deleteDocument.isPending) setDocumentToDelete(null); }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -192,6 +219,7 @@ export default function DocumentsManagementPage() {
               không? Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {deleteDocument.isError && <p role="alert" className="text-sm text-destructive">Không thể xóa. Bản ghi được giữ lại; hãy thử lại hoặc hủy.</p>}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteDocument.isPending}>
               Hủy

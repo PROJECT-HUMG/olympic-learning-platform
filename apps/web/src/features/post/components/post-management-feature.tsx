@@ -1,3 +1,7 @@
+import { postManagementStatusQuery } from "../post-status";
+import { useSearchParams } from "react-router-dom";
+import { getPageNumber, replaceListParam } from "@/lib/list-navigation";
+import { NativeSelect } from "@/components/ui/native-select";
 import { PaginationFooter } from "@/components/ui/pagination-footer";
 import { RetryFeedback } from "@/components/ui/retry-feedback";
 import { SearchInput } from "@/components/ui/search-input";
@@ -32,9 +36,11 @@ import type { PostSummaryResponse } from "@/features/post/types/post.types";
 import { DashboardPostList } from "./dashboard-post-list";
 
 export function PostManagementFeature() {
-  const [keyword, setKeyword] = useState("");
+  const [params, setParams] = useSearchParams();
+  const keyword = params.get("keyword") ?? "";
   const debouncedKeyword = useDebounce(keyword, 500);
-  const [currentPage, setCurrentPage] = useState(1);
+  const currentPage = getPageNumber(params.get("page"));
+  const setCurrentPage = (page: number) => setParams(previous => replaceListParam(previous, "page", String(page)), { replace: true });
 
   const apiPageOffset = Math.max(0, currentPage - 1);
 
@@ -48,7 +54,7 @@ export function PostManagementFeature() {
     keyword: debouncedKeyword,
     page: apiPageOffset,
     size: 10,
-    status: undefined,
+    ...postManagementStatusQuery(params.get("status")),
   });
   const { data: counts } = useManagementPostStatusCounts();
 
@@ -57,10 +63,10 @@ export function PostManagementFeature() {
   useEffect(() => {
     if (totalPages && totalPages > 0) {
       if (currentPage > totalPages) {
-        setCurrentPage(totalPages);
+        setParams(previous => replaceListParam(previous, "page", String(totalPages)), { replace: true });
       }
     }
-  }, [totalPages, currentPage]);
+  }, [totalPages, currentPage, setParams]);
 
   const deletePost = useDeletePost();
   const [postToDelete, setPostToDelete] = useState<PostSummaryResponse | null>(
@@ -113,7 +119,7 @@ export function PostManagementFeature() {
   };
 
   const handleDeleteConfirm = () => {
-    if (postToDelete) {
+    if (postToDelete && !deletePost.isPending) {
       deletePost.mutate(postToDelete.id, {
         onSuccess: () => {
           toast.success("Đã xóa bài viết");
@@ -130,7 +136,7 @@ export function PostManagementFeature() {
         actions={<Button onClick={() => { setFormState({ dirty: false, busy: false }); setIsCreateModalOpen(true); }}><Plus aria-hidden="true" className="size-4" />Tạo bài viết mới</Button>} />
 
       {counts && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-4 gap-2 sm:gap-3">
           {[
             ["Bản nháp", counts.draft],
             ["Đã xuất bản", counts.published],
@@ -139,27 +145,35 @@ export function PostManagementFeature() {
           ].map(([label, count]) => (
             <div
               key={String(label)}
-              className="rounded-xl border border-border/60 bg-card px-4 py-3"
+              className="rounded-xl border border-border/60 bg-card px-2 py-2 sm:px-4 sm:py-3"
             >
-              <p className="text-xs text-muted-foreground">{label}</p>
-              <p className="mt-1 text-xl font-bold">{count}</p>
+              <p className="text-[11px] leading-4 sm:text-xs text-muted-foreground">{label}</p>
+              <p className="mt-1 text-base sm:text-xl font-bold tabular-nums">{count}</p>
             </div>
           ))}
         </div>
       )}
 
-      <div className="page-toolbar filter-panel">
+      <div className="page-toolbar filter-panel !items-end">
         <div className="relative max-w-sm w-full">
           <SearchInput aria-label="Tìm kiếm bài viết"
             placeholder="Tìm kiếm bài viết..."
             className="pl-9 h-11 bg-background"
             value={keyword}
             onChange={(e) => {
-              setKeyword(e.target.value);
-              setCurrentPage(1);
+              setParams(previous => replaceListParam(previous, "keyword", e.target.value), { replace: true });
             }}
           />
         </div>
+        <label className="flex min-w-0 flex-1 flex-col gap-1 text-sm">Trạng thái
+          <NativeSelect value={params.get("status") ?? ""} onChange={event => setParams(previous => replaceListParam(previous, "status", event.target.value))}>
+            <option value="">Tất cả trạng thái</option><option value="DRAFT">Bản nháp</option><option value="PUBLISHED">Đã xuất bản, còn hiệu lực</option><option value="EXPIRED">Hết hiệu lực</option><option value="ARCHIVED">Lưu trữ</option>
+          </NativeSelect>
+        </label>
+        {(keyword || params.get("status")) && <Button type="button" variant="ghost" onClick={() => setParams(previous => {
+          const next = new URLSearchParams(previous); for (const key of ["keyword", "status", "page"]) next.delete(key); return next;
+        })}>Xóa bộ lọc</Button>}
+
       </div>
 
       <div className="flex-1">
@@ -182,7 +196,7 @@ export function PostManagementFeature() {
         ) : (
           <DashboardPostList
             data={pageData?.content || []}
-            onDeleteClick={setPostToDelete}
+            onDeleteClick={item => { deletePost.reset(); setPostToDelete(item); }}
             onEditClick={(post) => {
               setFormState({ dirty: false, busy: false });
               setPostToEdit(post);
@@ -203,7 +217,7 @@ export function PostManagementFeature() {
 
       <AlertDialog
         open={!!postToDelete}
-        onOpenChange={(open) => !open && setPostToDelete(null)}
+        onOpenChange={(open) => { if (!open && !deletePost.isPending) setPostToDelete(null); }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -216,6 +230,7 @@ export function PostManagementFeature() {
               không? Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {deletePost.isError && <p role="alert" className="text-sm text-destructive">Không thể xóa. Bản ghi được giữ lại; hãy thử lại hoặc hủy.</p>}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deletePost.isPending}>
               Hủy

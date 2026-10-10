@@ -495,3 +495,22 @@ landscape cues stay feature-owned rather than one generic media framework.
 See [actual owners and proof boundaries](web-ui-components.md#documentsnews-discovery-owners-and-task-evidence-10102026)
 and the existing work status for accepted hashes, learner walks and synthetic/live
 limits. The42-page broad ledger remains source coverage, not all-screen rendering.
+
+
+### Admin record-finding and recovery refinements (10/10/2026)
+
+Use compact management toolbars with labeled supported filters and the existing
+SearchInput; keep submit/debounce and URL/page semantics with their feature owner.
+Phone counters are compact informational context, never an unlabeled substitute
+for a status selector. Record titles must disclose distinguishing file suffixes;
+POST thumbnails support recognition without dominating the title and use an honest
+failed-image fallback. Users use identity/action rows below768px and the existing
+relational table at wider widths, with contextual action names and tablet scroll
+guidance. This variant serves safe account selection, not a new global card shell.
+
+Destructive confirmations retain the target/error while pending and on failure.
+Required option metadata has loading/error/retry feedback separate from the main
+record query. Private PDF review restoration validates the URL job identity and
+revalidates access before media/actions, while recoverable errors preserve local
+corrections. See [actual owners and adoption](web-ui-components.md#admin-recovery-and-discovery-owners-10102026)
+and [fix disposition/evidence](../reviews/ux-flow-audit.md#admin-ui-audit-remedies-20261010).

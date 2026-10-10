@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { postDisplayStatus } from "../post-status";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AvatarImage } from "@/features/user/components/avatar-image";
 import { ManagementListRow, ManagementRowActions } from "@/components/ui/management-list-row";
@@ -27,18 +29,12 @@ export function DashboardPostList({ data, onDeleteClick, onEditClick }: Dashboar
         const formattedDate = post.publishedAt
           ? format(new Date(post.publishedAt), "dd/MM/yyyy", { locale: vi })
           : "Chưa xuất bản";
-        const displayStatus = post.expiredAt && new Date(post.expiredAt) <= new Date() ? "EXPIRED" : post.status;
+        const displayStatus = postDisplayStatus(post);
 
         return (
           <ManagementListRow key={post.id} actions={<ManagementRowActions onEdit={() => onEditClick(post)} onDelete={() => onDeleteClick(post)} />}>
             <div className="flex items-start gap-4 flex-1 min-w-0">
-              <div className="shrink-0 w-24 h-16 flex items-center justify-center bg-muted/30 rounded border border-border/50 overflow-hidden">
-                {post.thumbnailUrl ? (
-                  <img src={post.thumbnailUrl} alt={post.title} className="w-full h-full object-cover" />
-                ) : (
-                  <Newspaper className="w-8 h-8 text-muted-foreground" />
-                )}
-              </div>
+              <PostThumbnail key={post.thumbnailUrl} src={post.thumbnailUrl} />
               <div className="flex flex-col gap-1 min-w-0 flex-1">
                 {post.status === "PUBLISHED" && displayStatus !== "EXPIRED" ? (
                   <Link to={`${ROUTES.NEWS}/${post.slug}`} target="_blank" rel="noreferrer" className="font-medium text-[15px] text-foreground hover:text-primary line-clamp-2" title={post.title}>
@@ -93,4 +89,11 @@ export function DashboardPostList({ data, onDeleteClick, onEditClick }: Dashboar
       })}
     </div>
   );
+}
+
+function PostThumbnail({ src }: { src: string | null }) {
+  const [failed, setFailed] = useState(false);
+  return <div className="shrink-0 w-16 h-12 sm:w-24 sm:h-16 flex items-center justify-center bg-muted/30 rounded border border-border/50 overflow-hidden">
+    {src && !failed ? <img src={src} alt="" width={96} height={64} loading="lazy" className="w-full h-full object-cover" onError={() => setFailed(true)} /> : <><Newspaper aria-hidden="true" className="size-6 text-muted-foreground" /><span className="sr-only">{failed ? "Không tải được ảnh minh họa" : "Không có ảnh minh họa"}</span></>}
+  </div>;
 }

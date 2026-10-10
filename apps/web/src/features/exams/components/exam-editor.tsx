@@ -1,3 +1,4 @@
+import { OptionQueryFeedback } from "@/components/ui/option-query-feedback";
 import type { CreationState } from "@/components/ui/creation-dialog";
 import { SearchInput } from "@/components/ui/search-input";
 import { AppPagination } from "@/components/ui/app-pagination";
@@ -28,8 +29,8 @@ export function ExamEditor({ examId, listPath, papersPath, onStateChange, onClos
   const location = useLocation();
   const back = getListReturnPath((location.state as { from?: unknown } | null)?.from, listPath);
   if (examId && draft.isLoading) return <div className="page-shell"><ExamLoading label="Đang tải đề…" /></div>;
-  if (examId && draft.isError) return <div className="page-shell"><ExamProblem message={examErrorMessage(draft.error)} onRetry={() => void draft.refetch()} /></div>;
-  if (examId && !draft.data) return <div className="page-shell"><ExamProblem message="Không tìm thấy đề." onRetry={() => void draft.refetch()} /></div>;
+  if (examId && draft.isError) return <div className="page-shell"><ExamProblem message={examErrorMessage(draft.error)} retrying={draft.isFetching} onRetry={() => void draft.refetch()} /></div>;
+  if (examId && !draft.data) return <div className="page-shell"><ExamProblem message="Không tìm thấy đề." retrying={draft.isFetching} onRetry={() => void draft.refetch()} /></div>;
   return <ExamForm key={examId ?? "new"} examId={examId} initial={draft.data ?? null} reload={() => draft.refetch()} listPath={listPath} papersPath={papersPath} back={back} onStateChange={onStateChange} onClose={onClose} />;
 }
 
@@ -104,13 +105,14 @@ function ExamForm({ examId, initial, reload, listPath, papersPath, back, onState
     {conflict ? <div className="mb-4 space-y-3" role="alert"><p>Đề vừa được sửa ở nơi khác. Bản bạn đang nhập vẫn được giữ.</p><Button type="button" variant="outline" onClick={() => void loadServer()}>Tải bản trên máy chủ</Button></div> : null}
     <form className="space-y-8" onSubmit={(event) => { event.preventDefault(); void save(); }}>
       <PageSection title="Thông tin đề"><div className="space-y-4">
+        <OptionQueryFeedback label="môn học" pending={metadata.isLoading} error={metadata.isError} retrying={metadata.isFetching} onRetry={() => void metadata.refetch()} />
         <div className="space-y-2"><Label htmlFor="exam-title">Tiêu đề</Label><Input id="exam-title" value={form.title} maxLength={300} onChange={(event) => edit((current) => ({ ...current, title: event.target.value }))} /></div>
         <div className="space-y-2"><Label htmlFor="exam-subject">Môn học</Label>
-          <NativeSelect id="exam-subject" value={form.subjectId} onChange={(event) => {
+          <NativeSelect id="exam-subject" disabled={metadata.isPending || metadata.isError} value={form.subjectId} onChange={(event) => {
             const subjectId = event.target.value;
             if (subjectId !== form.subjectId && form.items.length > 0) setNotice("Đã gỡ các câu khỏi đề vì môn học đã đổi.");
             edit((current) => ({ ...current, subjectId, items: subjectId === current.subjectId ? current.items : [] }));
-          }}><option value="">Chọn môn học</option>{metadata.data?.subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}</NativeSelect>
+          }}><option value="">Chọn môn học</option>{form.subjectId && !metadata.data?.subjects.some(subject => subject.id === form.subjectId) && <option value={form.subjectId}>Môn đã chọn (chưa tải tên)</option>}{metadata.data?.subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}</NativeSelect>
         </div>
         <div className="space-y-2"><Label htmlFor="exam-instructions">Hướng dẫn</Label><Textarea id="exam-instructions" value={form.instructions} maxLength={4000} onChange={(event) => edit((current) => ({ ...current, instructions: event.target.value }))} /></div>
         <div className="space-y-2"><Label htmlFor="exam-release">Giờ mở đề</Label><Input id="exam-release" type="datetime-local" value={form.releaseLocal} onChange={(event) => edit((current) => ({ ...current, releaseLocal: event.target.value }))} /><p className="text-sm">{zoneLabel()}</p><p className="text-sm">Giờ này được đổi sang múi giờ đang dùng trên trình duyệt. Đề không có giờ đóng.</p><p className="text-sm">{formatRelease(localInputToOffsetDateTime(form.releaseLocal))}</p></div>
@@ -169,7 +171,7 @@ function PublishedBank({ subjectId, onAdd }: { subjectId: string; onAdd: (questi
       <Button type="button" variant="outline" onClick={(event) => { event.preventDefault(); event.stopPropagation(); applySearch(); }}>Tìm</Button>
     </div>
     {query.isLoading ? <ExamLoading label="Đang tải câu hỏi…" /> : null}
-    {query.isError ? <ExamProblem message={examErrorMessage(query.error)} onRetry={() => void query.refetch()} /> : null}
+    {query.isError ? <ExamProblem message={examErrorMessage(query.error)} retrying={query.isFetching} onRetry={() => void query.refetch()} /> : null}
     {query.data && query.data.content.length === 0 ? <p>Không có câu đã xuất bản cho môn này.</p> : null}
     <ul className="space-y-3">{query.data?.content.map((question) => <li key={question.id} className="flex flex-wrap items-center justify-between gap-3"><span>{questionBankLabel(question.content)}</span><Button type="button" variant="outline" size="sm" onClick={() => onAdd(question)}>Thêm vào đề</Button></li>)}</ul>
     {query.data && <AppPagination variant="compact" currentPage={page + 1} totalPages={query.data.totalPages} onPageChange={next => setPage(next - 1)} />}

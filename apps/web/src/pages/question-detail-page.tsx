@@ -1,3 +1,4 @@
+import { OptionQueryFeedback } from "@/components/ui/option-query-feedback";
 import { CreationDialog, type CreationState } from "@/components/ui/creation-dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { getListReturnPath } from "@/lib/list-navigation";
@@ -244,7 +245,8 @@ function QuestionEditForm({
   onCancel: () => void;
 }) {
   const updateQuestion = useUpdateQuestion();
-  const { data: metadata } = useDocumentMetadata();
+  const metadataQuery = useDocumentMetadata();
+  const metadata = metadataQuery.data;
   const subjects = metadata?.subjects ?? [];
 
   const {
@@ -269,8 +271,10 @@ function QuestionEditForm({
   });
 
   const selectedSubjectId = watch("subjectId");
-  const { data: topics, isLoading: isTopicsLoading } =
-    useTopics(selectedSubjectId);
+  const selectedTopicId = watch("topicId");
+  const topicsQuery = useTopics(selectedSubjectId);
+  const topics = topicsQuery.data;
+  const isTopicsLoading = topicsQuery.isLoading;
 
   async function onSubmit(data: UpdateFormValues) {
     const content = wrapText(data.contentText);
@@ -308,12 +312,15 @@ function QuestionEditForm({
           <CardTitle className="text-base">Thông tin chung</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <OptionQueryFeedback label="môn học" pending={metadataQuery.isLoading} error={metadataQuery.isError} retrying={metadataQuery.isFetching} onRetry={() => void metadataQuery.refetch()} />
+          {selectedSubjectId && <OptionQueryFeedback label="chủ đề" pending={topicsQuery.isLoading} error={topicsQuery.isError} retrying={topicsQuery.isFetching} onRetry={() => void topicsQuery.refetch()} />}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <label htmlFor="edit-subject" className="text-sm font-medium">
                 Môn học <span className="text-destructive">*</span>
               </label>
               <Select
+                disabled={metadataQuery.isPending || metadataQuery.isError}
                 value={selectedSubjectId}
                 onValueChange={(value) => {
                   setValue("subjectId", value, { shouldValidate: true });
@@ -324,7 +331,8 @@ function QuestionEditForm({
                   <SelectValue placeholder="Chọn môn học" />
                 </SelectTrigger>
                 <SelectContent>
-                  {subjects.map((subject) => (
+                  {selectedSubjectId && !subjects.some(subject => subject.id === selectedSubjectId) && <SelectItem value={selectedSubjectId}>{selectedSubjectId === question.subjectId ? question.subjectName : "Môn đã chọn (chưa tải tên)"}</SelectItem>}
+                    {subjects.map((subject) => (
                     <SelectItem key={subject.id} value={subject.id}>
                       {subject.name}
                     </SelectItem>
@@ -347,7 +355,7 @@ function QuestionEditForm({
                 onValueChange={(value) =>
                   setValue("topicId", value, { shouldValidate: true })
                 }
-                disabled={!selectedSubjectId || isTopicsLoading}
+                disabled={!selectedSubjectId || isTopicsLoading || topicsQuery.isError}
               >
                 <SelectTrigger id="edit-topic">
                   <SelectValue
@@ -357,7 +365,8 @@ function QuestionEditForm({
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {topics?.map((topic) => (
+                  {selectedTopicId && !topics?.some(topic => topic.id === selectedTopicId) && <SelectItem value={selectedTopicId}>{selectedTopicId === question.topicId ? question.topicName : "Chủ đề đã chọn (chưa tải tên)"}</SelectItem>}
+                    {topics?.map((topic) => (
                     <SelectItem key={topic.id} value={topic.id}>
                       {topic.name}
                     </SelectItem>

@@ -140,27 +140,29 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  const [deleteError, setDeleteError] = useState("");
   const handleDelete = (id: string, name: string) => {
+    setDeleteError("");
     setItemToDelete({ id, name });
   };
 
   const confirmDelete = () => {
-    if (!itemToDelete) return;
+    if (!itemToDelete || isDeletePending) return;
     
     if (activeTab === "categories") {
       deleteCategory.mutate(itemToDelete.id, {
         onSuccess: () => { toast.success("Đã xóa phân loại"); setItemToDelete(null); },
-        onError: (err: any) => toast.error(err.message || "Lỗi xóa"),
+        onError: (err: any) => { setDeleteError(err.message || "Không thể xóa. Hãy thử lại hoặc hủy."); toast.error(err.message || "Lỗi xóa"); },
       });
     } else if (activeTab === "subjects") {
       deleteSubject.mutate(itemToDelete.id, {
         onSuccess: () => { toast.success("Đã xóa môn học"); setItemToDelete(null); },
-        onError: (err: any) => toast.error(err.message || "Lỗi xóa"),
+        onError: (err: any) => { setDeleteError(err.message || "Không thể xóa. Hãy thử lại hoặc hủy."); toast.error(err.message || "Lỗi xóa"); },
       });
     } else if (activeTab === "tags") {
       deleteTag.mutate(itemToDelete.id, {
         onSuccess: () => { toast.success("Đã xóa thẻ"); setItemToDelete(null); },
-        onError: (err: any) => toast.error(err.message || "Lỗi xóa"),
+        onError: (err: any) => { setDeleteError(err.message || "Không thể xóa. Hãy thử lại hoặc hủy."); toast.error(err.message || "Lỗi xóa"); },
       });
     }
   };
@@ -308,7 +310,7 @@ export default function AdminCategoriesPage() {
         hideDescription={activeTab === "tags"}
       />
 
-      <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+      <AlertDialog open={!!itemToDelete} onOpenChange={(open) => { if (!open && !isDeletePending) setItemToDelete(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
@@ -316,6 +318,7 @@ export default function AdminCategoriesPage() {
               Bạn có chắc chắn muốn xóa &quot;{itemToDelete?.name}&quot; không? Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {deleteError && <p role="alert" className="text-sm text-destructive">{deleteError}</p>}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeletePending}>Hủy</AlertDialogCancel>
             <Button

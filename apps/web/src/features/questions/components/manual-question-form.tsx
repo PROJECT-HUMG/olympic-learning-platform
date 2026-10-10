@@ -1,3 +1,4 @@
+import { OptionQueryFeedback } from "@/components/ui/option-query-feedback";
 import type { CreationState } from "@/components/ui/creation-dialog";
 import { FigureNotices } from "./figure-notices";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -477,16 +478,18 @@ export function ManualQuestionWorkspace({
       {current.isLoading ? <p role="status" className="text-sm text-muted-foreground">Đang kiểm tra quyền…</p> : null}
       {!current.isLoading && showEditor ? (
         <form id="manual-question-form" className="space-y-6" onSubmit={(event) => { event.preventDefault(); if (!canEdit || busy) return; void saveDraft(); }}>
+          <OptionQueryFeedback label="môn học" pending={metadata.isLoading} error={metadata.isError} retrying={metadata.isFetching} onRetry={() => void metadata.refetch()} />
+          {draft.subjectId && <OptionQueryFeedback label="chủ đề" pending={topics.isLoading} error={topics.isError} retrying={topics.isFetching} onRetry={() => void topics.refetch()} />}
           <div className="grid gap-4 sm:grid-cols-2">
             <Field id="manual-subject" label="Môn học">
-              <NativeSelect id="manual-subject" value={draft.subjectId} disabled={busy} onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, subjectId: event.target.value, topicId: "" }))}>
+              <NativeSelect id="manual-subject" value={draft.subjectId} disabled={busy || metadata.isPending || metadata.isError} onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, subjectId: event.target.value, topicId: "" }))}>
                 <option value="">Chọn môn học</option>
                 {draft.subjectId && !subjects.some((subject) => subject.id === draft.subjectId) ? <option value={draft.subjectId}>{subjectName}</option> : null}
                 {subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}
               </NativeSelect>
             </Field>
             <Field id="manual-topic" label="Chủ đề">
-              <NativeSelect id="manual-topic" value={draft.topicId} disabled={busy || !draft.subjectId || topics.isLoading} onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, topicId: event.target.value }))}>
+              <NativeSelect id="manual-topic" value={draft.topicId} disabled={busy || !draft.subjectId || topics.isLoading || topics.isError} onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, topicId: event.target.value }))}>
                 <option value="">{topics.isLoading ? "Đang tải..." : "Chọn chủ đề"}</option>
                 {draft.topicId && !topics.data?.some((topic) => topic.id === draft.topicId) ? <option value={draft.topicId}>{topicName}</option> : null}
                 {topics.data?.map((topic) => <option key={topic.id} value={topic.id}>{topic.name}</option>)}

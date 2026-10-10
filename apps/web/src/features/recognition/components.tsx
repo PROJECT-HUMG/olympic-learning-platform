@@ -12,9 +12,9 @@ import { recognitionService as service } from "./service";
 import { CATEGORIES, AWARDS, PARTICIPATION, estimatePoints } from "./scoring";
 import type { Evidence, Honor, Participant, RecognitionPage } from "./types";
 
-export function QueryFeedback({ pending, error, empty, retry, children }: { pending: boolean; error: boolean; empty?: boolean; retry: () => void; children: ReactNode }) {
+export function QueryFeedback({ pending, error, empty, retry, retrying, children }: { pending: boolean; error: boolean; empty?: boolean; retry: () => void; retrying: boolean; children: ReactNode }) {
   if (pending) return <div className="recognition-feedback" role="status">Đang tải thông tin…</div>;
-  if (error) return <div className="recognition-feedback" role="alert"><p>Chưa tải được thông tin. Kiểm tra kết nối và thử lại.</p><Button variant="outline" onClick={retry}>Thử lại</Button></div>;
+  if (error) return <div className="recognition-feedback" role="alert"><p>Chưa tải được thông tin. Kiểm tra kết nối và thử lại.</p><Button variant="outline" loading={retrying} onClick={retry}>Thử lại</Button></div>;
   if (empty) return <p className="recognition-feedback" role="status">Chưa có nội dung phù hợp với lựa chọn này.</p>;
   return children;
 }
@@ -51,7 +51,7 @@ export function HonorImage({ honor, photoId, alt, management = false, interactiv
   const [url, setUrl] = useState("");
   const [failed, setFailed] = useState(false);
   useEffect(() => { setFailed(false); if (!photo.data) { setUrl(""); return; } const next = URL.createObjectURL(photo.data); setUrl(next); return () => URL.revokeObjectURL(next); }, [photo.data]);
-  return <div ref={container} className="recognition-image">{url && !failed ? <img src={url} alt={alt} loading="lazy" onError={() => setFailed(true)} /> : <div className="recognition-image-feedback" role="status">{photo.isError || failed ? interactive ? <Button variant="outline" onClick={() => void photo.refetch()}>Thử tải ảnh lại</Button> : "Chưa tải được ảnh. Mở ảnh để thử lại." : "Đang tải ảnh…"}</div>}</div>;
+  return <div ref={container} className="recognition-image">{url && !failed ? <img src={url} alt={alt} loading="lazy" onError={() => setFailed(true)} /> : <div className="recognition-image-feedback" role="status">{photo.isError || failed ? interactive ? <Button variant="outline" loading={photo.isFetching} onClick={() => void photo.refetch()}>Thử tải ảnh lại</Button> : "Chưa tải được ảnh. Mở ảnh để thử lại." : "Đang tải ảnh…"}</div>}</div>;
 }
 export function EvidenceDownload({ achievementId, attachment }: { achievementId: string; attachment: Evidence }) {
   const [pending, setPending] = useState(false);
@@ -87,5 +87,5 @@ export function UserPicker({ selected, onChange, studentOnly = false }: { select
     const { adminUsersService } = await import("@/features/admin/services/admin-users.service");
     return (await adminUsersService.search({ search, page: 0, size: 20 })).data;
   } });
-  return <div className="recognition-user-picker"><Field title="Tìm tài khoản" hint="Tìm theo tên, email hoặc username; sau đó chọn tài khoản.">{id => <Input id={id} value={search} onChange={e => setSearch(e.target.value)} placeholder="Tên hoặc email" />}</Field><QueryFeedback pending={users.isPending} error={users.isError} retry={() => void users.refetch()}><Field title="Tài khoản">{id => <NativeSelect id={id} value={selected} onChange={e => { const user = users.data?.content.find(u => u.id === e.target.value); setSelectedUser(user ? { id: user.id, label: `${user.fullName} (${user.username})` } : null); onChange(e.target.value, user?.fullName ?? ""); }}><option value="">Chọn tài khoản</option>{selectedUser?.id === selected && !users.data?.content.some(user => user.id === selected) && <option value={selectedUser.id}>{selectedUser.label}</option>}{users.data?.content.filter(user => !studentOnly || (user.role === "STUDENT" && user.status === "ACTIVE")).map(user => <option key={user.id} value={user.id}>{user.fullName} ({user.username})</option>)}</NativeSelect>}</Field></QueryFeedback></div>;
+  return <div className="recognition-user-picker"><Field title="Tìm tài khoản" hint="Tìm theo tên, email hoặc username; sau đó chọn tài khoản.">{id => <Input id={id} value={search} onChange={e => setSearch(e.target.value)} placeholder="Tên hoặc email" />}</Field><QueryFeedback pending={users.isPending} error={users.isError} retrying={users.isFetching} retry={() => void users.refetch()}><Field title="Tài khoản">{id => <NativeSelect id={id} value={selected} onChange={e => { const user = users.data?.content.find(u => u.id === e.target.value); setSelectedUser(user ? { id: user.id, label: `${user.fullName} (${user.username})` } : null); onChange(e.target.value, user?.fullName ?? ""); }}><option value="">Chọn tài khoản</option>{selectedUser?.id === selected && !users.data?.content.some(user => user.id === selected) && <option value={selectedUser.id}>{selectedUser.label}</option>}{users.data?.content.filter(user => !studentOnly || (user.role === "STUDENT" && user.status === "ACTIVE")).map(user => <option key={user.id} value={user.id}>{user.fullName} ({user.username})</option>)}</NativeSelect>}</Field></QueryFeedback></div>;
 }
