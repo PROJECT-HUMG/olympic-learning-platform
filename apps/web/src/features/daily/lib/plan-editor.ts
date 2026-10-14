@@ -95,15 +95,22 @@ function textLimit(value: string): string | null {
   return value.length > 4000 ? "Nội dung dài nhất là 4000 ký tự." : null;
 }
 
+/** Shared by row feedback and persistence validation; never changes the local draft. */
+export function taskTitleError(value: string): string | null {
+  const title = value.trim();
+  if (title === "") return "Mỗi việc cần có tiêu đề.";
+  return title.length > 200 ? "Tiêu đề việc dài nhất là 200 ký tự." : null;
+}
+
 export function planSaveBody(editor: PlanEditor): SaveReady<SaveDailyPlanBody> {
   if (editor.tasks.length > 50) return { ok: false, message: "Một ngày có tối đa 50 việc." };
   const limited = textLimit(editor.reviewReasons) ?? textLimit(editor.reviewWentWell) ?? textLimit(editor.reviewTomorrow);
   if (limited) return { ok: false, message: limited };
   const tasks: SaveDailyPlanBody["tasks"] = [];
-  for (const task of editor.tasks) {
+  for (const [index, task] of editor.tasks.entries()) {
     const title = task.title.trim();
-    if (title === "") return { ok: false, message: "Mỗi việc cần có tiêu đề." };
-    if (title.length > 200) return { ok: false, message: "Tiêu đề việc dài nhất là 200 ký tự." };
+    const error = taskTitleError(task.title);
+    if (error) return { ok: false, message: `Việc ${index + 1}: ${error}` };
     tasks.push(task.id ? { id: task.id, title, priority: task.priority, status: task.status } : { title, priority: task.priority, status: task.status });
   }
   return {

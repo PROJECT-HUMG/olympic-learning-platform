@@ -1,8 +1,23 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { beginDailyOperation, finishDailyOperation, idleDailyGate, noteDailyEdit } from "../src/features/daily/lib/daily-lifecycle.ts";
-import { emptyPlanEditor, emptyWeekEditor, rebaseSyncedPlan, rebaseSyncedWeek, submitAllowed } from "../src/features/daily/lib/plan-editor.ts";
+import { emptyPlanEditor, emptyWeekEditor, planSaveBody, rebaseSyncedPlan, rebaseSyncedWeek, submitAllowed, taskTitleError } from "../src/features/daily/lib/plan-editor.ts";
 import type { DailyPlan, DailyWeek } from "../src/features/daily/lib/daily-contract.ts";
+
+it("identifies the invalid task without trimming or replacing its local draft, then recovers", () => {
+  const task = { key: "first", id: null, title: "Học", priority: "SHOULD" as const, status: "TODO" as const };
+  const editor = { ...emptyPlanEditor("2026-10-07"), tasks: [task, { ...task, key: "second", title: "   " }] };
+  assert.deepEqual(planSaveBody(editor), { ok: false, message: "Việc 2: Mỗi việc cần có tiêu đề." });
+  assert.equal(editor.tasks[1].title, "   ");
+  assert.equal(taskTitleError(""), taskTitleError(" \n "));
+  assert.equal(taskTitleError("a".repeat(201)), "Tiêu đề việc dài nhất là 200 ký tự.");
+  assert.equal(taskTitleError("a".repeat(200)), null);
+  editor.tasks[1].title = "  Đọc lại bài  ";
+  const ready = planSaveBody(editor);
+  assert.equal(ready.ok, true);
+  if (ready.ok) assert.equal(ready.body.tasks[1].title, "Đọc lại bài");
+  assert.equal(editor.tasks[1].title, "  Đọc lại bài  ");
+});
 
 it("serializes auto-sync but accepts newer edits, so a stale batch cannot clear dirty", () => {
   const edit = noteDailyEdit(idleDailyGate())!;

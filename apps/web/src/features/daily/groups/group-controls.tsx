@@ -23,10 +23,12 @@ export function GroupList({userId,warning,retry}:{userId:string;warning:boolean;
   const cache=useQueryClient();
   const navigate=useNavigate();
   const [name,setName]=useState("");
+  const [createError,setCreateError]=useState<string|null>(null);
   const createDialogRef=useRef<HTMLDialogElement|null>(null);
   const restoreCreateScroll=useRef<(() => void)|null>(null);
   useEffect(() => () => { restoreCreateScroll.current?.(); restoreCreateScroll.current=null; }, []);
   function openCreate() {
+    setCreateError(null);
     const dialog=createDialogRef.current;
     if (!dialog || dialog.open) return;
     restoreCreateScroll.current?.();
@@ -114,7 +116,7 @@ export function GroupList({userId,warning,retry}:{userId:string;warning:boolean;
           type="button"
           variant="ghost"
           size="sm"
-            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+            className="h-11 w-11 shrink-0 p-0 text-muted-foreground hover:text-foreground"
             aria-label="Đóng tạo nhóm"
           onClick={() => createDialogRef.current?.close()}
         >
@@ -126,7 +128,11 @@ export function GroupList({userId,warning,retry}:{userId:string;warning:boolean;
         onSubmit={event => {
           event.preventDefault();
           void action.run(async signal => {
-            const group = await groupService.create(name, signal);
+            setCreateError(null);
+            const group = await groupService.create(name, signal).catch(error => {
+              if (!signal.aborted) setCreateError(groupError(error));
+              throw error;
+            });
             if (!signal.aborted) {
               setName("");
               createDialogRef.current?.close();
@@ -148,6 +154,7 @@ export function GroupList({userId,warning,retry}:{userId:string;warning:boolean;
             autoFocus
           />
         </div>
+        <p role="alert" className="text-sm text-destructive empty:hidden">{createError}</p>
         <div className="flex items-center justify-end gap-2 pt-2">
           <Button
             type="button"

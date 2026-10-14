@@ -136,6 +136,28 @@ Dedicated reduced-motion validation is omitted/unverified. Normal CI/deploy and
 public smoke are authorized; record their actual outcome separately from
 interactive login/Cloudflare verification and sustained1GiB capacity.
 
+Completed delivery: commit `0f06fcbaf757d06f243b7385e3ca68fc0b0d3530`
+(`feat(auth): protect password login with Turnstile`),14 scoped paths, pushed
+nonforce to origin/main. [Delivery37808033993](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37808033993)
+attempt1 completed **success**: checks113417352612 and deploy113418228814 passed,
+including full API/Testcontainers gate, strict SSH/exact checkout/sequential
+builds/backup/readiness/image identity/host smoke and GitHub runner public smoke.
+Independent public smoke also passed the exact SHA on its first attempt;
+`/login` returned200 text/html with the SPA root. Evidence:
+`/tmp/olympic-login-turnstile-final-manifest-20261008.json`,
+`/tmp/olympic-login-turnstile-run.json`, `/tmp/olympic-login-turnstile-jobs.json`,
+`/tmp/olympic-login-turnstile-public-smoke.json` and
+`/tmp/olympic-login-turnstile-public-login.json`.
+
+No real credential/token/OTP request, key inspection or settings mutation was
+performed. Public smoke does not prove effective flags or real Siteverify/login;
+operator should refresh the login page, complete CAPTCHA and verify one normal
+own-account login plus Cloudflare successful token-validation analytics. Old
+tabs/clients must obtain/provide fresh action=login tokens when enforcement is
+enabled. No production bypass or rate-limit policy was added. Daily7 remains
+hash-identical and the pre-existing deployment status is uncommitted/preserved.
+This completed-outcome status stays local to avoid a redundant deploy-only commit.
+
 > This document specifies the authentication architecture used by the
 > Olympic Learning Platform.
 

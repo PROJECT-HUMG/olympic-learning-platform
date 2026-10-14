@@ -53,3 +53,20 @@
  .document-browser__filters .document-filter-fields { grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; }
 }
 @media(max-width:420px) { .document-browser__filters .document-filter-fields { grid-template-columns:repeat(2,minmax(0,1fr)); } .document-browser__filters .document-filter-fields > :last-child { grid-column:1 / -1; } }
+
+/* Phone facets share the navigation Sheet owner; only its body scrolls. */
+.document-filter-trigger { justify-self:start; }
+.document-filter-count { display:inline-flex; align-items:center; justify-content:center; min-width:1.25rem; height:1.25rem; padding:0 .25rem; border-radius:var(--radius-sm); background:var(--secondary); font-size:.75rem; font-variant-numeric:tabular-nums; }
+.document-filter-sheet { gap:0; max-height:calc(100dvh - max(.5rem, env(safe-area-inset-top))); min-width:0; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
+.document-filter-sheet__header { display:flex; align-items:flex-start; justify-content:space-between; gap:.75rem; flex-shrink:0; padding:.75rem max(1rem, env(safe-area-inset-right)) .75rem max(1rem, env(safe-area-inset-left)); border-bottom:1px solid var(--border); }
+.document-filter-sheet__header [data-slot=sheet-title] { overflow-wrap:anywhere; outline:none; }
+.document-filter-sheet__body { min-height:0; overflow-y:auto; overscroll-behavior:contain; display:grid; gap:.75rem; padding:1rem max(1rem, env(safe-area-inset-right)) 1rem max(1rem, env(safe-area-inset-left)); }
+.document-filter-sheet .document-filter-fields { grid-template-columns:minmax(0,1fr); gap:.875rem; }
+.document-filter-sheet .document-filter-fields > :last-child { grid-column:auto; }
+.document-filter-sheet__footer { display:flex; justify-content:space-between; gap:.75rem; flex-shrink:0; padding:.5rem max(1rem, env(safe-area-inset-right)) max(.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); border-top:1px solid var(--border); }
+@media(max-width:639px) {
+ .document-browser__filters .document-filter-bar { grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:.75rem .5rem; }
+ .document-filter-search { min-width:0; }
+ .document-filter-trigger { justify-self:end; }
+ .document-filter-bar > :is([role=status],[role=alert],.flex) { grid-column:1 / -1; }
+}

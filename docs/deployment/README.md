@@ -473,3 +473,43 @@ Exact candidate/check/live identifiers are recorded in
 The meaningful scoped commit push triggers normal checks/SSH/Compose/readiness
 and both public smokes. Live outcome must be recorded separately; actual login,
 SMTP2525/TLS/OTP and sustained1GiB capacity remain unverified.
+
+### Static repair: completed live handoff
+
+`97626f7ef28de999e45dc57164b0fe3e870df883` (`fix(web): make public image assets
+readable`) was accepted, committed across five scoped paths and pushed nonforce
+to origin/main. [Delivery37802002260](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37802002260),
+attempt1, completed **success**. Checks113396324681 and deploy113397607547 passed,
+including PostgreSQL Testcontainers, nginx regression, exact checkout, sequential
+builds, backup, app readiness, running image checks and both host/runner smokes.
+
+An independent full public smoke passed for the exact SHA. Direct public MIME
+checks also passed: favicon.svg/icons.svg200 image/svg+xml; Facebook/GitHub/Zalo
+social PNGs200 image/png; day/night posters200 image/webp; day/night MP4 byte
+ranges206 video/mp4 with correct Content-Range. Only64 bytes per video were read;
+this is asset serving evidence, not full media decoding/playback or visual proof.
+Public API metadata and blocked public actuator checks passed without credentials.
+Retained evidence: `/tmp/olympic-static-run-37802002260*.json` and
+`/tmp/olympic-static-live-public-20261008.json`; exact candidate/check/push identifiers
+remain in `/tmp/olympic-static-final-manifest-20261008.json`.
+
+Conditional login investigation is closed as reported resolved; no auth change
+was made. Anonymous me/refresh401 needs no policy relaxation. All other auth,
+private permission flows, SMTP2525/TLS/OTP, renewal reload/dry-run and sustained
+1GiB capacity remain outside this verification. No further server rebuild,
+Docker package migration, host ingress weakening or file-permission blanket
+change is indicated by the successful static repair. Old remote builder cleanup
+remains unknown; no automatic prune/removal occurred.
+
+Daily7 exact hashes and operator env/data remain preserved; index empty and
+main matches origin/main. Owned local test containers/images/directories are
+cleaned. This completed-outcome-only status addition stays local/uncommitted
+rather than triggering an unnecessary deployment. No new implementation or
+additional tests were added for the subsequent read-only security question.
+
+Operator now reports current production functionality, including login and
+repaired public assets, all working. This is operator-reported success, separate
+from the recorded delivery/public smoke evidence; sustained whole-VPS1GiB
+capacity, other auth/private flows and live Turnstile verification remain unproven.
+Turnstile setup review found existing server-dotenv runtime/build wiring complete;
+no implementation change, key inspection, settings mutation or deployment made.

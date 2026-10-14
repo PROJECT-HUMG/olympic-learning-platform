@@ -849,6 +849,43 @@ controller/PostgreSQL integration tests. Exact runs/limits are in the existing
 [status](../reviews/ux-flow-audit.md#public-profiles-and-achievement-visibility--10102026).
 No fabricated activity/solved/streak totals, evidence galleries or public account fields.
 
+### Avatar delivery lookup — verified against `2b94351`, 10/10/2026
+
+The identity image is already included in the owning response; mounting a list
+does not require one public-profile request per avatar. Payload locations:
+
+| Response | Avatar fields | Resolution owner |
+| --- | --- | --- |
+| Recognition Honors list/detail | `participants[].avatarUrl`, `avatarCrop` | `RecognitionServiceImpl.honorResponse` batches registered participant IDs through `UserService.publicIdentities`; unregistered or unavailable historical identities retain attribution with no avatar/profile link. |
+| Recognition rankings | `content[].avatarUrl`, `avatarCrop` | `RecognitionServiceImpl.rankings` batches IDs through the same public identity service; ranking consent and eligibility stay unchanged. |
+| Public profile / authenticated legacy user lookup | `avatarUrl`, `avatarCrop` | `RecognitionServiceImpl.profile` / `UserServiceImpl.findById` use the same active, nondeleted public identities. |
+| Document list/detail | `owner.avatarUrl`, `owner.avatarCrop` | Existing `DocumentServiceImpl.enrich` uses the storage resolver after `UserMapper.toPublicResponse`. |
+| News/Post summary/detail | `author.avatarUrl`, `author.avatarCrop` | Existing `PostServiceImpl.enrichSummary/enrichDetail` use the storage resolver after the same mapper. |
+
+`User.avatar` references the stored File; `UserServiceImpl.updateAvatar` uploads
+through `StorageFolder.AVATAR`. All these paths reuse
+[`StorageService.getDownloadUri`](../../apps/api/src/main/java/me/nghlong3004/olympic/storage/service/StorageService.java),
+whose current Cloudinary implementation generates HTTPS image delivery URLs
+without signing or expiry tokens. This is the existing avatar delivery contract,
+not the private Recognition evidence contract. No new raw/private URL generation
+or access policy is introduced. `UserMapper` deliberately leaves URL resolution
+to services; inspecting its intermediate DTO alone will show null.
+
+No uploaded avatar yields null in batch Recognition identities (initials in
+`UserAvatar`); Document/News enrichment retains its configured default image.
+Unavailable identities suppress URLs even when a historical avatar exists.
+The optional public-profile request starts only when the hover/focus preview
+opens, for its approved-achievement summary. `UserIdentity` renders the row's
+image directly from its supplied identity, and `UserAvatar` retains initials on
+image failure. Frontend/backend both use `avatarUrl` and `avatarCrop`.
+
+No runtime omission was found in this bounded trace. Fresh offline checks:
+`PublicIdentityServiceTest`, `UserAvatarServiceTest`, `CloudinaryStorageServiceTest`
+passed 8/8; the accepted profile browser evidence already covers successful
+cropped images, failed-image initials and preview error/revalidation. These
+checks do not establish deployed payloads or live CDN asset availability.
+
+
 ### Public Recognition/News control variants — 11/10/2026
 
 - [UserIdentity](../../apps/web/src/features/user/components/user-hover-card.tsx) and [profile CSS](../../apps/web/src/features/user/components/public-profile.css) own the compact avatar/name surface with a decorative chevron, hover/active border/background and visible keyboard focus. Link/preview/touch behavior and supplied URL/crop/initials remain with the same owners; unavailable historical attribution stays unlinked. Recognition styles no longer override identities into blue underlined names.
@@ -1028,3 +1065,16 @@ Reference is free React Bits FadeContent-TS-TW,inspected via shared shadcn MCP. 
 | Original sources/theme/poster/background delivery | [CinematicScene](../../apps/web/src/components/ui/cinematic-scene.tsx), unchanged [media/download owner](../../apps/web/src/components/ui/cinematic-media.ts), [scene CSS](../../apps/web/src/components/ui/cinematic-scene.css) and [source attribution](../../apps/web/public/videos/SOURCES.txt). Selected source only;theme/hidden/offscreen/unmount pause, static reduced motion and poster fallback. Startup preparation defaults to existing auth behavior;Home opts out so search remains usable during a slow download. `anime-day.mp4`/`anime-night.mp4` and posters remain original and unmodified. No new registry,asset or dependency. |
 
 Reproduce with `rtk proxy node tests/home-auth-video-browser-check.mjs` from `apps/web`; `--before` loads only the three affected original owners from committed `b7a8f66` through an isolated Vite host. `--states-only` runs bounded interaction/error/viewport/reduced-motion cases without repeating the layout matrix. No operator config/.env,live auth or content mutation. [Results/status](../reviews/ux-flow-audit.md#home-and-original-auth-videos--14102026), comparisons and commit manifest: `/tmp/humg-home-auth-video-20261014/`. Existing preloader browser check now expects one decorative Home scene with no player controls after readiness, rather than the superseded no-video state; loading lifecycle assertions remain unchanged.
+
+
+### Documents phone filter sheet — 14/10/2026
+
+| Find by interaction | Owner / consumers |
+| --- | --- |
+| Phone search, active chips, filter count/reset, secondary sheet | [DocumentFilters](../../apps/web/src/features/documents/components/document-filters.tsx) on DocumentsPage; below640px only secondary subject/category/tag selectors move. Search and active chips remain in page flow. At640px and above facets remain visible. One selector set mounts. |
+| Sheet geometry, short-screen body scroll and safe areas | [document-discovery.css](../../apps/web/src/features/documents/components/document-discovery.css), `.document-filter-sheet*`; existing [Sheet](../../apps/web/src/components/ui/sheet.tsx)/Radix owns portal, focus containment, nested Popover dismissal and scroll lock. Heading gets initial focus; normal close returns trigger; breakpoint teardown returns to persistent search. |
+| Query/URL/debounce | Existing useUrlListSearch → list-navigation and DocumentsPage → useSearchDocuments.350ms typing REPLACE, immediate discrete PUSH and page reset; no new matching/backend fields. Sheet reset clears secondary predicates only; full reset retains its existing scope. |
+| Modal reduced motion | Existing global modal rule in [index.css](../../apps/web/src/index.css) now includes sheet content/overlay to override state-animation utility precedence. No second motion owner. |
+| Owned synthetic browser proof | [document-filter-sheet-browser-check.mjs](../../apps/web/tests/document-filter-sheet-browser-check.mjs): actual route/Sheet/Popover/query owners; `--before`, `--card-assessment-only` and bounded state modes. Self-hosted Vite disables env loading; all APIs intercepted. |
+
+[Design decision](design-system.md#documents-phone-discovery-and-card-assessment--14102026) and [acceptance/limits](../reviews/ux-flow-audit.md#documents-mobile-filter-sheet--accepted-local-14102026). Comparison gallery and exact incremental manifest: `/tmp/humg-documents-final-20261014/`. Card/thumbnail source and earlier card CSS are unchanged; no Kokonut drawer adoption or new dependency.

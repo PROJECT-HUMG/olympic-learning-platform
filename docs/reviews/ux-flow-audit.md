@@ -4,6 +4,91 @@ Ngày: 01/10/2026. Phạm vi: các màn hiện có, điều hướng theo quyề
 
 Checkpoint trước khi sửa UX: `ecbfb14` — `feat: add study rooms and refresh student UI`. Các thay đổi bên dưới nằm sau checkpoint này.
 
+## Daily recovery and accessibility — accepted local candidate, 07/10/2026
+
+Lead directly implemented and accepts the three prioritized fixes from
+`/tmp/daily-skills-review-handoff-20261007.json`, on verified clean entry HEAD
+`a8120b622b364e94be265a94bd2a312e036d57bb`. No delegation or active Peer write
+ownership. Optional long-title readability remains deferred. No stage/commit,
+dependency, live-backend or external change. Exact seven-path candidate/base
+hashes and immutable snapshots: `/tmp/daily-recovery-final-manifest-20261007.json`
+and `/tmp/daily-recovery-candidate-20261007/`.
+
+| Outcome / reproduction | Responsible path and accepted behavior |
+| --- | --- |
+| Groups → Tạo nhóm mới → enter a name → failed POST → Tạo nhóm again | `apps/web/src/features/daily/groups/group-controls.tsx`: creation-owned error in the still-open native dialog, using existing `groupError` and destructive token. Failure rethrows to unchanged `useGroupAction`; shared creation/invitation request gate, external notice, abort and retry semantics retained. Name clears only on existing confirmed success. New opening/accepted retry clears creation feedback; invitation notices are never copied into the dialog. |
+| Clear an existing task title or enter whitespace, pause, then type a valid title | `apps/web/src/features/daily/lib/plan-editor.ts`: one shared title validator for row and save, same trim/200-character rules; rejected save identifies row number without mutating local draft. `components/daily-plan-editor.tsx`: inline associated error and `aria-invalid`, stable task/input identity. `ui/daily-sync-status.tsx`: contextual validation text in existing atomic polite status after debounce, without focus changes or live region per keystroke/row. |
+| Open Create-group dialog → Close by keyboard or pointer | `groups/group-controls.tsx`: Close44×44px with no flex shrink, existing native close/Escape/return-focus semantics. No dialog replacement. |
+
+Additional changed paths: `apps/web/tests/daily-auto-sync.test.ts` (invalid row,
+limits, draft nonmutation and recovery regression),
+`apps/web/tests/daily-recovery-browser-check.mjs` (mounted synthetic fixtures),
+and this existing status source. No autosync, auth, privacy, evidence, consent,
+permission or room/player owner changed. Preserve800ms serialized/versioned
+autosync, editable normal-sync inputs, explicit Submit/sharing, dirty/conflict
+guards and private revalidation gates; unchanged boundaries are source-reviewed,
+not claimed as newly exercised end-to-end.
+
+### Before/after evidence and actual checks
+
+Controlling before evidence: `/tmp/daily-skill-review-5KL17C/results.json`.
+At320×640 light, create503 kept the name but feedback was outside the modal and
+AX-ignored (`activeModalDialog`); Close32×32. At320×640 dark, empty title prevented
+PUT but lacked invalid/description association and contextual live text.
+Excluded original6ElaYA wrong hidden-checkbox selection remains excluded.
+
+After: `/tmp/daily-recovery-Sj59nv/results.json`, seven scenario groups pass,
+12 PNGs, no captured runtime exceptions, product/test hashes stable during run.
+Requested viewport, layout/client/scroll width, visualViewport/scale and PNG
+dimensions separately recorded: all fit requested320×640,320×360 or1440×900,
+scale1, no horizontal page overflow. Actual mounted Daily routes with intercepted
+synthetic student/API fixtures under headless Chromium on owned Vite3114.
+
+- Create503/retry at320×640 light,320×360 dark and1440×900 light: AX-exposed alert
+  inside open native modal, same name retained; Close44×44 after existing entrance
+  settles; Escape and keyboard Close return focus to opener. Pending retry retains
+  name/input node, repeated submits produce no duplicate POST; release navigates
+  on confirmed success with the same submitted name. See
+  `group-create-error-320x640-light.png` vs before `group-create-error-320-light.png`,
+  and final `group-create-error-320x360-dark.png`/pending/retried PNGs.
+- Empty and whitespace titles at320×640 dark: affected row has associated error,
+  invalid semantics and contextual polite status; no PUT after debounce. Input
+  node, raw local text and typing focus retained. Corrected title immediately
+  clears row error, autosync resumes, Submit remains separate. Final
+  `day-invalid-title-320-dark.png` scrolls to the row to expose the inline message;
+  before PNG uses the same viewport/theme at page-top. DOM/AX evidence establishes
+  association/visibility; screenshots alone do not establish spoken announcements.
+- Held versioned PUT: fields remain editable, newer text and focus survive old
+  response, next batch serializes (`maxActiveSaves:1`). Save503 pauses even after
+  another edit until explicit retry;409 retains conflict draft/focus without
+  silent retry or overwrite.
+
+Checks: build passed (session7518;3710 modules; existing large-chunk warning);
+lint passed (session52808;40 existing warnings, none in changed files; log
+`/tmp/daily-recovery-lint-20261007.log`);29 targeted Node tests passed,0 failures
+or skips (session78390: auto-sync/wire/policy/study-ui); diff check passed.
+Probe-only failures preserved separately: kY8I5D attempted to serialize a DOM
+node through CDP; ecKURD sampled43.95px Close during the existing entrance.
+Driver now avoids DOM serialization and measures after settle; neither is a
+passing run or evidence of a44px final-state product failure.
+
+Guidance applied: installed web-design-guidelines (Vercel agent-skills pin
+`063bee94c3f4df8453406c830b0a7df0f2860278`) and ui-ux-pro-max (nextlevelbuilder pin
+`477bcb28c9812b385cb51a4605ddf30d7b2266e2`). Reused actual assessed local Vercel
+rules `/tmp/daily-review-vercel-guidelines-20261007.md` (SHA256
+`d246b026f4f29b5823a9cc857f9edf3d2507002e055e32040cadeaf3b38e0234`) and targeted
+UX/React guidance: error near affected control, contextual announcement and
+focus preservation. Project `docs/architecture/web-ui.md` remains design
+authority; no generated palette/system or new external fetch.
+
+Limits: no live backend/persistence/authorization, real screen-reader speech,
+physical/software keyboard, Safari/Firefox or new contrast proof. Task invalid
+state rendered320×640 dark; broader task themes/short screens and invitation
+error isolation are source-only in this delivery. Dedicated reduced-motion
+validation omitted/unverified; existing motion support untouched. Devtools island
+in dev PNGs is not a production Daily control. Owned browser exited and isolated
+profiles removed; owned Vite3114 stopped and port closed. Other runtimes untouched.
+
 ## Secondary-screen interaction motion — accepted, 07/10/2026
 
 Integrated local candidate based on `9143b3acd67198a94e8dc29f3a29490c13a63e21`.
@@ -3514,6 +3599,13 @@ are append-only incremental scope with exact preservation hashes/patch accountin
 Owned browser/server cleanup and unstaged index checks belong to the final manifest.
 
 
+### Avatar delivery investigation — 10/10/2026
+
+Against pushed base `2b94351a8d8900f7afe88471ccebdb29ec0f04c1`: ACCEPT bounded source finding, no demonstrated runtime mapping/field-name omission. Honors/rankings already include avatar URL/crop through batched public identities; Document/News list/detail services enrich the minimal owner/author projection using the existing storage resolver. Public-profile hover fetching is summary-only, not required for row images. No runtime/API/web contract change needed.
+
+Exact payload locations, null/default/unavailable cases and source owners are recorded in the existing [component reference](../architecture/web-ui-components.md#avatar-delivery-lookup--verified-against-2b94351-10102026). Fresh offline JDK25 Maven run passed 8/8 (public identity, avatar lifecycle/crop and storage contracts), evidence `/tmp/avatar-delivery-focused-20261010.log`; prior accepted synthetic profile pointer/focus/touch/avatar/retry evidence reused. No live payload/CDN/deployment observation or mutation, no build rerun for docs-only changes, no staging/commit/push. Prior Daily/auth/deploy pending bytes remain intact; this status addition is a separate append.
+
+
 ## Taste shared foundations — 13/10/2026
 
 Lead ACCEPTS the19-path incremental local candidate identified by /tmp/humg-taste-20261013/final-manifest.json, on base2b94351a8d8900f7afe88471ccebdb29ec0f04c1 plus the preserved51-path dirty entry checkpoint. No staging,commit,push,deploy,live mutation,dependency or external setting change. The prior two-screen emphasis is superseded for shared foundations; independent News/task work remains preserved. No Peer delegation is active.
@@ -3701,3 +3793,18 @@ History `f2ef576^` establishes auth's original desktop full scene,27rem form rai
 Evidence: `/tmp/humg-home-auth-video-20261014/comparisons.html` and `results.json`,24 before/after pairs and50 final captures. Actual routes/StrictMode at320/390/768/1280 light/dark,320x280/640x320 short forms and1280x480 validation. Home scene measures237x132px at320,307x172 at390,481x270 at1280;no horizontal overflow. Both local MP4s have decoded1440x810 frames and advancing time. Native ambient behavior,theme outgoing pause,trimmed/encoded search,notebook keys,held/503/rejected media,posters,static/changed reduced preference pass. Short registration errors/44px submit scroll into view;desktop→390x360 retains typed identifier/focus and pauses/unmounts auth media. Recovery/reset/verify mobile states,password reveal/recovery keys and no-mobile-MP4/unchanged404 pass;no account submission.
 
 The final matrix completed43 captures/first4 assertion groups,then its driver attempted to serialize a DOM reference through CDP. Fixed that diagnostic to return void and reran only remaining auth cases (`--auth-tail-only`):7 captures/2 groups pass. Raw partial failure and final tail remain in the aggregate record;no whole-run pass claimed. Earlier native-player/toggle/selector attempts are superseded,not acceptance evidence. TypeScript,env-disabled production build,Oxlint and3 auth-route regressions pass;inherited lint/chunk warnings remain. Unchanged preloader lifecycle proof is reused;its final Home expectation now matches ambient scenes. No physical phone/WebKit,real software keyboard,screen-reader speech,live auth/Turnstile/OTP/backend or production performance claim. Only owned hosts/browsers were closed;operator runtime/env remains untouched. Exact paths/hashes,scoped overlapping-doc accounting and unchanged pending-work proof are in `commit-manifest.json` beside the gallery.
+
+
+## Documents mobile filter sheet — accepted local, 14/10/2026
+
+Lead ACCEPTS the integrated local Documents-filter candidate on HEAD `3d600d0cbdde58df74eeed3ae2217e3baad57357`. No staging, commit, push, deploy, backend/media mutation, dependency or external setting change. Native Codex delegation was explicitly authorized for this task. `/root/document_filter_sheet` owned only DocumentFilters and document-discovery.css, returned implementation and relinquished ownership. Retained handoff SHA256s: TSX `bb63b4c94ae3d64d7946322eceaf4783d513dda39b32561c5cc7857fbc3f769a`; CSS `40effbd766127d39dfcdf281a43f1c3cc3fd4f8315ed3287b417c07a2efbaeaf`. Lead inspected actual returned source and its unchanged query/data owners, added meaningful rendered proof, removed empty-input excess padding and fixed existing modal reduced-motion precedence for Sheet in index.css. No Peer remains active. Technical acceptance covers the integrated final hashes in the manifest, not an assumption that the handoff alone proved usability.
+
+Usable behavior: phone search/chips remain visible,44px filter trigger opens existing Radix Sheet; one secondary selector set, immediate URL changes, Close/Done, secondary-only and full reset. Tablet/desktop facets stay visible. Short-screen body scroll leaves heading/Close/footer reachable. Normal dismissal returns focus to trigger; resizing to desktop closes and restores search focus/body scrolling. Metadata pending/error/retry remains available inside or outside, with no duplicated feedback.
+
+Current evidence: `/tmp/humg-documents-final-20261014/comparison.html`; `before/results.json` (8 captures), `after/results.json` (6 scenario groups,25 captures, no captured runtime exceptions), `cards/results.json` (6 unchanged-card assessment captures). Before/after320/390/768/1280 light-dark: phone filters196→44px and results429.3→277.3px; tablet/desktop unchanged. Short320×280,390×360,639×320: bounded frame,44px Close/footer, nested chooser and keyboard trap/Escape. Search DOM/draft retained during pending350ms debounce; REPLACE vs discrete PUSH, supported request fields/page reset/unknown+view preservation, secondary/full reset, chips, reopen and Back/Forward verified. IME composition simulation holds commit, typing focus stays, held stale response cannot replace fresh results. Metadata hold503/retry/empty options verified, Close remains available. Reduced-motion computed entrance is none after root-rule correction (before correction state utility still won). One cancelled interception after navigation is recorded separately from runtime exceptions. Baseline JSON carries the runner's generic check label; its eight screenshots/geometry are baseline-only, not claims of a baseline sheet.
+
+Relevant checks completed on integrated runtime: TypeScript build check, Oxlint lint, environment-loading-disabled React/Tailwind production bundle, and8/8 list-navigation/navigation Node tests. Existing lint/large-bundle warnings remain. Scoped new-runner lint passed; final diff/preservation results and exact candidate hashes are in `final-manifest.json`. No unchanged backend or Daily suite rerun. Card-only recapture adjusted screenshot scroll for the sticky header; no product card change or redundant full-filter rerun.
+
+Limits: owned headless Chromium, synthetic intercepted APIs only. No physical phone/software keyboard/native IME, Safari/Firefox, screen-reader speech, live backend authorization/persistence/private-media delivery or deployment proof. Devtools launcher is visible in development captures and may overlay the lower-right corner; DOM/keyboard geometry checks separately establish the real44px controls. No new Kokonut sample, global layout system or product feature. Current card recommendation is read-only and remains pending; original attachment is no longer on disk, retained observation is distinguished from fresh synthetic image/null/403 proof.
+
+Outside scope:13 entry paths remain preserved. Daily recovery (six runtime/test paths plus its existing audit section) adds contextual invalid-title/draft/sync and native create-group error/44px Close feedback; it is an independent prior accepted recovery task, with release scheduling/active author ownership unknown here. Auth/deploy docs record historical delivery/operator outcomes only, not newly checked live facts. Avatar investigation adds source-backed batching/resolver notes only, no omission fix. hero.png/react.svg/vite.svg remain deleted; no current static source/index/test references were found and the build passes, but deletion intent/dynamic external use is unknown. No repair/discard/stage action taken. In overlapping component/audit documents, the entire original entry bytes are retained and only this task's sections appended; exact prefix/patch accounting is in the manifest and incremental.patch. Operator environment/session data unread, operator runtimes untouched; owned probe hosts/browsers exited.

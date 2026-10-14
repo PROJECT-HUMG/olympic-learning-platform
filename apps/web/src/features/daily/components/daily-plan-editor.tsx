@@ -37,6 +37,7 @@ import {
   rebaseSyncedPlan,
   shouldApplyServerDaily,
   submitAllowed,
+  taskTitleError,
   type EditorTask,
   type PlanEditor,
 } from "../lib/plan-editor";
@@ -406,6 +407,8 @@ function moveTask(tasks: EditorTask[], index: number, delta: number): EditorTask
 function TaskRow({ task, index, last, disabled, onChange, onMove, onRemove, children }: { task: EditorTask; index: number; last: boolean; disabled: boolean; onChange: (update: (task: EditorTask) => EditorTask) => void; onMove: (delta: number) => void; onRemove: () => Promise<boolean>; children: (header: ReactNode) => ReactNode }) {
   const isComplete = task.status === "COMPLETED";
   const row = useRef<HTMLLIElement>(null);
+  const titleError = taskTitleError(task.title);
+  const titleErrorId = `daily-task-error-${task.key}`;
 
   async function remove() {
     const target = row.current?.nextElementSibling?.querySelector<HTMLButtonElement>('[data-slot="checkbox"]')
@@ -421,7 +424,8 @@ function TaskRow({ task, index, last, disabled, onChange, onMove, onRemove, chil
         <span className="sr-only">{isComplete ? "Đã xong" : "Chưa làm"}</span>
       </Label>
     <Label htmlFor={`daily-task-${task.key}`} className="sr-only">Tên việc {index + 1}</Label>
-    <Input id={`daily-task-${task.key}`} value={task.title} maxLength={200} onChange={(event) => onChange((current) => ({ ...current, title: event.target.value }))} placeholder="Nhập tên việc cần làm..." className={isComplete ? "line-through text-muted-foreground" : "font-medium"} />
+    <Input id={`daily-task-${task.key}`} value={task.title} maxLength={200} aria-invalid={titleError ? true : undefined} aria-describedby={titleError ? titleErrorId : undefined} onChange={(event) => onChange((current) => ({ ...current, title: event.target.value }))} placeholder="Nhập tên việc cần làm..." className={isComplete ? "line-through text-muted-foreground" : "font-medium"} />
+    {titleError ? <p id={titleErrorId} className="col-start-2 min-w-0 px-2 text-sm text-destructive">Việc {index + 1}: {titleError}</p> : null}
     </div>
     <div className="study-task__controls">
         <Label htmlFor={`daily-priority-${task.key}`} className="sr-only">Mức ưu tiên việc {index + 1}</Label>
