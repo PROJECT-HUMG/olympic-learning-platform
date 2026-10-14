@@ -7,6 +7,9 @@
 .toolkit-workspace--rooms { box-shadow:none; border: 0; border-radius: 0; background: transparent; }
 .toolkit-workspace--rooms .toolkit-workspace__tabs { justify-content: flex-start; border-radius: 0; }
 .toolkit-workspace--rooms .toolkit-workspace__tabs [role="tab"] { flex: 0 1 auto; padding-inline: 1rem; }
+/* Two tools form one bounded selector; a long label wraps inside its column. */
+.toolkit-workspace .toolkit-workspace__tabs[data-smooth-tabs] { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch; width:min(100%,24rem); }
+.toolkit-workspace .toolkit-workspace__tabs[data-smooth-tabs] [role="tab"] { height:100%; padding:.5rem .625rem; white-space:normal; text-align:left; }
 .toolkit-workspace.toolkit-workspace--rooms [role="tabpanel"] { padding: 1.5rem 0 0; }
 .toolkit-panel-heading h2 { font-size: 1rem; font-weight: 600; line-height: 1.5; }
 .toolkit-panel-heading p { margin-top: .5rem; color: var(--muted-foreground); line-height: 1.75; }

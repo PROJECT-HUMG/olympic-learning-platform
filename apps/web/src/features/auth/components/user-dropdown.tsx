@@ -1,26 +1,13 @@
-import { AvatarImage } from "@/features/user/components/avatar-image";
+import { UserAvatar } from "@/features/user/components/user-avatar";
+import ProfileDropdown from "@/components/kokonutui/profile-dropdown";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import {
-  Globe,
-  LayoutDashboard,
-  LogOut,
-  MoreVertical,
-  User,
-} from "lucide-react";
+import { Globe, LayoutDashboard, MoreVertical, User } from "lucide-react";
 import { ROUTES, getDashboardRoute } from "@/router/route-constants";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useSidebar } from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import "@/features/user/components/public-profile.css";
 
 interface UserDropdownProps {
   direction?: "up" | "down";
@@ -40,25 +27,29 @@ export function UserDropdown({
   const sidebar = useSidebar();
   const collapsed = compact || (!!sidebar && !sidebar.open);
   if (!user) return null;
+  const avatar = <UserAvatar user={user} className="user-avatar--preview" />;
+  const roleLabel = { STUDENT: "Sinh viên", LECTURER: "Giảng viên", ADMIN: "Quản trị viên" }[user.role];
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <ProfileDropdown
+      data={{ name: user.fullName || user.username, email: user.email, context: roleLabel }}
+      avatar={avatar}
+      side={direction === "up" ? "top" : "bottom"}
+      items={[
+        { href: getDashboardRoute(user.role), label: user.role === "STUDENT" ? "Góc học tập" : "Không gian quản lý", icon: <LayoutDashboard aria-hidden="true" /> },
+        { href: ROUTES.PROFILE, label: "Hồ sơ & bảo mật", icon: <User aria-hidden="true" /> },
+        { href: ROUTES.HOME, label: "Trang chủ", icon: <Globe aria-hidden="true" /> },
+      ]}
+      onSignOut={() => void logout().catch(() => toast.error("Đã thoát trên thiết bị này. Chưa thể đóng phiên trên máy chủ."))}
+      trigger={
         <button
           type="button"
           aria-label="Mở menu tài khoản"
-          className={cn("flex min-h-11 items-center gap-3 rounded-xl p-1.5 hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring", collapsed ? "justify-center" : "w-full justify-between", className)}
+          title="Tài khoản và không gian làm việc"
+          className={cn("flex min-h-11 min-w-11 items-center gap-3 rounded-xl p-1.5 hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring", collapsed ? "justify-center" : "w-full justify-between", className)}
         >
           <span className="flex min-w-0 items-center gap-3">
-            <span data-slot="account-avatar" className={cn("flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-semibold", avatarClassName)}>
-              {user.avatarUrl ? (
-                <AvatarImage crop={user.avatarCrop}
-                  src={user.avatarUrl}
-                  alt=""
-                  className="size-full object-cover"
-                />
-              ) : (
-                (user.fullName || user.username).charAt(0).toUpperCase()
-              )}
+            <span data-slot="account-avatar" className={cn("flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted", avatarClassName)}>
+              <UserAvatar user={user} className="size-full! rounded-none! border-0! bg-transparent!" />
             </span>
             {!collapsed && (
               <span className="min-w-0 text-left">
@@ -75,55 +66,7 @@ export function UserDropdown({
             <MoreVertical aria-hidden="true" size={16} className="shrink-0" />
           )}
         </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        side={direction === "up" ? "top" : "bottom"}
-        align="end"
-        className="shell-account-menu w-64 max-w-[calc(100vw-2rem)] rounded-xl p-2"
-        sideOffset={8}
-      >
-        <DropdownMenuLabel className="min-w-0">
-          <span className="block truncate">
-            {user.fullName || user.username}
-          </span>
-          <span className="block truncate text-xs font-normal text-muted-foreground">
-            {user.email}
-          </span>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to={getDashboardRoute(user.role)} className="min-h-11">
-            <LayoutDashboard aria-hidden="true" />
-            {user.role === "STUDENT" ? "Góc học tập" : "Không gian quản lý"}
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to={ROUTES.PROFILE} className="min-h-11">
-            <User aria-hidden="true" />
-            Hồ sơ & bảo mật
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to={ROUTES.HOME} className="min-h-11">
-            <Globe aria-hidden="true" />
-            Trang chủ
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={() =>
-            void logout().catch(() =>
-              toast.error(
-                "Đã thoát trên thiết bị này. Chưa thể đóng phiên trên máy chủ.",
-              ),
-            )
-          }
-          className="min-h-11 text-destructive focus:text-destructive"
-        >
-          <LogOut aria-hidden="true" />
-          Đăng xuất
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      }
+    />
   );
 }

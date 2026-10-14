@@ -1,0 +1,5 @@
+.rb-spotlight-card { position:relative; isolation:isolate; border-radius:var(--radius-md); }
+.rb-spotlight-card__light { position:absolute; inset:0; z-index:-1; pointer-events:none; border-radius:inherit; opacity:0; background:radial-gradient(circle 220px at var(--spotlight-x,50%) var(--spotlight-y,50%),color-mix(in oklch,var(--primary) 10%,transparent),transparent); transition:opacity 140ms ease; }
+.rb-spotlight-card[data-hovered="true"] > .rb-spotlight-card__light,.rb-spotlight-card:focus-within > .rb-spotlight-card__light { opacity:1; }
+.rb-spotlight-card:not([data-hovered="true"]) > .rb-spotlight-card__light { --spotlight-x:50%; --spotlight-y:50%; }
+@media (prefers-reduced-motion:reduce) { .rb-spotlight-card__light { transition:none; background:var(--accent); } }

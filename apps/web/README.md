@@ -30,7 +30,7 @@ Mở `http://localhost:3000`. Vite proxy request `/api` tới `http://localhost:
 | `src/lib/axios.ts` | API client, access token và refresh flow |
 | `src/index.css` | Theme tokens toàn app |
 | `src/layouts/navigation.ts` | Menu nhóm, mục theo vai trò và nhận diện route đang chọn |
-| `src/app/startup-preloader.ts` | Tiến độ khởi động và hiệu ứng mở trang bằng GSAP |
+| `src/app/startup-preloader.ts` | Initial readiness and nonblocking opacity exit (GSAP) |
 | `src/components/ui/cinematic-media.ts` | Tải và dùng lại video theo theme |
 | `src/lib/list-navigation.ts` | Kiểm tra số trang và giữ đường quay lại danh sách |
 
@@ -73,8 +73,8 @@ Vinh danh là nội dung kỷ niệm do admin công bố, có ảnh và danh sá
 - Workspace navigation uses a readable, collapsible 264px task sidebar at >=1200px; an 88px labelled shortcut rail at 768–1199px; and a compact header/full drawer below 768px. Staff work comes before personal settings; public discovery is available via Khám phá rather than a permanently repeated directory. Account/theme actions stay top-right. The drawer traps focus, closes on Escape and returns to its actual opener; sidebar collapse hands focus to the corresponding expansion control. Existing Daily draft blockers and role guards are unchanged. User-triggered drawer/group/active/account/sidebar motion is expressive but immediately interactive; OS reduced motion disables it.
 - Bộ lọc, số trang và kiểu xem tài liệu được giữ trong URL; mở chi tiết rồi quay lại giữ đường về danh sách. Đăng nhập giữ đích quay lại qua các màn tài khoản. Lỗi kiểm tra phiên trên server có trạng thái thử lại tại route đang mở.
 - Refresh dùng chung một request có timeout 15 giây. Refresh trả 401/403 sẽ xóa token, cache dữ liệu và cập nhật người dùng về null để mở lại màn đăng nhập; lỗi mạng/timeout/server giữ phiên cho lần thử sau. Kết quả refresh cũ không ghi đè lần đăng nhập/đăng xuất mới hơn.
-- Lần vào đầu hiển thị logo trường và tiến độ, giữ tối thiểu 1,5 giây. Loader đợi route đầu, các query lần đầu đang pending, font và video theme hiện tại rồi mới lên 100%; đây là tiến độ các bước chuẩn bị, không phải phần trăm byte của toàn website. Mạng chậm tiếp tục chờ và có hướng dẫn tải lại sau 12 giây. Request thất bại có fallback/trạng thái lỗi riêng.
-- Khi đạt 100%, giữ 250ms rồi GSAP kéo hai lớp nền sang hai bên; mở tương tác sau khi hiệu ứng xong. Giảm chuyển động dùng fade ngắn. Chuyển route trong SPA dùng loading gọn theo trang, không phát lại startup loader; thay query/filter giữ trạng thái trang.
+- Startup shows a readable HUMG logo/status and immediately available reload link while registered initial tasks, pending queries and fonts resolve. It has no numeric progress, minimum display time or completion hold. A terminal initial-query error reveals the existing route/feature recovery immediately, including when another asset is still pending. Authorization remains with the route guards.
+- Readiness unlocks the page immediately; GSAP fades the noninteractive startup overlay out over180ms. Logo opacity briefly resolves on initial/route loading without moving text, replaying on refetch or waiting for animation before continuing. Reduced motion is static with immediate dismissal. Route loading remains PageLoading/RouteSuspense; query/filter changes retain the mounted page. Cleanup cancels animations/subscriptions and releases overlay/inert state, including StrictMode replacement and interrupted unmount.
 - Video theme đang dùng được tải một lần và dùng lại Blob URL trong vòng đời trang. Video lỗi hoặc autoplay bị chặn thì giữ poster; mobile auth không tải video; các cảnh ngoài trang chủ bỏ video khi giảm chuyển động. Logo loader dùng cùng nguồn `public/icons.svg`, căn bỏ khoảng trắng và không có nền sáng ở theme tối.
 
 Kết quả và các luồng còn cần sửa được ghi trong [rà soát UI/UX](../../docs/reviews/ux-flow-audit.md). Các kiểm tra trình duyệt được ghi ở đó có dùng API mock; không thay thế kiểm chứng backend, email, storage và YouTube thực tế.
@@ -188,3 +188,6 @@ node --test --test-isolation=none tests/*.test.ts
 ## OTP đăng ký
 
 Màn đăng ký nhập OTP 6 số, có sửa email/gửi lại/đếm ngược và phục hồi bằng email hoặc username cùng mật khẩu khi mất phiên. Challenge lưu trong sessionStorage để tải lại cùng tab; không lưu OTP/mật khẩu. Đăng nhập tài khoản PENDING dẫn tới bước tiếp tục xác thực. Cần API cùng phiên bản và migration V13. Xem [contract OTP](../../docs/architecture/registration-otp.md).
+
+
+Preloader proof: `tests/preloader-browser-check.mjs` creates/closes an ephemeral env-disabled host and uses the actual `index.html` and loading owners through it which replaces only the main entry on `/__preloader_proof__` with `tests/fixtures/preloader.tsx`. It controls synthetic Query/task/font resolution, errors, StrictMode and unmount. The default page still loads the actual application. See [current loading owners and evidence](../../docs/architecture/web-ui-components.md#loading-opacity-and-lifecycle--14102026);this is local browser evidence,not live auth/backend or physical-device proof.

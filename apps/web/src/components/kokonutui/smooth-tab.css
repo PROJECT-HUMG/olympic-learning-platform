@@ -1,0 +1,5 @@
+.kokonut-smooth-tab[data-smooth-tabs] { position:relative; isolation:isolate; flex-wrap:wrap; gap:.25rem; height:auto; max-width:100%; padding:0; background:transparent; }
+.kokonut-smooth-tab__indicator { position:absolute; inset:0 auto auto 0; z-index:-1; pointer-events:none; border:1px solid color-mix(in oklch,var(--primary) 22%,var(--border)); border-radius:var(--radius-md); background:color-mix(in oklch,var(--primary) 7%,var(--card)); }
+.kokonut-smooth-tab[data-smooth-tabs] [role="tab"] { min-height:44px; flex:0 1 auto; padding:.5rem .75rem; border-radius:var(--radius-md); transition:color 140ms ease; }
+.kokonut-smooth-tab[data-smooth-tabs] [role="tab"][data-state="active"] { color:var(--primary); background:transparent; border-color:transparent; box-shadow:none; }
+@media (prefers-reduced-motion:reduce) { .kokonut-smooth-tab[data-smooth-tabs] [role="tab"] { transition:none; } }

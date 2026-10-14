@@ -8,7 +8,7 @@ import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { UserDropdown } from "@/features/auth/components/user-dropdown";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { ROUTES, getDashboardRoute } from "@/router/route-constants";
+import { ROUTES } from "@/router/route-constants";
 import { getActiveNavigationItem, getDrawerNavigationGroups, PUBLIC_PRIMARY_NAVIGATION } from "../navigation";
 import { NavigationDrawer } from "./navigation-drawer";
 import { MobileNavbar } from "./mobile-navbar";
@@ -27,9 +27,9 @@ export function PublicHeader({ cinematic = false }: { cinematic?: boolean }) {
   const primary = isDesktop ? PUBLIC_PRIMARY_NAVIGATION : PUBLIC_PRIMARY_NAVIGATION.filter(item => ([ROUTES.SUBJECTS, ROUTES.DOCUMENTS, ROUTES.NEWS] as string[]).includes(item.href));
 
   const account = user && <UserDropdown direction="down" compact className="shell-account" avatarClassName="size-9" />;
-  const entry = <Button asChild className="public-header__cta" variant={user ? "outline" : "default"}>
-    <Link to={user ? getDashboardRoute(user.role) : ROUTES.LOGIN} state={user ? undefined : loginState}>
-      {user ? user.role === "STUDENT" ? "Góc học tập" : "Quản lý" : "Đăng nhập"}
+  const entry = !user && <Button asChild className="public-header__cta">
+    <Link to={ROUTES.LOGIN} state={loginState}>
+      Đăng nhập
     </Link>
   </Button>;
 

@@ -2,7 +2,10 @@ import { ArrowUpRight, Bell, BookOpen, Calculator, FileText, PencilRuler, Refres
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import SmoothTab from "@/components/kokonutui/smooth-tab";
+import SpotlightCard from "@/components/react-bits/spotlight-card";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useSearchDocuments } from "@/features/documents/hooks/use-documents";
 import { usePosts } from "@/features/post/hooks/use-posts";
 import { ROUTES } from "@/router/route-constants";
@@ -178,19 +181,14 @@ function NotebookAnnouncements() {
 }
 
 export function HomeStudyNotebook() {
+  const [tab, setTab] = useState("documents");
   return (
-    <Tabs defaultValue="documents" className="home-study-notebook">
-      <TabsList className="study-notebook__tabs" aria-label="Các góc học tập">
-        <TabsTrigger value="documents" className="study-notebook__tab">
-          <BookOpen aria-hidden="true" /> Tài liệu
-        </TabsTrigger>
-        <TabsTrigger value="announcements" className="study-notebook__tab">
-          <Bell aria-hidden="true" /> Thông báo
-        </TabsTrigger>
-        <TabsTrigger value="toolkit" className="study-notebook__tab">
-          <PencilRuler aria-hidden="true" /> Tiện ích
-        </TabsTrigger>
-      </TabsList>
+    <Tabs value={tab} onValueChange={setTab} className="home-study-notebook">
+      <SmoothTab value={tab} label="Các góc học tập" className="study-notebook__tabs" items={[
+        { value: "documents", label: "Tài liệu", icon: <BookOpen aria-hidden="true" /> },
+        { value: "announcements", label: "Thông báo", icon: <Bell aria-hidden="true" /> },
+        { value: "toolkit", label: "Tiện ích", icon: <PencilRuler aria-hidden="true" /> },
+      ]} />
 
       <TabsContent value="documents" className="study-notebook__page">
         <NotebookDocuments />
@@ -205,6 +203,7 @@ export function HomeStudyNotebook() {
         </div>
         <ul className="study-notebook__items">
           <li>
+            <SpotlightCard className="study-notebook__utility">
             <Link to={`${ROUTES.TOOLKIT}?tool=rooms`} className="study-notebook__item">
               <span className="study-notebook__item-icon"><Users aria-hidden="true" /></span>
               <div className="study-notebook__item-body">
@@ -213,8 +212,10 @@ export function HomeStudyNotebook() {
               </div>
               <ArrowUpRight className="study-notebook__item-arrow" aria-hidden="true" />
             </Link>
+            </SpotlightCard>
           </li>
           <li>
+            <SpotlightCard className="study-notebook__utility">
             <Link to={`${ROUTES.TOOLKIT}?tool=gpa`} className="study-notebook__item">
               <span className="study-notebook__item-icon"><Calculator aria-hidden="true" /></span>
               <div className="study-notebook__item-body">
@@ -223,6 +224,7 @@ export function HomeStudyNotebook() {
               </div>
               <ArrowUpRight className="study-notebook__item-arrow" aria-hidden="true" />
             </Link>
+            </SpotlightCard>
           </li>
         </ul>
       </TabsContent>

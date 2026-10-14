@@ -1,22 +1,10 @@
 import { Link2, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import SocialButton, { type ShareItem } from "@/components/kokonutui/social-button";
 import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
-function FaviconIcon({ src, domain, className }: { src: string; domain: string; className?: string }) {
-  return (
-    <img
-      src={src}
-      alt={`${domain} icon`}
-      className={className}
-      loading="lazy"
-    />
-  );
+function FaviconIcon({ name }: { name: string }) {
+  return <img src={`/social-icons/${name}.png`} alt="" aria-hidden="true" className="size-4 rounded-sm" loading="lazy" />;
 }
 
 interface ShareButtonsProps {
@@ -26,24 +14,9 @@ interface ShareButtonsProps {
   direction?: "vertical" | "horizontal";
 }
 
-interface ShareAction {
-  label: string;
-  icon: React.ReactNode;
-  onClick: () => void;
-}
-
-export function ShareButtons({
-  url,
-  title,
-  className,
-  direction = "vertical",
-}: ShareButtonsProps) {
+export function ShareButtons({ url, title, className, direction = "vertical" }: ShareButtonsProps) {
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
-
-  const openShareWindow = (shareUrl: string) => {
-    window.open(shareUrl, "_blank", "noopener,noreferrer,width=600,height=500");
-  };
 
   const handleCopyLink = async () => {
     try {
@@ -55,109 +28,28 @@ export function ShareButtons({
   };
 
   const handleNativeShare = async () => {
-    if (!navigator.share) return;
+    if (typeof navigator.share !== "function") return;
     try {
       await navigator.share({ title, url });
-    } catch {
-      // User cancelled share — do nothing
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        toast.error("Không thể chia sẻ. Bạn có thể sao chép liên kết.");
+      }
     }
   };
 
-  const actions: ShareAction[] = [
-    {
-      label: "Sao chép liên kết",
-      icon: <Link2 className="h-4 w-4" />,
-      onClick: handleCopyLink,
-    },
-    {
-      label: "Facebook",
-      icon: <FaviconIcon src="/social-icons/facebook.png" domain="facebook.com" className="size-4 rounded-sm" />,
-      onClick: () =>
-        openShareWindow(
-          `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`
-        ),
-    },
-    {
-      label: "X (Twitter)",
-      icon: <FaviconIcon src="/social-icons/x.png" domain="x.com" className="size-4 rounded-sm" />,
-      onClick: () =>
-        openShareWindow(
-          `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`
-        ),
-    },
-    {
-      label: "LinkedIn",
-      icon: <FaviconIcon src="/social-icons/linkedin.png" domain="linkedin.com" className="size-4 rounded-sm" />,
-      onClick: () =>
-        openShareWindow(
-          `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
-        ),
-    },
-    {
-      label: "Telegram",
-      icon: <FaviconIcon src="/social-icons/telegram.png" domain="telegram.org" className="size-4 rounded-sm" />,
-      onClick: () =>
-        openShareWindow(
-          `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`
-        ),
-    },
+  const items: ShareItem[] = [
+    { label: "Sao chép liên kết", icon: <Link2 aria-hidden="true" className="size-4" />, onClick: () => void handleCopyLink() },
+    { label: "Chia sẻ lên Facebook (mở cửa sổ mới)", icon: <FaviconIcon name="facebook" />, href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}` },
+    { label: "Chia sẻ lên X (mở cửa sổ mới)", icon: <FaviconIcon name="x" />, href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}` },
+    { label: "Chia sẻ lên LinkedIn (mở cửa sổ mới)", icon: <FaviconIcon name="linkedin" />, href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}` },
+    { label: "Chia sẻ lên Telegram (mở cửa sổ mới)", icon: <FaviconIcon name="telegram" />, href: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}` },
   ];
+  if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+    items.push({ label: "Chia sẻ bằng ứng dụng trên thiết bị", icon: <Share2 aria-hidden="true" className="size-4" />, onClick: () => void handleNativeShare() });
+  }
 
-  const supportsNativeShare =
-    typeof navigator !== "undefined" && !!navigator.share;
-
-  return (
-    <TooltipProvider delayDuration={300}>
-      <div
-        className={cn(
-          "flex gap-1",
-          direction === "vertical" ? "flex-col" : "flex-row flex-wrap",
-          className
-        )}
-      >
-        <p className={cn(
-          "text-xs font-semibold uppercase tracking-wider text-muted-foreground/70",
-          direction === "vertical" ? "mb-1" : "mr-2 self-center"
-        )}>
-          Chia sẻ
-        </p>
-
-        {actions.map((action) => (
-          <Tooltip key={action.label}>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={action.onClick}
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground active:scale-95"
-                aria-label={action.label}
-              >
-                {action.icon}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side={direction === "vertical" ? "right" : "top"}>
-              {action.label}
-            </TooltipContent>
-          </Tooltip>
-        ))}
-
-        {supportsNativeShare && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={handleNativeShare}
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground active:scale-95"
-                aria-label="Chia sẻ khác"
-              >
-                <Share2 className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side={direction === "vertical" ? "right" : "top"}>
-              Chia sẻ khác
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
-    </TooltipProvider>
-  );
+  return <div className={cn("max-w-full", direction === "vertical" && "w-full", className)}>
+    <SocialButton items={items} />
+  </div>;
 }

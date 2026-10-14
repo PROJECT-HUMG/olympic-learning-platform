@@ -96,11 +96,21 @@
 .school-news__feed-heading h2 { font-size: 1.125rem; font-weight: 600; }
 .school-news__feed-heading p { color: var(--muted-foreground); font-size: .8rem; }
 .school-news__posts { display:grid; gap:0; }
+/* One quiet reading surface; dividers keep the feed compact and editorial. */
+.school-news__feed .school-news__posts { overflow:hidden; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--card); }
+.school-news__feed .school-news-post:last-child { border-bottom:0; }
+.school-news__feed .school-news-post__link { padding:1rem; transition:background-color 140ms ease; }
+.school-news__feed .school-news-post__link:focus-visible { background:var(--accent); outline:2px solid var(--ring); outline-offset:-2px; border-radius:0; }
+.school-news__feed .school-news-post__link:active { background:var(--accent); }
+.school-news .post-type-label { color:var(--primary); border-color:color-mix(in srgb,var(--primary) 18%,var(--border)); background:color-mix(in srgb,var(--primary) 7%,var(--card)); }
+@media (hover:hover) and (pointer:fine) { .school-news__feed .school-news-post__link:hover { background:color-mix(in srgb,var(--primary) 4%,var(--card)); } }
+@media (prefers-reduced-motion:reduce) { .school-news__feed .school-news-post__link { transition:none; } }
 .school-news-post__deadline { margin-top: .5rem; font-size: .8rem; font-weight: 500; color: var(--muted-foreground); overflow-wrap: anywhere; }
 .school-news-post__deadline[data-urgency="urgent"], .school-news-post__deadline[data-urgency="expired"] { color: var(--destructive); }
 @media (max-width: 767px) {
   .school-news-post--illustrated .school-news-post__link { grid-template-columns: minmax(0, 1fr) 4rem; gap: .75rem; align-items: start; }
   .school-news-post__link { padding: .875rem 0; }
+  .school-news__feed .school-news-post__link { padding:.875rem .75rem; }
   .school-news-post h3 { margin-top: .5rem; }
   .school-news-post__summary { font-size: .85rem; }
 }

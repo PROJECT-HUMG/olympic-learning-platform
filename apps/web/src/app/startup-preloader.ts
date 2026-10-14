@@ -3,6 +3,7 @@ import { gsap } from "gsap";
 
 // Startup only: later navigation keeps the compact route loader.
 const tasks = new Map<symbol, number>();
+const taskListeners = new Set<() => void>();
 
 export function isStartupPending() {
   const loader = document.getElementById("startup-loader");
@@ -12,22 +13,34 @@ export function isStartupPending() {
 export function trackStartupTask() {
   const id = Symbol();
   let finished = false;
-  if (isStartupPending()) tasks.set(id, 0);
+  if (isStartupPending()) {
+    tasks.set(id, 0);
+    taskListeners.forEach(notify => notify());
+  }
 
   return {
     update(progress: number) {
       if (!finished && tasks.has(id)) {
         tasks.set(id, Math.max(tasks.get(id) ?? 0, Math.min(1, progress)));
+        if (progress >= 1) taskListeners.forEach(notify => notify());
       }
     },
     finish() {
       finished = true;
-      if (tasks.has(id)) tasks.set(id, 1);
+      if (tasks.has(id)) {
+        tasks.set(id, 1);
+        taskListeners.forEach(notify => notify());
+      }
     },
   };
 }
 
+// The initial overlay lives outside React. A run identity lets StrictMode's
+// immediate effect replacement adopt it, while a real unmount releases it.
+let startupRun = 0;
+
 export function startStartupPreloader(queryClient: QueryClient) {
+  const run = ++startupRun;
   const loader = document.getElementById("startup-loader");
   const root = document.getElementById("root");
   if (!loader) {
@@ -35,74 +48,89 @@ export function startStartupPreloader(queryClient: QueryClient) {
     return;
   }
 
-  const startedAt = Number(loader.dataset.startedAt) || performance.now();
-  const bar = loader.querySelector<HTMLElement>("[role=progressbar]");
-  const percent = loader.querySelector<HTMLElement>(".loading-screen__percent");
-  const message = loader.querySelector<HTMLElement>(".loading-screen__message");
-  let displayed = 0;
-  let revealTimer: number | undefined;
-  let exit: gsap.core.Timeline | undefined;
+  const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let disposed = false;
+  let resolved = false;
+  let queued = false;
+  const context = gsap.context(() => {
+    const logo = loader.querySelector(".loading-screen__logo");
+    if (!motion.matches && logo) {
+      gsap.fromTo(logo, { opacity: 0.72 }, { opacity: 1, duration: 0.18, clearProps: "opacity" });
+    }
+  }, loader);
 
-  const display = (value: number) => {
-    if (value === displayed) return;
-    displayed = value;
-    loader.style.setProperty("--startup-progress", String(value));
-    bar?.setAttribute("aria-valuenow", String(value));
-    if (percent) percent.textContent = `${value}%`;
+  const releaseFocus = () => {
+    if (root) root.inert = false;
+    if (!loader.contains(document.activeElement)) return;
+    const target = root?.querySelector<HTMLElement>("#public-main, #workspace-content, main");
+    if (!target) return;
+    const hadTabIndex = target.hasAttribute("tabindex");
+    if (!hadTabIndex) target.tabIndex = -1;
+    target.focus({ preventScroll: true });
+    if (!hadTabIndex) target.removeAttribute("tabindex");
   };
-
-  const interval = window.setInterval(() => {
-    const elapsed = performance.now() - startedAt;
-    const values = [...tasks.values()];
-    const assetsReady = values.every((value) => value === 1);
-    const initialQueriesReady = !queryClient.getQueryCache().getAll().some(
-      (query) => query.state.status === "pending" && query.state.fetchStatus !== "idle",
-    );
-    const fontsReady = document.fonts.status === "loaded";
-    const assetProgress = values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 1;
-
-    // Percentage describes preparation stages, including streamed video bytes.
-    // Never report completion while a critical task or the minimum time is pending.
-    display(Math.max(displayed, Math.min(95, Math.floor(
-      20 + assetProgress * 55 + Math.min(elapsed / 1500, 1) * 15 + (initialQueriesReady && fontsReady ? 5 : 0),
-    ))));
-
-    if (elapsed < 1500 || !assetsReady || !initialQueriesReady || !fontsReady) return;
-    window.clearInterval(interval);
-    display(100);
-    if (message) message.textContent = "Sẵn sàng. Vào học thôi!";
-
-    // Let 100% be visible before revealing the page, including reduced motion.
-    revealTimer = window.setTimeout(() => {
-      loader.inert = true;
-      loader.setAttribute("aria-hidden", "true");
-      loader.setAttribute("data-dismissed", "");
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      exit = gsap.timeline({
-        onComplete: () => {
-          loader.remove();
-          if (root) root.inert = false;
-          tasks.clear();
-        },
-      });
-      if (reducedMotion) {
-        exit.to(loader, { opacity: 0, duration: 0.12, ease: "none" });
-      } else {
-        exit.to(loader.querySelector(".loading-screen__content"), {
-          opacity: 0, y: -14, duration: 0.24, ease: "power2.in",
-        }).to(loader.querySelector(".loading-screen__curtain--left"), {
-          xPercent: -101, duration: 0.85, ease: "power3.inOut",
-        }, 0.14).to(loader.querySelector(".loading-screen__curtain--right"), {
-          xPercent: 101, duration: 0.85, ease: "power3.inOut",
-        }, 0.14);
-      }
-    }, 250);
-  }, 50);
+  const remove = () => {
+    unsubscribe();
+    taskListeners.delete(scheduleCheck);
+    motion.removeEventListener("change", motionChanged);
+    loader.remove();
+    tasks.clear();
+  };
+  const dismiss = () => {
+    resolved = true;
+    loader.inert = true;
+    loader.setAttribute("aria-hidden", "true");
+    loader.setAttribute("data-dismissed", "");
+    releaseFocus();
+    // Animation is visual only: content is already interactive, not gated by
+    // a 100% hold, a curtain, or this tween's completion callback.
+    if (motion.matches) remove();
+    else context.add(() => {
+      gsap.to(loader, { opacity: 0, duration: 0.18, ease: "power1.out", onComplete: remove });
+    });
+  };
+  const check = () => {
+    if (disposed || resolved) return;
+    const queries = queryClient.getQueryCache().getAll();
+    const failed = queries.some(query => query.state.status === "error");
+    const queriesReady = !queries.some(query => query.state.status === "pending" && query.state.fetchStatus !== "idle");
+    const assetsReady = [...tasks.values()].every(value => value === 1);
+    // Reveal the existing route/feature error instead of masking it behind
+    // unrelated fonts/assets or another outstanding initial query.
+    if (failed || (assetsReady && queriesReady && document.fonts.status === "loaded")) dismiss();
+  };
+  function scheduleCheck() {
+    if (disposed || resolved || queued) return;
+    queued = true;
+    queueMicrotask(() => {
+      queued = false;
+      check();
+    });
+  }
+  function motionChanged() {
+    if (!motion.matches) return;
+    context.revert();
+    if (resolved) remove();
+  }
+  const unsubscribe = queryClient.getQueryCache().subscribe(scheduleCheck);
+  taskListeners.add(scheduleCheck);
+  motion.addEventListener("change", motionChanged);
+  void document.fonts.ready.then(scheduleCheck);
+  scheduleCheck();
 
   return () => {
-    window.clearInterval(interval);
-    window.clearTimeout(revealTimer);
-    exit?.kill();
-    tasks.clear();
+    disposed = true;
+    unsubscribe();
+    taskListeners.delete(scheduleCheck);
+    motion.removeEventListener("change", motionChanged);
+    context.revert();
+    // React's StrictMode setup follows cleanup synchronously. Only the final
+    // owner removes the overlay; an abandoned owner can never hide the root.
+    queueMicrotask(() => {
+      if (run !== startupRun) return;
+      releaseFocus();
+      loader.remove();
+      tasks.clear();
+    });
   };
 }
