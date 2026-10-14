@@ -2,6 +2,8 @@
 
 Nền tảng học và quản lý nội dung Olympic HUMG. Repository gồm API Spring Boot và ứng dụng web React. Trang công khai có môn học, kho tài liệu, bảng tin và tiện ích GPA/phòng học chung; khu vực đăng nhập có bảng điều khiển, ngân hàng câu hỏi, nhập đề từ PDF và các màn hình quản trị theo vai trò. Trang chủ lấy tài liệu và tin tức từ API. Các màn luyện tập, kỳ thi và lịch sử còn là màn hướng dẫn, chưa có toàn bộ luồng làm bài/chấm/lưu kết quả; xem [README web](apps/web/README.md).
 
+[Tra cứu tài liệu theo công việc](docs/README.md) · [UI / component owners](docs/ui/README.md) · [Trạng thái và bằng chứng](docs/reviews/ux-flow-audit.md)
+
 ## Cấu trúc
 
 | Đường dẫn | Vai trò |

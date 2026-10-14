@@ -1,7 +1,9 @@
 # API
 
+[Documentation tasks](../../docs/README.md) · [Architecture map](../../docs/architecture/README.md)
+
 Turnstile registration/reset-email configuration and offline verification limits:
-[authentication setup](../../docs/architecture/authentication.md#turnstile--registration-and-reset-email-request).
+[authentication setup](../../docs/architecture/authentication.md#turnstile--password-login-registration-and-reset-email-request).
 The backend runtime secret must never be supplied to the frontend build.
 
 Backend của Olympic Learning Platform: Spring Boot 4.0.7, Java 25 và Maven. REST API ở `/api/v1`; dữ liệu lưu trong PostgreSQL, migration qua Flyway, Redis hỗ trợ các luồng nền. Các module hiện có: auth/user/admin, document, post, topic/question, assessment import, storage, studyroom và recognition.

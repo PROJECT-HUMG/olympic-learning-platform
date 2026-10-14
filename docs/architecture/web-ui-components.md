@@ -1,1080 +1,136 @@
-# Shared UI owners and screen adoption
-
-> Current page composition: [14/10/2026 decisions](#whole-page-composition--14102026).
-
-[UI authority](web-ui.md) · [Frontend guide](../../apps/web/README.md) · [Route definitions](../../apps/web/src/router/routes.tsx) · [Route constants](../../apps/web/src/router/route-constants.ts) · [Mobile modal audit](#mobile-modal-frame-audit-8773df0)
-
-## Interaction owner lookup
-
-Start here for modal work; follow the feature adapter for permissions, drafts and
-requests. Shared frames own presentation/focus, never access policy. This compact
-index includes pushed1a3463d and the current production-geometry/floating-control repair; the detailed
-[construction-site ledger](#source-coverage-ledger) is historical audit coverage,
-not a promise that every screen was rendered.
-
-| Interaction → frame / styles | Feature or screen owner → what stays local |
-| --- | --- |
-| Ordinary context, review, confirmation → [Dialog](../../apps/web/src/components/ui/dialog.tsx); destructive/dirty confirmation → [AlertDialog](../../apps/web/src/components/ui/alert-dialog.tsx) | [Users permissions](../../apps/web/src/pages/admin/users/admin-users-page.tsx), [Recognition review/delete](../../apps/web/src/features/recognition/admin-page.tsx), [Documents reader edit](../../apps/web/src/pages/document-detail-page.tsx). Full title/description wraps; whole frame scrolls. Feature owns pending dismissal, action/error and exact return focus. |
-| Long Create/Edit → [CreationDialog](../../apps/web/src/components/ui/creation-dialog.tsx) → [creation-dialog.css](../../apps/web/src/components/ui/creation-dialog.css) → Dialog + nested AlertDialog | [Post management](../../apps/web/src/features/post/components/post-management-feature.tsx), [Document management](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx), [Categories](../../apps/web/src/features/system-categories/components/system-category-form-modal.tsx), [Recognition admin](../../apps/web/src/features/recognition/admin-page.tsx) / [my achievements](../../apps/web/src/features/recognition/private-pages.tsx). Compact title/Close header, scrolling context/form, inset/margin centering with zero translation; narrow/short mobile fullscreen. Form owns dirty/busy/save. Other routed creators are in the ledger. |
-| Protected thumbnail / +N / zoom → [EvidencePreviews / EvidenceViewer](../../apps/web/src/components/ui/evidence-gallery.tsx) → [evidence-gallery.css](../../apps/web/src/components/ui/evidence-gallery.css) → Dialog | [Daily EvidencePanel](../../apps/web/src/features/daily/evidence/evidence-panel.tsx) and [Recognition AchievementEvidence](../../apps/web/src/features/recognition/achievement-evidence.tsx) (my records and admin review). Only compact title/Close sticks; full privacy context scrolls. Adapters own current identity, access/revalidation, bytes/expiry/revocation and original downloads; [EvidenceDownload](../../apps/web/src/features/recognition/components.tsx) keeps the full filename accessible. |
-| Native Daily create group → [GroupList](../../apps/web/src/features/daily/groups/group-controls.tsx) → [.study-dialog](../../apps/web/src/features/daily/ui/study-notebook.css) | `/daily/groups`: native showModal/close/Escape/focus,44px actions and restored prior body overflow. Name/error/request state stays in GroupList; separate pending Daily recovery hunks remain pending. |
-| Daily task/reflection/upload → [DailyPlanEditor](../../apps/web/src/features/daily/components/daily-plan-editor.tsx) / [EvidencePanel](../../apps/web/src/features/daily/evidence/evidence-panel.tsx) → [DailyDialogHeader](../../apps/web/src/features/daily/ui/daily-dialog-header.tsx) / [notebook CSS](../../apps/web/src/features/daily/ui/study-notebook.css) → Dialog | `/daily`, `/daily/week`, authorized shared review. Daily retains serialized sync, private gates, upload-busy guards and local draft authority. |
-| Nested image/link chooser → [RichTextEditor](../../apps/web/src/components/ui/rich-text-editor.tsx) → Dialog; image chooser has bottom Cancel | [PostForm](../../apps/web/src/features/post/components/post-form.tsx) in Post creation/edit. Escape/Cancel returns to exact toolbar trigger; pending upload blocks dismissal. [POST validation](../../apps/web/src/features/post/lib/post-image-validation.ts) and storage service still own upload rules/results. |
-| Article image → [ImageLightbox](../../apps/web/src/components/ui/image-lightbox.tsx) → Dialog | [NewsDetailFeature](../../apps/web/src/features/post/components/news-detail-feature.tsx), fullscreen media with contained image; original trigger returns focus. |
-| Menu / Select / Combobox motion → [floating-controls.css](../../apps/web/src/components/ui/floating-controls.css) through [DropdownMenu](../../apps/web/src/components/ui/dropdown-menu.tsx), [Select](../../apps/web/src/components/ui/select.tsx), [Popover](../../apps/web/src/components/ui/popover.tsx) / [Combobox](../../apps/web/src/components/ui/combobox.tsx) | [Account menu](../../apps/web/src/features/auth/components/user-dropdown.tsx), [Documents filters](../../apps/web/src/features/documents/components/document-filters.tsx), Post/Document metadata and editor toolbar; Daily/room consumers retain their feature logic.140/90ms presence,110ms colors; Radix collision/focus owns placement. Native and item-aligned Select stay static. |
-| Persistent native room music → [RoomMusicDialog](../../apps/web/src/features/study-room/components/room-music-dialog.tsx) / [room styles](../../apps/web/src/features/study-room/components/study-room.css) | Room session keeps player children mounted across close; intentional native lifecycle, separate from Daily native group creation. |
-
-Quick lookup: **email/approval context** → Dialog + Users/Recognition;
-**draft close** → CreationDialog + owning form;
-**private image/download** → EvidenceGallery + feature adapter;
-**picker Cancel** → RichTextEditor;
-**cropped Create frame** → CreationDialog + creation-dialog.css (check production CSS);
-**menu/combobox motion** → floating-controls.css + the corresponding Radix owner;
-**native background scroll** → GroupList (or RoomMusicDialog for persistent music).
-[Current geometry/motion proof and limits](#creation-frame-geometry-and-floating-controls-10102026) link back to the
-[existing status](../reviews/ux-flow-audit.md#creation-frame-geometry-and-floating-controls-20261010).
-
-## Scope and how to read this reference
-
-The visual/creation and Documents/News discovery work is committed and pushed as
-`a4821ed8c869baa7131aa2a10ace3b10cab632be` (parent `f7db010`); see the
-[actual 42-entry visual/creation ledger](#visual-and-creation-coverage-10102026).
-The original cross-file inventory was verified on 09/10/2026 at UI commit
-`bd47c5b6bed35ce64900e39a5e5eea8c90e60c5b`, including the separately pending Daily
-recovery in the working tree. The [cross-file reuse audit](web-ui-reuse-audit.md)
-records all 42 page entries, import/JSX evidence, direct consumer counts, copied
-structures/helpers and justified local exceptions. It supplements the route table
-below rather than treating matching CSS or transitive imports as component reuse.
-The original inventory began at candidate `f2cc0db66460a4b7c6c58007461f42e009eca56e9c3aac8b190523f3667e82c5`
-on base `0f06fcbaf757d06f243b7385e3ca68fc0b0d3530`; earlier manifests still identify
-their earlier bytes exactly. Honors search, Dialog lightbox, shared list feedback
-and compact mobile headers are now committed UI behavior.
-The route inventory is source evidence, not all-screen rendered or backend validation. The preceding
-candidate's representative Chromium checks remain bounded to their recorded
-screens/states; see the [existing audit](../reviews/ux-flow-audit.md).
-
-Boundary: prior shared-owner consolidation is committed in `ec98761`; mobile/Recognition
-and navbar work is committed in `e84f988` / `f7db010`. The10/10 visual/creation
-refactor and discovery supplement shipped in `a4821ed`. Dated candidate sections
-below retain their original checkpoint/evidence descriptions; they do not denote
-new pending runtime work. Publication and the subsequent read-only
-[admin task audit](../reviews/ux-flow-audit.md#admin-ui-task-audit-a4821ed) are recorded
-in the existing status. The subsequent admin remedies are described in
-[Admin recovery and discovery owners](#admin-recovery-and-discovery-owners-10102026).
-The separately accepted seven-path Daily recovery remains uncommitted: creation-owned
-error feedback, task-row invalid/error association and the native Create-dialog44px
-Close fix are pending Daily changes, not behavior shipped by this UI commit. Daily's
-mobile title token adjustment is committed UI. The earlier control table describes
-those owners; the10/10 ledger additionally describes the shipped visual/creation
-adoption. Pending Daily recovery is marked explicitly.
-
-Adoption means different things:
-
-- **Composition:** importing `SearchInput`, `PageHeader`, `AppPagination`, etc.
-  reuses their presentation/interaction implementation.
-- **Primitive:** `Input`, `Button`, `Label`, Radix/native controls are reused, but
-  the feature still composes the search, form, feedback or page.
-- **Style:** `.page-shell`, `.page-toolbar`, `.page-section` and heading classes
-  share CSS only; hand-written matching markup is not component adoption.
-- **Domain owner:** a feature composition is reused within its domain, such as
-  Daily's date picker or Recognition's `Pager`. This is useful reuse without an
-  application-wide component.
-
-Shared ownership is real but partial. Ordinary searches have nine direct
-`SearchInput` consumer files. `NativeSelect` has fourteen, Radix `Select` three,
-and `Combobox` one (Documents, with three filter instances). The source scan found
-no raw `<select>` outside `NativeSelect`. These are direct source-file counts,
-not route counts: aliases and branches reuse the same implementation. Imports
-through large feature modules can overcount reachability; the table below names
-actual rendered branches rather than equating every reachable import with use.
-There is **no shared query/filter state engine or universal page component**.
-Counts include retained source even when it is not mounted: AppPagination has
-eight routed consumer files plus the unused legacy PostManagement; Card has seven
-routed plus two legacy files, Badge nine plus two, DropdownMenu three plus one.
-The two FormField owners are counted separately: floating fields in ten files,
-RHF fields in two. RichTextEditor additionally composes Select/Dialog internally.
-See the audit for exact call sites and the import-reachability limit.
-
-## Search, filter and layout owners
-
-| Owner / source | Purpose and API essentials | Actual consumers / boundaries |
-| --- | --- | --- |
-| [SearchInput](../../apps/web/src/components/ui/search-input.tsx) → [Input](../../apps/web/src/components/ui/input.tsx) | Flexible wrapper, decorative icon, 44px input; accepts Input props; `type="search"` default. Supply label/`aria-label`. | [DocumentFilters](../../apps/web/src/features/documents/components/document-filters.tsx), [SubjectDirectory](../../apps/web/src/features/subjects/components/subject-directory.tsx), [PublicNewsFeature](../../apps/web/src/features/post/components/public-news-feature.tsx), [PostManagementFeature](../../apps/web/src/features/post/components/post-management-feature.tsx), [document management](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx), [Users](../../apps/web/src/pages/admin/users/admin-users-page.tsx), [QuestionSearch](../../apps/web/src/pages/question-bank-page.tsx), [PublishedBank](../../apps/web/src/features/exams/components/exam-editor.tsx), [HonorsPage](../../apps/web/src/features/recognition/public-pages.tsx). No query, debounce, submission or URL ownership. Documents uses `type="text"` because its explicit clear owns apply/URL behavior. |
-| [NativeSelect](../../apps/web/src/components/ui/native-select.tsx) | Native select props/events/options; default 44px, `controlSize="sm"` 36px. Label externally. | Questions/manual/scientific editors, Assessment draft review, exam editor, Recognition fields, Daily priority/sharing, GPA, room policy/ownership. Browser owns option-menu interaction; application theme supplies native color scheme. |
-| [Select](../../apps/web/src/components/ui/select.tsx) | Installed Radix composition: Root `value`/`onValueChange`; Trigger/Value/Content/Item. Trigger default 44px/full width, `size="sm"` 32px. Popper collision/portal owner; bounded reading width and wrapped 44px items. | [DocumentForm](../../apps/web/src/features/documents/components/document-form.tsx), [PostForm](../../apps/web/src/features/post/components/post-form.tsx), [legacy question editor](../../apps/web/src/pages/question-detail-page.tsx). Keep their controlled values, nullable adapters and metadata gates. Do not change owner solely for appearance. |
-| [Combobox](../../apps/web/src/components/ui/combobox.tsx) → [PopoverContent](../../apps/web/src/components/ui/popover.tsx) | `options: {value,label}[]`, controlled `value`, `onChange(value)`, `disabled`, `aria-label`, localized placeholder/empty text. `className` controls wrapper; `inputClassName` input. | Documents subject/category/tag filters only. Local label filtering and active-option keyboard behavior belong here; installed Radix owns collision/portal/dismissal. Enter/Escape/selection retain input focus; Tab navigates normally. It is not a server-backed account search. |
-| [PageHeader](../../apps/web/src/components/ui/page-header.tsx) | `title`, optional `description`, `actions`, `titleId`, `className`; h1 and responsive action row. Description accepts block React content via div. | 29 direct consumer files across functional pages/features. Does not load data or decide permission visibility. [PublicPageHeader](../../apps/web/src/components/ui/public-page-header.tsx) is a thin alias with no current consumers; prefer PageHeader. |
-| [PageSection](../../apps/web/src/components/ui/page-section.tsx) | Labelled section, generated h2 ID, title/description/actions/children, native section props. Description is inside p: use text/inline content. | 12 direct consumer files: Profile/security, dashboard/About, Daily plan/shared review, scientific/exam editors and Recognition. It owns panel markup, not loading state. Do not wrap every flat list in another card. |
-| [page-layout.css](../../apps/web/src/components/ui/page-layout.css) | `.page-shell`: 72rem maximum and 32px gap (16px at ≤640px); `--public` adds gutters. `.page-toolbar`: wrapping flex, 16px gaps. `.page-table`, `.page-guidance`, `.page-prose`, heading/section classes. | CSS pattern reuse across public/workspace surfaces. No React toolbar component. Document/News readers use heading tokens without PageHeader; Daily groups sometimes use section markup/classes directly. Workspace gutters belong to DashboardLayout. |
-| [list-navigation.ts](../../apps/web/src/lib/list-navigation.ts) | Existing helpers for safe list return paths and associated navigation state. | Feature owners keep filters/page/view/return paths and page reset; presentation components must not take over this contract. |
-
-Minimal composition (feature handlers still own application behavior):
-
-```tsx
-<div className="page-shell">
-  <PageHeader title="Danh sách" />
-  <form role="search" className="page-toolbar" onSubmit={applySearch}>
-    <SearchInput aria-label="Tìm trong danh sách" value={draft}
-      onChange={event => setDraft(event.target.value)} />
-    <Button type="submit">Tìm</Button>
-  </form>
-</div>
-```
-
-This is an example, not a requirement to turn existing debounced searches into
-forms. PublishedBank is already inside an editor: preserve its explicit button,
-Enter/IME and nested-form guards instead of inserting a nested form.
-
-## Route and screen adoption
-
-`r` means both `/admin` and `/lecturer`. Shared app chrome is separate from page
-bodies: [PublicLayout](../../apps/web/src/layouts/public-layout.tsx),
-[DashboardLayout](../../apps/web/src/layouts/dashboard-layout.tsx),
-[AuthCardLayout](../../apps/web/src/layouts/auth-card-layout.tsx),
-[navigation](../../apps/web/src/layouts/navigation.ts) and
-[NavigationDrawer](../../apps/web/src/layouts/components/navigation-drawer.tsx)
-own responsive navigation. They do not make every body a shared page composition.
-
-| Routes / family | Page → actual body owner | Adoption and intentional variation / remaining local composition |
-| --- | --- | --- |
-| `/` | [HomePage](../../apps/web/src/pages/home-page.tsx) → [HomeHeroSection](../../apps/web/src/features/home/components/home-hero-section.tsx), HomeStudyNotebook/HomeLatestNewsSection | Shared Input/Button and domain post presentation; bounded search plane, raised resource notebook and editorial News are Home-owned compositions. Search navigates to Documents. [Current depth owners](#home-depth-owners--14102026) and [ambient video composition](#home-and-auth-video-owners--14102026), not SearchInput/PageHeader. |
-| `/subjects` | [SubjectsPage](../../apps/web/src/pages/subjects-page.tsx) → [SubjectDirectory](../../apps/web/src/features/subjects/components/subject-directory.tsx) | SearchInput, PageHeader, public shell CSS; local Vietnamese matching/cards remain feature-owned. |
-| `/documents` | [DocumentsPage](../../apps/web/src/pages/documents-page.tsx) → [DocumentFilters](../../apps/web/src/features/documents/components/document-filters.tsx), [DocumentList](../../apps/web/src/features/documents/components/document-list.tsx) | SearchInput, Combobox, AppPagination; search-first layout has sr-only h1, intentionally no visible PageHeader. Chips/view switch remain local; empty/error presentation uses EmptyState/ListFeedback. |
-| `/documents/:slug` | [DocumentDetailPage](../../apps/web/src/pages/document-detail-page.tsx) | Public shell and heading classes, primitives, domain download Dialog/skeletons; reader title/metadata/action layout is not PageHeader. No list search/select in the reader itself. |
-| `/news` | [NewsPage](../../apps/web/src/pages/news-page.tsx) → [PublicNewsFeature](../../apps/web/src/features/post/components/public-news-feature.tsx), [NewsList](../../apps/web/src/features/post/components/news-list.tsx) | SearchInput, PageHeader, AppPagination; category navigation uses URL Links, not a dropdown. Empty/error feed presentation uses EmptyState/ListFeedback; pinned/feed composition preserves independent retries. |
-| `/news/:slug` | [NewsDetailPage](../../apps/web/src/pages/news-detail-page.tsx) → [NewsDetailFeature](../../apps/web/src/features/post/components/news-detail-feature.tsx) | Shared RichTextViewer, Skeleton, Button and heading classes; local reader/metadata and ImageLightbox backed by Dialog; no PageHeader. |
-| `/honors` | [HonorsPage](../../apps/web/src/pages/honors-page.tsx) → [HonorsPage implementation](../../apps/web/src/features/recognition/public-pages.tsx) | PageHeader; domain Field/YearField/Pager/QueryFeedback reuse NativeSelect/AppPagination. List search now uses SearchInput + the existing submit Button; typing does not apply filters. |
-| `/honors/:id` | [HonorDetailPage](../../apps/web/src/pages/honor-detail-page.tsx) → [public-pages](../../apps/web/src/features/recognition/public-pages.tsx) | PageHeader/PageSection after data resolves; shared album Dialog. Other exports' Pager/select imports do not mean this detail branch has filters. |
-| `/rankings` | [RankingsPage](../../apps/web/src/pages/rankings-page.tsx) → [public-pages](../../apps/web/src/features/recognition/public-pages.tsx) | PageHeader, NativeSelect through YearField, AppPagination through Pager; domain ranking list and native scoring disclosure stay. |
-| `/users/:userId` (legacy `/achievements/:userId` retained) | [AchievementProfilePage](../../apps/web/src/pages/achievement-profile-page.tsx) → [public-pages](../../apps/web/src/features/recognition/public-pages.tsx) | Stable PageHeader, PageSection and QueryFeedback; no list search/pager in this branch. Public content gate remains feature-owned. |
-| `/toolkit?tool=rooms`, `/toolkit?tool=gpa` | [ToolkitPage](../../apps/web/src/pages/toolkit-page.tsx) → [ToolkitFeature](../../apps/web/src/features/toolkit/components/toolkit-feature.tsx), [StudyRoomsLobby](../../apps/web/src/features/study-room/components/study-rooms-lobby.tsx), [GpaCalculator](../../apps/web/src/features/toolkit/components/gpa-calculator.tsx) | PageHeader, shared Tabs; GPA uses Input/NativeSelect/Button with domain validation, lobby uses styled native inputs. Neither is a list-search page. |
-| `/study-rooms/:roomId` | [StudyRoomPage](../../apps/web/src/pages/study-room-page.tsx) → [StudyRoomSession](../../apps/web/src/features/study-room/components/study-room-session.tsx) | PageHeader, Dialog/AlertDialog/DropdownMenu, NativeSelect policy fields; custom scene, seat paging, audio/range inputs and native music dialog preserve persistent player continuity. |
-| `/login`, `/register`, `/verify-email`, `/forgot-password`, `/reset-password` | [auth page wrappers](../../apps/web/src/pages/auth) → [auth forms](../../apps/web/src/features/auth/components) | Shared floating FormField/Button and TurnstileChallenge where enabled; feature-owned heading/error/OTP/resume compositions in AuthCardLayout. SocialLoginButtons currently has no consumers. No PageHeader/list filters. |
-| `/dashboard`, `/r/dashboard` | [DashboardPage](../../apps/web/src/pages/dashboard-page.tsx) | PageHeader/PageSection, shared links/buttons; role-aware shortcuts are intentional domain content. |
-| `/profile` | [ProfilePage](../../apps/web/src/pages/profile-page.tsx) → [profile/security/avatar components](../../apps/web/src/features/user/components) | PageHeader/PageSection, floating FormField, Dialog/AlertDialog and shared AvatarImage; account identity and mounted-editor refresh handling stay feature-owned. |
-| `/profile/achievements` | [MyAchievementsPage](../../apps/web/src/pages/my-achievements-page.tsx) → [private-pages](../../apps/web/src/features/recognition/private-pages.tsx), [AchievementEditor](../../apps/web/src/features/recognition/achievement-editor.tsx) | PageHeader/PageSection, NativeSelect, domain QueryFeedback/Field, native checkbox/disclosure. Visibility/evidence/submission are explicit feature operations. |
-| `/daily` including date/history/week query views | [DailyOwnerPage](../../apps/web/src/pages/daily-owner-page.tsx) → [DailyPlanEditor](../../apps/web/src/features/daily/components/daily-plan-editor.tsx) | PageHeader/PageSection, Input/Textarea/Checkbox/NativeSelect, shared dialogs; domain date/history/sync/empty/evidence composition. Flat task surface is intentional. |
-| `/daily/week` | [DailyWeekPage](../../apps/web/src/pages/daily-week-page.tsx) → [DailyWeekEditor](../../apps/web/src/features/daily/components/daily-week-editor.tsx) | PageHeader, domain StudyDatePicker/StudyDisclosure/StudyWeekStats/DailySyncStatus; local weekly reflection layout. |
-| `/daily/groups`, `/daily/groups/:groupId` | [DailyGroupsPage](../../apps/web/src/pages/daily-groups-page.tsx) → [GroupList/GroupConsent](../../apps/web/src/features/daily/groups/group-controls.tsx) | PageHeader, NativeSelect and domain date/identity/empty/retry; hand-written `.page-section` markup is CSS reuse. Creation keeps its native modal dialog; creation-owned error/44px Close are pending Daily recovery, excluded from this UI commit. |
-| `/daily/groups/:groupId/reviews/:ownerId` (day/week) | [DailySharedReviewPage](../../apps/web/src/pages/daily-shared-review-page.tsx) | PageHeader/PageSection and domain date/progress/disclosure/feedback; read-only plan and private revalidation gates are intentional. |
-| `/practice`, `/history` | [PracticePage](../../apps/web/src/pages/practice-page.tsx), [HistoryPage](../../apps/web/src/pages/history-page.tsx) | PageHeader, shell and guidance-action CSS/Button; truthful feature guidance, not implemented exercise/history flows. |
-| `/competitions`, `/about` | [CompetitionsPage](../../apps/web/src/pages/competitions-page.tsx), [AboutPage](../../apps/web/src/pages/about-page.tsx) | Public PageHeader/shell; About also PageSection. Guidance/content rather than list filters. |
-| `/r/documents` | [DocumentsManagementPage](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx) → [DocumentForm](../../apps/web/src/features/documents/components/document-form.tsx), [DashboardDocumentList](../../apps/web/src/features/documents/components/dashboard-document-list.tsx) | PageHeader/SearchInput/AppPagination/RetryFeedback/toolbar CSS; RHF Form, Radix Select, Dialog/AlertDialog, EmptyState. Metadata/loading/retry/upload behavior remains domain-owned. |
-| `/r/posts` | [PostManagementPage](../../apps/web/src/pages/dashboard/posts/post-management-page.tsx) → [PostManagementFeature](../../apps/web/src/features/post/components/post-management-feature.tsx), [PostForm](../../apps/web/src/features/post/components/post-form.tsx) | PageHeader/SearchInput/AppPagination/RetryFeedback/toolbar CSS; RHF Form, Radix Select, Dialog/AlertDialog, EmptyState and RichTextEditor. |
-| `/admin/users` | [AdminUsersPage](../../apps/web/src/pages/admin/users/admin-users-page.tsx) | PageHeader/SearchInput/AppPagination/toolbar CSS; shared Dialog/Table/Badge, local row permissions and feedback. |
-| `/admin/categories` | [QuestionBankPage](../../apps/web/src/pages/question-bank-page.tsx) | Existing CardHeader/Content/Footer separate metadata/body/actions; filter/submission/query and permission/pending callbacks retained. |
-| [ExamListItem](../../apps/web/src/features/exams/components/exam-read.tsx) | Two actual list consumers reuse feature-local presentation with existing Badge/Link/surface tokens; metadata wraps, title has44px target/minimum width bounds; readers and release gates untouched. |
-| [AdminCategoriesPage](../../apps/web/src/pages/dashboard/categories/admin-categories-page.tsx) → [category components](../../apps/web/src/features/system-categories/components) | PageHeader, Tabs, Table, Dialog/AlertDialog, floating FormField, Skeleton. Tabbed metadata tasks intentionally have no list-search bar. |
-| `/admin/recognition` | [AdminRecognitionPage wrapper](../../apps/web/src/pages/admin/recognition-page.tsx) → [admin-page](../../apps/web/src/features/recognition/admin-page.tsx), [HonorEditor](../../apps/web/src/features/recognition/honor-editor.tsx), AchievementEditor | PageHeader/PageSection, NativeSelect, Dialog and domain QueryFeedback/Field/UserPicker; grouped review records; reviewer-owned gates retained. UserPicker is server search + native selection, not Combobox. |
-| `/r/questions` | [QuestionBankPage](../../apps/web/src/pages/question-bank-page.tsx) | PageHeader/SearchInput/NativeSelect/AppPagination/RetryFeedback/toolbar CSS; Card/Skeleton and feature-owned query state. One bounded search/filter band. |
-| `/r/questions/new`, `/r/questions/:id` | [QuestionDetailPage](../../apps/web/src/pages/question-detail-page.tsx) → [ManualQuestionWorkspace](../../apps/web/src/features/questions/components/manual-question-form.tsx) or legacy editor | Both use PageHeader/primitives; manual/scientific branch uses NativeSelect/PageSection, legacy branch Radix Select/floating title FormField. Schema/nullable adapters/figure gates explain different form owners. |
-| `/r/questions/import` | [AssessmentImportPage](../../apps/web/src/pages/assessment-import-page.tsx) → [assessment components](../../apps/web/src/features/assessment/components) | PageHeader/Card/Skeleton/Button, compact NativeSelect in mounted draft review; local status/progress/retry distinguish polling from restarting a job. |
-| `/r/exams` | [ExamDraftsPage](../../apps/web/src/pages/exam-drafts-page.tsx) → [ExamDraftList](../../apps/web/src/features/exams/components/exam-read.tsx) | Domain Shell composes PageHeader/shell CSS; bordered draft rows, ExamLoading/ExamProblem. No list search/pagination currently offered. |
-| `/r/exams/new`, `/r/exams/:examId` | [ExamEditorPage](../../apps/web/src/pages/exam-editor-page.tsx) → [ExamEditor/PublishedBank](../../apps/web/src/features/exams/components/exam-editor.tsx) | PageHeader/PageSection/NativeSelect/SearchInput/AppPagination; draft/version/publish and nested-form rules remain local. |
-| `/r/exams/:examId/preview` | [ExamPreviewPage](../../apps/web/src/pages/exam-preview-page.tsx) → [ExamPreview](../../apps/web/src/features/exams/components/exam-read.tsx) | Domain Shell + PageHeader, shared Button; solution toggle and question renderer stay task-specific. |
-| `/r/exams/papers`, `/exams`; `/r/exams/papers/:paperId`, `/exams/:paperId` | [ExamPapersPage](../../apps/web/src/pages/exam-papers-page.tsx), [ExamPaperPage](../../apps/web/src/pages/exam-paper-page.tsx) → [exam-read](../../apps/web/src/features/exams/components/exam-read.tsx) | Domain Shell/PageHeader/feedback, bordered paper list/frozen-paper reader; staff solution toggle versus student release/content gate. No shared filter bar in these branches. |
-| `*` | [NotFoundPage](../../apps/web/src/pages/not-found-page.tsx) → [WelcomeLayout](../../apps/web/src/layouts/welcome-layout.tsx) | Shared Button; intentional auth-style 404 identity, not PageHeader. |
-
-Redirects have no independent screen to normalize: `/study-rooms` →
-`/toolkit?tool=rooms`, `/lecturer` and `/admin` → their dashboards. The
-`QUESTION_IMPORT`/`QUESTION_BANK` constants are not standalone mounted routes;
-actual authoring paths use role prefixes. Query views do not create new page owners.
-
-
-## Mobile header rules and actual adoption
-
-The full route table above remains the source inventory of all42 page entries;
-mobile refinement adds no routes or component API. PageHeader still has29 direct
-consumer files. At ≤640px [page-layout.css](../../apps/web/src/components/ui/page-layout.css)
-owns 24px/1.25 titles, 16px page gaps/public top inset, 8px description margin with
-1.6 line height, 12px header row/divider spacing and 8px action gaps. Copy has a full
-row; actions wrap with labels intact and minimum44px targets. Titles/descriptions
-have no fixed height, clamp or removal. Above640px, shared tablet/desktop rules
-remain unchanged. The [workspace content inset](../../apps/web/src/layouts/navigation.css)
-is16px on narrow screens; this changes body spacing, not global navigation geometry.
-
-| Page families from the route inventory | Actual mobile owner / decision |
-| --- | --- |
-| Subjects, News feed, public/private/admin Recognition; dashboard/profile; About/Competitions/Practice/History; document/post/user/category management; question bank/manual/legacy/import; exam list/editor/preview/frozen papers | Existing PageHeader composition inherits compact copy/actions/spacing. Exam Shell composes it; no new universal page wrapper. Permission/context branches and all actions remain feature-owned. |
-| Daily owner/week/groups/shared reviews | [study-notebook.css](../../apps/web/src/features/daily/ui/study-notebook.css) keeps flat borderless regions, existing16px mobile gap and domain controls. The mobile title override now uses the common24px token; no editor, sync or dialog lifecycle changes. |
-| Study-room session | [study-room.css](../../apps/web/src/features/study-room/components/study-room.css) retains its24–32px bounded title and explicit mobile action grid; shared header copy/spacing applies. Persistent media, scene and controls remain domain-owned. |
-| Document reader | Shared title token; [DocumentDetailPage](../../apps/web/src/pages/document-detail-page.tsx) keeps metadata/download composition. Mobile metadata panel padding16px and internal row gap16px, rather than24px; desktop/tablet padding/actions retained. |
-| News reader | Shared title token; [NewsDetailFeature](../../apps/web/src/features/post/components/news-detail-feature.tsx) retains title/metadata/author/thumbnail/reading layout. Mobile breadcrumb/title top inset16px, smaller metadata/author/grid gaps and24px gap to article; existing `sm:` values retain tablet/desktop treatment. |
-| Login/register/reset/verification/resume | [welcome-layout.css](../../apps/web/src/layouts/welcome-layout.css) already uses the title token. Headings inherit24px; deliberate line breaks, descriptions, floating52px fields, Turnstile and auth shell remain. |
-| Home, search-first Documents, fallback/404 and redirects | Hero/cinematic search remains distinct; Documents retains accessible sr-only h1; already-small session fallback/intentional404 and screenless redirects are not normalized. No new title band. |
-
-The owned [mobile header probe](../../apps/web/tests/ui-mobile-header-browser-check.mjs)
-uses10 actual route families: Subjects, Honors, News, document management, exam new,
-Daily groups, both readers, login and Home. Run from `apps/web` with a separately
-owned Vite on3118: `node tests/ui-mobile-header-browser-check.mjs` (override
-`MOBILE_HEADER_WEB_URL` if needed). `MOBILE_HEADER_BASELINE=1` captures baseline;
-it is not final acceptance. `MOBILE_HEADER_SHORT_ONLY=1` focuses320x360 dark;
-`MOBILE_HEADER_READERS_ONLY=1` focuses the two readers. Four viewport/theme combinations are1440x900 light,
-820x900 dark,320x640 light and320x360 dark. It records title/header/description/action
-geometry, screenshots, no page overflow,44px header actions, keyboard link activation
-and exam field identity/draft/focus through viewport resize. All API/external traffic
-is intercepted; auth is synthetic/anonymous for the login presentation. No production
-credentials or mutations occur. The ten rendered routes are representative, not
-all-screen runtime validation; Daily/room persistence and AT speech are not proven
-by CSS or these fixtures. See the [status/evidence](../reviews/ux-flow-audit.md).
-
-## Three-cluster consolidation (working candidate, 09/10/2026)
-
-The three-cluster implementation is included in the completed reuse consolidation
-on the UI base above. The original13-cluster inventory is historical; equivalent
-residual owners are now implemented below.
-The [post-consolidation residual sweep](web-ui-reuse-audit.md#post-consolidation-residual-sweep)
-independently checks all42 page entries and375 source files, confirms these owners
-have no equivalent shadow copies, and adds/corrects remaining findings. The seven-path
-Daily recovery remains a separate pending candidate. Its editor/group/status/test
-fixes remain pending separately. Reflection extraction overlaps the day editor:
-only its import/composition is committed; recovery hunks stay in the working tree.
-Plan/evidence timestamp changes belong to reuse scope. Historical manifests retain historical hashes.
-
-| Owner / API | Verified direct consumers | Behavior and intentional boundary |
-| --- | --- | --- |
-| [validatePostImage](../../apps/web/src/features/post/lib/post-image-validation.ts): `Pick<File, "type" \| "size">` → `"type" \| "size" \| null` | [PostImageUpload](../../apps/web/src/features/post/components/post-image-upload.tsx#L26), [ImageInsertDialog in RichTextEditor](../../apps/web/src/components/ui/rich-text-editor.tsx#L63): **2 files** | Existing `image/*` MIME family, inclusive 5MiB limit, type-error precedence. This is client feedback, not byte/security validation. Both use native [Button](../../apps/web/src/components/ui/button.tsx) activation and the existing [storageService](../../apps/web/src/features/documents/services/storage.service.ts), folder POST. Clear input after capturing File so same-file validation/failure retry works; per-picker in-flight guard plus disabled/busy state prevent duplicate requests. Thumbnail completes with asset ID/preview/removal; editor inserts URL/closes its existing Dialog and preserves text. URL insertion stays separate. No upload framework, private-media policy or new whitelist. |
-| [explicitInstant](../../apps/web/src/features/daily/lib/explicit-instant.ts#L6): `unknown` → `string \| null` | [daily-contract](../../apps/web/src/features/daily/lib/daily-contract.ts#L97), [evidence-contract](../../apps/web/src/features/daily/evidence/evidence-contract.ts#L125): **2 files**, **3 call sites** | One original regex/parser beside platform-calendar; genuine civil date, explicit zone, bounded time and Date.parse validity. Preserve spelling/fraction/offset acceptance and nullable plan adapter. Full DTO identity/kind/shape rules remain separate. No auto-sync/private query/editor changes. |
-| [RetryFeedback](../../apps/web/src/components/ui/retry-feedback.tsx#L4): `{ message: string; actions: ReactNode }` | [DocumentsManagementPage](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx#L149), [PostManagementFeature](../../apps/web/src/features/post/components/post-management-feature.tsx#L174), [QuestionBankPage](../../apps/web/src/pages/question-bank-page.tsx#L156): **3 files / 3 sites**, all routed | Exact compact alert, border/padding/centered text; actions are caller-owned. Existing Button type=button, isFetching disablement and refetch callbacks stay in each feature. Initial retry without cached data returns to loading; cached-error retry retains disabled alert. No query engine, illustrated ListFeedback replacement, generic loading or permission wrapper. |
-
-Thumbnail preview Change/Remove are keyboard-visible through focus-within,
-visible below640px, and44px targets; Remove has an accessible name. Existing
-Dialog/its DialogTrigger own editor modal focus/scroll/Escape/return; the image
-trigger is now connected to Radix rather than leaving a controlled modal without
-a trigger. No new manual key handlers or body-scroll lifecycle.
-For a compact management retry use:
-
-```tsx
-<RetryFeedback message="Không thể tải danh sách tài liệu." actions={
-  <Button type="button" variant="outline" disabled={isFetching}
-    onClick={() => void refetch()}>Thử lại</Button>
-} />
-```
-
-[Regressions](../../apps/web/tests/ui-three-cluster.test.ts) exercise MIME/size
-boundaries and both timestamp DTO consumers. [Owned browser probe](../../apps/web/tests/ui-three-cluster-browser-check.mjs)
-mounts both pickers and all three real management consumers at1440/768/320px with
-intercepted synthetic API/storage and light/dark presentation. It verifies native
-Enter/Space chooser activation, invalid-file request prevention, failure/retry,
-pending gates, distinct completion, editor draft/modal focus and query precedence.
-Evidence and limits are in the [existing status](../reviews/ux-flow-audit.md).
-No live backend/storage or exhaustive all-screen claim follows from these fixtures.
-
-## Other reusable patterns: use the actual owner
-
-| Pattern | Source / API / current call sites | Selection guidance |
-| --- | --- | --- |
-| Actions and pending buttons | [Button](../../apps/web/src/components/ui/button.tsx): variant/size/asChild/loading; loading adds spinner/aria-busy and disables native button. Used across forms, lists and dialogs. | Set `type="button"` for non-submit actions. `asChild` links retain anchor semantics; native disabled does not disable a link. Feature owns request gate. |
-| Two different FormFields | [floating FormField](../../apps/web/src/components/ui/form-field.tsx): id/label/error/helperText, 52px notch/password reveal; auth, profile/password, category modal, legacy question title. [RHF Form](../../apps/web/src/components/ui/form.tsx): Controller/FormItem/FormLabel/FormControl/FormMessage; DocumentForm/PostForm. | They share a name, not an API. Alias imports when necessary. Preserve existing controlled/default values and validation owner; RHF associates errors but does not itself announce every change. |
-| Pagination | [AppPagination](../../apps/web/src/components/ui/app-pagination.tsx): one-based currentPage/totalPages/onPageChange, default numbered or compact variant; hides when totalPages ≤ 1. [Pagination primitives](../../apps/web/src/components/ui/pagination.tsx) are its markup owner. | Documents/News/management/Users/question bank/PublishedBank reuse it. Recognition [Pager](../../apps/web/src/features/recognition/components.tsx) adapts zero-based API. Do not replace room seat paging or calendars with collection paging. |
-| Initial route/session loading | [RouteSuspense](../../apps/web/src/router/route-suspense.tsx) → [PageLoading](../../apps/web/src/components/ui/page-loading.tsx); [SessionLoading](../../apps/web/src/router/guards/session-loading.tsx), [SessionError](../../apps/web/src/router/guards/session-error.tsx); [startup-preloader](../../apps/web/src/app/startup-preloader.ts). | Lazy-route/auth readiness is not query loading; query/filter changes must not replay startup. Guards withhold unauthorized children. |
-| Query feedback and skeletons | [Skeleton](../../apps/web/src/components/ui/skeleton.tsx); domain document/post/import skeletons. Recognition [QueryFeedback](../../apps/web/src/features/recognition/components.tsx), exams [ExamLoading/ExamProblem](../../apps/web/src/features/exams/components/exam-feedback.tsx), Daily [DailySyncStatus](../../apps/web/src/features/daily/ui/daily-sync-status.tsx) and [Retry](../../apps/web/src/features/daily/groups/group-controls.tsx). | Pending/error/empty composition and retry target remain feature-owned. Use one meaningful pending region, decorative skeleton children; do not convert private revalidation or conflict into generic loading/empty. |
-| Compact management errors | [RetryFeedback](../../apps/web/src/components/ui/retry-feedback.tsx): message/actions only; document/post management and Question Bank (3 routed consumers). | Preserve caller branch precedence, disabled retry gate and callbacks. Public illustrated feedback and private query gates have different contracts. |
-| Empty/error lists | [ListFeedback](../../apps/web/src/components/ui/list-feedback.tsx): icon/title/children/actions, `tone="empty"` (status) or `tone="error"` (alert), wrapping description/action regions. [EmptyState](../../apps/web/src/components/ui/empty-state.tsx) delegates the empty variant; four feature consumers: public DocumentList/NewsList and DashboardDocumentList/DashboardPostList. | DocumentList and NewsList reuse ListFeedback errors but retain state precedence, request gates, retry callbacks and copy. News empty reset remains a separate explicit action. No query/loading/persistence engine. [StudyEmpty](../../apps/web/src/features/daily/ui/study-notebook.tsx) remains a compact domain owner. |
-| Dialogs and confirmation | [Dialog](../../apps/web/src/components/ui/dialog.tsx), [AlertDialog](../../apps/web/src/components/ui/alert-dialog.tsx), [Sheet](../../apps/web/src/components/ui/sheet.tsx): installed Radix semantics/portal/focus/short-viewport scrolling. [DailyDialogHeader](../../apps/web/src/features/daily/ui/daily-dialog-header.tsx), [useDailyConfirm](../../apps/web/src/features/daily/ui/use-daily-confirm.tsx) compose them. | Document/post/user/category/room/evidence dialogs reuse them. Native group Create and [RoomMusicDialog](../../apps/web/src/features/study-room/components/room-music-dialog.tsx) are existing feature owners; preserve close/focus/request gates and persistent media. File/permission/beforeunload prompts stay native. |
-| Menus, popovers and date picker | [DropdownMenu](../../apps/web/src/components/ui/dropdown-menu.tsx): account/Daily task/room menus. [Popover](../../apps/web/src/components/ui/popover.tsx): Combobox/listening controls. Daily [StudyDatePicker](../../apps/web/src/features/daily/ui/study-date-picker.tsx) composes Radix directly. | Calendar owns civil-date keyboard navigation and guarded onSelect acceptance; not a generic searchable option list. Keep permission/navigation guards at caller. |
-| Chips, badges and cards | [Badge](../../apps/web/src/components/ui/badge.tsx), [Card](../../apps/web/src/components/ui/card.tsx); domain [PostBadge](../../apps/web/src/features/post/components/post-badge.tsx), [PostStatusBadge](../../apps/web/src/features/post/components/post-status-badge.tsx), [PostListItem](../../apps/web/src/features/post/components/post-list-item.tsx), [DocumentCard](../../apps/web/src/features/documents/components/document-card.tsx). | Card/Badge are primitives, not authorization or whole item behavior. Home and News reuse PostBadge; only News feed/pinned/related items use PostListItem. HomeNewsItem stays local. Document filter chips have removal buttons; category Links navigate; status badges are not interactive filters. Do not merge these merely for shape. |
-| Identity and private media | [AvatarImage](../../apps/web/src/features/user/components/avatar-image.tsx), [UserHoverCard](../../apps/web/src/features/user/components/user-hover-card.tsx); Daily [evidence components](../../apps/web/src/features/daily/evidence), Recognition HonorImage/[AchievementEvidence](../../apps/web/src/features/recognition/achievement-evidence.tsx)/EvidenceDownload, question figure resolvers. | Reuse identity/crop rendering. Private byte fetch, abort/revoke, permission/expiry and evidence visibility remain with their domain; no generic URL card may bypass them. |
-| Auth and rich content | [TurnstileChallenge](../../apps/web/src/features/auth/components/turnstile-challenge.tsx), [SocialLoginButtons](../../apps/web/src/features/auth/components/social-login-buttons.tsx); [RichTextEditor](../../apps/web/src/components/ui/rich-text-editor.tsx), [RichTextViewer](../../apps/web/src/components/ui/rich-text-viewer.tsx). | Auth reuses provider/token lifecycle without changing enforcement. Post rich text differs from scientific question blocks/frozen exam content; retain sanitization/figure contracts, not a universal editor. |
-
-## Follow-up dispositions and remaining opportunities
-
-The [completed owner inventory](web-ui-reuse-audit.md#completed-residual-consolidation-09102026)
-is authoritative for current definitions/calls/counts and preserved boundaries.
-These eight residual patterns now reuse equivalent ownership:
-
-| Owner / API | Exact current consumers | Adoption / boundary |
-| --- | --- | --- |
-| [replaceListParam](../../apps/web/src/lib/list-navigation.ts#L2): params/key/value → cloned params | [public-pages.tsx:24](../../apps/web/src/features/recognition/public-pages.tsx#L24); [admin-page.tsx:27](../../apps/web/src/features/recognition/admin-page.tsx#L27); [manual-question.ts:116](../../apps/web/src/features/questions/components/manual-question.ts#L116) | 3 files/3 calls/4 screen compositions. Typed key, draft/submit, query/navigation rules remain local; Documents/News have different reset/batch rules. |
-| [parseToolkitDecimal](../../apps/web/src/features/toolkit/lib/decimal.ts#L2): string → finite number/null | [gpa.ts:37](../../apps/web/src/features/toolkit/lib/gpa.ts#L37); [gpa.ts:38](../../apps/web/src/features/toolkit/lib/gpa.ts#L38); [gpa-goal.ts:25](../../apps/web/src/features/toolkit/lib/gpa-goal.ts#L25); [gpa-goal.ts:26](../../apps/web/src/features/toolkit/lib/gpa-goal.ts#L26); [gpa-goal.ts:27](../../apps/web/src/features/toolkit/lib/gpa-goal.ts#L27); [gpa-goal.ts:28](../../apps/web/src/features/toolkit/lib/gpa-goal.ts#L28) | 2 files/6 calls/2 panels on one route. Same dot/comma/trim syntax; credit/range/aggregation/overflow rules stay local. |
-| [DailyReflectionField](../../apps/web/src/features/daily/ui/daily-reflection-field.tsx#L5): id/label/value/onChange | [daily-plan-editor.tsx:246](../../apps/web/src/features/daily/components/daily-plan-editor.tsx#L246); [daily-plan-editor.tsx:247](../../apps/web/src/features/daily/components/daily-plan-editor.tsx#L247); [daily-plan-editor.tsx:248](../../apps/web/src/features/daily/components/daily-plan-editor.tsx#L248); [daily-week-editor.tsx:153](../../apps/web/src/features/daily/components/daily-week-editor.tsx#L153); [daily-week-editor.tsx:154](../../apps/web/src/features/daily/components/daily-week-editor.tsx#L154); [daily-week-editor.tsx:155](../../apps/web/src/features/daily/components/daily-week-editor.tsx#L155); [daily-week-editor.tsx:156](../../apps/web/src/features/daily/components/daily-week-editor.tsx#L156) | 2 files/7 sites. Same associated Label/Textarea/classes/4000 limit; sync/session/edit/focus authority stays local. Day-editor recovery hunks excluded from commit. |
-| [ManagementListRow + ManagementRowActions](../../apps/web/src/components/ui/management-list-row.tsx#L6): children/actions frame; onEdit/onDelete closures | [dashboard-document-list.tsx:31](../../apps/web/src/features/documents/components/dashboard-document-list.tsx#L31); [dashboard-post-list.tsx:33](../../apps/web/src/features/post/components/dashboard-post-list.tsx#L33) | 2 files/2 sites for each owner. Exact row/action/44px Button presentation; record/status/expiry/thumbnail/permissions/confirmation stay local. |
-| [PaginationFooter](../../apps/web/src/components/ui/pagination-footer.tsx#L4): pageOffset/size/total/itemLabel/children | [post-management-feature.tsx:192](../../apps/web/src/features/post/components/post-management-feature.tsx#L192); [documents-management-page.tsx:167](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx#L167) | 2 files/2 sites. Exact range/frame/scroll wrapper; AppPagination passed by caller, page-clamp/query adapters remain local. |
-| [InlineRetryFeedback](../../apps/web/src/components/ui/inline-retry-feedback.tsx#L4): message/actions | [admin-categories-page.tsx:254](../../apps/web/src/pages/dashboard/categories/admin-categories-page.tsx#L254); [profile-page.tsx:42](../../apps/web/src/pages/profile-page.tsx#L42) | 2 files/2 sites. Cached-refresh strip only; caller Buttons/loading/retry and terminal identity/cache gates retained. Compact RetryFeedback remains different. |
-| [Button destructive-solid](../../apps/web/src/components/ui/button.tsx#L22): existing variant, also accepted by AlertDialogAction | [post-management-feature.tsx:226](../../apps/web/src/features/post/components/post-management-feature.tsx#L226); [documents-management-page.tsx:202](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx#L202); [avatar-upload-card.tsx:167](../../apps/web/src/features/user/components/avatar-upload-card.tsx#L167); [use-daily-confirm.tsx:27](../../apps/web/src/features/daily/ui/use-daily-confirm.tsx#L27) | 4 files/4 sites. Exact existing solid treatment including inherited primary border; tinted destructive variant unchanged. Radix/request/focus/close untouched. |
-| [hasUuidFormat](../../apps/web/src/lib/uuid.ts#L2): lexical string predicate | [evidence-contract.ts:45](../../apps/web/src/features/daily/evidence/evidence-contract.ts#L45); [daily-contract.ts:107](../../apps/web/src/features/daily/lib/daily-contract.ts#L107); [group-contract.ts:5](../../apps/web/src/features/daily/groups/group-contract.ts#L5); [review-display.ts:62](../../apps/web/src/features/daily/lib/review-display.ts#L62); [paper-figures.ts:7](../../apps/web/src/features/exams/paper-figures.ts#L7); [figure-resolution.ts:23](../../apps/web/src/features/questions/components/figure-resolution.ts#L23); [manual-question.ts:30](../../apps/web/src/features/questions/components/manual-question.ts#L30) | 7 files/7 calls. Exact case-insensitive regex; no version/authority policy. Type/null/DTO/existence/access adapters stay separate. |
-
-Choose these owners only where their documented contract fits. Room fields,
-downloads, identity, formatting, private query gates, Groups timestamps and native/
-persistent dialogs retain differences. GroupScreen PageSection markup and inactive
-legacy cleanup stay low priority. The direct index is refreshed against381 source
-files and42 page entries. Existing PageHeader29/32, SearchInput9/9, NativeSelect14/24,
-Dialog17/20 and RetryFeedback3/3 adoption counts remain unchanged. Proof is
-representative synthetic Chromium, not all-screen/live backend validation.
-
-| Priority / evidence | Impact | Smallest responsible next step |
-| --- | --- | --- |
-| Resolved: [ImageLightbox](../../apps/web/src/components/ui/image-lightbox.tsx), used by [NewsDetailFeature](../../apps/web/src/features/post/components/news-detail-feature.tsx) | Baseline rendered checks showed no modal focus containment/return and loss of an existing inline body scroll lock after close. | Native button trigger and existing Dialog now own keyboard/modal focus, close/return and scroll locking; image styling and click-on-image behavior remain. No manual body overflow writes/listeners/portal lifecycle. |
-| Resolved: [HonorsPage filter](../../apps/web/src/features/recognition/public-pages.tsx) | Ordinary list search now receives shared SearchInput presentation. | Existing Field ID/label, draft, explicit trimmed submission, year preservation/page reset and URL synchronization remain feature-owned. [UserPicker](../../apps/web/src/features/recognition/components.tsx) deliberately retains server-query/native-selection semantics; never replace it with client Combobox. |
-| Resolved: [DocumentList](../../apps/web/src/features/documents/components/document-list.tsx), [NewsList](../../apps/web/src/features/post/components/news-list.tsx) | Empty/error presentation now has one ListFeedback owner via direct error use and EmptyState delegation. | Content-shaped skeletons, Documents error-before-loading precedence, News loading-before-error precedence, distinct retry/reset and pinned-feed boundaries stay local. News out-of-range recovery remains feature-composed; no universal query wrapper. |
-| CSS-only section reuse: [GroupScreen](../../apps/web/src/pages/daily-groups-page.tsx), around line 73 | Repeats page-section header/content markup, so future PageSection semantics can drift. Its flat work-surface CSS is intentional. | Consider PageSection with existing class override if markup/aria equivalence is preserved; keep group revalidation, membership gates and mounted content rules. Low priority, not a usability defect by itself. |
-| Unmounted duplication: [PostManagement](../../apps/web/src/features/post/components/post-management.tsx), lines 60–83; unused PublicPageHeader alias | Legacy search/header and list/dialog implementation can mislead later edits and inflate adoption counts. Current routes mount PostManagementFeature instead; no live-screen defect established. | Verify no downstream imports, then retire the legacy file in a separate authorized cleanup. Do not update it as though it owns the current screen. |
-
-Use this order when choosing an owner: reuse current behavior; extend its
-responsible feature/shared composition; use the existing native/Radix mechanism;
-only then add a small component for an actual repeated contract. Keep props
-about presentation/interaction, not hypothetical query/provider strategies.
-Preserve labels/focus, disabled/invalid semantics, 320px/short viewport wrapping,
-theme and existing reduced-motion support. UI/UX Pro Max's targeted React guidance
-and Vercel Web Interface Guidelines informed this source audit; generated generic
-palettes, universal shells and indiscriminate component conversions did not.
-
-## Trying and validating the adopted owners
-
-Run the frontend normally. On `/honors`, edit the subject without submitting, then
-press Enter/Tìm: only explicit submission applies the trimmed URL filter and resets
-page while preserving year. On a News detail with an image, Enter/Space opens the
-image dialog; Tab stays inside, Escape/Close/backdrop returns to the image trigger,
-and clicking the image itself keeps it open. Documents/News errors retain their
-own explicit retry; filtered News empty state still offers its existing reset.
-
-The owned synthetic route probe is
-[`ui-adoption-browser-check.mjs`](../../apps/web/tests/ui-adoption-browser-check.mjs):
-`ADOPTION_WEB_URL=http://127.0.0.1:3118 node tests/ui-adoption-browser-check.mjs`
-from `apps/web`, with Vite started separately. It blocks external/API traffic,
-records source hashes, screenshots and interaction results at desktop/tablet/320px
-narrow/short widths in light/dark. `ADOPTION_BASELINE=1` records older behavior
-without candidate-only assertions; it is not candidate acceptance. Physical mobile
-keyboards, AT speech, other browser engines, backend and dedicated reduced-motion
-validation are outside this proof. Existing reduced-motion Dialog behavior remains.
-
-The focused `ADOPTION_FEEDBACK_ONLY=1` probe scrolls each empty/error panel into
-view and uses a clearly synthetic stable identity to isolate presentation from
-anonymous initialization. Its screenshots do not prove authentication. Current
-acceptance and failed-driver/cleanup limits are recorded in the existing audit.
-
-## Mobile and Recognition evidence owners (09/10/2026)
-
-| Owner / source | API and actual adoption | Important boundary / variant |
-| --- | --- | --- |
-| [EvidencePreviews / EvidenceViewer](../../apps/web/src/components/ui/evidence-gallery.tsx), [CSS](../../apps/web/src/components/ui/evidence-gallery.css) | Two consumer files: [Daily EvidencePanel](../../apps/web/src/features/daily/evidence/evidence-panel.tsx) and [AchievementEvidence](../../apps/web/src/features/recognition/achievement-evidence.tsx). Items carry id/name/image/detail; feature renderImage/renderActions supply authorized media and operations. Previews calls onOpen(item,button); controlled Viewer takes open/selectedId/onSelect, feature feedback, description and close-focus callback. | Shared composed presentation, not shared Daily business logic. Two images/+N, bounded file previews, all-items index, prev/next, native Button/installed Dialog, sticky 44px Close, scrollable short viewport and 2× zoom with keyboard-scrollable image region. Feature gates must remove stale bytes on access revalidation. |
-| [raster-image](../../apps/web/src/lib/raster-image.ts) | rasterImageType(bytes) validates bounded PNG/JPEG/WebP/GIF headers; isRasterImageType(type) is only classification, not permission or byte validation. Daily's evidence-preview remains a compatibility re-export; Recognition consumes the same byte owner. | Never display arbitrary HTML/SVG from filename or MIME alone. Existing storage endpoints and file rules remain feature-owned. |
-| [AchievementEvidence](../../apps/web/src/features/recognition/achievement-evidence.tsx) → [AchievementRecord](../../apps/web/src/features/recognition/private-pages.tsx) | Private history `/profile/achievements` and admin `/admin/recognition?tab=reviews` use the same adapter. Lazy visible previews; viewer fetches selected bytes, optional download and explicit image retry. Record/version/attachment/session keys isolate lifecycle; metadata revalidation and owner/admin identity gate mounting. | Public profiles/milestones never use it, even for public achievements. API reauthorizes each evidence request; no signed/public URL added. Abort/revoke on unmount. Close returns to thumbnail or record heading if revalidation removed it. Approval/rejection remain separate explicit operations. |
-| [HonorEditor](../../apps/web/src/features/recognition/honor-editor.tsx) | Existing native status Select and save contract. Admin list Công bố album passes publishIntent; editor still requires explicit Lưu và công bố. New create defaults Draft; inline validation/server/conflict feedback retains saved draft and input. | Existing upload-before-publication sequence, expectedVersion, participant validation and admin APIs remain. No forced photo requirement or automatic publish. |
-| [LoginForm](../../apps/web/src/features/auth/components/login-form.tsx), [auth CSS](../../apps/web/src/layouts/welcome-layout.css) | Password field/error followed by recovery link at ≤900px; 26px normal account→password gap instead of 70px. Desktop remains 26px with above-field link; other auth screens retain their owners. | 52px fields, 44px mobile recovery/reveal, validation/focus/drafts and Turnstile/login contracts unchanged. |
-| [MobileNavbar](../../apps/web/src/layouts/components/mobile-navbar.tsx), [CSS](../../apps/web/src/layouts/components/mobile-navbar.css) | One composed owner, two direct consumers: [PublicHeader](../../apps/web/src/layouts/components/public-header.tsx) and [DashboardLayout](../../apps/web/src/layouts/dashboard-layout.tsx), only below768px. `account: ReactNode` supplies existing UserDropdown or anonymous login Link; caller supplies enclosing controlled Sheet/drawer. Logo → ThemeToggle → account/login → labelled Menu;64px row,44px targets,8px gaps. | Public/outside design is the reference. Logo-only mobile; Menu remains visibly labelled with accessible name and Radix expanded/controls semantics. Workspace page-context text sits below the sticky row; desktop/tablet shell differences remain. One CSS owner supplies mobile row spacing/divider/focus; anonymous narrow CTA padding stays with PublicHeader. No auth-layout or room/session ownership moved. |
-| [NavigationDrawer](../../apps/web/src/layouts/components/navigation-drawer.tsx), [navigation CSS](../../apps/web/src/layouts/navigation.css) | Public/workspace use the same role-filtered drawer; mobile theme switch unmounted. Caller owns controlled open state, destinations and footer. Workspace returns focus to the actual trigger or new breakpoint entry. | Retain role-filtered destinations, Sheet focus, theme persistence and tablet/desktop display settings. Drawer titles/page titles are not brand labels. |
-
-Rendered evidence uses synthetic data on actual local routes at 320×568,390×900,
-768×900 and1440×900, plus375px reviewer checks. This does not assert all-screen,
-live authorization, Cloudflare verification or physical-mobile validation.
-
-Narrow anonymous public navigation also keeps the logo from shrinking into the
-theme target: at <360px only horizontal navbar/button padding is compacted,
-retaining44px height,8px target separation and complete login/Menu labels.
-
-The focused shell probe is [mobile-navbar-browser-check.mjs](../../apps/web/tests/mobile-navbar-browser-check.mjs):
-`NAVBAR_WEB_URL=http://127.0.0.1:3126 node tests/mobile-navbar-browser-check.mjs`
-from `apps/web`, with a separately owned Vite server. It intercepts synthetic API
-and blocks external traffic. `NAVBAR_BASELINE=1` records before behavior;
-`NAVBAR_EXTRA_ONLY=1` isolates breakpoint/account/theme checks;
-`NAVBAR_ROOM_ONLY=1` isolates synthetic joined-room/player continuity. Evidence
-covers public anonymous/account and workspace mobile320/390 light/dark, short320,
-tablet/desktop and role destinations; it does not establish real auth, streaming,
-backend, physical-device or AT speech behavior. See the existing status for exact
-accepted snapshot, screenshots, failed-driver evidence and preservation accounting.
-
-
-## Visual and creation coverage (10/10/2026)
-
-Current local candidate on `f7db010`; source coverage below supersedes the older
-flat-list presentation descriptions. All42 page entries were reconciled with
-[routes.tsx](../../apps/web/src/router/routes.tsx) and actual feature imports.
-This is a source ledger, **not42 rendered passes**. No query/authorization engine
-or general editor framework was introduced.
-
-| Shared owner | Actual contract / adoption |
-| --- | --- |
-| [Card](../../apps/web/src/components/ui/card.tsx), [PageSection](../../apps/web/src/components/ui/page-section.tsx), [page-layout.css](../../apps/web/src/components/ui/page-layout.css) | Panel edge/depth; muted/divided headings; mobile16px/desktop24px panel padding. `content-card` is CSS reuse on semantic records, `filter-panel` a standalone search band. Nested toolbars remain flat. |
-| [CreationDialog](../../apps/web/src/components/ui/creation-dialog.tsx) + [CSS](../../apps/web/src/components/ui/creation-dialog.css) | `open/onOpenChange`, `title/description`, form-owned `dirty/busy`, `children(close)`. Optional compact `className`; ordered `returnFocusSelector` fallbacks for routed creation, bounded5s lazy-mount focus observation.12 frames in11 actual consumer files (admin Recognition owns two). Explicit success bypasses discard; failed validation/save/upload retains mounted form state. |
-| [Dialog](../../apps/web/src/components/ui/dialog.tsx) | Existing installed Radix modal mechanics; shared default44px Close and reserved title space. Daily custom/native owners are separate. |
-| [HonorsPage](../../apps/web/src/features/recognition/public-pages.tsx) + [recognition.css](../../apps/web/src/features/recognition/recognition.css) | Cohesive editorial media card; year/search toolbar, metadata/participants/album link. Public/private media adapters and scoring remain separate. |
-| [RichTextEditor](../../apps/web/src/components/ui/rich-text-editor.tsx) → [PostForm](../../apps/web/src/features/post/components/post-form.tsx) | Existing nested image dialog; optional upload-busy callback, guarded in-flight dismissal; native44px toolbar controls. Asset-ID thumbnail and URL-content completion remain distinct. No new upload framework. |
-
-```tsx
-<CreationDialog open={creating} onOpenChange={setCreating}
-  title="Tạo nội dung" description="Lưu bản nháp trước khi công bố."
-  dirty={formState.dirty} busy={formState.busy}>
-  {close => <ExistingForm onStateChange={setFormState}
-    onCancel={close} onDone={() => setCreating(false)} />}
-</CreationDialog>
-```
-
-Form callbacks own actual contracts; do not copy this example's labels/policy
-where the feature already differs. Modal presentation never grants publication,
-visibility, upload access or bypasses a failed metadata revalidation.
-
-### Page-family adoption ledger
-
-Each of the42 source page entries is linked below. `Inherited` means an actual
-shared owner changes its rendered composition; `local` identifies a changed
-responsible feature. Exceptions are intentional, not unreviewed route gaps.
-
-| Page entry / family | Actual visual owner and creation outcome |
-| --- | --- |
-| [about-page.tsx](../../apps/web/src/pages/about-page.tsx) | Inherited PageSection panel/heading; no create entry. |
-| [achievement-profile-page.tsx](../../apps/web/src/pages/achievement-profile-page.tsx) | Public Recognition: inherited sections and year-grouped milestones with muted bands/divided chronology; public filtering retained, no private-evidence mounting or create entry. |
-| [admin/recognition-page.tsx](../../apps/web/src/pages/admin/recognition-page.tsx) | Local Recognition card records/filter band; Honor create/edit/explicit publish and admin achievement submission use CreationDialog. |
-| [admin/users/admin-users-page.tsx](../../apps/web/src/pages/admin/users/admin-users-page.tsx) | Local filter-panel + inherited page-table; account operations/permissions retained; no user-create control. |
-| [assessment-import-page.tsx](../../apps/web/src/pages/assessment-import-page.tsx) | Inherited panels; PDF import action opens compact CreationDialog. Job polling/review/publish remain on page after upload. |
-| [auth/forgot-password-page.tsx](../../apps/web/src/pages/auth/forgot-password-page.tsx) | Intentional auth/floating-field shell; recovery is not content creation. |
-| [auth/login-page.tsx](../../apps/web/src/pages/auth/login-page.tsx) | Intentional auth shell; working password/Turnstile/OAuth unchanged. Create-account link navigates to register page. |
-| [auth/register-page.tsx](../../apps/web/src/pages/auth/register-page.tsx) | Direct RegisterForm inside AuthCardLayout / WelcomeLayout; single shrinkable grid track, wrapping resume action and 44px password controls; challenge persistence and Turnstile unchanged. |
-| [auth/reset-password-page.tsx](../../apps/web/src/pages/auth/reset-password-page.tsx) | Intentional auth shell; reset semantics untouched. |
-| [auth/verify-email-page.tsx](../../apps/web/src/pages/auth/verify-email-page.tsx) | Intentional verification shell; no new creation/policy. |
-| [competitions-page.tsx](../../apps/web/src/pages/competitions-page.tsx) | Local guidance surface + existing header/actions; no invented live registration feature. |
-| [daily-groups-page.tsx](../../apps/web/src/pages/daily-groups-page.tsx) | Intentional notebook/group workspace; existing native Create and installed/custom task dialogs retained, pending recovery untouched. |
-| [daily-owner-page.tsx](../../apps/web/src/pages/daily-owner-page.tsx) | Intentional flat notebook; existing task/evidence/reflection dialogs, serialized sync/guards unchanged. |
-| [daily-shared-review-page.tsx](../../apps/web/src/pages/daily-shared-review-page.tsx) | Intentional read-only notebook/private revalidation; section shadow/header-fill opt-out; feedback owner retained. |
-| [daily-week-page.tsx](../../apps/web/src/pages/daily-week-page.tsx) | Intentional weekly calendar/reflection/workspace; no forced card/grid or new creation flow. |
-| [dashboard/categories/admin-categories-page.tsx](../../apps/web/src/pages/dashboard/categories/admin-categories-page.tsx) | Inherited table surface; scrollable Radix tabs keep44px triggers/color-only transitions; SystemCategoryFormModal uses compact CreationDialog for category/subject/tag; floating fields retained. |
-| [dashboard/documents/documents-management-page.tsx](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx) | Local standalone filter-panel + inherited ManagementListRow; DocumentForm uses spacious CreationDialog and file/metadata/save gates. |
-| [dashboard/posts/post-management-page.tsx](../../apps/web/src/pages/dashboard/posts/post-management-page.tsx) | Local filter-panel + inherited rows/Card; PostForm uses spacious CreationDialog with nested editor choosers/busy propagation. |
-| [dashboard-page.tsx](../../apps/web/src/pages/dashboard-page.tsx) | Inherited section header/surface and local shared shortcut tiles; links to feature creation flows, no new mutation. |
-| [document-detail-page.tsx](../../apps/web/src/pages/document-detail-page.tsx) | Local metadata/preview/description content-card; shared feature-owned reader/skeleton viewport scales to short phones; complete edit/download labels stack on mobile. Reading/download/identity/iframe contract retained; not a creation dialog. |
-| [documents-page.tsx](../../apps/web/src/pages/documents-page.tsx) | Search-first filter panel with visible labels/active removals; DocumentCard/ListItem now group subject/kind/tags/title/description with shared DocumentThumbnail and explicit open. Two tablet/three desktop columns; error-count precedence and aria-pressed view state. Existing URL/query/pagination/download contracts retained. |
-| [exam-drafts-page.tsx](../../apps/web/src/pages/exam-drafts-page.tsx) | Feature-local ExamListItem shares title/version/points/release grouping across draft/paper lists with content-card tokens; Tạo đề opens addressable new-editor modal. |
-| [exam-editor-page.tsx](../../apps/web/src/pages/exam-editor-page.tsx) | New-only spacious CreationDialog; existing edit route/PageSection remains. Save handoff/version/publish eligibility retained. |
-| [exam-paper-page.tsx](../../apps/web/src/pages/exam-paper-page.tsx) | Purposeful frozen-paper reader; release/solution/figure gates unchanged, no per-question decorative nesting. |
-| [exam-papers-page.tsx](../../apps/web/src/pages/exam-papers-page.tsx) | Feature-local ExamListItem shares title/version/points/release grouping with drafts; native44px title links/return paths retained; no creation entry. |
-| [exam-preview-page.tsx](../../apps/web/src/pages/exam-preview-page.tsx) | Purposeful staff preview, shared header/buttons; no new creation policy. |
-| [history-page.tsx](../../apps/web/src/pages/history-page.tsx) | Local guidance surface; feature-availability explanation and real destinations retained. |
-| [home-page.tsx](../../apps/web/src/pages/home-page.tsx) | Local Home news card edge/depth; cinematic hero/notebook purpose remains. Registration link uses routed modal. |
-| [honor-detail-page.tsx](../../apps/web/src/pages/honor-detail-page.tsx) | Inherited sections + responsive existing gallery/reader; public photo query/viewer unchanged. |
-| [honors-page.tsx](../../apps/web/src/pages/honors-page.tsx) | Local bounded16:10 cards with contiguous metadata/participant/album action and compact mobile year/search rows. |
-| [my-achievements-page.tsx](../../apps/web/src/pages/my-achievements-page.tsx) | Local grouped records + inherited panels; Thêm/Bổ sung open CreationDialog; protected evidence/view/download unchanged. |
-| [news-detail-page.tsx](../../apps/web/src/pages/news-detail-page.tsx) | Purposeful article/author/reading layout; existing lightbox retained, not wrapped wholesale into cards. |
-| [news-page.tsx](../../apps/web/src/pages/news-page.tsx) | Local editorial card edge/depth, filter-panel search and occupied responsive pinned columns; pinned/feed membership, retries and URL submission unchanged. |
-| [not-found-page.tsx](../../apps/web/src/pages/not-found-page.tsx) | Intentional welcome/fallback identity; no forced shell/card. |
-| [practice-page.tsx](../../apps/web/src/pages/practice-page.tsx) | Local guidance surface; no fake practice/create feature. |
-| [profile-page.tsx](../../apps/web/src/pages/profile-page.tsx) | Inherited PageSection/Card surfaces; identity uses surface tokens and existing compact two-column composition at≤1099px; avatar/security editor/chooser and private revalidation remain task-specific. |
-| [question-bank-page.tsx](../../apps/web/src/pages/question-bank-page.tsx) | Local filter-panel + CardHeader metadata/status, CardContent question body and CardFooter wrapping actions; actual permissions/pending callbacks preserved; create link opens addressable new-editor modal. |
-| [question-detail-page.tsx](../../apps/web/src/pages/question-detail-page.tsx) | New-only spacious CreationDialog; manual create context/actions avoid duplicate page heading. Existing read/edit/schema/figures/handoff stay domain-owned. |
-| [rankings-page.tsx](../../apps/web/src/pages/rankings-page.tsx) | Local filter-panel; RankingList owns one content-card/context band/divided ordered comparison rows and44px identity links; inherited profile panels; no editorial/scored-policy merge. |
-| [study-room-page.tsx](../../apps/web/src/pages/study-room-page.tsx) | Intentional persistent room/scene/player; session lifecycle/settings/track dialogs unchanged; no frame remount for appearance. |
-| [subjects-page.tsx](../../apps/web/src/pages/subjects-page.tsx) | Local catalogue edge/depth, muted compact toolbar and purposeful two-column directory; no invented subject-create permission. |
-| [toolkit-page.tsx](../../apps/web/src/pages/toolkit-page.tsx) | Local GPA workspace/result surfaces, divided compact editable rows and compact Add-course modal using actual calculateGpa rules. Room creation now spacious CreationDialog; persistent room navigation/access unchanged. |
-
-### Creation entry coverage and boundaries
-
-| Entry / smallest actual owner | Modal and retained semantics |
-| --- | --- |
-| Admin Honors / [HonorEditor](../../apps/web/src/features/recognition/honor-editor.tsx) | CreationDialog: draft default, explicit publish, expectedVersion, eligibility and upload-before-publication; failures retain draft/files. Child participants/photos stay within editor. |
-| Personal/admin achievements / [AchievementEditor](../../apps/web/src/features/recognition/achievement-editor.tsx) | CreationDialog in private/admin page owners; explicit submit/re-submit, authorized identity and bounded evidence, pending/error gates. |
-| Documents / [DocumentForm](../../apps/web/src/features/documents/components/document-form.tsx) | CreationDialog; RHF dirty state includes dropdowns and file/error state, upload busy, feature-owned metadata/save/retry. |
-| Posts / [PostForm](../../apps/web/src/features/post/components/post-form.tsx) | CreationDialog; explicit draft/publish behavior unchanged, nested Tiptap image/link dialogs, in-flight uploads block parent close. |
-| Categories/subjects/tags / [SystemCategoryFormModal](../../apps/web/src/features/system-categories/components/system-category-form-modal.tsx) | Compact CreationDialog; existing code/name generation/validation and pending/failure drafts. |
-| Questions / [QuestionDetailPage](../../apps/web/src/pages/question-detail-page.tsx), [ManualQuestionWorkspace](../../apps/web/src/features/questions/components/manual-question-form.tsx) | `/r/questions/new` remains deep-linkable but opens CreationDialog; explicit dirty close, saved-ID handoff preserved. Option/part/scientific-block Add stays within parent editor. Duplicate existing question remains a distinct explicit server operation. |
-| Exams / [ExamEditorPage](../../apps/web/src/pages/exam-editor-page.tsx) | `/r/exams/new` opens CreationDialog; version/save/publish/frozen gates unchanged. Adding published question placements stays in this editor. |
-| PDF import / [AssessmentImportPage](../../apps/web/src/pages/assessment-import-page.tsx) | Compact CreationDialog; selected-file validation/failure retention, pending dismissal blocked; ongoing analysis/review remains on page. |
-| Study-room create / [StudyRoomsLobby](../../apps/web/src/features/study-room/components/study-rooms-lobby.tsx) | CreationDialog instead of inline form; native constraints/policy/access, failure retention, pending close, success enters room. Track request is already its own installed Dialog; player is not remounted. |
-| GPA Add / [GpaCalculator](../../apps/web/src/features/toolkit/components/gpa-calculator.tsx) | Compact CreationDialog; credits/grade use existing calculation rules before explicit insertion. Existing partially edited rows/storage/results remain editable. |
-| Account creation / [RegisterPage](../../apps/web/src/pages/auth/register-page.tsx) | Direct card-based registration inside AuthCardLayout; register/verification/resume form owners, secure session, action/token reset and resumable challenge retained. No OTP sent by probes. |
-| Daily task/evidence/reflection/group creation | Already-modal [DailyDialogHeader](../../apps/web/src/features/daily/ui/daily-dialog-header.tsx) / installed/native feature owners retained. Native group dialog includes separately pending recovery. Serialized autosync, dirty/navigation/Submit and sharing/private gates stay with Daily; no replacement based only on markup similarity. |
-| Native file choices, form-row/options/parts/placements, ownership transfer, feedback | Subordinate editing/permission workflows, not independent entity-create destinations. Keep current parent/chooser or existing modal and business invariants. |
-| Legacy unrouted PostManagement/PostEditor | Not an active entry point in routes.tsx; retained source excluded from mounted creation counts. No misleading claim that legacy imports are routed adoption. |
-
-The owned [visual/modal browser probe](../../apps/web/tests/visual-layout-browser-check.mjs)
-uses synthetic intercepted data and locally generated imagery only. Baseline is a
-frozen `f7db010` web tree plus the four pending Daily runtime files, never an env
-copy. `VISUAL_WEB_URL` selects an owned Vite with env loading disabled;
-`VISUAL_BASELINE=1` records before, `VISUAL_CREATION_ONLY=1` narrows lifecycle checks.
-Representative dimensions are320×568,390×844,820×900,1440×900 and320×360 across
-light/dark. Actual evidence/results and candidate boundary accounting belong in
-the [existing status](../reviews/ux-flow-audit.md), not an all-screen rendered claim.
-
-### Responsible local compositions beyond Honors
-
-These are actual owners, not new universal components. Their links complement the
-42-page ledger above; source inspection is distinct from representative rendering.
-
-| Owner | Purpose / retained contract |
-| --- | --- |
-| [public-news-feature.css](../../apps/web/src/features/post/components/public-news-feature.css) | Task-first discovery band, compact editorial rows and `auto-fit/minmax` occupied pinned columns;64px phone media remains beside titles. Queries and membership are owned by PublicNewsFeature. |
-| [document-reader.css](../../apps/web/src/features/documents/components/document-reader.css) → [DocumentDetailPage](../../apps/web/src/pages/document-detail-page.tsx) | One viewport owner for loaded/skeleton reader, short-phone dimensions; native iframe/fallback and feature downloads untouched. Mobile header actions stack rather than clip labels. |
-| [RankingList](../../apps/web/src/features/recognition/ranking-presentation.tsx) + [CSS](../../apps/web/src/features/recognition/ranking-presentation.css) | Existing ordered rows share one `content-card` surface/context band. Domain presentation model still owns rank/points/links;44px native profile activation. |
-| [PublicAchievementMilestones](../../apps/web/src/features/recognition/achievement-presentation.tsx) + [CSS](../../apps/web/src/features/recognition/achievement-presentation.css) | Bounded year groups/divided records inside existing PageSection, no nested elevated cards or private-media adapter. Public projection/filter model remains owner. |
-| [profile.css](../../apps/web/src/features/user/components/profile.css) | Existing identity compact grid extended to stacked tablet layout, standalone surface tokens; actual form/avatar/account owners keep draft/focus/access authority. |
-| [toolkit.css](../../apps/web/src/features/toolkit/components/toolkit.css) | GPA row dividers/compact spacing, existing result hierarchy. Room discovery/player remain purposeful flat/persistent surfaces. |
-| [AdminCategoriesPage](../../apps/web/src/pages/dashboard/categories/admin-categories-page.tsx) | Installed Radix Tabs and horizontal internal scroll retained;44px triggers. Modal/data-table/metadata feedback remain existing owners. |
-| [ExamListItem](../../apps/web/src/features/exams/components/exam-read.tsx) | One feature-local draft/paper list composition; bounded native title Link with a shrinkable text child, version/points badges and separate release/timezone line. Frozen reader bodies/gates remain separate. |
-| [QuestionBankPage](../../apps/web/src/pages/question-bank-page.tsx) | Existing CardHeader/Content/Footer now separate metadata/status, question summary and wrapping44px actions. Search submission, URL filters, duplicate/archive/restore permissions and callbacks retain their original owners. |
-
-`VISUAL_BROAD=1` on the existing browser probe exercises nonempty fixtures for these
-families plus assessment lists across320/390/820/1440 and320×360, light/dark. Its
-follow-up before tree is the frozen accepted56-path candidate, separate from the
-original HEAD-based comparisons. No env files are copied. Exact completed checks,
-interrupted runs and omissions are recorded in the existing status, not inferred
-from this source ledger.
-
-
-### Document discovery preview storage cases (10/10/2026)
-
-| Owner / actual use sites | API / boundary |
-| --- | --- |
-| [DocumentThumbnail](../../apps/web/src/features/documents/components/document-thumbnail.tsx), [discovery CSS](../../apps/web/src/features/documents/components/document-discovery.css) | `src?: string|null`, `compact?: boolean`. Three consumer files/three sites: [DocumentCard](../../apps/web/src/features/documents/components/document-card.tsx), [DocumentListItem](../../apps/web/src/features/documents/components/document-list-item.tsx), [DashboardDocumentList](../../apps/web/src/features/documents/components/dashboard-document-list.tsx). Inner state resets when src changes; lazy image load/error, fixed frame/whole-page containment and readable fallback. No general media framework, original fetch or client URL transformation. |
-| [DocumentFilters](../../apps/web/src/features/documents/components/document-filters.tsx) | Existing SearchInput + Combobox owners; visible labels/selected chips, Enter/Tìm trim, selectors reset page only, reset preserves view/unrelated params. Subject and existing tags support subject/topic discovery; kind/context distinguishes similarly named records. |
-| [DocumentServiceImpl.enrich](../../apps/api/src/main/java/me/nghlong3004/olympic/document/service/impl/DocumentServiceImpl.java) → [CloudinaryStorageService.getThumbnailUri](../../apps/api/src/main/java/me/nghlong3004/olympic/storage/service/impl/CloudinaryStorageService.java) | Existing optional thumbnailUrl DTO field, no new schema. Only Cloudinary + DOCUMENT + application/pdf requests preview resolution. Only existing generated `documents/UUID.pdf` keys yield an unsigned HTTPS `image/upload`, pg1, c_limit600×800, JPG candidate; all other keys yield null. Original download/access APIs remain unchanged. |
-
-Official Cloudinary guidance verified10/10/2026:
-[PDF delivery](https://cloudinary.com/documentation/ts_how_to_upload_manage_and_deliver_pdf_files),
-[upload/resource types](https://cloudinary.com/documentation/upload_parameters),
-[media access](https://cloudinary.com/documentation/control_access_to_media).
-Image-resource PDFs support page-to-image delivery; raw PDFs do not transform.
-Private derived-image delivery can have different visibility from the original:
-never convert a private URL just to obtain a thumbnail. Account PDF delivery blocks
-and strict transformation rules are possible; neither setting was inspected/changed.
-
-Actual repository uploader uses resource_type:auto, random folder/UUID public_id,
-overwrite:false, no explicit private/authenticated type or access_control override.
-It retains public_id plus format as storageKey but discards returned resource_type /
-type/access metadata. Therefore eligible legacy keys are **candidates, not verified
-public image assets**. The thumbnail owner addresses only the existing unsigned
-public image/upload namespace; it never retries a private/raw/authenticated namespace,
-signs delivery or requests originals/asset metadata. No account API call or backfill
-is hidden in a list request. Generated URL existence is not successful rendering.
-
-| Storage case | Actual behavior / limitation |
-| --- | --- |
-| Public Cloudinary image/upload PDF, generated document key, matching file metadata; permitted derivative | Page1 JPG can render when delivered; aspect-contained600×800 limit never crops/upscales. Offline URL construction and browser synthetic image success verified; live assets untested. |
-| Raw/password-protected PDF sharing a legacy document key | An image/upload candidate may not exist; browser error shows unavailable. No raw conversion, reupload or namespace fallback. Historical resource_type cannot be reconstructed from current DB metadata. |
-| Private/authenticated/token-restricted asset | No private/signed URL generation or access override. Public candidate cannot grant that asset's access; blocked delivery falls back. Proven private source is never mounted through Daily/Recognition adapters. |
-| Wrong provider/folder/MIME, non-generated/malformed key or missing file | thumbnailUrl stays null; no new preview request. Other originals/download workflows remain existing owners. |
-| Account PDF block / strict transform / missing or failed derivative | Honest unavailable fallback on image error; ordinary document retry remains feature-owned. Account eligibility cannot be established offline. No security setting changed. |
-| Pending image | Reserved portrait/skeleton with loading semantics; title, metadata and native open remain available. |
-
-Supporting arbitrary historical/raw assets reliably would require retaining verified
-resource/delivery/access metadata (schema/backfill decision) and possibly account
-eligibility/allowed transformations (operator decision). Neither is part of this
-candidate. Do not enable public access or migrate private assets as a preview fix.
-The [existing status](../reviews/ux-flow-audit.md) records exact candidate and learner
-walks; synthetic fixtures are not evidence of live Cloudinary authorization.
-
-
-### Documents/News discovery owners and task evidence (10/10/2026)
-
-| Actual owner / mounted adoption | Purpose / invariant |
-| --- | --- |
-| [PublicNewsFeature](../../apps/web/src/features/post/components/public-news-feature.tsx) → [NewsPage](../../apps/web/src/pages/news-page.tsx) | One search/type/active-filter band before pinned content; SearchInput,44px Button/native type Links, PageHeader and existing pagination/feedback. Search matches title, on-submit trim and feature URL/reset rules unchanged. Priority query enabled only unfiltered page1, feed9/publishedAt descending; pinned remain in feed. |
-| [PostListItem](../../apps/web/src/features/post/components/post-list-item.tsx) + [CSS](../../apps/web/src/features/post/components/public-news-feature.css) | Two board call sites: NewsList feed and PublicNewsFeature pinned band. One Link groups type/date/title/deadline/summary/open cue; supporting64px phone or160px wide image, error removes image only. Distinct card variant remains for related posts; no competing shared primitive. |
-| [NewsDetailFeature](../../apps/web/src/features/post/components/news-detail-feature.tsx) → NewsDetailPage |72ch body measure and compact lead/related spacing; existing RichTextViewer, ArticleToc, ImageLightbox Dialog, progress/share/author/deadline/related owners retained. TOC uses aria-expanded/controls; no new lightbox or reading policy. |
-| [DocumentThumbnail](../../apps/web/src/features/documents/components/document-thumbnail.tsx) | Three actual consumers listed in the storage reference above. Reserved3:4 page containment and loading/error/unavailable states; no original PDF fetch. Document filters/cards/list keep subject/kind/tags/description/open and independent retries. |
-
-No new route entries or global adoption counts are implied. The42-page ledger is
-inherited broad source coverage; this supplement inspects and renders Documents,
-News, their readers and document-management thumbnail ownership specifically.
-[Design rationale and public references](web-ui.md#documents-and-news-catalogue--editorial-discovery-10102026)
-record concrete alternatives and token decisions. The existing browser probe has
-`VISUAL_DOCUMENTS=1` / `VISUAL_NEWS=1` modes, `VISUAL_BASELINE=1`,
-`VISUAL_MATRIX_EXTRA=1` for complementary themes and
-`VISUAL_DISCOVERY_MATRIX_ONLY=1` for layout-only runs. Fixtures contain synthetic
-content/images, never screenshot personal data. Results/side-by-side comparisons,
-keyboard/find/open/return/retry observations and interrupted probes are recorded in
-[existing status](../reviews/ux-flow-audit.md), not inferred from import counts.
-
-
-### Admin recovery and discovery owners (10/10/2026)
-
-Follow-up to the [a4821ed admin task audit](../reviews/ux-flow-audit.md#admin-ui-task-audit-a4821ed).
-These changes preserve the existing creation/publication/permission contracts.
-The current remedy disposition and bounded evidence live in the
-[existing status](../reviews/ux-flow-audit.md#admin-ui-audit-remedies-20261010).
-
-| Owner / actual consumers | Contract and task benefit |
-| --- | --- |
-| [OptionQueryFeedback](../../apps/web/src/components/ui/option-query-feedback.tsx) | Presentation only: `label`, `pending`, `error`, `retrying`, `onRetry`. Pending status precedes error; error uses InlineRetryFeedback and Button loading/disablement. Six consumer files: Documents management, Question Bank, manual question workspace, legacy QuestionEditForm, ExamForm and import AssessmentDraftCard. Callers retain values, queries, dependent subject/topic gates and drafts. A failed options request is never represented as a genuinely empty list. |
-| [post-status](../../apps/web/src/features/post/post-status.ts) → DashboardPostList / PostManagementFeature | `postDisplayStatus` derives EXPIRED only for PUBLISHED; draft/archive keep their real status and separate deadline. `postManagementStatusQuery` maps EXPIRED to existing published+expired predicates and active PUBLISHED to published+not-expired. No API/filter/publication policy added. |
-| [PostManagementFeature](../../apps/web/src/features/post/components/post-management-feature.tsx), [DocumentsManagementPage](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx) → replaceListParam | Search keeps500ms debounce; status or subject/category selects use existing request fields. URL-backed filters reset one-based page; Documents pairs its subject/kind controls on phones. Reset removes only each feature's filters/page, preserving other URL context. Posts counters stay informational and become compact on phones. CreationDialog/form owners unchanged. |
-| Posts / Documents / [AdminCategoriesPage](../../apps/web/src/pages/dashboard/categories/admin-categories-page.tsx) → AlertDialog | Pending mutation blocks every close request, not just Cancel. Failure keeps target and visible inline error; idle cancel and success close remain available. Mutation/callback/policy authority stays local; no universal delete state engine. |
-| [AdminUsersPage](../../apps/web/src/pages/admin/users/admin-users-page.tsx) | Local UserIdentity/UserPermissions are reused in mobile record rows and desktop Table. Below768px identity, email, role, permissions, joined date and44px action stay together; wider table retains headers with tablet scroll guidance. Action accessible names identify the user; programmatically opened permission Dialog restores focus to its exact trigger. One query/pagination/permission mutation owner. |
-| [DashboardDocumentList](../../apps/web/src/features/documents/components/dashboard-document-list.tsx), [DashboardPostList](../../apps/web/src/features/post/components/dashboard-post-list.tsx) | ManagementListRow remains shared. Document titles wrap to reveal distinguishing suffixes; native detail/open targets retained. POST-owned thumbnail reserves64×48 on phones /96×64 wider and falls back honestly on error. DocumentThumbnail/PDF policy remains the separate existing owner. |
-| [import-session](../../apps/web/src/features/assessment/import-session.ts), [AssessmentImportPage](../../apps/web/src/pages/assessment-import-page.tsx), [hooks](../../apps/web/src/features/assessment/hooks/use-assessment-import.ts) | `?importId=UUID` restores a known job through authorized endpoints, not a new upload. Invalid IDs make no job request. Query identities include account/token revision, consume AbortSignal and revalidate on mount. Same-account retained review rows preserve local corrections through transient token/query failures; placeholders/errors never authorize media or writes. Account changes reset local rows.401/403/404/410 suppress cached private content; transient failures retain text and expose explicit retry. No invented job lifetime or history. |
-| [AssessmentDraftCard](../../apps/web/src/features/assessment/components/assessment-draft-list.tsx) | Caught save/approve/reject failure focuses role=alert and retains fields. One row-operation lock gates sibling fields/actions; per-job mutation keys coordinate publish gates. Approve still saves first. Denied writes revalidate authorized status/drafts; media mounts only after successful current checks. |
-| [Recognition QueryFeedback](../../apps/web/src/features/recognition/components.tsx), [ExamProblem](../../apps/web/src/features/exams/components/exam-feedback.tsx) | Required fetching/busy prop is passed by all direct consumers; retries remain disabled throughout cached refetch. Recognition section buttons have aria-current for the active destination; existing native navigation remains, not simulated tab semantics. |
-
-Intentional variants remain: desktop relational tables, immediate permission changes,
-exam frozen/release gates, Recognition review/publication and private-media adapters,
-feature-specific metadata validation, reader layouts and Daily native-dialog/autosync
-contracts. These changes do not consolidate business state merely because markup
-looks similar. The seven-path Daily recovery and unrelated auth/deploy status remain
-separately pending; source adoption is not all-screen/live validation.
-
-
-## Mobile modal frame audit (8773df0)
-
-Original read-only audit of HEAD `8773df072c58b0b52a33e5f6116fd70918320458` plus
-the separately pending Daily recovery, 10/10/2026. That audit made no runtime
-edits. The subsequently authorized [five local repairs](#mobile-modal-repairs-10102026)
-resolve its findings. Their scoped publication is authorized; the separate Daily
-recovery remains pending.
-[Findings/evidence and preservation accounting](../reviews/ux-flow-audit.md#mobile-modal-frame-audit-8773df0)
-are in the existing status source. Source discovery found **43 modal construction
-sites in34 files**, including CreationDialog's own frame/dirty confirmation and
-unrouted legacy PostManagement. These are construction sites, not43 screens or
-43 independent owners. Shared primitives and Sheet/Select portal behavior were
-also inspected. All material consumers below were source-reviewed; fresh rendered
-coverage is explicitly narrower.
-
-### Current frame ownership
-
-- [Dialog](../../apps/web/src/components/ui/dialog.tsx): installed Radix owns
-  modal focus trapping/scroll lock. The centered frame has16px nominal viewport
-  gutters, `max-height:calc(100dvh - 2rem)` and **whole-frame scrolling**. Its44px
-  absolute Close, heading and footer scroll with content. Its single grid column
-  now uses minmax(0,1fr); full title/description wrap unbroken text. Consumer width/height
-  overrides remain material; shared reuse does not establish safe long-content
-  layout.
-- [CreationDialog](../../apps/web/src/components/ui/creation-dialog.tsx) /
-  [CSS](../../apps/web/src/components/ui/creation-dialog.css): fixed heading/Close
-  with a separate shrinking, scrolling body; ≤68rem, compact ≤36rem. Full100dvh
-  only at widths≤640px, including short portrait. Wider phone landscape uses
-  the centered frame. Top header and bottom body padding honor safe-area insets;
-  left/right insets are not currently explicit. Actions remain owned by each form
-  at the body end, rather than a universal sticky footer. Actual honor/document
-  error forms reached actions at320×280 and667×320 without losing the44px Close.
-  Busy/dirty guards and return-focus contracts remain unchanged.
-- [AlertDialog](../../apps/web/src/components/ui/alert-dialog.tsx): centered,
-  bounded, whole-frame scrolling confirmation. Short-screen confirmation actions
-  are reachable by scrolling/Tab. Existing feature pending-dismissal guards stay
-  local. Dirty-close Cancel preserved the form in the sampled viewport matrix.
-- [EvidenceViewer](../../apps/web/src/components/ui/evidence-gallery.tsx) /
-  [CSS](../../apps/web/src/components/ui/evidence-gallery.css): whole-frame scroll
-  with only the compact title/44px Close sticky, separate zoomable image scroll
-  area and bounded wrapping controls/index. Full description scrolls while
-  retaining its ARIA relationship. Features still supply freshly authorized
-  media/actions. The historical findings below are resolved by the local repairs.
-- [ImageLightbox](../../apps/web/src/components/ui/image-lightbox.tsx): fullscreen
- 100dvh black frame, contained image,44px Close. Fresh320×568/844×390 rendering
-  fits; Escape returns to the article image. Notch/physical browser chrome remains
-  unverified; offsets use16px rather than explicit safe-area insets.
-- Daily's [sticky header](../../apps/web/src/features/daily/ui/daily-dialog-header.tsx)
-  and [notebook CSS](../../apps/web/src/features/daily/ui/study-notebook.css) remain
-  local to autosync/task/evidence flows. Native group creation remains a different
-  owner; native room music deliberately keeps player children mounted and restores
-  scroll/focus. Do not replace either native lifecycle merely to match the frame.
-
-### Historical pre-fix problems and smallest remedies
-
-| Priority / task | Exact owner/site | Observed problem | Smallest fitting follow-up |
-| --- | --- | --- | --- |
-| High: inspect identity/review safely | [DialogContent](../../apps/web/src/components/ui/dialog.tsx):65; [PermissionDialog](../../apps/web/src/pages/admin/users/admin-users-page.tsx):244; [Recognition review](../../apps/web/src/features/recognition/admin-page.tsx):121 | Valid long email /191-character achievement title makes the implicit grid column wider than the288px frame at320px: scroll widths903/1783px. Context and review controls are clipped. | Make the responsible shared grid column shrink (`minmax(0,1fr)`), make header/description shrink and wrap unbroken user text. Retain readable full context; do not hide overflow as the fix. Verify affected contextual/confirmation variants. |
-| High: view/download private evidence | [EvidenceDownload](../../apps/web/src/features/recognition/components.tsx):68; [EvidenceViewer](../../apps/web/src/components/ui/evidence-gallery.tsx):50; [CSS](../../apps/web/src/components/ui/evidence-gallery.css):11 | A valid75-character attachment name in the nowrap download button expands the viewer's288px grid to668px; the sticky header/Close is pushed horizontally outside the screen. Reproduced on an actual admin review route. | Bound/shrink the viewer grid and controls; wrap the feature-owned download label or show concise “Tải tệp” with full filename in its accessible name/context. Preserve download callback, disablement and private-media adapters. |
-| High: reach viewer controls on short phones | [Evidence gallery header](../../apps/web/src/components/ui/evidence-gallery.css):12; [AchievementEvidence description](../../apps/web/src/features/recognition/achievement-evidence.tsx):34 | With short action labels and a valid191-character record title, the sticky header is286px inside a248px frame at320×280. Scrolling to the bottom still paints context over the zoom control; a focused enabled “Phóng to” is fully obscured. This is independent of filename overflow. | Keep only the compact title/44px Close row sticky; let full record/privacy description scroll normally while retaining DialogDescription/ARIA relationships. No loss of private context or media gates. |
-| Medium: native group creation on mobile | [GroupList](../../apps/web/src/features/daily/groups/group-controls.tsx):87,137; [study-dialog CSS](../../apps/web/src/features/daily/ui/study-notebook.css):117 | Cancel/Create are36px high; Close/Input are44px. At320×280, an outside wheel moves the background page from163→226 while the native dialog stays open (`body overflow:visible`). | Add44px action sizing to the Daily native frame and explicit open/close body-scroll restoration using the existing native-room pattern. Preserve group draft/error/request/return-focus authority; do not convert it to Radix. |
-| Medium usability: nested picker dismissal | [RichTextEditor image dialog](../../apps/web/src/components/ui/rich-text-editor.tsx):115; [Dialog absolute Close](../../apps/web/src/components/ui/dialog.tsx):77 | At320×280 scrolling the upload chooser54px to see its help text moves the sole pointer Close to y=-30. Escape still returns to the exact parent toolbar button. Crop/room forms also scroll top Close away but retain bottom Cancel/Close. | For this chooser, keep its small heading/Close row reachable or add an explicit bottom Cancel. Do not add fixed footers to every short confirmation or alter upload-busy/nested-focus semantics. |
-
-### Source coverage ledger
-
-“Fresh” means actual source owner rendered with synthetic content/API, not a live
-backend or every route/state. Mounted-owner probes explicitly mark synthetic child
-composition; they do not exercise Daily autosync or actual room playback.
-
-| Source construction sites | Variant and coverage |
-| --- | --- |
-| [creation-dialog.tsx](../../apps/web/src/components/ui/creation-dialog.tsx) — DialogContent:32, AlertDialogContent:63 | Shared creation frame + nested dirty confirmation; fresh honor/document error forms and dirty Cancel across320/390/short/landscape. |
-| [evidence-gallery.tsx](../../apps/web/src/components/ui/evidence-gallery.tsx) — DialogContent:50 | Shared protected viewer; fresh actual admin evidence + mounted-owner long-title/short-filename stress and focused zoom. |
-| [image-lightbox.tsx](../../apps/web/src/components/ui/image-lightbox.tsx) — DialogContent:31 | Fullscreen News image; fresh actual reader320 portrait/844 landscape, Escape and focus return. |
-| [rich-text-editor.tsx](../../apps/web/src/components/ui/rich-text-editor.tsx) — DialogContent:115, DialogContent:451 | Nested image/link dialogs in actual PostForm; fresh short320 upload layout, link validation, Escape to parent trigger. |
-| [daily-plan-editor.tsx](../../apps/web/src/features/daily/components/daily-plan-editor.tsx) — DialogContent:238, DialogContent:261 | Daily add-task/reflection; pending Daily source inspected. Reflection owner/header/fields mounted with synthetic task/error composition; actual syncing not run. |
-| [evidence-panel.tsx](../../apps/web/src/features/daily/evidence/evidence-panel.tsx) — DialogContent:112 | Daily upload + shared viewer adapter; source reviewed; existing private-media/lifecycle evidence reused. |
-| [group-controls.tsx](../../apps/web/src/features/daily/groups/group-controls.tsx) — dialog:87 | Native create-group; original route320×280 audit recorded36px actions/background scroll; current local repair proves44px actions/restored lock separately from pending recovery. |
-| [use-daily-confirm.tsx](../../apps/web/src/features/daily/ui/use-daily-confirm.tsx) — AlertDialogContent:25 | Daily confirmation; source reviewed. Shared AlertDialog matrix freshly sampled through creation dirty guard. |
-| [document-download-modal.tsx](../../apps/web/src/features/documents/components/document-download-modal.tsx) — DialogContent:91 | Cancelable download/progress/error Dialog; source reviewed; historical lifecycle evidence retained, no fresh download probe. |
-| [post-management-feature.tsx](../../apps/web/src/features/post/components/post-management-feature.tsx) — AlertDialogContent:222, CreationDialog:252 | POST create/edit CreationDialog and pending delete AlertDialog; fresh actual long form/nested choosers/delete503 matrix. |
-| [post-management.tsx](../../apps/web/src/features/post/components/post-management.tsx) — AlertDialogContent:187 | Unrouted legacy delete confirmation; source-only, not claimed as a routed screen. |
-| [admin-page.tsx](../../apps/web/src/features/recognition/admin-page.tsx) — CreationDialog:49, CreationDialog:93, DialogContent:120, DialogContent:121 | Recognition honor create/edit/publish, admin submission, delete and review; fresh create error + review long context; publish/eligibility/pending historical evidence reused. |
-| [private-pages.tsx](../../apps/web/src/features/recognition/private-pages.tsx) — CreationDialog:37 | Achievement add/resubmit CreationDialog; source reviewed, prior creation/private-viewer proof reused. |
-| [public-pages.tsx](../../apps/web/src/features/recognition/public-pages.tsx) — DialogContent:56 | Honors album photo Dialog; source reviewed (600px bounded width, contained65dvh media), not freshly rendered. |
-| [edit-room-rhythm.tsx](../../apps/web/src/features/study-room/components/edit-room-rhythm.tsx) — DialogContent:31 | Rhythm form and restart context; actual owner freshly mounted, fields/presets/footer/short viewport/Escape; no room mutation. |
-| [room-music-dialog.tsx](../../apps/web/src/features/study-room/components/room-music-dialog.tsx) — dialog:26 | Persistent native music; actual owner mounted with synthetic queue/player sentinel, sticky44px Close, body lock, focus return and same DOM child after closing. |
-| [room-track-dialog.tsx](../../apps/web/src/features/study-room/components/room-track-dialog.tsx) — DialogContent:22 | Track request form; actual owner mounted with long policy text. Fresh short frame, focused resize/draft retention, Escape. No real queue action. |
-| [study-room-scene.tsx](../../apps/web/src/features/study-room/components/study-room-scene.tsx) — DialogContent:152 | Member context Dialog; source-only, explicit focus restoration inspected. |
-| [study-room-session.tsx](../../apps/web/src/features/study-room/components/study-room-session.tsx) — DialogContent:219, AlertDialogContent:227 | Settings + nested transfer/close confirmation; source-only, role/pending/focus contracts inspected; prior continuity proof remains bounded. |
-| [study-rooms-lobby.tsx](../../apps/web/src/features/study-room/components/study-rooms-lobby.tsx) — CreationDialog:47 | Room creation CreationDialog; source and prior retained-draft/pending evidence, not freshly repeated. |
-| [transfer-room-ownership.tsx](../../apps/web/src/features/study-room/components/transfer-room-ownership.tsx) — DialogContent:24 | Nested member chooser/native select inside settings; source-only, local capability/online eligibility retained. |
-| [system-category-form-modal.tsx](../../apps/web/src/features/system-categories/components/system-category-form-modal.tsx) — CreationDialog:99 | Category/subject/tag compact creation/edit; source + previous keyboard/form proof, not freshly repeated. |
-| [gpa-calculator.tsx](../../apps/web/src/features/toolkit/components/gpa-calculator.tsx) — CreationDialog:67 | Compact course creation; source + prior range-validation/draft proof, not freshly repeated. |
-| [avatar-crop-dialog.tsx](../../apps/web/src/features/user/components/avatar-crop-dialog.tsx) — DialogContent:69 | Crop frame; actual owner freshly mounted with synthetic image, reachable actions/arrow-capable viewport, Tab trap/Escape/body lock. No upload/apply mutation. |
-| [avatar-upload-card.tsx](../../apps/web/src/features/user/components/avatar-upload-card.tsx) — AlertDialogContent:162 | Avatar remove AlertDialog; source-only; no avatar mutation. |
-| [change-password-modal.tsx](../../apps/web/src/features/user/components/change-password-modal.tsx) — DialogContent:76 | Floating password fields/error form; source-only,44px targets and existing reset/pending/return-focus behavior inspected. |
-| [admin-users-page.tsx](../../apps/web/src/pages/admin/users/admin-users-page.tsx) — DialogContent:244 | Permission Dialog; actual route populated with12 long descriptions, long email, scrolling/Escape/focus matrix. No grant/revoke. |
-| [assessment-import-page.tsx](../../apps/web/src/pages/assessment-import-page.tsx) — CreationDialog:137 | Compact PDF-upload creation; source + prior invalid-upload/pending/authorization/expiry proof, no fresh upload or live job. |
-| [register-page.tsx](../../apps/web/src/pages/auth/register-page.tsx) — CreationDialog:11 | Routed compact registration/Turnstile; source + prior synthetic widget/validation/routed return proof. Real widget/IME not tested. |
-| [admin-categories-page.tsx](../../apps/web/src/pages/dashboard/categories/admin-categories-page.tsx) — AlertDialogContent:314 | Category deletion AlertDialog; source + prior pending/error/target proof reused. |
-| [documents-management-page.tsx](../../apps/web/src/pages/dashboard/documents/documents-management-page.tsx) — AlertDialogContent:211, CreationDialog:242 | Create/edit CreationDialog and delete AlertDialog; fresh empty/validation/long form geometry; pending deletion historical proof reused. |
-| [document-detail-page.tsx](../../apps/web/src/pages/document-detail-page.tsx) — DialogContent:353 | Reader edit retains ordinary Dialog95vw/90vh override, whole-frame scroll; fresh390 portrait/320 short populated editor and reachable bottom actions. It differs from management CreationDialog; dirty-close is not supplied here. |
-| [exam-editor-page.tsx](../../apps/web/src/pages/exam-editor-page.tsx) — CreationDialog:13 | Routed new-exam CreationDialog; source + prior short/dirty/routed-focus evidence reused. Frozen/read routes stay separate. |
-| [question-detail-page.tsx](../../apps/web/src/pages/question-detail-page.tsx) — CreationDialog:528 | Routed manual-question creation; source + prior draft/metadata/nested-option proof reused; existing DOM-nesting warning not retested as a modal issue. |
-
-### Verification and remaining limits
-
-Fresh matrix:320×568 light,390×844 dark,320×280 dark,844×390 light and667×320
-dark for honor/document error forms, permission/review context and post-delete
-failure; additional crop/music/track/rhythm/reflection owners at the first four
-sizes. Light/dark coverage is representative, not every variant at both themes.
-Native/WebView/notch behavior is not inferred from Chromium metrics.
-
-Controlled focused-input resizing390×844→390×280 preserved the room draft but
-left its focused input below the frame until Tab caused scrolling. This is a
-**layout/visual viewport resize approximation**, not a physical virtual keyboard
-failure verdict. Real Android/iOS IME, browser chrome, zoom, safe-area insets,
-landscape cutouts, soft-keyboard dismissal and assistive technology remain
-unverified. The HTML viewport has no `viewport-fit=cover` or `interactive-widget`
-policy. Validate those devices before prescribing viewport JS or changing that
-browser policy. The base/fullscreen lightbox has no explicit notch-aware offset;
-CreationDialog only implements top/bottom inset padding.
-
-Normal CreationDialog, short confirmations, fullscreen lightbox and native room
-music samples are usable within their recorded limits. Do not replace purposeful
-native persistence, autosync reflection or reader/media contracts with a universal
-modal engine. No build/lint/backend suite was repeated for this source/docs audit.
-Owned Vite/Chromium ran with `envDir:false`, synthetic intercepted API/assets and
-blocked external media/widgets; no live content, permissions, uploads or settings
-were changed. Development screenshots may include the TanStack Query Devtools
-launcher; it is not evidence of a production modal control.
-
-
-## Mobile modal repairs (10/10/2026)
-
-**Accepted mobile-modal repairs on8773df0; scoped commit/push authorized.** All five historical
-findings above are resolved in their responsible owners; dimensions and feature
-policies were retained. This section supersedes the audit's “findings only” state.
-
-| Repair | Actual before → after evidence |
-| --- | --- |
-| Dialog shrink/wrap | On actual Users/Recognition review routes at320px,288px frames had903/1783px scroll widths →288/288px. Long email and191-character review context remain complete. No overflow-hiding substitute. |
-| Evidence controls/download | On actual admin review,288px viewer expanded to668px →288px. Bounded control children and concise “Tải tệp” retain full original filename in caption and accessible button name; async download/AbortSignal/object-URL behavior unchanged. Close stays within the viewport. |
-| Compact sticky viewer header | Only “Minh chứng” +44px Close remain sticky; full record/privacy DialogDescription scrolls. At320×280, focused Zoom is y95.81–139.81, below header bottom74.25, with successful center hit-test. Audit's independent short-filename/long-context reproduction remains linked below. |
-| Native Daily group | Cancel/Create36px →44px (all three buttons44px). Outside wheel moved page120→320 before →120→120 after. Prior inline overflow restores on Escape, Cancel, pointer Close and actual route unmount. Name retention/native pending dismissal policy is unchanged. Creation-owned error feedback and the Close class repair are separately pending Daily recovery; this UI rule independently supplies44×44px targets. |
-| Nested POST image chooser | Before: sole pointer Close scrolled out and no bottom exit. After: bottom44px Cancel at y204–248 within320×280 frame, activated through real pointer events. Escape restores exact parent image trigger; pending upload disables Cancel and blocks Escape.503 failure keeps parent title, successful same-file retry inserts the storage URL; dirty-close Continue preserves draft. |
-
-Reproducible runner: [mobile-modal-browser-check.mjs](../../apps/web/tests/mobile-modal-browser-check.mjs),
-against an owned Vite server (`VISUAL_WEB_URL`; set `VISUAL_SCOPED_COMMIT=1`
-when the separate Daily recovery is absent; synthetic intercepted API/media,
-external requests blocked). `VISUAL_BASELINE=1` records expected pre-fix defects.
-Exact before source includes accepted pending Daily recovery, not only clean HEAD.
-
-- [Before results](/tmp/mobile-modal-fixes-before-eKZfEx/results.json),9 screenshots;
-  [after results](/tmp/mobile-modal-fixes-after-Vs667I/results.json),41 screenshots/10 check groups.
-- Representative pairs: [permissions before](/tmp/mobile-modal-fixes-before-eKZfEx/permissions-320x280-dark.png) /
-  [after](/tmp/mobile-modal-fixes-after-Vs667I/permissions-320x280-dark.png);
-  [evidence before](/tmp/mobile-modal-fixes-before-eKZfEx/viewer-focus-320x280-dark.png) /
-  [after](/tmp/mobile-modal-fixes-after-Vs667I/viewer-focus-320x280-dark.png);
-  [picker before](/tmp/mobile-modal-fixes-before-eKZfEx/nested-image-bottom-320x280-light.png) /
-  [after](/tmp/mobile-modal-fixes-after-Vs667I/nested-image-bottom-320x280-light.png).
-- After matrix:320×568 light,390×844 dark,320×280 dark,667×320 light,
-  844×390 dark,768×1024 light,1280×800 dark. Native group and nested picker
-  stress/lifecycle checks use320×280; focused URL resize uses390×844→390×280.
-- TypeScript + production Vite bundle passed with `envDir:false` synthetic public
-  configuration (same app/plugin build stages); lint passed with existing warnings.
-  31 focused Node regressions passed against the integrated working tree: POST image validation, Daily autosync,
-  groups/evidence contracts, Recognition presentation and admin recovery contracts.
-- Interrupted probe results are preserved separately, not counted as clean runs:
-  `/tmp/mobile-modal-fixes-after-w8kFuP` (premature focus assertion), `bQCfC7`
-  (resize/scroll timing), `v8MwQv` (development live reload while editing README).
-  The final runner waits for return focus and settled viewport geometry.
-
-No physical Android/iOS keyboard, browser chrome/notch/screen reader or live backend
-proof. Emulated focused resizing is the controllable keyboard approximation.
-Synthetic failures/blocked external fonts and navigation-aborted requests remain
-in results; they are not concealed as successful live traffic. Development
-Devtools launcher is not a production modal control. Existing private-media gate,
-identity/expiry/refetch and room persistence evidence remains bounded; those
-adapters/player contracts were source-preserved rather than broadly re-probed.
-No dedicated reduced-motion test, dependency, Java change or live content mutation.
-
-Accepted integrated working-tree path/hash ledger, entry→final patch and Daily overlap reconstruction:
-[/tmp/mobile-modal-fixes-final-manifest-20261010.json](/tmp/mobile-modal-fixes-final-manifest-20261010.json).
-Prior audit supplement hashes identify earlier bytes only; the manifest records
-changed docs anew. Scoped committed blobs differ from integrated working-tree bytes
-where pending Daily hunks are excluded; see `/tmp/mobile-modal-publication-20261010.json`. Independent Daily/auth/deploy bytes and the entry status prefix remain preserved
-in the working tree. Only the modal audit/repair status sections belong to this commit. Use the [owner lookup](#interaction-owner-lookup), not a
-new universal modal wrapper, for later repairs.
-
-
-Scoped publication proof: the exact staged source excludes pending Daily recovery.
-`/tmp/mobile-modal-fixes-after-ex9eGh/results.json` passed six screenshots/three
-check groups (native44×44px targets/wheel lock/close/focus/unmount, nested picker
-pending/failure/retry/draft and focused resize). TypeScript passed on the isolated
-index snapshot. The runner's scoped mode expects the existing external group-error
-notice; it does not claim that pending creation-owned feedback shipped. Existing
-31-test/build/lint and41-screenshot integrated evidence is reused for unchanged
-contracts. A probe expectation mismatch (`OoEIWO`) was corrected to the actual
-feature-owned localized error status, with no business-policy change.
-
-
-## Creation frame geometry and floating controls 10/10/2026
-
-Base1a3463d (previous fixes committed/pushed, live deployment unobserved).
-The production-only cropping reproduction and new layout rules are in
-[UI authority](web-ui.md#creation-frame-geometry-and-floating-controls-10102026);
-[status/evidence](../reviews/ux-flow-audit.md#creation-frame-geometry-and-floating-controls-20261010)
-records exact artifacts and preservation accounting. Earlier development/synthetic
-string-overflow proof does not close this positioning defect.
-
-Quick reproduction: build with an env-safe Vite config (`envDir:false`), preview
-the minified bundle, then run `VISUAL_PRODUCTION=1 VISUAL_CREATION_FLOW=1` with
-`VISUAL_WEB_URL` pointing at the owned preview server and
-[mobile-modal-browser-check.mjs](../../apps/web/tests/mobile-modal-browser-check.mjs).
-The script uses actual admin routes with intercepted synthetic APIs, captures
-open/settled/static rectangles, and checks body/action/focus/dirty/busy/upload/error
-lifecycles at320/390/short/landscape/tablet/desktop.
-`VISUAL_FLOATING_FIXTURE=1` against an owned development server additionally mounts
-[actual submenu/item-aligned owners](../../apps/web/tests/fixtures/floating-controls.tsx)
-for nested keyboard checks. Fixture content is synthetic, never production data.
-
-PostForm/DocumentForm keep validation and requests; CreationDialog keeps only
-frame/dismissal/focus. PDF UploadDropzone keeps the same upload contract with a
-native overlaid chooser button and a separate visible44px Clear. Dialog,
-EvidenceGallery, Daily native lifecycle/private adapters and room continuity are
-unchanged by this correction. Shared floating motion has no mount-delay controller
-or dependency addition; account-specific animation is removed from navigation.css.
-Known limits: exact operator device/live bundle, physical keyboard/visual viewport
-and real upload/backend behavior remain unverified. The prior seven-path Daily
-recovery and unrelated documentation remain separately dirty.
-
-## Public identity and profile quick lookup — 10/10/2026
-
-| Interaction / screens | Responsible owner and contract |
-| --- | --- |
-| Avatar + name link, pointer/focus preview: Honors list/detail participants, ranking rows, document card/list/detail, News reader (legacy unmounted PostCard also migrated) | [UserIdentity](../../apps/web/src/features/user/components/user-hover-card.tsx), existing [Radix HoverCard](../../apps/web/src/components/ui/hover-card.tsx). Real Link opens `/users/:userId` on Enter/touch; hover is optional. Historical or unavailable Honors identities stay unlinked. |
-| Initials, failed image, persisted crop | [UserAvatar](../../apps/web/src/features/user/components/user-avatar.tsx) → existing [AvatarImage](../../apps/web/src/features/user/components/avatar-image.tsx); [identity helpers](../../apps/web/src/features/user/lib/public-identity.ts). Decorative avatar avoids duplicate accessible names. |
-| Preview/page data, loading/retry/refetch | [usePublicProfile](../../apps/web/src/features/user/hooks/use-public-profile.ts) → existing Recognition public service/endpoint, one public-only query key, zero stale time; hide cached summaries during refetch/error. Explicit `publicRead` queries survive anonymous expiry; all private queries keep the [expiry helper](../../apps/web/src/lib/auth-session.ts) clearing rule. |
-| Full public profile and approved dated milestones | [AchievementProfilePage](../../apps/web/src/features/recognition/public-pages.tsx), existing achievement labels/milestones; [profile styles](../../apps/web/src/features/user/components/public-profile.css). Identity/sidebar+timeline above900px; stacked on phones. `/profile` remains private account/security editing and links to the public page. |
-| Public payload / batch identity / old-record handling | [UserServiceImpl](../../apps/api/src/main/java/me/nghlong3004/olympic/user/service/impl/UserServiceImpl.java), [RecognitionServiceImpl](../../apps/api/src/main/java/me/nghlong3004/olympic/recognition/service/impl/RecognitionServiceImpl.java), [visibility policy and V24](recognition.md#duyệt-và-quyền-riêng-tư). Public authors and legacy authenticated by-ID lookup use minimal PublicUserIdentityResponse, never account UserResponse. |
-
-Proof owner: [browser check](../../apps/web/tests/public-profile-browser-check.mjs),
-[public identity tests](../../apps/web/tests/public-identity.test.ts), existing Recognition
-controller/PostgreSQL integration tests. Exact runs/limits are in the existing
-[status](../reviews/ux-flow-audit.md#public-profiles-and-achievement-visibility--10102026).
-No fabricated activity/solved/streak totals, evidence galleries or public account fields.
-
-### Avatar delivery lookup — verified against `2b94351`, 10/10/2026
-
-The identity image is already included in the owning response; mounting a list
-does not require one public-profile request per avatar. Payload locations:
-
-| Response | Avatar fields | Resolution owner |
-| --- | --- | --- |
-| Recognition Honors list/detail | `participants[].avatarUrl`, `avatarCrop` | `RecognitionServiceImpl.honorResponse` batches registered participant IDs through `UserService.publicIdentities`; unregistered or unavailable historical identities retain attribution with no avatar/profile link. |
-| Recognition rankings | `content[].avatarUrl`, `avatarCrop` | `RecognitionServiceImpl.rankings` batches IDs through the same public identity service; ranking consent and eligibility stay unchanged. |
-| Public profile / authenticated legacy user lookup | `avatarUrl`, `avatarCrop` | `RecognitionServiceImpl.profile` / `UserServiceImpl.findById` use the same active, nondeleted public identities. |
-| Document list/detail | `owner.avatarUrl`, `owner.avatarCrop` | Existing `DocumentServiceImpl.enrich` uses the storage resolver after `UserMapper.toPublicResponse`. |
-| News/Post summary/detail | `author.avatarUrl`, `author.avatarCrop` | Existing `PostServiceImpl.enrichSummary/enrichDetail` use the storage resolver after the same mapper. |
-
-`User.avatar` references the stored File; `UserServiceImpl.updateAvatar` uploads
-through `StorageFolder.AVATAR`. All these paths reuse
-[`StorageService.getDownloadUri`](../../apps/api/src/main/java/me/nghlong3004/olympic/storage/service/StorageService.java),
-whose current Cloudinary implementation generates HTTPS image delivery URLs
-without signing or expiry tokens. This is the existing avatar delivery contract,
-not the private Recognition evidence contract. No new raw/private URL generation
-or access policy is introduced. `UserMapper` deliberately leaves URL resolution
-to services; inspecting its intermediate DTO alone will show null.
-
-No uploaded avatar yields null in batch Recognition identities (initials in
-`UserAvatar`); Document/News enrichment retains its configured default image.
-Unavailable identities suppress URLs even when a historical avatar exists.
-The optional public-profile request starts only when the hover/focus preview
-opens, for its approved-achievement summary. `UserIdentity` renders the row's
-image directly from its supplied identity, and `UserAvatar` retains initials on
-image failure. Frontend/backend both use `avatarUrl` and `avatarCrop`.
-
-No runtime omission was found in this bounded trace. Fresh offline checks:
-`PublicIdentityServiceTest`, `UserAvatarServiceTest`, `CloudinaryStorageServiceTest`
-passed 8/8; the accepted profile browser evidence already covers successful
-cropped images, failed-image initials and preview error/revalidation. These
-checks do not establish deployed payloads or live CDN asset availability.
-
-
-### Public Recognition/News control variants — 11/10/2026
-
-- [UserIdentity](../../apps/web/src/features/user/components/user-hover-card.tsx) and [profile CSS](../../apps/web/src/features/user/components/public-profile.css) own the compact avatar/name surface with a decorative chevron, hover/active border/background and visible keyboard focus. Link/preview/touch behavior and supplied URL/crop/initials remain with the same owners; unavailable historical attribution stays unlinked. Recognition styles no longer override identities into blue underlined names.
-- [RankingsPage](../../apps/web/src/features/recognition/public-pages.tsx) uses a bounded60rem public measure and a compact native timeframe field. [RankingList](../../apps/web/src/features/recognition/ranking-presentation.tsx) / [ranking CSS](../../apps/web/src/features/recognition/ranking-presentation.css) keep rank beside identity and group approved count/score beneath it. Ties and actual server ranks keep the existing quiet cue; no podium or derived awards.
-- Honors uses the same [public page owner](../../apps/web/src/features/recognition/public-pages.tsx) and [Recognition CSS](../../apps/web/src/features/recognition/recognition.css): public-only year/subject/submit grid,16:9 media, bounded24rem album cards, participant/award grouping and existing album Button link. [EditorialHonorLabel styles](../../apps/web/src/features/recognition/achievement-presentation.css) render an informational bordered badge, not an underlined action. Detail navigation uses Button-as-Link; prose links remain prose.
-- [PublicNewsFeature](../../apps/web/src/features/post/components/public-news-feature.tsx) / [News CSS](../../apps/web/src/features/post/components/public-news-feature.css) own one search/type/reset region. Existing Button-as-Link variants provide selected `default` versus unselected `outline` controls with `aria-current`; narrow screens use two columns and omit the decorative category icon. Keyword context and result count each appear once. Editorial rows keep one semantic reading link and a quiet inset reading cue, without a new nested interactive control or repeated row shadows.
-
-The apparent second “Thông báo” was the selected-summary text, not another category. Canonical IDs remain `ALL`, `ANNOUNCEMENT`, `NEWS`, `BLOG`; no dynamic category source or API taxonomy change was needed. Query submission/page-reset/pinned/sort behavior is unchanged. The [bounded browser regression](../../apps/web/tests/public-recognition-refinement-browser-check.mjs) covers actual routes with synthetic public APIs and geometric media only; existing [status](../reviews/ux-flow-audit.md) holds exact final proof and limits.
-
-
-### Shared visual lookup — 13/10/2026
-
-| Find by task | Owner / actual consumers |
-| --- | --- |
-| Page measure,gutters,heading/action alignment,section rhythm,filter bands | [page-layout.css](../../apps/web/src/components/ui/page-layout.css) → [PageHeader](../../apps/web/src/components/ui/page-header.tsx), [PublicPageHeader](../../apps/web/src/components/ui/public-page-header.tsx), [PageSection](../../apps/web/src/components/ui/page-section.tsx). Existing page-shell/filter-panel/content-card/page-table classes are the adoption seam. |
-| Card slots,surface hierarchy and table heading density | [Card](../../apps/web/src/components/ui/card.tsx), [Table](../../apps/web/src/components/ui/table.tsx), existing [theme tokens](../../apps/web/src/index.css); questions,documents and management consumers reuse slots. |
-| Action versus navigation/prose;44px mobile targets | [Button](../../apps/web/src/components/ui/button.tsx) plus page-layout.css; asChild retains anchors. Existing profile identity remains [UserIdentity](../../apps/web/src/features/user/components/user-hover-card.tsx), not a Button. |
-| Empty/error context | [ListFeedback](../../apps/web/src/components/ui/list-feedback.tsx) → [EmptyState](../../apps/web/src/components/ui/empty-state.tsx), DocumentList and legacy Post list; feature owns state and retry. Compact RetryFeedback/inline metadata variants remain intentional. |
-| Album grouping / compact real-rank rows | [public-pages](../../apps/web/src/features/recognition/public-pages.tsx), [Recognition CSS](../../apps/web/src/features/recognition/recognition.css), [RankingList](../../apps/web/src/features/recognition/ranking-presentation.tsx) and [ranking CSS](../../apps/web/src/features/recognition/ranking-presentation.css). Rankings54rem supersedes the earlier60rem note. |
-| Dashboard welcome | [DashboardWelcomeBanner](../../apps/web/src/features/dashboard/components/dashboard-welcome-banner.tsx) reuses PageHeader and existing role destinations. |
-| Long form frame / nested controls | Existing [interaction index](#interaction-owner-lookup), CreationDialog and Post/Document forms remain owners. Common layout adds no containing-block transform. |
-
-Proof runner: [taste-layout-browser-check.mjs](../../apps/web/tests/taste-layout-browser-check.mjs), actual routes with synthetic intercepted APIs. [Coverage/variants](web-ui.md#shared-foundation-adoption--13102026) and [status/evidence](../reviews/ux-flow-audit.md#taste-shared-foundations--13102026) distinguish source adoption from rendered coverage.
-
-RichTextViewer reading rhythm is owned by [rich-text-viewer.css](../../apps/web/src/components/ui/rich-text-viewer.css), imported by [RichTextViewer](../../apps/web/src/components/ui/rich-text-viewer.tsx); no typography plugin is installed. It scopes headings/paragraphs/lists/links/media/code/table bounds to rendered content and leaves Tiptap editor/frozen scientific readers distinct. [Public profile CSS](../../apps/web/src/features/user/components/public-profile.css) now owns the quiet resting identity target and two-line visible linked name, with the same full aria-label and optional preview/detail; Rankings needs no competing identity skin.
-
-
-## Full application owner and search lookup — 13/10/2026
-
-This is the current interaction/layout lookup, superseding the earlier manual-submit list-search descriptions. The existing route owner remains `src/router/routes.tsx`; no competing component system or directory restructure.
-
-| Family / task | Responsible composition and common adoption | Intentional variant / proof boundary |
-| --- | --- | --- |
-| All public/workspace routes | `index.css` tokens → `page-layout.css`, PageHeader/PublicPageHeader/PageSection; `navigation.css`/public-header/dashboard shell | Existing destinations/drawers/role guards; current screenshot matrix covers representative routes, not every role/state. |
-| Home / real discovery | `home-hero-section.tsx/css`, HomeStudyNotebook; `home-page.css` | Compact navigation search remains explicit because Home has no results list. Home notebook selectors never style Daily root. |
-| Subjects / Documents | SubjectDirectory; DocumentFilters/DocumentList/DocumentCard; document-discovery.css |3:4 preview/compact media, subject/code local match; actual title/subject/kind/tag only. PDF/storage/download unchanged. |
-| Honors / rankings / public profiles | Recognition public-pages/components/recognition.css; RankingList; public-profile.css; UserIdentity/UserAvatar | Year remains supported; published/approved-active/ranking consent/private evidence gates unchanged. |
-| News / reader | PublicNewsFeature, PostListItem, public-news-feature.css; RichTextViewer | Four canonical type links; editorial rows; no fake featured taxonomy/read-time. PublicRead query metadata survives anonymous expiry. |
-| Dashboard / placeholder guidance | DashboardPage + welcome/quick-actions; About/Competitions/Practice/History/NotFound use PageHeader/guidance/Button | No invented metrics/activity. Unmounted demo widgets/legacy PostManagement remain outside active adoption. |
-| Admin/lecturer records | Posts/Documents management, Users, Categories; management rows/Card/Table/PaginationFooter; filter-panel | Real supported filters only; same permissions/delete/pending/error owners. Users retains narrow identity/actions and bounded table scrolling. |
-| Recognition management / personal achievements | admin-page/private-pages + Recognition fields/status/CreationDialog | Review/evidence/score/draft semantics retained; common field/control surfaces, not gallery policy. |
-| Question/import/exam editing and lists | QuestionBank/QuestionDetail, AssessmentImport/AssessmentDraftList, ExamEditor/ExamRead; PageHeader/PageSection/Card + scientific CSS | Scientific content, frozen readers, release gates and identity revalidation remain task-specific. Chooser search never submits editor. |
-| Auth / private profile | WelcomeLayout/auth-card-layout; FormField/label-input.css; profile.css | Existing Auth/Turnstile/expiry/password/crop owners;52px labelled fields,44px password target; mobile one column. |
-| Daily day/week/group/shared review | StudyNotebook/flat work regions; groups.css; shared controls/header | Native dialogs/scroll lock, drafts/private gates and serialized800ms sync retained byte-for-byte except separate group presentation CSS. |
-| Toolkit / room | ToolkitFeature/GpaCalculator/toolkit.css; StudyRoomsLobby/study-room.css | GPA math/storage unchanged; persistent joined scene/player remains a separate variant. No route/card wrapper over media lifecycle. |
-| Long create/edit/viewer/chooser dialogs | Existing CreationDialog/Dialog/EvidenceGallery/native Daily/image-picker index above | Fixed inset/dvh/safe-area/root transform fix retained; no new modal positioning or animation controller. |
-
-`use-list-search.ts` extends existing `useDebounce` for the350ms list draft lifecycle. `useListSearch` serves local choosers; `useUrlListSearch` distinguishes REPLACE acknowledgement from POP/scope changes and rejects writes after browser URL leads a departing lazy route. SearchInput is presentation only. No timer duplication, universal matching parser, WebSocket or auto-submit.
-
-| Mounted search | Parameter / matching owner | Navigation/query contract |
-| --- | --- | --- |
-| Honors | `subject` → existing server subject match | Compact `year` immediately; page reset; keep unknown URL params. |
-| Documents public/management | `keyword`; existing subject/category/tag IDs | Metadata chooser immediate; explicit active chips/reset; server pagination retained. |
-| News | `q` → request `keyword`; canonical `type` | Type immediate, current publishedAt sort/priority rules; unknown params retained. |
-| Subjects | `q`; existing Vietnamese accent-insensitive name/code match | Local list only, existing sort and subject→Documents destination. |
-| Posts management | `keyword`; existing `status` mapping | Server paging/EXPIRED mapping unchanged. |
-| Users | `search`; URL one-based `page` → zero-based API | Current name/email match and permission owner; no new server fields. |
-| Question Bank | `search`; existing subject/topic/status | Immediate discrete filters and zero-based request paging. |
-| Exam published bank | local `search`, keyed by subject | Page resets; composition pauses; Enter cannot save surrounding form. |
-| Recognition UserPicker | local server `search` | Selected identity retained; existing student/active eligibility filter; no public lookup of private DTO. |
-
-Every list uses raw local typing and trimmed settled values;350ms debounce pauses IME, clear is immediate, changed filters reset page, typing uses REPLACE (no entry per keystroke), POP cancels pending drafts. Old request responses remain keyed to old queries; signals are consumed by Documents/News/Users/Questions services. Form save/submit/publish/OTP and OS native select do not inherit search semantics.
-
-Machine source ledger and exact rendered coverage are `/tmp/humg-product-20261013/source-adoption.json` and final manifest. The ledger inventories current sources/direct consumers/styles; it does not assert all-screen rendering. The existing [interaction-owner lookup](#interaction-owner-lookup) remains authoritative for nested/modal lifecycle.
-
-Current integration detail (14/10/2026): URL search retains newer typing across concurrent acknowledgements without consuming echo refs during render; browser POP resets mounted drafts immediately and old-route writes are rejected. CreationDialog returns focus from discard confirmation into the form only while the parent remains open, leaving full close to restore the opener. Dashboard quick links use actual library/News/Daily/profile destinations as compact rows; no upload or unavailable practice action is implied.
-
-
-### Ranking interaction lookup — 14/10/2026
-
-- Screen/timeframe/result state: [RankingsPage](../../apps/web/src/features/recognition/public-pages.tsx), [YearField/QueryFeedback/Pager](../../apps/web/src/features/recognition/components.tsx). Compact inline native select, result/busy context, existing retry and page reset; current rankings API has no keyword field.
-- Directory columns/full-name density: [RankingList/RankingRow](../../apps/web/src/features/recognition/ranking-presentation.tsx), [ranking-presentation.css](../../apps/web/src/features/recognition/ranking-presentation.css). Supersedes stacked count/score, medal fills and two-line ranking clamps. Presentation model preserves supplied rank/ties/order/score/count; no derived standings.
-- Identity/avatar/preview/detail: existing [UserIdentity](../../apps/web/src/features/user/components/user-hover-card.tsx), UserAvatar/public-profile query. No new profile/image fetch or DTO. Ranking CSS locally permits full wrapping; compact identities elsewhere retain their existing bounds.
-- GSAP: RankingRow useGSAP scoped ref and contextSafe event callbacks;140ms/3px chevron affordance only. Mouse/focus listeners removed and context reverted on unmount/user change; no data/refetch tween. @gsap/react2.1.2 uses installed gsap3.15.0. Native Select retains OS interaction; [floating-controls.css](../../apps/web/src/components/ui/floating-controls.css) remains the separate Radix motion owner. Shared Dialog fixed-inset geometry is untouched.
-- Proof: existing [product-layout-browser-check.mjs](../../apps/web/tests/product-layout-browser-check.mjs), PRODUCT_RANKING mode, plus current before/after/geometry/results in `/tmp/humg-ranking-20261014`. No new parallel component system or tracker. Source ledger now covers402 frontend sources and59 route definitions, including ADMIN/LECTURER exam templates; definition coverage is not every alias/role/state rendering.
-
-Home public navigation now remains sticky in normal flow with opaque token background; home-title/nav overlap and text showing through scrolling chrome were reproduced and repaired in public-header.css/public-layout.css. No backdrop/transform owner is introduced around portal dialogs.
-
-
-## Whole-page composition — 14/10/2026
-
-Quick source lookup for the current page arrangement (shared interaction/modal owners above remain authoritative):
-
-| Find by task | Responsible source / consumers |
-| --- | --- |
-| Page introduction,section hierarchy and layout rhythm | `components/ui/page-layout.css` → PageHeader/PublicPageHeader/PageSection and existing page-shell classes; no default extra header divider. |
-| Matching public/workspace edges | `layouts/components/public-header.css`, `public-footer.tsx`, `navigation.css`, `dashboard-layout.tsx`; retain drawers/rails/role guards/focus handoff. |
-| Browse/filter documents | `pages/documents-page.tsx` → DocumentFilters,DocumentList,DocumentCard; `document-discovery.css` owns desktop facets/results and mobile stacking. Search ownership remains useUrlListSearch; no matching or paging change. |
-| Scan News/pinned notices | PublicNewsFeature and `public-news-feature.css`; one existing `showPinned` condition owns both section presence and companion layout. No relational-CSS fallback dependency. |
-| Recognize albums / change Recognition destination | `features/recognition/public-pages.tsx` + `recognition.css`; local `RecognitionNavigation` uses Button-as-Link and `page-local-nav` selected state. RankingList/RankingRow/useGSAP files are byte-identical to the accepted parent. |
-| Start a learning/admin task | HomePage + `home-page.css` + HomeLatestNewsSection; DashboardPage/DashboardQuickActions + dashboard classes in page-layout.css. Real role destinations only. |
-| Read an article | NewsDetailFeature + new feature-local `news-detail.css`; existing RichTextViewer,ArticleToc,ImageLightbox,share/query/return-path owners retained; related links use existing board variant. |
-| Open a public identity/detail | Existing UserIdentity/UserAvatar/public profile query; `public-profile.css` and public-pages own quieter profile hierarchy/return actions. No DTO or avatar delivery change. |
-
-Machine source ledger: `/tmp/humg-composition-20261014/source-adoption.json` inventories403 frontend sources and59 route definitions, with hashes/direct shared owners/styles. The route matrix records actual rendered representatives separately. Scientific/frozen readers,auth,Daily/native dialogs,joined rooms/media and complex editor contracts remain intentional task layouts; shared heading/gutter adoption does not imply all-role/all-state rendering or live authorization proof.
-
-Owned proof extends the existing `tests/product-layout-browser-check.mjs` with bounded route/viewport selection,composition geometry/interactions and independent state cases. New comparisons and final manifest live under `/tmp/humg-composition-20261014`; no duplicate repository tracker or new UI framework.
-
-
-### Album, News and menu refinement — 14/10/2026
-
-- Honors: `public-pages.tsx` owns the cover/heading/participants/footer composition; `recognition.css` owns the two-column desktop gallery and full name wrapping (an explicit local override of UserIdentity's compact clamp). `components.tsx` Field/YearField accept `hideLabel` only for this Honors selector; its real Label/id relationship remains. Ranking timeframe is still visibly labelled.
-- News: PublicNewsFeature removes only the duplicate summary above [AppPagination](../../apps/web/src/components/ui/app-pagination.tsx); numbered current-page names/aria-current and compact mobile current/total remain with that owner. `public-news-feature.css` aligns44px search/category anchors without the extra category frame. Query/search/category/paging ownership is unchanged.
-- Top menu: PublicHeader/MobileNavbar in `layouts/components` retain `aria-label="Mở menu điều hướng"`, shared Sheet/Radix keyboard/dismissal and focus return; `navigation.css` owns44×44px icon geometry. Public-header.css retains the desktop divider. Desktop workspace side-rail destination labels remain intentional.
-- Proof: existing product-layout-browser-check.mjs `PRODUCT_REFINEMENTS` and `PRODUCT_REFINEMENTS_INTERACTIONS`; before/after,geometry and exact increment live under `/tmp/humg-refinements-20261014`. Synthetic fixtures only; no new media/identity/DTO/query owner.
-
-
-### News depth and workspace shortcut — 14/10/2026
-
-- `features/post/components/public-news-feature.css` owns the neutral shared feed surface,16px/12px row insets,quiet pointer background,inset keyboard ring and scoped PostBadge tint. NewsList/PostListItem retain content/links/media fallback; loading/error/empty/query and semantic deadline owners are unchanged. No new wrapper or shared Badge API.
-- `layouts/components/public-header.tsx` now reserves the direct CTA for guest sign-in. Signed-in public headers use existing UserDropdown. `features/auth/components/user-dropdown.tsx` keeps one existing first workspace Link through getDashboardRoute,with icon/44px target,medium weight and a descriptive trigger title. Dashboard/mobile consumers reuse that same menu; role guards/router are unchanged.
-- Existing product-layout-browser-check.mjs adds bounded `PRODUCT_NEWS_DEPTH` and `PRODUCT_ACCOUNT_NAV` modes for actual synthetic routes. Comparisons,geometry,results and exact increment are in `/tmp/humg-news-depth-20261014`; no live mutations or new dependency.
-
-
-### Registry components and text motion — 14/10/2026
-
-`apps/web/components.json` retains `@kokonutui` → https://kokonutui.com/r/{name}.json and free `@react-bits` → https://reactbits.dev/r/{name}.json. All other settings are unchanged. One shared shadcn server serves both namespaces.
-
-| Interaction / visible consumer | Responsible source | Contract |
-| --- | --- | --- |
-| Home introductory h1 / About introductory sentence | [BlurText](../../apps/web/src/components/react-bits/blur-text.tsx), [HomeHeroSection](../../apps/web/src/features/home/components/home-hero-section.tsx), [AboutPage](../../apps/web/src/pages/about-page.tsx) | MCP `@react-bits/BlurText-TS-TW` adapted to installed Framer Motion. Real semantic heading/description with one complete accessible text; visual words are aria-hidden. Natural spaces/wrapping, one in-view reveal per mount, static reduced-motion branch and observer cleanup. No shared PageHeader animation or business-query changes. |
-| Retrieved optional file-upload UI; no product-flow adoption | [FileUpload](../../apps/web/src/components/kokonutui/file-upload.tsx) | MCP `@kokonutui/file-upload`, MIT header retained. Installed Framer Motion/lucide/utils reused; Upload/Cancel are44px with focus rings. `onUpload(file,{onProgress,signal})` must supply a real authorized transfer before product use. Upstream omission of onUpload simulates progress/success; it is a demo fallback,never evidence of persistence. Current product upload/storage owners remain unchanged. |
-| Synthetic component interaction proof | [fixture](../../apps/web/tests/fixtures/registry-components.tsx), [browser runner](../../apps/web/tests/product-layout-browser-check.mjs) | `PRODUCT_REGISTRY_PROOF=1` uses memory-only files/transfers; `PRODUCT_REGISTRY_LAYOUT=1` captures actual Home/About with synthetic API responses at PRODUCT_VIEWPORT. Fixture is not imported by product routes. |
-
-Actual protocol discovery/search/view/source retrieval and audit checklist succeeded through a direct JSON-RPC MCP client of the configured `/home/nghlong3004/.bun/bin/bun x --bun shadcn@latest mcp` command (server shadcn1.0.0),without configuration changes or another server definition. The injected catalog still lacked shadcn functions; this real MCP connection resolves the earlier capability blocker. Source came from `get_item_examples_from_registries` after `view_items_in_registries` returned metadata; no CLI component download is presented as MCP. Raw request/response files and upstream copies: `/tmp/humg-mcp-components-20261014/rpc-1.json` through `rpc-10.json`. FoldText-TS-TW was inspected but rejected for this interface and is not installed. No package/lockfile/new dependency or primitive overwrite. [Design rationale](design-system.md#restrained-registry-text-motion--14102026), [proof/status](../reviews/ux-flow-audit.md#registry-components-and-text-motion--14102026).
-
-
-### Kokonut account and article actions — 14/10/2026
-
-| Task / consumers | Owner | Behavior |
-| --- | --- | --- |
-| Authenticated account menu in public/mobile/workspace shells | [UserDropdown](../../apps/web/src/features/auth/components/user-dropdown.tsx) → [Kokonut ProfileDropdown](../../apps/web/src/components/kokonutui/profile-dropdown.tsx) | Feature retains current-user/logout/role navigation; registry component owns grouped visual composition through existing shared Radix DropdownMenu. Real avatar/name/email/role header and icon/action rows. Name wraps to two visible lines; email stays compact,with full title/accessible text retained. The scrolling menu keeps focused first/last actions visible on short screens. getDashboardRoute remains the first unique workspace anchor; profile/security,Home and sign-out follow. No sample billing/model/identity fields. Guest sign-in remains with PublicHeader. |
-| Account avatar/crop/image failure | [UserAvatar](../../apps/web/src/features/user/components/user-avatar.tsx) → AvatarImage / identityInitials | Same existing safe avatar owner for trigger and menu header; crop/initials/image-error behavior reused. Current account email is shown only in its authenticated menu,not a public identity DTO. Existing public-header account-avatar silhouette is retained. |
-| News article sharing after content | [ShareButtons](../../apps/web/src/features/post/components/share-buttons.tsx) → [Kokonut SocialButton](../../apps/web/src/components/kokonutui/social-button.tsx) | Feature supplies actual article href/title,encoded Facebook/X/LinkedIn/Telegram anchors,copy feedback and capability-gated native share. Registry strip requires real actions and uses installed Framer Motion. Mouse intent,click/touch or keyboard opens;Escape restores trigger,Tab/blur/outside closes. Inert hidden layer cannot intercept/focus;44px minimum actions reserve/wrap their footprint. Native cancellation is quiet;other native/copy failures give feedback. No template Instagram/nonfunctional actions or automatic external posting. |
-
-MCP source discovery/view/examples used the configured shared shadcn server; upstream copies/raw protocol are `/tmp/humg-kokonut-account-share-20261014`. Profile source Next.js imports,template profile/billing/model/rainbow avatar and no-op links were replaced by React Router/current account/shared tokens. Social source motion/react was adapted to installed Framer Motion; stock160px equal-column overlay was changed to a responsive44px action footprint,with explicit inert/visibility and focus cleanup. Shared primitives,auth/role guards and article query/data owners remain unchanged. No dependency or lockfile changes.
-
-`@kokonutui/carousel-cards` was retrieved for assessment only,not installed or mounted. Its native horizontal snap/arrow pattern could suit a future curated Home recognition preview,but Home currently has no album collection owner. Current Honors/Documents/News discovery needs visible comparable records plus query/paging; a carousel would hide records and add a second navigation axis. The registry's fixed320px cards/pricing/location/rating/favorite sample model does not match current data. Keep existing galleries/lists; no invented metrics or arbitrary carousel placement. [Current checks/evidence](../reviews/ux-flow-audit.md#kokonut-account-sharing-and-carousel-disposition--14102026).
-
-
-### Resource tabs and utility-link feedback — 14/10/2026
-
-| Interaction / consumer | Responsible owner | Boundary |
-| --- | --- | --- |
-| Selected resource/tool navigation in Home and Toolkit | [SmoothTab](../../apps/web/src/components/kokonutui/smooth-tab.tsx) / [styles](../../apps/web/src/components/kokonutui/smooth-tab.css),composed by [HomeStudyNotebook](../../apps/web/src/features/home/components/home-study-notebook.tsx) and [ToolkitFeature](../../apps/web/src/features/toolkit/components/toolkit-feature.tsx) | Adapted MCP `@kokonutui/smooth-tab` measured indicator only. Existing shared Radix Tabs owns selection,panel semantics,arrows/Home/End and focus. Home keeps documents as default;Toolkit retains tool URL/unknown params/history;its [local styles](../../apps/web/src/features/toolkit/components/toolkit.css) keep two equal columns,wrapping labels within a bounded selector. No demo options,second keyboard engine,fixed-height panel or content exit/entrance. ResizeObserver measures wrapped tabs and disconnects on selection/unmount;initial geometry is placed before paint. |
-| Pointer/focus cue on Home's two actual Toolkit destinations | [SpotlightCard](../../apps/web/src/components/react-bits/spotlight-card.tsx) / [styles](../../apps/web/src/components/react-bits/spotlight-card.css),HomeStudyNotebook utility rows | Adapted free `@react-bits/SpotlightCard-TS-TW` native pointer/focus light. Installed only around real rooms/GPA anchors. HUMG token gradient,static keyboard focus,unchanged semantic link/text,target and touch destination. Reduced motion uses static accent. No ambient/proximity/grain/flare settings,global listeners,requestAnimationFrame loop,canvas,tilt,card frame or sample content. Overlay is decorative/pointer-transparent;root does not clip focus. |
-
-MCP evidence/upstream copies and accepted local proof are `/tmp/humg-registry-additions-20261014`. Source inspection covered the actual Home notebook,Toolkit tabs/GPA/lobby and Subject Directory plus retained News/Recognition/carousel inputs. Carousel is still not adopted:Home has resource/announcement queries,not a curated Honors collection;existing gallery/feed/library comparison remains better served by visible records and filters. Animated backgrounds,3D cards,particle/button effects and extra scroll/content entrances were rejected. Installed Framer Motion and native CSS/React are sufficient;no dependency,query/data-policy or shared primitive overwrite. [Design decisions](design-system.md#resource-selection-and-utility-link-feedback--14102026),[actual proof/status](../reviews/ux-flow-audit.md#additional-registry-adoption--14102026).
-
-
-### Home depth owners — 14/10/2026
-
-- [HomeHeroSection](../../apps/web/src/features/home/components/home-hero-section.tsx) composes the real heading and search/utility group. Its [CSS](../../apps/web/src/features/home/components/home-hero-section.css) owns the static discovery plane and Home-only notebook surface/tab/icon/row treatment. No data/query/action change;the Home namespace stays separate from Daily and Toolkit.
-- [HomePage styles](../../apps/web/src/pages/home-page.css) own the1.15:1 desktop discovery/News split,900px stacking,section rhythm and secondary editorial News surfaces/focus/feedback. [HomeLatestNewsSection](../../apps/web/src/features/home/components/home-latest-news-section.tsx) retains real post/image-error/loading/partial-error/retry behavior.
-- [HomeStudyNotebook](../../apps/web/src/features/home/components/home-study-notebook.tsx) still owns the three resource collections/panels and real utility destinations. Existing [SmoothTab](../../apps/web/src/components/kokonutui/smooth-tab.tsx),[SpotlightCard](../../apps/web/src/components/react-bits/spotlight-card.tsx) and [BlurText](../../apps/web/src/components/react-bits/blur-text.tsx) are reused unchanged.44px equal Home tabs hide only redundant icons below400px;full names/text and Radix keys remain.
-
-Reproducible Home-only synthetic proof: `PRODUCT_HOME_DEPTH=1 node tests/product-layout-browser-check.mjs` against the owned env-disabled host. [Evidence/status](../reviews/ux-flow-audit.md#home-depth-refinement--14102026) records before/after,source provenance and limitations. No additional registry installation is needed for this refinement.
-
-
-### Loading opacity and lifecycle — 14/10/2026
-
-| Lookup | Responsible owner / contract |
-| --- | --- |
-| Pre-bundle startup/status/reload/no-JS fallback | [index.html](../../apps/web/index.html) and [loading-screen.css](../../apps/web/src/app/loading-screen.css):readable initial HTML,static rule,theme fallbacks,44px reload,short-screen safe scrolling. No numeric progress or split curtains. |
-| Initial readiness + exit + focus/disposal | [startup-preloader.ts](../../apps/web/src/app/startup-preloader.ts):same task/query/font inputs;event-driven checks,terminal-query error release,immediate root unlock then180ms opacity-only exit. gsap.context cleanup and run ownership support StrictMode replacement/actual unmount. Focus moves to existing main only if it was inside the disappearing loader. |
-| Later route fallback / scoped logo cue | [PageLoading](../../apps/web/src/components/ui/page-loading.tsx) through [RouteSuspense](../../apps/web/src/router/route-suspense.tsx):useGSAP/ref scope/matchMedia;real task cleanup,static reduced motion,unmount/reopen cleanup. Query/filter transitions keep their page. |
-
-Reference is free React Bits FadeContent-TS-TW,inspected via shared shadcn MCP. Its stock one-second hidden/ScrollTrigger wrapper is deliberately not installed. Existing GSAP is sufficient. [Browser check](../../apps/web/tests/preloader-browser-check.mjs) and [controlled fixture](../../apps/web/tests/fixtures/preloader.tsx) use actual startup HTML/loading/query owners;[current results/limits](../reviews/ux-flow-audit.md#approved-loading-opacity-and-ui-commit--14102026). Home video removal was the loading-checkpoint state; the subsequently approved [Home/auth restoration](#home-and-auth-video-owners--14102026) changes only that media composition. Private guards/Daily/room behavior retain their existing owners.
-
-
-### Home and auth video owners — 14/10/2026
-
-| Interaction | Responsible owner |
-| --- | --- |
-| Home heading/search + right-side ambient scene, stacked below search on mobile | [HomeHeroSection](../../apps/web/src/features/home/components/home-hero-section.tsx) and [scoped surface/grid CSS](../../apps/web/src/features/home/components/home-hero-section.css). Reuses CinematicScene with `preloadAtStartup={false}`:no startup media task, native muted/inline looping playback, no controls/captions/tab stops. Existing notebook/News/query owners are unchanged. |
-| Auth desktop original scene/form rails, no motion-toggle UI | [WelcomeLayout](../../apps/web/src/layouts/welcome-layout.tsx), [auth-video-layout.css](../../apps/web/src/layouts/auth-video-layout.css); AuthCardLayout continues to choose registration-right/other-left. Existing welcome-layout.css owns current forms/mobile and the distinct404. |
-| Original sources/theme/poster/background delivery | [CinematicScene](../../apps/web/src/components/ui/cinematic-scene.tsx), unchanged [media/download owner](../../apps/web/src/components/ui/cinematic-media.ts), [scene CSS](../../apps/web/src/components/ui/cinematic-scene.css) and [source attribution](../../apps/web/public/videos/SOURCES.txt). Selected source only;theme/hidden/offscreen/unmount pause, static reduced motion and poster fallback. Startup preparation defaults to existing auth behavior;Home opts out so search remains usable during a slow download. `anime-day.mp4`/`anime-night.mp4` and posters remain original and unmodified. No new registry,asset or dependency. |
-
-Reproduce with `rtk proxy node tests/home-auth-video-browser-check.mjs` from `apps/web`; `--before` loads only the three affected original owners from committed `b7a8f66` through an isolated Vite host. `--states-only` runs bounded interaction/error/viewport/reduced-motion cases without repeating the layout matrix. No operator config/.env,live auth or content mutation. [Results/status](../reviews/ux-flow-audit.md#home-and-original-auth-videos--14102026), comparisons and commit manifest: `/tmp/humg-home-auth-video-20261014/`. Existing preloader browser check now expects one decorative Home scene with no player controls after readiness, rather than the superseded no-video state; loading lifecycle assertions remain unchanged.
-
-
-### Documents phone filter sheet — 14/10/2026
-
-| Find by interaction | Owner / consumers |
-| --- | --- |
-| Phone search, active chips, filter count/reset, secondary sheet | [DocumentFilters](../../apps/web/src/features/documents/components/document-filters.tsx) on DocumentsPage; below640px only secondary subject/category/tag selectors move. Search and active chips remain in page flow. At640px and above facets remain visible. One selector set mounts. |
-| Sheet geometry, short-screen body scroll and safe areas | [document-discovery.css](../../apps/web/src/features/documents/components/document-discovery.css), `.document-filter-sheet*`; existing [Sheet](../../apps/web/src/components/ui/sheet.tsx)/Radix owns portal, focus containment, nested Popover dismissal and scroll lock. Heading gets initial focus; normal close returns trigger; breakpoint teardown returns to persistent search. |
-| Query/URL/debounce | Existing useUrlListSearch → list-navigation and DocumentsPage → useSearchDocuments.350ms typing REPLACE, immediate discrete PUSH and page reset; no new matching/backend fields. Sheet reset clears secondary predicates only; full reset retains its existing scope. |
-| Modal reduced motion | Existing global modal rule in [index.css](../../apps/web/src/index.css) now includes sheet content/overlay to override state-animation utility precedence. No second motion owner. |
-| Owned synthetic browser proof | [document-filter-sheet-browser-check.mjs](../../apps/web/tests/document-filter-sheet-browser-check.mjs): actual route/Sheet/Popover/query owners; `--before`, `--card-assessment-only` and bounded state modes. Self-hosted Vite disables env loading; all APIs intercepted. |
-
-[Design decision](design-system.md#documents-phone-discovery-and-card-assessment--14102026) and [acceptance/limits](../reviews/ux-flow-audit.md#documents-mobile-filter-sheet--accepted-local-14102026). Comparison gallery and exact incremental manifest: `/tmp/humg-documents-final-20261014/`. Card/thumbnail source and earlier card CSS are unchanged; no Kokonut drawer adoption or new dependency.
+# UI component and interaction owner lookup
+
+Start with [documentation tasks](../README.md) and [current UI owners](../ui/README.md). Historical records remain available below; temporary `/tmp` evidence may no longer exist.
+
+## Subject guides
+
+- [Shared controls and route adoption](../ui/owners/shared-controls.md)
+- [Historical component adoption and discovery evidence](../ui/history/component-adoption-20261009-10.md)
+- [Dialog, creation, evidence and native lifecycle owners](../ui/owners/dialogs-and-media.md)
+- [Public identity, avatar delivery and Recognition owners](../ui/owners/identity-and-recognition.md)
+- [Shared layout, search and discovery owners](../ui/owners/layout-and-discovery.md)
+- [Home, registry components and loading motion owners](../ui/owners/home-registry-and-motion.md)
+
+## Retained section links
+
+Existing external links to this path continue to land here; follow the matching section owner. These links preserve provenance without duplicating the records.
+
+<a id="interaction-owner-lookup"></a>
+[interaction-owner-lookup](../ui/owners/shared-controls.md#interaction-owner-lookup)
+
+<a id="scope-and-how-to-read-this-reference"></a>
+[scope-and-how-to-read-this-reference](../ui/owners/shared-controls.md#scope-and-how-to-read-this-reference)
+
+<a id="search-filter-and-layout-owners"></a>
+[search-filter-and-layout-owners](../ui/owners/shared-controls.md#search-filter-and-layout-owners)
+
+<a id="route-and-screen-adoption"></a>
+[route-and-screen-adoption](../ui/owners/shared-controls.md#route-and-screen-adoption)
+
+<a id="mobile-header-rules-and-actual-adoption"></a>
+[mobile-header-rules-and-actual-adoption](../ui/owners/shared-controls.md#mobile-header-rules-and-actual-adoption)
+
+<a id="three-cluster-consolidation-working-candidate-09102026"></a>
+[three-cluster-consolidation-working-candidate-09102026](../ui/history/component-adoption-20261009-10.md#three-cluster-consolidation-working-candidate-09102026)
+
+<a id="other-reusable-patterns-use-the-actual-owner"></a>
+[other-reusable-patterns-use-the-actual-owner](../ui/owners/shared-controls.md#other-reusable-patterns-use-the-actual-owner)
+
+<a id="follow-up-dispositions-and-remaining-opportunities"></a>
+[follow-up-dispositions-and-remaining-opportunities](../ui/owners/shared-controls.md#follow-up-dispositions-and-remaining-opportunities)
+
+<a id="trying-and-validating-the-adopted-owners"></a>
+[trying-and-validating-the-adopted-owners](../ui/owners/shared-controls.md#trying-and-validating-the-adopted-owners)
+
+<a id="mobile-and-recognition-evidence-owners-09102026"></a>
+[mobile-and-recognition-evidence-owners-09102026](../ui/history/component-adoption-20261009-10.md#mobile-and-recognition-evidence-owners-09102026)
+
+<a id="visual-and-creation-coverage-10102026"></a>
+[visual-and-creation-coverage-10102026](../ui/history/component-adoption-20261009-10.md#visual-and-creation-coverage-10102026)
+
+<a id="page-family-adoption-ledger"></a>
+[page-family-adoption-ledger](../ui/history/component-adoption-20261009-10.md#page-family-adoption-ledger)
+
+<a id="creation-entry-coverage-and-boundaries"></a>
+[creation-entry-coverage-and-boundaries](../ui/history/component-adoption-20261009-10.md#creation-entry-coverage-and-boundaries)
+
+<a id="responsible-local-compositions-beyond-honors"></a>
+[responsible-local-compositions-beyond-honors](../ui/history/component-adoption-20261009-10.md#responsible-local-compositions-beyond-honors)
+
+<a id="document-discovery-preview-storage-cases-10102026"></a>
+[document-discovery-preview-storage-cases-10102026](../ui/history/component-adoption-20261009-10.md#document-discovery-preview-storage-cases-10102026)
+
+<a id="documentsnews-discovery-owners-and-task-evidence-10102026"></a>
+[documentsnews-discovery-owners-and-task-evidence-10102026](../ui/history/component-adoption-20261009-10.md#documentsnews-discovery-owners-and-task-evidence-10102026)
+
+<a id="admin-recovery-and-discovery-owners-10102026"></a>
+[admin-recovery-and-discovery-owners-10102026](../ui/history/component-adoption-20261009-10.md#admin-recovery-and-discovery-owners-10102026)
+
+<a id="mobile-modal-frame-audit-8773df0"></a>
+[mobile-modal-frame-audit-8773df0](../ui/owners/dialogs-and-media.md#mobile-modal-frame-audit-8773df0)
+
+<a id="current-frame-ownership"></a>
+[current-frame-ownership](../ui/owners/dialogs-and-media.md#current-frame-ownership)
+
+<a id="historical-pre-fix-problems-and-smallest-remedies"></a>
+[historical-pre-fix-problems-and-smallest-remedies](../ui/owners/dialogs-and-media.md#historical-pre-fix-problems-and-smallest-remedies)
+
+<a id="source-coverage-ledger"></a>
+[source-coverage-ledger](../ui/owners/dialogs-and-media.md#source-coverage-ledger)
+
+<a id="verification-and-remaining-limits"></a>
+[verification-and-remaining-limits](../ui/owners/dialogs-and-media.md#verification-and-remaining-limits)
+
+<a id="mobile-modal-repairs-10102026"></a>
+[mobile-modal-repairs-10102026](../ui/owners/dialogs-and-media.md#mobile-modal-repairs-10102026)
+
+<a id="creation-frame-geometry-and-floating-controls-10102026"></a>
+[creation-frame-geometry-and-floating-controls-10102026](../ui/owners/dialogs-and-media.md#creation-frame-geometry-and-floating-controls-10102026)
+
+<a id="public-identity-and-profile-quick-lookup--10102026"></a>
+[public-identity-and-profile-quick-lookup--10102026](../ui/owners/identity-and-recognition.md#public-identity-and-profile-quick-lookup--10102026)
+
+<a id="avatar-delivery-lookup--verified-against-2b94351-10102026"></a>
+[avatar-delivery-lookup--verified-against-2b94351-10102026](../ui/owners/identity-and-recognition.md#avatar-delivery-lookup--verified-against-2b94351-10102026)
+
+<a id="public-recognitionnews-control-variants--11102026"></a>
+[public-recognitionnews-control-variants--11102026](../ui/owners/identity-and-recognition.md#public-recognitionnews-control-variants--11102026)
+
+<a id="shared-visual-lookup--13102026"></a>
+[shared-visual-lookup--13102026](../ui/owners/layout-and-discovery.md#shared-visual-lookup--13102026)
+
+<a id="full-application-owner-and-search-lookup--13102026"></a>
+[full-application-owner-and-search-lookup--13102026](../ui/owners/layout-and-discovery.md#full-application-owner-and-search-lookup--13102026)
+
+<a id="ranking-interaction-lookup--14102026"></a>
+[ranking-interaction-lookup--14102026](../ui/owners/identity-and-recognition.md#ranking-interaction-lookup--14102026)
+
+<a id="whole-page-composition--14102026"></a>
+[whole-page-composition--14102026](../ui/owners/layout-and-discovery.md#whole-page-composition--14102026)
+
+<a id="album-news-and-menu-refinement--14102026"></a>
+[album-news-and-menu-refinement--14102026](../ui/owners/layout-and-discovery.md#album-news-and-menu-refinement--14102026)
+
+<a id="news-depth-and-workspace-shortcut--14102026"></a>
+[news-depth-and-workspace-shortcut--14102026](../ui/owners/layout-and-discovery.md#news-depth-and-workspace-shortcut--14102026)
+
+<a id="registry-components-and-text-motion--14102026"></a>
+[registry-components-and-text-motion--14102026](../ui/owners/home-registry-and-motion.md#registry-components-and-text-motion--14102026)
+
+<a id="kokonut-account-and-article-actions--14102026"></a>
+[kokonut-account-and-article-actions--14102026](../ui/owners/home-registry-and-motion.md#kokonut-account-and-article-actions--14102026)
+
+<a id="resource-tabs-and-utility-link-feedback--14102026"></a>
+[resource-tabs-and-utility-link-feedback--14102026](../ui/owners/home-registry-and-motion.md#resource-tabs-and-utility-link-feedback--14102026)
+
+<a id="home-depth-owners--14102026"></a>
+[home-depth-owners--14102026](../ui/owners/home-registry-and-motion.md#home-depth-owners--14102026)
+
+<a id="loading-opacity-and-lifecycle--14102026"></a>
+[loading-opacity-and-lifecycle--14102026](../ui/owners/home-registry-and-motion.md#loading-opacity-and-lifecycle--14102026)
+
+<a id="home-and-auth-video-owners--14102026"></a>
+[home-and-auth-video-owners--14102026](../ui/owners/home-registry-and-motion.md#home-and-auth-video-owners--14102026)
+
+<a id="documents-phone-filter-sheet--14102026"></a>
+[documents-phone-filter-sheet--14102026](../ui/owners/layout-and-discovery.md#documents-phone-filter-sheet--14102026)

@@ -1,3 +1,5 @@
+> **Historical architecture draft, not current implementation authority.** Verify stack, paging, coverage and conventions against current app AGENTS/READMEs, authoritative backend skill, code and tests. Preserve accepted product policy; draft examples do not create new requirements. See [architecture map](README.md).
+
 # Olympic Learning Platform -- Architecture Contract v1.0
 
 > Status: **Draft**\
