@@ -3,11 +3,15 @@ package me.nghlong3004.olympic.post.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,6 +48,7 @@ import org.springframework.data.domain.Pageable;
 @ExtendWith(MockitoExtension.class)
 class PostServiceImplTest {
 
+  @Mock private Clock clock;
   @Mock private PostRepository postRepository;
   @Mock private UserRepository userRepository;
   @Mock private FileRepository fileRepository;
@@ -60,6 +65,8 @@ class PostServiceImplTest {
 
   @BeforeEach
   void setUp() {
+    lenient().when(clock.instant()).thenReturn(Instant.parse("2026-10-14T10:00:00Z"));
+    lenient().when(clock.getZone()).thenReturn(ZoneOffset.UTC);
     currentUserId = UUID.randomUUID();
     currentUser = CurrentUser.builder().id(currentUserId).role(Role.STUDENT).build();
     authorUser = User.builder().id(currentUserId).role(Role.STUDENT).build();
@@ -68,21 +75,34 @@ class PostServiceImplTest {
   @Test
   void create_HappyPath() {
     when(currentUserProvider.getCurrentUser()).thenReturn(currentUser);
-    when(userRepository.findByIdAndDeletedAtIsNull(currentUserId)).thenReturn(Optional.of(authorUser));
+    when(userRepository.findByIdAndDeletedAtIsNull(currentUserId))
+        .thenReturn(Optional.of(authorUser));
 
-    CreatePostRequest request = new CreatePostRequest("Test Title", "Test Summary", "Test Content", null, PostType.NEWS, PostStatus.PUBLISHED, OffsetDateTime.now(), null);
-    
+    CreatePostRequest request =
+        new CreatePostRequest(
+            "Test Title",
+            "Test Summary",
+            "Test Content",
+            null,
+            PostType.NEWS,
+            PostStatus.PUBLISHED,
+            OffsetDateTime.now(),
+            null);
+
     when(slugGenerator.generate("Test Title")).thenReturn("test-title");
     when(postRepository.existsBySlug("test-title")).thenReturn(false);
 
     Post savedPost = Post.builder().id(UUID.randomUUID()).build();
-    when(postRepository.save(any(Post.class))).thenAnswer(invocation -> {
-      Post p = invocation.getArgument(0);
-      assertThat(p.getSlug()).isEqualTo("test-title");
-      return savedPost;
-    });
+    when(postRepository.save(any(Post.class)))
+        .thenAnswer(
+            invocation -> {
+              Post p = invocation.getArgument(0);
+              assertThat(p.getSlug()).isEqualTo("test-title");
+              return savedPost;
+            });
 
-    when(postMapper.toDetailResponse(savedPost)).thenReturn(PostDetailResponse.builder().id(savedPost.getId()).build());
+    when(postMapper.toDetailResponse(savedPost))
+        .thenReturn(PostDetailResponse.builder().id(savedPost.getId()).build());
 
     PostDetailResponse response = postService.create(request);
 
@@ -93,21 +113,34 @@ class PostServiceImplTest {
   @Test
   void create_DuplicateSlug_AppendsRandomString() {
     when(currentUserProvider.getCurrentUser()).thenReturn(currentUser);
-    when(userRepository.findByIdAndDeletedAtIsNull(currentUserId)).thenReturn(Optional.of(authorUser));
+    when(userRepository.findByIdAndDeletedAtIsNull(currentUserId))
+        .thenReturn(Optional.of(authorUser));
 
-    CreatePostRequest request = new CreatePostRequest("Test Title", "Test Summary", "Test Content", null, PostType.NEWS, PostStatus.PUBLISHED, OffsetDateTime.now(), null);
-    
+    CreatePostRequest request =
+        new CreatePostRequest(
+            "Test Title",
+            "Test Summary",
+            "Test Content",
+            null,
+            PostType.NEWS,
+            PostStatus.PUBLISHED,
+            OffsetDateTime.now(),
+            null);
+
     when(slugGenerator.generate("Test Title")).thenReturn("test-title");
     when(postRepository.existsBySlug("test-title")).thenReturn(true);
 
     Post savedPost = Post.builder().id(UUID.randomUUID()).build();
-    when(postRepository.save(any(Post.class))).thenAnswer(invocation -> {
-      Post p = invocation.getArgument(0);
-      assertThat(p.getSlug()).startsWith("test-title-");
-      return savedPost;
-    });
+    when(postRepository.save(any(Post.class)))
+        .thenAnswer(
+            invocation -> {
+              Post p = invocation.getArgument(0);
+              assertThat(p.getSlug()).startsWith("test-title-");
+              return savedPost;
+            });
 
-    when(postMapper.toDetailResponse(savedPost)).thenReturn(PostDetailResponse.builder().id(savedPost.getId()).build());
+    when(postMapper.toDetailResponse(savedPost))
+        .thenReturn(PostDetailResponse.builder().id(savedPost.getId()).build());
 
     postService.create(request);
     verify(postRepository).save(any(Post.class));
@@ -118,27 +151,41 @@ class PostServiceImplTest {
     when(currentUserProvider.getCurrentUser()).thenReturn(currentUser);
     when(userRepository.findByIdAndDeletedAtIsNull(currentUserId)).thenReturn(Optional.empty());
 
-    CreatePostRequest request = new CreatePostRequest("Title", "Sum", "Cont", null, PostType.NEWS, PostStatus.DRAFT, null, null);
-    
+    CreatePostRequest request =
+        new CreatePostRequest(
+            "Title", "Sum", "Cont", null, PostType.NEWS, PostStatus.DRAFT, null, null);
+
     assertThatThrownBy(() -> postService.create(request))
         .isInstanceOf(ApiException.class)
         .matches(e -> ((ApiException) e).getErrorCode() == ErrorCode.USER_NOT_FOUND);
-        
+
     verify(postRepository, never()).save(any());
   }
-  
+
   @Test
   void update_HappyPath_NoSlugChange() {
     UUID postId = UUID.randomUUID();
-    Post post = Post.builder().id(postId).author(authorUser).title("Old Title").slug("old-title").build();
+    Post post =
+        Post.builder().id(postId).author(authorUser).title("Old Title").slug("old-title").build();
     when(postRepository.findById(postId)).thenReturn(Optional.of(post));
-    
-    when(currentUserProvider.getCurrentUser()).thenReturn(currentUser);
-    when(userRepository.findByIdAndDeletedAtIsNull(currentUserId)).thenReturn(Optional.of(authorUser));
 
-    UpdatePostRequest request = new UpdatePostRequest("Old Title", "New Sum", "New Cont", null, PostType.NEWS, PostStatus.PUBLISHED, null, null);
-    
-    when(postMapper.toDetailResponse(post)).thenReturn(PostDetailResponse.builder().id(postId).build());
+    when(currentUserProvider.getCurrentUser()).thenReturn(currentUser);
+    when(userRepository.findByIdAndDeletedAtIsNull(currentUserId))
+        .thenReturn(Optional.of(authorUser));
+
+    UpdatePostRequest request =
+        new UpdatePostRequest(
+            "Old Title",
+            "New Sum",
+            "New Cont",
+            null,
+            PostType.NEWS,
+            PostStatus.PUBLISHED,
+            null,
+            null);
+
+    when(postMapper.toDetailResponse(post))
+        .thenReturn(PostDetailResponse.builder().id(postId).build());
 
     postService.update(postId, request);
 
@@ -149,17 +196,29 @@ class PostServiceImplTest {
   @Test
   void update_TitleChanged_RegeneratesSlug() {
     UUID postId = UUID.randomUUID();
-    Post post = Post.builder().id(postId).author(authorUser).title("Old Title").slug("old-title").build();
+    Post post =
+        Post.builder().id(postId).author(authorUser).title("Old Title").slug("old-title").build();
     when(postRepository.findById(postId)).thenReturn(Optional.of(post));
-    
-    when(currentUserProvider.getCurrentUser()).thenReturn(currentUser);
-    when(userRepository.findByIdAndDeletedAtIsNull(currentUserId)).thenReturn(Optional.of(authorUser));
 
-    UpdatePostRequest request = new UpdatePostRequest("New Title", "New Sum", "New Cont", null, PostType.NEWS, PostStatus.PUBLISHED, null, null);
-    
+    when(currentUserProvider.getCurrentUser()).thenReturn(currentUser);
+    when(userRepository.findByIdAndDeletedAtIsNull(currentUserId))
+        .thenReturn(Optional.of(authorUser));
+
+    UpdatePostRequest request =
+        new UpdatePostRequest(
+            "New Title",
+            "New Sum",
+            "New Cont",
+            null,
+            PostType.NEWS,
+            PostStatus.PUBLISHED,
+            null,
+            null);
+
     when(slugGenerator.generate("New Title")).thenReturn("new-title");
     when(postRepository.existsBySlug("new-title")).thenReturn(false);
-    when(postMapper.toDetailResponse(post)).thenReturn(PostDetailResponse.builder().id(postId).build());
+    when(postMapper.toDetailResponse(post))
+        .thenReturn(PostDetailResponse.builder().id(postId).build());
 
     postService.update(postId, request);
 
@@ -173,11 +232,14 @@ class PostServiceImplTest {
     User differentAuthor = User.builder().id(UUID.randomUUID()).role(Role.STUDENT).build();
     Post post = Post.builder().id(postId).author(differentAuthor).build();
     when(postRepository.findById(postId)).thenReturn(Optional.of(post));
-    
-    when(currentUserProvider.getCurrentUser()).thenReturn(currentUser);
-    when(userRepository.findByIdAndDeletedAtIsNull(currentUserId)).thenReturn(Optional.of(authorUser));
 
-    UpdatePostRequest request = new UpdatePostRequest("Title", "Sum", "Cont", null, PostType.NEWS, PostStatus.PUBLISHED, null, null);
+    when(currentUserProvider.getCurrentUser()).thenReturn(currentUser);
+    when(userRepository.findByIdAndDeletedAtIsNull(currentUserId))
+        .thenReturn(Optional.of(authorUser));
+
+    UpdatePostRequest request =
+        new UpdatePostRequest(
+            "Title", "Sum", "Cont", null, PostType.NEWS, PostStatus.PUBLISHED, null, null);
 
     assertThatThrownBy(() -> postService.update(postId, request))
         .isInstanceOf(ApiException.class)
@@ -189,7 +251,9 @@ class PostServiceImplTest {
     UUID postId = UUID.randomUUID();
     when(postRepository.findById(postId)).thenReturn(Optional.empty());
 
-    UpdatePostRequest request = new UpdatePostRequest("Title", "Sum", "Cont", null, PostType.NEWS, PostStatus.PUBLISHED, null, null);
+    UpdatePostRequest request =
+        new UpdatePostRequest(
+            "Title", "Sum", "Cont", null, PostType.NEWS, PostStatus.PUBLISHED, null, null);
 
     assertThatThrownBy(() -> postService.update(postId, request))
         .isInstanceOf(PostNotFoundException.class);
@@ -197,9 +261,11 @@ class PostServiceImplTest {
 
   @Test
   void getBySlug_HappyPath() {
-    Post post = Post.builder().id(UUID.randomUUID()).viewCount(5L).status(PostStatus.PUBLISHED).build();
+    Post post =
+        Post.builder().id(UUID.randomUUID()).viewCount(5L).status(PostStatus.PUBLISHED).build();
     when(postRepository.findBySlug("test-slug")).thenReturn(Optional.of(post));
-    when(postMapper.toDetailResponse(post)).thenReturn(PostDetailResponse.builder().id(post.getId()).build());
+    when(postMapper.toDetailResponse(post))
+        .thenReturn(PostDetailResponse.builder().id(post.getId()).build());
 
     postService.getBySlug("test-slug");
 
@@ -217,6 +283,49 @@ class PostServiceImplTest {
   }
 
   @Test
+  void getBySlug_rejectsFuturePublicationWithoutCountingOrMapping() {
+    var post =
+        Post.builder()
+            .status(PostStatus.PUBLISHED)
+            .publishedAt(OffsetDateTime.parse("2026-10-14T10:00:00.000000001Z"))
+            .build();
+    when(postRepository.findBySlug("future")).thenReturn(Optional.of(post));
+    assertThatThrownBy(() -> postService.getBySlug("future"))
+        .isInstanceOf(PostNotFoundException.class);
+    assertThat(post.getViewCount()).isZero();
+    verify(postMapper, never()).toDetailResponse(any());
+  }
+
+  @Test
+  void getBySlug_acceptsExactReleaseAndPreservesExpiredArchiveRead() {
+    var post =
+        Post.builder()
+            .status(PostStatus.PUBLISHED)
+            .publishedAt(OffsetDateTime.parse("2026-10-14T10:00:00Z"))
+            .expiredAt(OffsetDateTime.parse("2026-10-14T10:00:00Z"))
+            .build();
+    when(postRepository.findBySlug("released")).thenReturn(Optional.of(post));
+    when(postMapper.toDetailResponse(post)).thenReturn(PostDetailResponse.builder().build());
+    postService.getBySlug("released");
+    assertThat(post.getViewCount()).isEqualTo(1);
+  }
+
+  @Test
+  void getBySlug_rejectsDraftAndArchivedEvenWithPastDate() {
+    for (var status : List.of(PostStatus.DRAFT, PostStatus.ARCHIVED)) {
+      var post =
+          Post.builder()
+              .status(status)
+              .publishedAt(OffsetDateTime.parse("2020-01-01T00:00:00Z"))
+              .build();
+      when(postRepository.findBySlug("private")).thenReturn(Optional.of(post));
+      assertThatThrownBy(() -> postService.getBySlug("private"))
+          .isInstanceOf(PostNotFoundException.class);
+    }
+    verify(postMapper, never()).toDetailResponse(any());
+  }
+
+  @Test
   void getById_UnexpectedRepositoryError_PropagatesException() {
     UUID postId = UUID.randomUUID();
     when(postRepository.findById(postId)).thenThrow(new RuntimeException("Database error"));
@@ -231,7 +340,8 @@ class PostServiceImplTest {
     Post post = Post.builder().id(UUID.randomUUID()).build();
     Page<Post> page = new PageImpl<>(List.of(post));
     when(postRepository.findAll(any(Pageable.class))).thenReturn(page);
-    when(postMapper.toSummaryResponse(post)).thenReturn(PostSummaryResponse.builder().id(post.getId()).build());
+    when(postMapper.toSummaryResponse(post))
+        .thenReturn(PostSummaryResponse.builder().id(post.getId()).build());
 
     Page<PostSummaryResponse> result = postService.getAll(Pageable.unpaged());
 
@@ -244,9 +354,10 @@ class PostServiceImplTest {
     UUID postId = UUID.randomUUID();
     Post post = Post.builder().id(postId).author(authorUser).build();
     when(postRepository.findById(postId)).thenReturn(Optional.of(post));
-    
+
     when(currentUserProvider.getCurrentUser()).thenReturn(currentUser);
-    when(userRepository.findByIdAndDeletedAtIsNull(currentUserId)).thenReturn(Optional.of(authorUser));
+    when(userRepository.findByIdAndDeletedAtIsNull(currentUserId))
+        .thenReturn(Optional.of(authorUser));
 
     postService.delete(postId);
 

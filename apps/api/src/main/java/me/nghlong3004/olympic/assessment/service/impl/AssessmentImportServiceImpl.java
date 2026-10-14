@@ -14,8 +14,8 @@ import me.nghlong3004.olympic.assessment.enums.AssessmentImportPhase;
 import me.nghlong3004.olympic.assessment.enums.AssessmentImportStatus;
 import me.nghlong3004.olympic.assessment.mapper.AssessmentImportMapper;
 import me.nghlong3004.olympic.assessment.properties.AssessmentImportProperties;
-import me.nghlong3004.olympic.assessment.repository.AssessmentImportRepository;
 import me.nghlong3004.olympic.assessment.repository.AssessmentImportPageRepository;
+import me.nghlong3004.olympic.assessment.repository.AssessmentImportRepository;
 import me.nghlong3004.olympic.assessment.repository.AssessmentQuestionDraftAssetRepository;
 import me.nghlong3004.olympic.assessment.repository.AssessmentQuestionDraftRepository;
 import me.nghlong3004.olympic.assessment.request.UpdateAssessmentDraftRequest;
@@ -30,6 +30,7 @@ import me.nghlong3004.olympic.common.security.CurrentUserProvider;
 import me.nghlong3004.olympic.storage.enums.StorageFolder;
 import me.nghlong3004.olympic.storage.mapper.FileMapper;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
+import me.nghlong3004.olympic.storage.service.StorageCompensation;
 import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.repository.UserRepository;
@@ -55,6 +56,7 @@ public class AssessmentImportServiceImpl implements AssessmentImportService {
   private final FileMapper fileMapper;
   private final AssessmentImportMapper assessmentImportMapper;
   private final StorageService storageService;
+  private final StorageCompensation compensation;
   private final AssessmentImportQueue queue;
   private final AssessmentImportProperties properties;
   private final CurrentUserProvider currentUserProvider;
@@ -67,7 +69,9 @@ public class AssessmentImportServiceImpl implements AssessmentImportService {
     validateUpload(file);
     var currentUser = requireStaff();
     var uploaded = storageService.upload(file, StorageFolder.ASSESSMENT_SOURCE);
-    var source = fileRepository.save(fileMapper.toEntity(uploaded, StorageFolder.ASSESSMENT_SOURCE));
+    compensation.onRollback(List.of(uploaded.storageKey()));
+    var source =
+        fileRepository.save(fileMapper.toEntity(uploaded, StorageFolder.ASSESSMENT_SOURCE));
     var assessmentImport =
         importRepository.save(
             AssessmentImport.builder()
@@ -165,7 +169,8 @@ public class AssessmentImportServiceImpl implements AssessmentImportService {
   @Override
   public void approveAll(UUID importId) {
     var assessmentImport = requireReviewableImportForUpdate(importId);
-    var drafts = draftRepository.findByAssessmentImportIdOrderByOrdinalAsc(assessmentImport.getId());
+    var drafts =
+        draftRepository.findByAssessmentImportIdOrderByOrdinalAsc(assessmentImport.getId());
     drafts.stream()
         .filter(draft -> draft.getStatus() == AssessmentDraftStatus.NEEDS_REVIEW)
         .forEach(draft -> draft.setStatus(AssessmentDraftStatus.APPROVED));
@@ -188,6 +193,7 @@ public class AssessmentImportServiceImpl implements AssessmentImportService {
     assessmentImport.setPhase(AssessmentImportPhase.QUEUED);
     assessmentImport.setProgress(0);
     assessmentImport.setLastError(null);
+    assessmentImport.setLeaseUntil(null);
     importRepository.save(assessmentImport);
     queue.enqueue(id);
     log.info("Assessment import requeued: importId={}", id);
@@ -215,7 +221,8 @@ public class AssessmentImportServiceImpl implements AssessmentImportService {
     var assessmentImport = requireReviewableImportForUpdate(importId);
     return draftRepository
         .findById(draftId)
-        .filter(candidate -> candidate.getAssessmentImport().getId().equals(assessmentImport.getId()))
+        .filter(
+            candidate -> candidate.getAssessmentImport().getId().equals(assessmentImport.getId()))
         .orElseThrow(ErrorCode.RESOURCE_NOT_FOUND::throwIt);
   }
 
@@ -231,9 +238,7 @@ public class AssessmentImportServiceImpl implements AssessmentImportService {
   private AssessmentImport requireOwnedImportForUpdate(UUID id) {
     var currentUser = requireStaff();
     var assessmentImport =
-        importRepository
-            .findForUpdateById(id)
-            .orElseThrow(ErrorCode.RESOURCE_NOT_FOUND::throwIt);
+        importRepository.findForUpdateById(id).orElseThrow(ErrorCode.RESOURCE_NOT_FOUND::throwIt);
     if (currentUser.role() != Role.ADMIN
         && !assessmentImport.getCreatedBy().getId().equals(currentUser.id())) {
       throw ErrorCode.RESOURCE_NOT_FOUND.throwIt();
@@ -247,8 +252,7 @@ public class AssessmentImportServiceImpl implements AssessmentImportService {
         || file.getSize() > properties.maxFileSizeMb() * BYTES_PER_MEGABYTE) {
       throw ErrorCode.FILE_TOO_LARGE.throwIt();
     }
-    var name =
-        file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase();
+    var name = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase();
     if (!name.endsWith(".pdf") && !"application/pdf".equalsIgnoreCase(file.getContentType())) {
       throw ErrorCode.FILE_TYPE_NOT_ALLOWED.throwIt("Only PDF files are supported");
     }
@@ -273,11 +277,11 @@ public class AssessmentImportServiceImpl implements AssessmentImportService {
       String sourcePageUrl) {
     var assets =
         draftAssets.stream()
-        .map(
-            asset ->
-                assessmentImportMapper.toDraftAssetResponse(
-                    asset, downloadUrl(asset.getFile().getStorageKey())))
-        .toList();
+            .map(
+                asset ->
+                    assessmentImportMapper.toDraftAssetResponse(
+                        asset, downloadUrl(asset.getFile().getStorageKey())))
+            .toList();
     return assessmentImportMapper.toDraftResponse(draft, sourcePageUrl, assets);
   }
 
@@ -285,8 +289,7 @@ public class AssessmentImportServiceImpl implements AssessmentImportService {
     return pageRepository.findByAssessmentImportIdOrderByPageNumberAsc(importId).stream()
         .collect(
             Collectors.toMap(
-                page -> page.getPageNumber(),
-                page -> downloadUrl(page.getFile().getStorageKey())));
+                page -> page.getPageNumber(), page -> downloadUrl(page.getFile().getStorageKey())));
   }
 
   private String downloadUrl(String storageKey) {

@@ -1,6 +1,7 @@
 package me.nghlong3004.olympic.post.service.impl;
 
 import java.net.URI;
+import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +21,8 @@ import me.nghlong3004.olympic.post.request.CreatePostRequest;
 import me.nghlong3004.olympic.post.request.PostSearchRequest;
 import me.nghlong3004.olympic.post.request.UpdatePostRequest;
 import me.nghlong3004.olympic.post.response.PostDetailResponse;
-import me.nghlong3004.olympic.post.response.PostSummaryResponse;
 import me.nghlong3004.olympic.post.response.PostStatusCountsResponse;
+import me.nghlong3004.olympic.post.response.PostSummaryResponse;
 import me.nghlong3004.olympic.post.service.PostService;
 import me.nghlong3004.olympic.storage.entity.File;
 import me.nghlong3004.olympic.storage.repository.FileRepository;
@@ -54,6 +55,7 @@ public class PostServiceImpl implements PostService {
   private final SlugGenerator slugGenerator;
   private final CurrentUserProvider currentUserProvider;
   private final UserProperties userProperties;
+  private final Clock clock;
 
   @Override
   @Transactional
@@ -121,14 +123,15 @@ public class PostServiceImpl implements PostService {
     }
 
     boolean titleChanged = !post.getTitle().equals(request.title());
-    
+
     post.setTitle(request.title());
     post.setSummary(request.summary());
     post.setContent(request.content());
     post.setThumbnail(thumbnail);
     post.setType(request.type());
     post.setStatus(request.status());
-    OffsetDateTime publishedAt = resolvePublishedAt(request.status(), request.publishedAt(), post.getPublishedAt());
+    OffsetDateTime publishedAt =
+        resolvePublishedAt(request.status(), request.publishedAt(), post.getPublishedAt());
     validateExpiry(request.expiredAt(), publishedAt);
 
     post.setPublishedAt(publishedAt);
@@ -151,13 +154,10 @@ public class PostServiceImpl implements PostService {
   @Override
   @Transactional
   public PostDetailResponse getBySlug(String slug) {
-    Post post =
-        postRepository
-            .findBySlug(slug)
-            .orElseThrow(() -> new PostNotFoundException(slug));
-            
-    if (post.getDeletedAt() != null || post.getStatus() != PostStatus.PUBLISHED) {
-        throw new PostNotFoundException(slug);
+    Post post = postRepository.findBySlug(slug).orElseThrow(() -> new PostNotFoundException(slug));
+
+    if (!PostSpecifications.isPubliclyReleased(post, OffsetDateTime.now(clock))) {
+      throw new PostNotFoundException(slug);
     }
 
     post.setViewCount(post.getViewCount() + 1);
@@ -167,13 +167,10 @@ public class PostServiceImpl implements PostService {
 
   @Override
   public PostDetailResponse getById(UUID id) {
-    Post post =
-        postRepository
-            .findById(id)
-            .orElseThrow(() -> new PostNotFoundException(id));
-            
+    Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id));
+
     if (post.getDeletedAt() != null) {
-        throw new PostNotFoundException(id);
+      throw new PostNotFoundException(id);
     }
 
     checkUpdateDeletePermission(post);
@@ -183,24 +180,28 @@ public class PostServiceImpl implements PostService {
   @Override
   public Page<PostSummaryResponse> getAll(PostSearchRequest request, Pageable pageable) {
     return postRepository
-        .findAll(PostSpecifications.publicPosts(request, OffsetDateTime.now()), pageable)
+        .findAll(PostSpecifications.publicPosts(request, OffsetDateTime.now(clock)), pageable)
         .map(post -> enrichSummary(postMapper.toSummaryResponse(post), post));
   }
 
   @Override
   public Page<PostSummaryResponse> getAll(Pageable pageable) {
-    return postRepository.findAll(pageable)
+    return postRepository
+        .findAll(pageable)
         .map(post -> enrichSummary(postMapper.toSummaryResponse(post), post));
   }
 
   @Override
   @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
-  public Page<PostSummaryResponse> getManagementPosts(PostSearchRequest request, Pageable pageable) {
+  public Page<PostSummaryResponse> getManagementPosts(
+      PostSearchRequest request, Pageable pageable) {
     CurrentUser currentUser = currentUserProvider.getCurrentUser();
     UUID authorId = currentUser.role() == Role.ADMIN ? null : currentUser.id();
 
     return postRepository
-        .findAll(PostSpecifications.managementPosts(request, authorId, OffsetDateTime.now()), pageable)
+        .findAll(
+            PostSpecifications.managementPosts(request, authorId, OffsetDateTime.now(clock)),
+            pageable)
         .map(post -> enrichSummary(postMapper.toSummaryResponse(post), post));
   }
 
@@ -209,7 +210,7 @@ public class PostServiceImpl implements PostService {
   public PostStatusCountsResponse getManagementStatusCounts() {
     CurrentUser currentUser = currentUserProvider.getCurrentUser();
     UUID authorId = currentUser.role() == Role.ADMIN ? null : currentUser.id();
-    OffsetDateTime now = OffsetDateTime.now();
+    OffsetDateTime now = OffsetDateTime.now(clock);
 
     return new PostStatusCountsResponse(
         postRepository.count(PostSpecifications.status(PostStatus.DRAFT, authorId, now)),
@@ -225,90 +226,86 @@ public class PostServiceImpl implements PostService {
     Post post = getPostForUpdate(id);
     checkUpdateDeletePermission(post);
 
-    post.setDeletedAt(OffsetDateTime.now());
-    
-    log.info("Post {} soft deleted by user {}", post.getId(), currentUserProvider.getCurrentUser().id());
+    post.setDeletedAt(OffsetDateTime.now(clock));
+
+    log.info(
+        "Post {} soft deleted by user {}", post.getId(), currentUserProvider.getCurrentUser().id());
   }
 
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
-  
+
   private Post getPostForUpdate(UUID id) {
-      Post post = postRepository.findById(id)
-              .orElseThrow(() -> new PostNotFoundException(id));
-      if (post.getDeletedAt() != null) {
-          throw new PostNotFoundException(id);
-      }
-      return post;
+    Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id));
+    if (post.getDeletedAt() != null) {
+      throw new PostNotFoundException(id);
+    }
+    return post;
   }
 
   private PostDetailResponse enrichDetail(PostDetailResponse response, Post post) {
     String thumbnailUrl = null;
     if (post.getThumbnail() != null) {
-        URI tUri = storageService.getDownloadUri(post.getThumbnail().getStorageKey());
-        if (tUri != null) {
-            thumbnailUrl = tUri.toString();
-        }
+      URI tUri = storageService.getDownloadUri(post.getThumbnail().getStorageKey());
+      if (tUri != null) {
+        thumbnailUrl = tUri.toString();
+      }
     }
-    
+
     PublicUserIdentityResponse enrichedAuthor = response.author();
     if (post.getAuthor() != null && enrichedAuthor != null) {
-        if (post.getAuthor().getAvatar() != null) {
-            URI avatarUri = storageService.getDownloadUri(post.getAuthor().getAvatar().getStorageKey());
-            if (avatarUri != null) {
-                enrichedAuthor = enrichedAuthor.withAvatarUrl(avatarUri.toString());
-            }
-        } else {
-            enrichedAuthor = enrichedAuthor.withAvatarUrl(userProperties.defaultAvatarUrl());
+      if (post.getAuthor().getAvatar() != null) {
+        URI avatarUri = storageService.getDownloadUri(post.getAuthor().getAvatar().getStorageKey());
+        if (avatarUri != null) {
+          enrichedAuthor = enrichedAuthor.withAvatarUrl(avatarUri.toString());
         }
+      } else {
+        enrichedAuthor = enrichedAuthor.withAvatarUrl(userProperties.defaultAvatarUrl());
+      }
     }
-    
-    return response.toBuilder()
-            .thumbnailUrl(thumbnailUrl)
-            .author(enrichedAuthor)
-            .build();
+
+    return response.toBuilder().thumbnailUrl(thumbnailUrl).author(enrichedAuthor).build();
   }
 
   private PostSummaryResponse enrichSummary(PostSummaryResponse response, Post post) {
     String thumbnailUrl = null;
     if (post.getThumbnail() != null) {
-        URI tUri = storageService.getDownloadUri(post.getThumbnail().getStorageKey());
-        if (tUri != null) {
-            thumbnailUrl = tUri.toString();
-        }
+      URI tUri = storageService.getDownloadUri(post.getThumbnail().getStorageKey());
+      if (tUri != null) {
+        thumbnailUrl = tUri.toString();
+      }
     }
-    
+
     PublicUserIdentityResponse enrichedAuthor = response.author();
     if (post.getAuthor() != null && enrichedAuthor != null) {
-        if (post.getAuthor().getAvatar() != null) {
-            URI avatarUri = storageService.getDownloadUri(post.getAuthor().getAvatar().getStorageKey());
-            if (avatarUri != null) {
-                enrichedAuthor = enrichedAuthor.withAvatarUrl(avatarUri.toString());
-            }
-        } else {
-            enrichedAuthor = enrichedAuthor.withAvatarUrl(userProperties.defaultAvatarUrl());
+      if (post.getAuthor().getAvatar() != null) {
+        URI avatarUri = storageService.getDownloadUri(post.getAuthor().getAvatar().getStorageKey());
+        if (avatarUri != null) {
+          enrichedAuthor = enrichedAuthor.withAvatarUrl(avatarUri.toString());
         }
+      } else {
+        enrichedAuthor = enrichedAuthor.withAvatarUrl(userProperties.defaultAvatarUrl());
+      }
     }
-    
-    return response.toBuilder()
-            .thumbnailUrl(thumbnailUrl)
-            .author(enrichedAuthor)
-            .build();
+
+    return response.toBuilder().thumbnailUrl(thumbnailUrl).author(enrichedAuthor).build();
   }
 
   private void checkUpdateDeletePermission(Post post) {
-      CurrentUser currentUser = currentUserProvider.getCurrentUser();
-      User user = userRepository.findByIdAndDeletedAtIsNull(currentUser.id())
-              .orElseThrow(ErrorCode.USER_NOT_FOUND::throwIt);
-              
-      if (user.getRole() == Role.ADMIN) {
-          return;
-      }
-      if (post.getAuthor().getId().equals(user.getId())) {
-          return;
-      }
-      throw ErrorCode.ACCESS_DENIED.throwIt("You do not have permission to modify this post");
+    CurrentUser currentUser = currentUserProvider.getCurrentUser();
+    User user =
+        userRepository
+            .findByIdAndDeletedAtIsNull(currentUser.id())
+            .orElseThrow(ErrorCode.USER_NOT_FOUND::throwIt);
+
+    if (user.getRole() == Role.ADMIN) {
+      return;
+    }
+    if (post.getAuthor().getId().equals(user.getId())) {
+      return;
+    }
+    throw ErrorCode.ACCESS_DENIED.throwIt("You do not have permission to modify this post");
   }
 
   private OffsetDateTime resolvePublishedAt(
@@ -319,7 +316,7 @@ public class PostServiceImpl implements PostService {
     if (existingPublishedAt != null) {
       return existingPublishedAt;
     }
-    return requestedPublishedAt != null ? requestedPublishedAt : OffsetDateTime.now();
+    return requestedPublishedAt != null ? requestedPublishedAt : OffsetDateTime.now(clock);
   }
 
   private void validateExpiry(OffsetDateTime expiredAt, OffsetDateTime publishedAt) {
@@ -327,5 +324,4 @@ public class PostServiceImpl implements PostService {
       throw ErrorCode.VALIDATION_ERROR.throwIt("Expiry time must be after the publication time");
     }
   }
-
 }

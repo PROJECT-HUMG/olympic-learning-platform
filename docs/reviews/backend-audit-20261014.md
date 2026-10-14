@@ -1,5 +1,7 @@
 # Bounded API/backend audit
 
+Local implementation update: the six findings below are retained as frozen audit evidence. [Remedy acceptance](#local-remedy-disposition--14102026) records the later authorized repairs; no backend publication has occurred.
+
 Frozen checkpoint: `7a70002f71e88c9ae2e1e989fa1b30f609e14f83`. The native audit was read-only and wrote only `/tmp/humg-backend-audit-20261014`; Lead subsequently preserved this accepted report in the documentation tree. No backend source/test/resource change.
 
 ## Lead disposition — 14/10/2026
@@ -130,3 +132,12 @@ Maven/Mockito/Lombok inherited deprecation/dynamic-agent/unchecked warnings rema
 - Audit is proportionate across domain boundaries, not an all449-file security review.
 
 Exact frozen source hashes and evidence paths: `/tmp/humg-backend-audit-20261014/report.json` (SHA256 `efc949fe3e80ec7b61749089fdefa8527da166b95f25714f2a2f1618d80c36e3`). Temporary observation-test source: `/tmp/humg-backend-audit-20261014/post-observation-tests.java.txt`. These local artifacts may expire; the findings, source references and limits remain in this record.
+
+
+## Local remedy disposition — 14/10/2026
+
+Lead ACCEPTS the14-Java-path repair candidate `8cefe9e626251e19ebe59d1e4235aeca5d9d9f1ff0ccc197716165d3db3251bb` on7a70002 after inspecting the sole native writer's actual source/snapshot/handoff. API-01 through API-06 are implemented locally: Clock release guard; commit-aware Redis plus durable DB recovery; locked attempt/lease fencing; unpublished retry child replacement; short progress/page transactions outside provider work; thin upload service with known-outcome compensation. No additive migration was necessary: existing lease/attempt columns provide the fence. Broader expiry/media/access policies are unchanged.
+
+[Existing status](ux-flow-audit.md#backend-audit-remedies--accepted-local-14102026) records exact behavior, tests, formatting, preservation and limits.38 combined tests passed including10 real isolated PostgreSQL/Redis tests; the later2-case stale-worker success/failure test extends one overlapping case. Final compile and Google Java Format1.37.0 check passed on14 changed Java files; no project formatter was configured or added. Proof is in `/tmp/humg-backend-fixes-20261014/`, with final exact paths/hashes in final-manifest.json. No staging/commit/push/deploy.
+
+Do not reinterpret these tests as live/provider/JDK25-runtime or all-backend proof. Provider crash/delete failure and unknown-commit orphan limits remain; unknown commits retain bytes.30-minute step leases require explicit retry after failure. Future rollout must drain old unfenced workers. Unresolved expired direct-link archival, broader folder/media and revocation-policy questions remain separate from the repairs.
