@@ -1,4 +1,4 @@
-.creation-dialog[data-slot="dialog-content"] { display: flex; flex-direction: column; gap: 0; inset: 1.5rem; margin: auto; height: fit-content; width: min(68rem, calc(100vw - 3rem)); max-width: none; max-height: calc(100dvh - 3rem); padding: 0; overflow: hidden; border: 1px solid var(--surface-border); box-shadow: var(--surface-shadow); }
+.creation-dialog[data-slot="dialog-content"] { display: flex; flex-direction: column; gap: 0; inset: 1.5rem; margin: auto; height: fit-content; width: min(68rem, calc(100vw - 3rem)); max-width: none; max-height: calc(100dvh - 3rem); padding: 0; overflow: clip; border: 1px solid var(--surface-border); box-shadow: var(--surface-shadow); }
 .creation-dialog__header { flex: 0 0 auto; display: flex; flex-direction: row; align-items: start; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--card); }
 .creation-dialog__header [data-slot="dialog-title"] { min-width: 0; flex: 1; align-self: center; padding: 0; font-size: 1.25rem; overflow-wrap: anywhere; }
 .creation-dialog__description { max-width: 65ch; margin-bottom: 1.25rem; line-height: 1.6; }
@@ -17,3 +17,6 @@
   .creation-dialog__header { padding: max(.875rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) .875rem max(1rem, env(safe-area-inset-left)); gap: .75rem; }
   .creation-dialog__body { padding: 1rem max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); }
 }
+
+/* The outer frame must not scroll, including focus/scrollIntoView scrolling.
+   Only the body scrolls, so title and Close remain in the viewport. */

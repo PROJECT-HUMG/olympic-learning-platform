@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/axios";
+import type { AxiosProgressEvent } from "axios";
 import type { Achievement, AchievementInput, Honor, HonorInput, PublicProfile, Ranking, RecognitionPage, RecognitionSettings } from "./types";
 
 const root = "/recognition";
@@ -22,11 +23,11 @@ export const recognitionService = {
   mine: () => apiClient.get<Achievement[]>(`${root}/achievements/me`).then(data),
   settings: () => apiClient.get<RecognitionSettings>(`${root}/preferences/me`).then(data),
   saveSettings: (rankingOptIn: boolean) => apiClient.patch<RecognitionSettings>(`${root}/preferences/me`, { rankingOptIn }).then(data),
-  submit: (input: AchievementInput, files: File[], userId?: string, id?: string) => {
+  submit: (input: AchievementInput, files: File[], userId?: string, id?: string, onUploadProgress?: (event: AxiosProgressEvent) => void) => {
     const form = new FormData();
     form.append("metadata", new Blob([JSON.stringify({ ...input, ...(userId ? { userId } : {}) })], { type: "application/json" }));
     files.forEach(file => form.append("evidence", file));
-    const options = { headers: { "Content-Type": "multipart/form-data" }, timeout: 120_000 };
+    const options = { headers: { "Content-Type": "multipart/form-data" }, timeout: 120_000, onUploadProgress };
     return (id ? apiClient.put<Achievement>(`${root}/achievements/${id}`, form, options)
       : apiClient.post<Achievement>(`${userId ? admin : root}/achievements`, form, options)).then(data);
   },

@@ -8,9 +8,10 @@ import { Checkbox, Field, UserPicker } from "./components";
 import { recognitionService as service } from "./service";
 import { useRecognitionMutation } from "./hooks";
 import type { Achievement, AchievementInput, Award, Category } from "./types";
-import { validateRecognitionFiles } from "./validation";
+import { RECOGNITION_EVIDENCE_TYPES, validateRecognitionFiles } from "./validation";
 import { parseApiError } from "@/lib/api-error";
 import type { CreationState } from "@/components/ui/creation-dialog";
+import { FileUploadSelection } from "@/components/kokonutui/file-upload";
 
 export function AchievementEditor({ record, admin = false, onDone, onCancel, onStateChange }: {
   record?: Achievement;
@@ -28,7 +29,13 @@ export function AchievementEditor({ record, admin = false, onDone, onCancel, onS
   const [files, setFiles] = useState<File[]>([]);
   const [userId, setUserId] = useState("");
   const [error, setError] = useState("");
-  const mutation = useRecognitionMutation(() => service.submit(input, files, admin ? userId : undefined, record?.id), "Đã gửi thành tích để duyệt.", () => { onDone?.(); });
+  const [progress, setProgress] = useState<number | undefined>();
+  const mutation = useRecognitionMutation(() => {
+    setProgress(undefined);
+    return service.submit(input, files, admin ? userId : undefined, record?.id, event => {
+      if (event.total) setProgress(Math.min(100, Math.round(event.loaded / event.total * 100)));
+    });
+  }, "Đã gửi thành tích để duyệt.", () => { onDone?.(); });
   const points = estimatePoints(input.category, input.award, input.includeParticipation);
   const update = <K extends keyof AchievementInput>(key: K, value: AchievementInput[K]) => setInput(previous => ({ ...previous, [key]: value }));
   const busy = mutation.isPending;
@@ -80,8 +87,7 @@ export function AchievementEditor({ record, admin = false, onDone, onCancel, onS
       {!!PARTICIPATION[input.category] && <Checkbox title={`Ghi nhận tham gia (+${PARTICIPATION[input.category]} điểm, cộng thêm điểm giải nếu có)`} checked={input.includeParticipation} disabled={input.award === "NONE"} onChange={value => update("includeParticipation", value)} />}
       <Field title="Ngày đạt thành tích">{id => <Input id={id} type="date" required min="1900-01-01" max={today} value={input.achievedDate} onChange={e => update("achievedDate", e.target.value)} />}</Field>
       <Field title="Thông tin thêm" hint="Mô tả ngắn nội dung hoặc vai trò của bạn để người duyệt đối chiếu minh chứng.">{id => <Textarea id={id} value={input.description} maxLength={2000} onChange={e => update("description", e.target.value)} rows={3} />}</Field>
-      <Field title={record ? "Minh chứng thay thế" : "Minh chứng"} hint="1–3 file JPEG, PNG, WebP hoặc PDF; mỗi file tối đa 5 MB. Chỉ bạn và quản trị viên được tải minh chứng.">{id => <input id={id} type="file" className="recognition-file-input" multiple accept="image/jpeg,image/png,image/webp,application/pdf" required onChange={e => { const next = Array.from(e.target.files ?? []); setFiles(next); setError(next.length ? validateRecognitionFiles(next) ?? "" : ""); }} />}</Field>
-      <ul className="recognition-file-list">{files.map((file, index) => <li key={`${file.name}-${index}`}>{file.name} ({(file.size / 1024 / 1024).toFixed(1)} MB)</li>)}</ul>
+      <Field title={record ? "Minh chứng thay thế" : "Minh chứng"} hint="1–3 file JPEG, PNG, WebP hoặc PDF; mỗi file tối đa 5 MB. Chỉ bạn và quản trị viên được tải minh chứng.">{id => <FileUploadSelection id={id} files={files} acceptedFileTypes={RECOGNITION_EVIDENCE_TYPES} disabled={busy} progress={progress} validateFiles={validateRecognitionFiles} onFilesChange={next => { setFiles(next); setError(""); }} />}</Field>
       <Checkbox title="Công khai thành tích sau khi được duyệt" checked={input.publicVisible} onChange={value => update("publicVisible", value)} />
       <p className="recognition-hint">Dự kiến {points} điểm sau khi được duyệt. Gửi hồ sơ chưa làm tăng điểm xếp hạng.</p>
       {error && <p role="alert" className="text-destructive">{error}</p>}

@@ -11,7 +11,7 @@
  */
 
 // Registry source: @kokonutui/file-upload via shadcn MCP.
-// Reuse the installed Framer Motion v12 API; no product upload flow is wired here.
+// Reuse installed Framer Motion. Selection mode lets atomic multipart forms own persistence.
 import { UploadCloud } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -23,6 +23,7 @@ import {
   useState,
 } from "react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type FileStatus = "idle" | "dragging" | "uploading" | "error";
 
@@ -54,6 +55,62 @@ interface FileUploadProps {
   uploadDelay?: number;
   validateFile?: (file: File) => FileError | null;
   className?: string;
+}
+
+interface FileSelectionProps {
+  id: string;
+  files: File[];
+  onFilesChange: (files: File[]) => void;
+  validateFiles: (files: File[]) => string | null;
+  acceptedFileTypes: string[];
+  disabled?: boolean;
+  progress?: number;
+}
+
+/** Select a batch for the parent form; selecting never starts or simulates an upload. */
+export function FileUploadSelection({ id, files, onFilesChange, validateFiles, acceptedFileTypes, disabled = false, progress }: FileSelectionProps) {
+  const input = useRef<HTMLInputElement>(null);
+  const choose = useRef<HTMLButtonElement>(null);
+  const [dragging, setDragging] = useState(false);
+  const [error, setError] = useState("");
+  const hintId = useId();
+  const errorId = useId();
+  function select(picked: File[]) {
+    if (disabled || !picked.length) return;
+    const next = [...files, ...picked];
+    const issue = validateFiles(next);
+    setError(issue ?? "");
+    if (!issue) onFilesChange(next);
+  }
+  function drag(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = disabled ? "none" : "copy";
+    if (!disabled) setDragging(true);
+  }
+  return <div className="min-w-0 space-y-3" data-file-selection aria-busy={disabled}>
+    <div className={cn("flex min-w-0 flex-wrap items-center gap-3 rounded-md border border-dashed bg-muted/30 p-4", dragging && !disabled && "border-primary bg-accent")}
+      onDragEnter={drag} onDragOver={drag} onDragLeave={event => {
+        event.preventDefault(); event.stopPropagation();
+        if (!(event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget))) setDragging(false);
+      }} onDrop={event => { event.preventDefault(); event.stopPropagation(); setDragging(false); select(Array.from(event.dataTransfer.files)); }}>
+      <UploadIllustration animate={dragging && !disabled} />
+      <div className="min-w-0 flex-1 basis-40"><p className="text-sm font-medium">Kéo tệp vào đây hoặc chọn tệp</p><p id={hintId} className="mt-1 text-xs leading-relaxed text-muted-foreground">Tệp được gửi cùng thông tin thành tích khi bạn chọn Gửi để duyệt.</p></div>
+      <Button ref={choose} type="button" variant="outline" disabled={disabled} aria-controls={id} aria-describedby={`${hintId}${error ? ` ${errorId}` : ""}`} onClick={() => input.current?.click()}>{files.length ? "Thêm tệp minh chứng" : "Chọn tệp minh chứng"}</Button>
+      <input id={id} ref={input} type="file" className="hidden" multiple accept={acceptedFileTypes.join(",")} disabled={disabled} aria-describedby={hintId}
+        onChange={event => { select(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
+    </div>
+    {error && <p id={errorId} role="alert" className="text-sm text-destructive">{error}</p>}
+    <p className="sr-only" role="status">Đã chọn {files.length} tệp minh chứng.</p>
+    {!!files.length && <ul className="grid min-w-0 gap-2" aria-label="Minh chứng đã chọn">{files.map((file, index) => <li key={`${file.name}-${index}`} className="flex min-w-0 items-center gap-3 rounded-md border bg-card py-2 pl-3 pr-2">
+      <div className="min-w-0 flex-1"><p className="text-sm [overflow-wrap:anywhere]">{file.name}</p><p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p></div>
+      <Button type="button" variant="ghost" disabled={disabled} aria-label={`Bỏ tệp ${file.name}`} onClick={() => { onFilesChange(files.filter((_, i) => i !== index)); setError(""); choose.current?.focus(); }}>Bỏ tệp</Button>
+    </li>)}</ul>}
+    {disabled && <div role="status" className="space-y-2 text-sm">
+      <p>{progress === undefined ? "Đang gửi thành tích và minh chứng…" : progress < 100 ? `Đang gửi dữ liệu: ${progress}%` : "Đã gửi dữ liệu, đang chờ xác nhận…"}</p>
+      <progress className="h-2 w-full accent-primary" aria-label="Tiến độ gửi dữ liệu minh chứng" max={100} value={progress} />
+    </div>}
+  </div>;
 }
 
 const DEFAULT_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -755,5 +812,3 @@ export default function FileUpload({
     </div>
   );
 }
-
-FileUpload.displayName = "FileUpload";
