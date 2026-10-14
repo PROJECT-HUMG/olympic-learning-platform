@@ -68,16 +68,14 @@ export function PublicAchievementMilestones({ records }: { records: PublicAchiev
           <ol className="achievement-presentation__records">
             {group.records.map(record => (
               <li key={record.id} className="achievement-presentation__record">
-                <p className="achievement-presentation__title">{record.title}</p>
+                <div className="achievement-presentation__record-heading"><h4 className="achievement-presentation__title">{record.title}</h4>{record.pointsText ? <p className="achievement-presentation__points">{record.pointsText}</p> : null}</div>
                 <p className="achievement-presentation__facts">
                   <span>{record.dateText}</span>
                   <span>{record.category}</span>
                   <span>{record.award}</span>
-                  <span>{record.approvedText}</span>
                 </p>
                 {record.description ? <p className="achievement-presentation__description">{record.description}</p> : null}
                 {record.participationText ? <p className="achievement-presentation__participation">{record.participationText}</p> : null}
-                {record.pointsText ? <p className="achievement-presentation__points">{record.pointsText}</p> : null}
               </li>
             ))}
           </ol>

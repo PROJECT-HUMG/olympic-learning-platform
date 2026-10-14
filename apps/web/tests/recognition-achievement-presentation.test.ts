@@ -85,9 +85,9 @@ it("publishes only approved visible achievements, keeps their public copy, and o
   assert.equal(payload.includes("public-description-c"), true);
   assert.equal(payload.includes("OLYMPIC_NATIONAL"), false);
   assert.equal(payload.includes("APPROVED"), false);
-  assert.equal(payload.includes("16 điểm nền tảng"), true);
-  assert.equal(payload.includes("4 điểm nền tảng"), true);
-  assert.equal(payload.includes("0 điểm nền tảng"), true);
+  assert.equal(payload.includes("16 điểm"), true);
+  assert.equal(payload.includes("4 điểm"), true);
+  assert.equal(payload.includes("0 điểm"), true);
   assert.equal(payload.includes("Gồm 99 điểm giải và 99 điểm tham gia."), true);
   assert.deepEqual(records.map(record => record.id), originalIds);
 
@@ -100,7 +100,7 @@ it("publishes only approved visible achievements, keeps their public copy, and o
   assert.equal(national?.approvedText, "Đã duyệt");
   assert.equal(national?.approvedText, STATUS_LABELS.APPROVED);
   assert.equal(national?.participationText, "Gồm 99 điểm giải và 99 điểm tham gia.");
-  assert.equal(national?.pointsText, "16 điểm nền tảng");
+  assert.equal(national?.pointsText, "16 điểm");
   assert.deepEqual(Object.keys(national ?? {}).sort(), ["approvedText", "award", "category", "dateText", "description", "id", "participationText", "pointsText", "title"]);
   assert.deepEqual(Object.keys(labels.visible[0] ?? {}).sort(), ["award", "category", "id", "year"]);
 
@@ -109,7 +109,7 @@ it("publishes only approved visible achievements, keeps their public copy, and o
   ]);
   assert.equal(plain[0]?.records[0]?.description, "public-description-plain");
   assert.equal(plain[0]?.records[0]?.participationText, null);
-  assert.equal(plain[0]?.records[0]?.pointsText, "5 điểm nền tảng");
+  assert.equal(plain[0]?.records[0]?.pointsText, "5 điểm");
 });
 
 it("orders milestone years descending and records chronologically with a deterministic tie-break", () => {
@@ -129,7 +129,7 @@ it("orders milestone years descending and records chronologically with a determi
   assert.deepEqual(first[0]?.records.map(record => record.id), ["a", "c", "b"]);
   assert.equal(first[0]?.records[2]?.category, "Olympic cấp trường");
   assert.equal(first[0]?.records[2]?.award, "Giải nhì");
-  assert.equal(first[0]?.records[2]?.pointsText, "4 điểm nền tảng");
+  assert.equal(first[0]?.records[2]?.pointsText, "4 điểm");
   assert.equal(first[0]?.records[2]?.participationText, "Gồm 99 điểm giải và 99 điểm tham gia.");
   assert.deepEqual(first[3]?.records.map(record => record.id), ["h", "z"]);
   assert.equal(first[3]?.records[0]?.dateText, "Ngày chưa rõ");

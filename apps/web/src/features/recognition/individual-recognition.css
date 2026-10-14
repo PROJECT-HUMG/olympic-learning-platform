@@ -1,0 +1,54 @@
+/* Individual recognition: identity, records, then optional owner settings. */
+.recognition-person, .recognition-personal { max-width:58rem; }
+.recognition-person > .recognition-links { margin-bottom:0; }
+.recognition-person .public-profile-layout { grid-template-columns:minmax(0,1fr); gap:1.5rem; }
+.recognition-person .public-profile-identity { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1.25rem 2rem; padding:0 0 1.5rem; border-bottom:1px solid var(--border); }
+.recognition-person__identity { display:flex; align-items:center; gap:1rem; min-width:0; flex:1 1 20rem; }
+.recognition-person__identity > div { min-width:0; }
+.recognition-person__eyebrow { color:var(--muted-foreground); font-size:.75rem; margin-bottom:.25rem; }
+.recognition-person .public-profile-identity h1 { margin:0 0 .25rem; font-size:clamp(1.25rem,2.4vw,1.65rem); font-weight:600; line-height:1.4; overflow-wrap:anywhere; }
+.recognition-person .public-profile-identity .recognition-person__totals { display:flex; gap:1.5rem; margin:0; padding:0; border:0; }
+.recognition-person__totals > div { min-width:0; }
+.recognition-person .public-profile-identity dd { margin:0; font-size:.875rem; font-weight:400; line-height:1.75; }
+.recognition-person__totals strong { font-size:1.125rem; font-weight:600; font-variant-numeric:tabular-nums; }
+.recognition-person__section-heading { display:grid; gap:.375rem; }
+.recognition-person__section-heading h2, .recognition-personal__section-heading h2 { font-size:1rem; font-weight:600; line-height:1.5; }
+.recognition-person .public-profile-main { gap:1.25rem; }
+.recognition-person .achievement-presentation__year { border:0; border-radius:0; overflow:visible; }
+.recognition-person .achievement-presentation__year + .achievement-presentation__year { margin-top:1.5rem; }
+.recognition-person .achievement-presentation__year-title { font-size:.8125rem; color:var(--muted-foreground); background:transparent; padding:0 0 .5rem; border-bottom:1px solid var(--border); }
+.recognition-person .achievement-presentation__record { padding:1rem 0; gap:.5rem; }
+.achievement-presentation__record-heading { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:.25rem 1rem; }
+.achievement-presentation__record-heading h4 { flex:1 1 22rem; }
+.achievement-presentation__record-heading .achievement-presentation__points { flex-shrink:0; font-variant-numeric:tabular-nums; }
+.recognition-person .achievement-presentation__facts { color:var(--muted-foreground); font-size:.8125rem; }
+.recognition-person .achievement-presentation__facts span + span::before { content:"·"; margin-right:.625rem; }
+.recognition-person__footnote { display:grid; justify-items:start; gap:1rem; border-top:1px solid var(--border); padding-top:1rem; }
+.recognition-person__footnote p { color:var(--muted-foreground); font-size:.8125rem; line-height:1.7; }
+.recognition-person__empty { display:grid; gap:.5rem; padding:1.5rem; border:1px dashed var(--border); border-radius:var(--radius-md); }
+.recognition-person__empty h3 { font-size:1rem; font-weight:600; }
+.recognition-person__empty p { color:var(--muted-foreground); font-size:.875rem; line-height:1.7; }
+.recognition-personal > .recognition-links { margin-top:-.75rem; }
+.recognition-personal__history { min-width:0; }
+.recognition-personal__section-heading { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.75rem; }
+.recognition-personal__records { background:var(--card); border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; }
+.recognition-personal .recognition-record { border:0; border-radius:0; border-bottom:1px solid var(--border); margin:0; padding:1.25rem; gap:.625rem; }
+.recognition-personal .recognition-record:last-child { border-bottom:0; }
+.recognition-personal .recognition-record__heading > div { min-width:0; flex:1 1 15rem; }
+.recognition-personal .recognition-record__heading .recognition-status { flex-shrink:0; }
+.recognition-personal .recognition-record > p { overflow-wrap:anywhere; }
+.recognition-personal__preferences { border-block:1px solid var(--border); }
+.recognition-personal__preferences summary { display:list-item; min-height:44px; padding:.75rem 0; cursor:pointer; font-size:.9375rem; font-weight:600; }
+.recognition-personal__preferences summary .recognition-hint { display:inline; margin-left:.75rem; font-weight:400; }
+.recognition-personal__preferences-body { display:grid; justify-items:start; gap:.75rem; padding:.25rem 0 1rem; }
+@media(max-width:600px) {
+ .recognition-person .user-avatar--profile { width:3.5rem; height:3.5rem; font-size:1.125rem; }
+ .recognition-person__identity { gap:.75rem; }
+ .recognition-person .public-profile-identity .recognition-person__totals { width:100%; gap:1.5rem; padding-left:4.25rem; }
+ .recognition-person__totals > div { flex:1; }
+ .recognition-personal .recognition-record { padding:1rem; }
+ .recognition-personal > .page-heading .recognition-actions { width:100%; }
+ .recognition-personal > .page-heading .recognition-actions > * { flex:1 1 auto; }
+ .recognition-personal__preferences summary .recognition-hint { display:block; margin:.25rem 0 0; }
+}
+@media(max-width:359px) { .recognition-person .public-profile-identity .recognition-person__totals { padding-left:0; } }

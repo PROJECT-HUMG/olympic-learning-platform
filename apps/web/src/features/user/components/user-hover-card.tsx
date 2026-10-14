@@ -25,10 +25,10 @@ export function UserIdentity({ user, from }: {
       onClick={event => event.stopPropagation()} state={{ from: from ?? location.pathname + location.search }} aria-label={`Xem hồ sơ ${name}`}>{content}<ChevronRight className="user-identity__affordance" aria-hidden="true" /></Link></HoverCardTrigger>
     <HoverCardContent className="identity-preview" align="start" collisionPadding={12}>
       {profile.isPending || profile.isFetching ? <p role="status">Đang tải hồ sơ…</p>
-        : profile.isError ? <div role="alert"><p>Hồ sơ chưa khả dụng. Hãy thử lại.</p><Button variant="outline" size="sm" loading={profile.isFetching} onClick={() => void profile.refetch()}>Thử lại</Button></div>
+        : profile.isError ? <div role="alert"><p>Chưa tải được hồ sơ. Vui lòng thử lại.</p><Button variant="outline" size="sm" loading={profile.isFetching} onClick={() => void profile.refetch()}>Thử lại</Button></div>
         : profile.data ? <>
           <div className="identity-preview__heading"><UserAvatar user={profile.data} className="user-avatar--preview" /><div><p className="font-semibold">{profile.data.fullName}</p><p className="text-muted-foreground">@{profile.data.username}</p></div></div>
-          <p className="identity-preview__summary">{profile.data.achievements.length} thành tích công khai đã duyệt · {profile.data.publicPoints} điểm nền tảng</p>
+          <p className="identity-preview__summary">Có {profile.data.achievements.length} thành tích · Tổng {profile.data.publicPoints} điểm</p>
           {profile.data.achievements[0] && <p className="identity-preview__latest">Gần nhất: {profile.data.achievements[0].title}</p>}
           <p className="text-xs text-muted-foreground">Nhấn tên để mở hồ sơ đầy đủ.</p>
         </> : null}

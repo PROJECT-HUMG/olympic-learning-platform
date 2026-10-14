@@ -13,11 +13,15 @@ import { recognitionService as service } from "./service";
 import { HonorImage, Pager, Participants, QueryFeedback, ScoringRules, YearField } from "./components";
 import type { PublicAchievement } from "./types";
 import { RankingList } from "./ranking-presentation";
-import { EditorialHonorLabel, PublicAchievementLabels, PublicAchievementMilestones } from "./achievement-presentation";
+import { EditorialHonorLabel, PublicAchievementMilestones } from "./achievement-presentation";
 import { UserAvatar } from "@/features/user/components/user-avatar";
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { publicProfileReturnTarget } from "@/features/user/lib/public-identity";
+import { parseApiError } from "@/lib/api-error";
 import { usePublicProfile } from "@/features/user/hooks/use-public-profile";
 import "@/features/user/components/public-profile.css";
 import "./recognition.css";
+import "./individual-recognition.css";
 
 function useListFilters() {
   const [params, setParams] = useSearchParams();
@@ -117,25 +121,32 @@ export function PublicAchievementList({ records }: { records: PublicAchievement[
 export function AchievementProfilePage() {
   const { userId = "" } = useParams();
   const location = useLocation();
-  const from = getListReturnPath(location.state?.from, "/rankings");
+  const back = publicProfileReturnTarget(location.state?.from);
   const profile = usePublicProfile(userId);
+  const current = useCurrentUser();
+  // Revalidation/error clears public data exactly as before; never seed from the private record list.
   const data = !profile.isError && !profile.isFetching ? profile.data : undefined;
-  return <div className="page-shell page-shell--public recognition-page">
-    <nav className="recognition-links" aria-label="Điều hướng hồ sơ"><Button asChild variant="outline"><Link to={from}>Về danh sách</Link></Button><Button asChild variant="ghost"><Link to="/honors">Vinh danh</Link></Button></nav>
-    {!data && <PageHeader title="Hồ sơ công khai" description="Danh tính và các thành tích công khai đã duyệt." />}
-    <QueryFeedback pending={profile.isPending || profile.isFetching} error={profile.isError} retrying={profile.isFetching} retry={() => void profile.refetch()}>
+  const ownStudentProfile = !current.isError && !current.isFetching && current.data?.id === userId && current.data.role === "STUDENT";
+  const unavailable = profile.isError && parseApiError(profile.error).status === 404;
+  return <div className="page-shell page-shell--public recognition-page recognition-person">
+    <nav className="recognition-links" aria-label="Điều hướng hồ sơ">
+      <Button asChild variant="outline"><Link to={back.to}>{back.label}</Link></Button>
+      {ownStudentProfile && <Button asChild variant="secondary"><Link to="/profile/achievements">Quản lý thành tích</Link></Button>}
+    </nav>
+    {!data && <PageHeader title="Hồ sơ thành viên" />}
+    <QueryFeedback pending={profile.isPending || profile.isFetching} error={profile.isError} retrying={profile.isFetching} retry={() => void profile.refetch()}
+      pendingText="Đang tải hồ sơ…" errorText={unavailable ? "Không tìm thấy hồ sơ hoặc tài khoản hiện không khả dụng." : "Chưa tải được hồ sơ. Vui lòng thử lại."}>
       {data && <div className="public-profile-layout">
-        <aside className="public-profile-identity content-card">
-          <UserAvatar user={data} className="user-avatar--profile" />
-          <h1>{data.fullName}</h1><p className="recognition-hint">@{data.username}</p>
-          <dl><div><dt>Thành tích công khai đã duyệt</dt><dd>{data.achievements.length}</dd></div><div><dt>Điểm công khai</dt><dd>{data.publicPoints}</dd></div></dl>
-          <p className="recognition-hint">{data.rankingOptIn ? "Đã chọn tham gia bảng xếp hạng." : "Chưa tham gia bảng xếp hạng."}</p>
-          <p className="recognition-hint mt-3">Điểm nền tảng ghi nhận thành tích đã duyệt, không phải đánh giá học thuật chính thức.</p>
-        </aside>
+        <header className="public-profile-identity">
+          <div className="recognition-person__identity"><UserAvatar user={data} className="user-avatar--profile" /><div><p className="recognition-person__eyebrow">Hồ sơ thành viên</p><h1>{data.fullName}</h1><p className="recognition-hint">@{data.username}</p></div></div>
+          <dl className="recognition-person__totals"><div><dt className="sr-only">Số thành tích</dt><dd>Có <strong>{data.achievements.length}</strong> thành tích</dd></div><div><dt className="sr-only">Tổng điểm thành tích</dt><dd>Tổng <strong>{data.publicPoints}</strong> điểm</dd></div></dl>
+        </header>
         <div className="public-profile-main">
-          <header className="page-heading"><div className="page-heading__copy"><h2 className="page-heading__title">Hồ sơ thành tích</h2><p className="page-heading__description">Các dấu mốc công khai đã được duyệt. Thông tin tài khoản, nhận xét nội bộ và minh chứng không công khai.</p></div></header>
-          <PublicAchievementLabels records={data.achievements} />
-          <PageSection title="Dấu mốc theo thời gian">{data.achievements.length ? <PublicAchievementList records={data.achievements} /> : <p className="recognition-hint">Chưa có thành tích công khai đã duyệt.</p>}</PageSection>
+          <div className="recognition-person__section-heading"><h2>Thành tích và giải thưởng</h2><p className="recognition-hint">Các kết quả đã được duyệt, mới nhất trước.</p></div>
+          {data.achievements.length ? <PublicAchievementList records={data.achievements} /> : <div className="recognition-person__empty" role="status"><h3>Chưa có thành tích để hiển thị</h3><p>Khi có thành tích được duyệt và cho phép hiển thị, bạn sẽ thấy tại đây.</p></div>}
+          <footer className="recognition-person__footnote"><p>Tổng điểm chỉ tính các thành tích hiển thị trong hồ sơ.</p>
+            {data.rankingOptIn && <Button asChild variant="outline"><Link to="/rankings">Xem bảng xếp hạng</Link></Button>}
+          </footer>
         </div>
       </div>}
     </QueryFeedback>

@@ -234,3 +234,8 @@ or dependency addition; account-specific animation is removed from navigation.cs
 Known limits: exact operator device/live bundle, physical keyboard/visual viewport
 and real upload/backend behavior remain unverified. The prior seven-path Daily
 recovery and unrelated documentation remain separately dirty.
+
+
+## CreationDialog and error-toast coexistence — 15/10/2026
+
+[Sonner presentation](../../../apps/web/src/components/ui/sonner.css) owns the top-right toast gutter while an open CreationDialog is present. Match the existing [68rem/full-screen frame](../../../apps/web/src/components/ui/creation-dialog.css): the toast remains readable beside the Close action rather than obscuring it. Width and safe insets remain bounded; ordinary placement returns on modal close. If CreationDialog frame/Close sizing changes, verify this geometry too. This CSS-only exception does not hide error feedback, alter Sonner timers/announcements or change Radix focus, busy/dirty confirmation or nesting. [Actual touch/error regression](../../../apps/web/tests/individual-recognition-browser-check.mjs) supports `--toast-before` (pinned prior CSS) and `--toast-only`; [review/proof](../../reviews/ux-flow-audit.md#profile-clarity-review-and-toast-close-correction--15102026).

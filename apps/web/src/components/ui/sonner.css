@@ -1,4 +1,4 @@
-/* Presentation only: Sonner owns positioning, stacking, timers and dismissal. */
+/* Presentation only: Sonner owns stacking, timers and dismissal. */
 .olympic-toaster[data-sonner-toaster] [data-sonner-toast].olympic-toast[data-styled="true"] {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr);
@@ -131,4 +131,23 @@
 
 .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:not(:has([data-icon])) :is([data-content], [data-button]) {
   grid-column: 1;
+}
+
+/* CreationDialog owns a68rem frame and a top-right Close action. Keep transient
+   notifications beside that action, not over it, including full-screen forms. */
+body:has(.creation-dialog[data-state="open"]) .olympic-toaster[data-sonner-toaster][data-y-position="top"][data-x-position="right"] {
+  --dialog-toast-gutter: max(8rem, calc((100vw - 68rem) / 2 + 7rem));
+  left: auto;
+  right: var(--dialog-toast-gutter);
+  width: min(var(--width), calc(100vw - max(1rem, env(safe-area-inset-left)) - var(--dialog-toast-gutter)));
+}
+
+body:has(.creation-dialog[data-state="open"]) .olympic-toaster[data-sonner-toaster][data-y-position="top"][data-x-position="right"] [data-sonner-toast] {
+  width: 100%;
+}
+
+@media (max-width: 640px), (max-width: 1024px) and (max-height: 480px) {
+  body:has(.creation-dialog[data-state="open"]) .olympic-toaster[data-sonner-toaster][data-y-position="top"][data-x-position="right"] {
+    --dialog-toast-gutter: max(6rem, calc(5rem + env(safe-area-inset-right)));
+  }
 }

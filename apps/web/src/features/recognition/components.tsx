@@ -14,10 +14,10 @@ import { recognitionService as service } from "./service";
 import { CATEGORIES, AWARDS, PARTICIPATION, estimatePoints } from "./scoring";
 import type { Evidence, Honor, Participant, RecognitionPage } from "./types";
 
-export function QueryFeedback({ pending, error, empty, retry, retrying, children }: { pending: boolean; error: boolean; empty?: boolean; retry: () => void; retrying: boolean; children: ReactNode }) {
-  if (pending) return <div className="recognition-feedback" role="status">Đang tải thông tin…</div>;
-  if (error) return <div className="recognition-feedback" role="alert"><p>Chưa tải được thông tin. Kiểm tra kết nối và thử lại.</p><Button variant="outline" loading={retrying} onClick={retry}>Thử lại</Button></div>;
-  if (empty) return <p className="recognition-feedback" role="status">Chưa có nội dung phù hợp với lựa chọn này.</p>;
+export function QueryFeedback({ pending, error, empty, retry, retrying, children, pendingText = "Đang tải thông tin…", errorText = "Chưa tải được thông tin. Kiểm tra kết nối và thử lại.", emptyText = "Chưa có nội dung phù hợp với lựa chọn này." }: { pending: boolean; error: boolean; empty?: boolean; retry: () => void; retrying: boolean; children: ReactNode; pendingText?: string; errorText?: string; emptyText?: string }) {
+  if (pending) return <div className="recognition-feedback" role="status" aria-busy="true">{pendingText}</div>;
+  if (error) return <div className="recognition-feedback" role="alert"><p>{errorText}</p><Button type="button" variant="outline" loading={retrying} onClick={retry}>Thử lại</Button></div>;
+  if (empty) return <p className="recognition-feedback" role="status">{emptyText}</p>;
   return children;
 }
 export function Field({ title, children, hint, hideLabel = false }: { title: string; children: (id: string) => ReactNode; hint?: string; hideLabel?: boolean }) {

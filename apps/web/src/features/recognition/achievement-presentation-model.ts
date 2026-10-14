@@ -99,7 +99,7 @@ function formatDate(value: string): string {
 
 function formatPoints(points: number): string | null {
   if (!Number.isFinite(points)) return null;
-  return `${points} điểm nền tảng`;
+  return `${points} điểm`;
 }
 
 function formatParticipation(record: PublicAchievement): string | null {

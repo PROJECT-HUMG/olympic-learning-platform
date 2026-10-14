@@ -63,7 +63,7 @@ try {
  await call('Input.dispatchMouseEvent',{type:'mouseMoved',x:1,y:1});await wait('!document.querySelector(".identity-preview")');checks.push('Pointer hover opens bounded preview; pointer leave closes it');
  await js('document.querySelector("a.user-identity").focus()');
  await wait('!!document.querySelector(".identity-preview") && document.querySelector(".identity-preview").innerText.includes("16 điểm")');
- assert((await js('document.querySelector(".identity-preview").innerText')).includes('1 thành tích công khai đã duyệt'));
+ assert((await js('document.querySelector(".identity-preview").innerText')).includes('Có 1 thành tích'));
  await shot('keyboard-preview');
  await wait('Array.from(document.querySelectorAll("a.user-identity .user-avatar")).every(a=>a.textContent.trim().length>0)');
  checks.push('Keyboard focus preview and broken-avatar initials; minimal preview summary matches full page');
@@ -84,7 +84,7 @@ try {
  checks.push('Denied/refetched preview masks cached stats; retry restores public result');
  await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await wait('!document.querySelector(".identity-preview")');checks.push('Preview Escape dismisses without navigation');
  profileStatus=503;await nav('/users/'+other);await wait('!!document.querySelector(".recognition-feedback[role=alert]")');await shot('profile-error');
- profileStatus=200;empty=true;await js('document.querySelector(".recognition-feedback button").click()');await wait('document.querySelector(".page-shell")?.innerText.includes("Chưa có thành tích công khai đã duyệt")');await shot('profile-empty');
+ profileStatus=200;empty=true;await js('document.querySelector(".recognition-feedback button").click()');await wait('document.querySelector(".page-shell")?.innerText.includes("Chưa có thành tích để hiển thị")');await shot('profile-empty');
  checks.push('Full profile failure, retry and empty approved-public state');empty=false;delay=900;
  await nav('/rankings');await wait('!!document.querySelector("a.user-identity")');await js('document.querySelector("a.user-identity").focus()');await wait('document.querySelector(".identity-preview")?.innerText.includes("Đang tải")');await shot('preview-loading');delay=0;
  profile.avatarUrl='/synthetic-avatar-ok.svg';await nav('/users/'+id);await wait('!!document.querySelector(".public-profile-identity img")?.naturalWidth');await shot('valid-avatar-390');checks.push('Successful source-backed avatar rendered through cropped AvatarImage owner');
