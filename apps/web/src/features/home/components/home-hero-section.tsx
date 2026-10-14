@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BlurText from "@/components/react-bits/blur-text";
 import { ROUTES } from "@/router/route-constants";
+import { CinematicScene } from "@/components/ui/cinematic-scene";
 import "./home-hero-section.css";
 
 export function HomeHeroSection() {
@@ -47,6 +48,9 @@ export function HomeHeroSection() {
               </Link>
             </div>
           </div>
+        </div>
+        <div className="home-hero__window" aria-hidden="true">
+          <CinematicScene preloadAtStartup={false} />
         </div>
       </div>
     </section>

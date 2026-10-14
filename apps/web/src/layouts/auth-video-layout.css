@@ -1,0 +1,38 @@
+/* Auth presentation recovered from f2ef576^ WelcomeLayout: full scene, form
+   rail and moving reading mask; retain current controls and mobile forms.
+   Scoped so the unrelated, non-animated WelcomeLayout/404 stays unchanged. */
+.welcome-layout--auth-video { position: relative; isolation: isolate; display: flex; flex-direction: column; min-height: 100svh; --auth-slide: 640ms cubic-bezier(.22, 1, .36, 1); }
+.welcome-layout--auth-video .welcome-layout__scene { container-type: inline-size; position: fixed; z-index: -1; inset: 0; overflow: hidden; pointer-events: none; }
+.welcome-layout--auth-video .welcome-layout__scene > .cinematic-scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+.welcome-layout--auth-video .welcome-layout__scene .cinematic-scene__layer > :is(img, video) { transition: object-position var(--auth-slide), opacity 400ms ease; }
+.welcome-layout--auth-video .welcome-layout__scene [data-scene="day"] > :is(img, video) { object-position: right center; }
+.welcome-layout--auth-video .welcome-layout__scene [data-scene="night"] > :is(img, video) { object-position: left center; }
+.welcome-layout--auth-video .welcome-layout__scene::after {
+  content: ""; position: absolute; z-index: 1; top: 0;
+  left: calc(max(2rem, 50% - 38rem) - 36rem); width: 99rem; height: 100%;
+  background: linear-gradient(90deg, transparent,
+    color-mix(in srgb, var(--background) 32%, transparent) 12rem,
+    color-mix(in srgb, var(--background) 92%, transparent) 24rem,
+    color-mix(in srgb, var(--background) 98%, transparent) 30rem,
+    var(--background) 36rem, var(--background) 63rem,
+    color-mix(in srgb, var(--background) 98%, transparent) 69rem,
+    color-mix(in srgb, var(--background) 92%, transparent) 75rem,
+    color-mix(in srgb, var(--background) 32%, transparent) 87rem, transparent);
+  transition: transform var(--auth-slide);
+}
+@media (min-width: 1024px) {
+  .welcome-layout--auth-video .welcome-layout__header,
+  .welcome-layout--auth-video .welcome-layout__main { width: 100%; max-width: 80rem; margin-inline: auto; padding-inline: 2rem; }
+  .welcome-layout--auth-video .welcome-layout__header { min-height: 5rem; border-bottom: 0; }
+  .welcome-layout--auth-video .welcome-layout__main { container-type: inline-size; flex: 1; display: flex; align-items: flex-start; padding-block: 1.25rem 3rem; }
+  .welcome-layout--auth-video .welcome-layout__content { width: min(100%, 27rem); min-width: 0; transition: transform var(--auth-slide); }
+  .welcome-layout--auth-video[data-content-side="right"] .welcome-layout__content { transform: translateX(calc(100cqw - 100%)); }
+  .welcome-layout--auth-video[data-content-side="right"] .welcome-layout__scene::after { transform: translateX(calc(min(100cqw, 80rem) - 4rem - 27rem)); }
+  .welcome-layout--auth-video[data-content-side="right"] .welcome-layout__scene [data-scene="day"] > :is(img, video) { object-position: left center; }
+  .welcome-layout--auth-video[data-content-side="right"] .welcome-layout__scene [data-scene="night"] > :is(img, video) { object-position: right center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .welcome-layout--auth-video .welcome-layout__content,
+  .welcome-layout--auth-video .welcome-layout__scene .cinematic-scene__layer > :is(img, video),
+  .welcome-layout--auth-video .welcome-layout__scene::after { transition: none; }
+}

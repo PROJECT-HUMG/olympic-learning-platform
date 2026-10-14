@@ -5,10 +5,12 @@ import { isStartupPending, trackStartupTask } from "@/app/startup-preloader";
 import { CINEMATIC_VIDEO_SOURCES, getPreparedVideoSource, preloadCinematicVideo } from "./cinematic-media";
 import "./cinematic-scene.css";
 
-export function CinematicScene({ className, animated = true, respectReducedMotion = true }: {
+export function CinematicScene({ className, animated = true, respectReducedMotion = true, preloadAtStartup = true }: {
   className?: string;
   animated?: boolean;
   respectReducedMotion?: boolean;
+  // Auth retains its existing shared preparation; decorative Home never gates search readiness.
+  preloadAtStartup?: boolean;
 }) {
   const theme = useResolvedTheme();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -73,7 +75,7 @@ export function CinematicScene({ className, animated = true, respectReducedMotio
           continue;
         }
         if (!video.hasAttribute("src")) {
-          if (preparing.has(video) || isStartupPending()) {
+          if (preparing.has(video) || (preloadAtStartup && isStartupPending())) {
             prepare(video);
             continue;
           }
@@ -124,7 +126,7 @@ export function CinematicScene({ className, animated = true, respectReducedMotio
     motion.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     syncRef.current = sync;
-    if (animated && !reduced() && isStartupPending()) prepare(selected());
+    if (preloadAtStartup && animated && !reduced() && isStartupPending()) prepare(selected());
     sync();
 
     return () => {
@@ -140,7 +142,7 @@ export function CinematicScene({ className, animated = true, respectReducedMotio
         video.removeEventListener("error", onError);
       }
     };
-  }, [animated, respectReducedMotion]);
+  }, [animated, respectReducedMotion, preloadAtStartup]);
 
   return (
     <div ref={rootRef} className={cn("cinematic-scene", className)} data-theme={theme} data-animated={animated} data-respect-reduced-motion={respectReducedMotion} aria-hidden="true">
