@@ -1,47 +1,23 @@
 import { Link } from "react-router-dom";
-import { Zap, BookOpen, History, GraduationCap, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { BookOpen, CalendarDays, Newspaper, User, ArrowUpRight } from "lucide-react";
+import { PageSection } from "@/components/ui/page-section";
 import { ROUTES } from "@/router/route-constants";
 
+const links = [
+  { href: ROUTES.DOCUMENTS, label: "Kho tài liệu", icon: BookOpen },
+  { href: ROUTES.NEWS, label: "Bảng tin", icon: Newspaper },
+  { href: ROUTES.DAILY, label: "Daily của tôi", icon: CalendarDays },
+  { href: ROUTES.PROFILE, label: "Hồ sơ cá nhân", icon: User },
+];
+
 export function DashboardQuickActions() {
-  return (
-    <section className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs space-y-4">
-      <div className="flex items-center gap-2.5 border-b border-border/60 pb-4">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600">
-          <Zap className="size-5" />
-        </div>
-        <h3 className="text-lg font-bold text-foreground">Thao Tác Nhanh</h3>
-      </div>
-
-      <div className="grid gap-2.5">
-        <Button asChild variant="outline" className="justify-start h-11 rounded-xl">
-          <Link to={ROUTES.PRACTICE}>
-            <BookOpen className="mr-2.5 size-4 text-primary" />
-            Bắt đầu làm bài tập
-          </Link>
-        </Button>
-
-        <Button asChild variant="outline" className="justify-start h-11 rounded-xl">
-          <Link to={ROUTES.HISTORY}>
-            <History className="mr-2.5 size-4 text-emerald-500" />
-            Xem lịch sử thi
-          </Link>
-        </Button>
-
-        <Button asChild variant="outline" className="justify-start h-11 rounded-xl">
-          <Link to={ROUTES.DOCUMENTS}>
-            <GraduationCap className="mr-2.5 size-4 text-amber-500" />
-            Tải tài liệu mới
-          </Link>
-        </Button>
-
-        <Button asChild variant="outline" className="justify-start h-11 rounded-xl">
-          <Link to={ROUTES.PROFILE}>
-            <User className="mr-2.5 size-4 text-purple-500" />
-            Cập nhật hồ sơ
-          </Link>
-        </Button>
-      </div>
-    </section>
-  );
+  return <PageSection title="Khám phá và cá nhân" className="dashboard-task-group">
+    <nav aria-label="Lối tắt học tập" className="flex flex-col">
+      {links.map(item => <Link key={item.href} to={item.href} className="dashboard-shortcut">
+        <item.icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+        <span className="min-w-0 flex-1 text-sm">{item.label}</span>
+        <ArrowUpRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+      </Link>)}
+    </nav>
+  </PageSection>;
 }

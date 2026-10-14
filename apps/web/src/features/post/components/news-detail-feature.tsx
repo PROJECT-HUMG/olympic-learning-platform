@@ -36,6 +36,8 @@ import { ShareButtons } from "@/features/post/components/share-buttons";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 import { getListReturnPath } from "@/lib/list-navigation";
 import { parseApiError } from "@/lib/api-error";
+import "./news-detail.css";
+import "./public-news-feature.css";
 
 function calculateReadingTime(text: string): number {
   const wordsPerMinute = 250;
@@ -50,7 +52,7 @@ function NewsDetailSkeleton() {
   return (
     <div className="min-h-screen" role="status" aria-label="Đang tải bài viết" aria-busy="true">
       {/* Breadcrumb skeleton */}
-      <div className="mx-auto max-w-5xl px-4 pt-4 sm:px-6 sm:pt-8 lg:px-8">
+      <div className="news-reader__container news-reader__navigation">
         <div className="mb-3 flex items-center gap-2 sm:mb-6">
           <Skeleton className="h-4 w-16" />
           <span className="text-muted-foreground/30" aria-hidden="true">/</span>
@@ -61,7 +63,7 @@ function NewsDetailSkeleton() {
       </div>
 
       {/* Compact title + thumbnail skeleton */}
-      <div className="mx-auto max-w-4xl px-4 pt-4 sm:px-6 sm:pt-10">
+      <div className="news-reader__container news-reader__heading">
         <div className="grid gap-4 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_260px]">
           <div>
             <div className="space-y-3">
@@ -86,7 +88,7 @@ function NewsDetailSkeleton() {
       </div>
 
       {/* Article content skeleton */}
-      <div className="mx-auto mt-6 max-w-[72ch] px-4 sm:mt-8 sm:px-6">
+      <div className="news-reader__container news-reader__body">
         <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
           <Skeleton className="h-4 w-36" />
           <div className="mt-3 space-y-2">
@@ -168,7 +170,6 @@ export function NewsDetailFeature() {
   const { slug } = useParams<{ slug: string }>();
   const location = useLocation();
   const returnPath = getListReturnPath(location.state?.from, ROUTES.NEWS);
-  const reduceMotion = useReducedMotion();
   const { data: post, isLoading, isError, error, refetch, isFetching } = usePost(slug || "", true);
   const articleRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -208,12 +209,12 @@ export function NewsDetailFeature() {
   const currentUrl = window.location.href;
 
   return (
-    <div ref={articleRef} className="min-h-screen pb-16">
+    <div ref={articleRef} className="news-reader pb-16">
       {/* ── Reading Progress Bar ── */}
       <ReadingProgressBar targetRef={articleRef} />
 
       {/* ── Breadcrumb ── */}
-      <div className="mx-auto max-w-5xl px-4 pt-4 sm:px-6 sm:pt-8 lg:px-8">
+      <div className="news-reader__container news-reader__navigation">
         {post.expiredAt && new Date(post.expiredAt) <= new Date() && (
           <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200">
             <AlertTriangle className="mt-0.5 size-4 shrink-0" />
@@ -244,11 +245,8 @@ export function NewsDetailFeature() {
       </div>
 
       {/* ── Compact title and thumbnail header ── */}
-      <motion.header
-        initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: reduceMotion ? 0 : 0.5, delay: reduceMotion ? 0 : 0.15, ease: [0.16, 1, 0.3, 1] }}
-        className="mx-auto max-w-4xl px-4 pt-4 sm:px-6 sm:pt-10"
+      <header
+        className="news-reader__container news-reader__heading"
       >
         <div className={`grid gap-4 sm:gap-8 ${post.thumbnailUrl ? "lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start" : ""}`}>
           <div>
@@ -305,16 +303,12 @@ export function NewsDetailFeature() {
             </div>
           )}
         </div>
-      </motion.header>
+      </header>
 
       {/* ── Content Area: Sidebar + Article ── */}
-      <div className="mx-auto mt-6 max-w-[72ch] px-4 sm:mt-8 sm:px-6">
+      <div className="news-reader__container news-reader__body">
         {/* ── Article Content ── */}
-        <motion.article
-          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduceMotion ? 0 : 0.5, delay: reduceMotion ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
-        >
+        <article>
           {/* Article contents */}
           <MobileToc contentRef={contentRef} />
 
@@ -341,18 +335,12 @@ export function NewsDetailFeature() {
             />
           </div>
 
-        </motion.article>
+        </article>
       </div>
 
       {/* ── Related Posts ── */}
       {filteredRelatedPosts.length > 0 && (
-        <motion.section
-          initial={reduceMotion ? false : { opacity: 0, y: 32 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: reduceMotion ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto mt-10 max-w-5xl sm:mt-16 px-4 sm:px-6 lg:px-8"
-        >
+        <section className="news-reader__container news-reader__related">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xl font-bold tracking-tight">
               Bài viết liên quan
@@ -362,23 +350,9 @@ export function NewsDetailFeature() {
             </Button>
           </div>
           <div className="space-y-3">
-            {filteredRelatedPosts.map((relatedPost, index) => (
-              <motion.div
-                key={relatedPost.id}
-                initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{
-                  duration: reduceMotion ? 0 : 0.4,
-                  delay: reduceMotion ? 0 : index * 0.08,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-              >
-                <PostListItem post={relatedPost} />
-              </motion.div>
-            ))}
+            {filteredRelatedPosts.map(relatedPost => <PostListItem key={relatedPost.id} post={relatedPost} variant="board" />)}
           </div>
-        </motion.section>
+        </section>
       )}
     </div>
   );

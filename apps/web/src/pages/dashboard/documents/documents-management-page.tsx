@@ -22,7 +22,7 @@ import { DashboardDocumentList } from "@/features/documents/components/dashboard
 import { DocumentForm } from "@/features/documents/components/document-form";
 import { toast } from "sonner";
 import { CreationDialog, type CreationState } from "@/components/ui/creation-dialog";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useUrlListSearch } from "@/hooks/use-list-search";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,7 +38,7 @@ import type { DocumentResponse } from "@/features/documents/types/documents.type
 export default function DocumentsManagementPage() {
   const [params, setParams] = useSearchParams();
   const keyword = params.get("keyword") ?? "";
-  const debouncedKeyword = useDebounce(keyword, 500);
+  const search = useUrlListSearch(keyword, value => setParams(previous => replaceListParam(previous, "keyword", value), { replace: true }));
   const currentPage = getPageNumber(params.get("page"));
   const setCurrentPage = (page: number) => setParams(previous => replaceListParam(previous, "page", String(page)), { replace: true });
   const { data: user } = useCurrentUser();
@@ -54,7 +54,7 @@ export default function DocumentsManagementPage() {
     refetch,
     isFetching,
   } = useSearchDocuments({
-    keyword: debouncedKeyword,
+    keyword,
     subjectId: params.get("subjectId") || undefined,
     categoryId: params.get("categoryId") || undefined,
     page: apiPageOffset,
@@ -137,10 +137,7 @@ export default function DocumentsManagementPage() {
           <SearchInput aria-label="Tìm kiếm tài liệu"
             placeholder="Tìm kiếm tài liệu..."
             className="pl-9 h-11"
-            value={keyword}
-            onChange={(e) => {
-              setParams(previous => replaceListParam(previous, "keyword", e.target.value), { replace: true }); // Reset page on search
-            }}
+            {...search.input}
           />
         </div>
         <div className="grid w-full grid-cols-2 gap-3 sm:w-auto sm:flex-[1_1_20rem]">
@@ -155,9 +152,9 @@ export default function DocumentsManagementPage() {
             </NativeSelect>
           </label>
         </div>
-        {(keyword || params.get("subjectId") || params.get("categoryId")) && <Button type="button" variant="ghost" onClick={() => setParams(previous => {
+        {(keyword || params.get("subjectId") || params.get("categoryId")) && <Button type="button" variant="ghost" onClick={() => { search.resetDraft(); setParams(previous => {
           const next = new URLSearchParams(previous); for (const key of ["keyword", "subjectId", "categoryId", "page"]) next.delete(key); return next;
-        })}>Xóa bộ lọc</Button>}
+        }); }}>Xóa bộ lọc</Button>}
 
       </div>
 

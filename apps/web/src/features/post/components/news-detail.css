@@ -1,0 +1,9 @@
+/* Article header, reading body and related links share one edge and readable measure. */
+.news-reader { min-width:0; background:var(--card); }
+.news-reader__container { width:100%; max-width:52rem; margin-inline:auto; padding-inline:var(--page-gutter); }
+.news-reader__navigation { padding-top:1.5rem; }
+.news-reader__heading { padding-top:.5rem; }
+.news-reader__body { margin-top:1.5rem; }
+.news-reader__related { margin-top:2.5rem; }
+.news-reader__related h2 { font-size:1.125rem; font-weight:600; }
+@media(max-width:640px) { .news-reader__navigation { padding-top:1rem; } .news-reader__body { margin-top:1.25rem; } }

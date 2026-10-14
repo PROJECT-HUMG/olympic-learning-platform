@@ -81,7 +81,7 @@ export function Combobox({
   }, [activeIndex, isOpen]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (disabled) return;
+    if (disabled || e.nativeEvent.isComposing) return;
 
     switch (e.key) {
       case "ArrowDown":

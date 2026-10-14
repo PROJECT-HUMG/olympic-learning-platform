@@ -16,9 +16,9 @@ export const questionService = {
     search?: string;
     page?: number;
     size?: number;
-  }) {
+  }, signal?: AbortSignal) {
     return apiClient
-      .get<QuestionPage>("/questions", { params })
+      .get<QuestionPage>("/questions", { params, signal })
       .then((response) => response.data);
   },
 

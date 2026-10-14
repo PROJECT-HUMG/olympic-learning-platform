@@ -1,8 +1,8 @@
-.toolkit-workspace { box-shadow:var(--surface-shadow); border: 1px solid var(--surface-border); border-radius: 1rem; background: var(--card); }
-.toolkit-workspace__tabs { display: flex; width: 100%; height: auto; padding: 0; border-bottom: 1px solid var(--border); border-radius: 1rem 1rem 0 0; background: transparent; }
+.toolkit-workspace { box-shadow:none; border:0; border-radius:0; background:transparent; }
+.toolkit-workspace__tabs { display: flex; width: 100%; height: auto; padding: 0; border-bottom: 1px solid var(--border); border-radius: var(--panel-radius) 1rem 0 0; background: transparent; }
 .toolkit-workspace__tabs [role="tab"] { min-height: 3.5rem; padding: .75rem 1rem; border: 0; border-bottom: 2px solid transparent; border-radius: 0; gap: .6rem; box-shadow: none; }
 .toolkit-workspace__tabs [role="tab"][data-state="active"] { border-bottom-color: var(--primary); background: transparent; color: var(--primary); box-shadow: none; }
-.toolkit-workspace [role="tabpanel"] { padding: 2rem; }
+.toolkit-workspace [role="tabpanel"] { padding: 1.25rem 0; }
 /* Room discovery is a work surface, not another card inside the page. GPA stays unchanged. */
 .toolkit-workspace--rooms { box-shadow:none; border: 0; border-radius: 0; background: transparent; }
 .toolkit-workspace--rooms .toolkit-workspace__tabs { justify-content: flex-start; border-radius: 0; }
@@ -29,23 +29,23 @@
 .toolkit-gpa__result > div { flex-shrink: 0; }
 .toolkit-gpa__result p { color: var(--muted-foreground); font-size: .8125rem; line-height: 1.75; }
 .toolkit-gpa__result > p { max-width: 35ch; }
-.toolkit-gpa__result strong { display: block; margin-top: .25rem; color: var(--primary); font-size: 2.75rem; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.3; }
+.toolkit-gpa__result strong { display: block; margin-top: .25rem; color: var(--primary); font-size: 2rem; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.3; }
 .toolkit-gpa__result small { font-size: 1rem; color: var(--muted-foreground); font-weight: 400; }
 .toolkit-gpa-goal { margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border); }
 .toolkit-gpa-goal__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-top: 1.5rem; }
 .toolkit-gpa-goal__fields > div { min-width: 0; }
 .toolkit-gpa-goal__fields label { display: block; margin-bottom: .5rem; font-size: .8125rem; font-weight: 500; }
 .toolkit-gpa-goal__fields input { min-height: 2.75rem; }
-.toolkit-gpa-goal__result { margin-top: 1.5rem; padding: 1.25rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--muted); }
+.toolkit-gpa-goal__result { margin-top: 1.5rem; padding: 1.25rem; border: 1px solid var(--border); border-radius: var(--panel-radius); background: var(--muted); }
 .toolkit-gpa-goal__result p { color: var(--muted-foreground); font-size: .875rem; line-height: 1.8; }
-.toolkit-gpa-goal__result strong { display: block; color: var(--primary); font-size: 2.5rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.toolkit-gpa-goal__result strong { display: block; color: var(--primary); font-size: 2rem; font-weight: 500; font-variant-numeric: tabular-nums; }
 .toolkit-gpa-goal__result small { color: var(--muted-foreground); font-size: 1rem; }
 
 @media (max-width: 639px) {
   .toolkit-gpa-goal__fields { grid-template-columns: minmax(0, 1fr); }
 
 
-  .toolkit-workspace [role="tabpanel"] { padding: 1.25rem; }
+  .toolkit-workspace [role="tabpanel"] { padding: 1rem 0; }
   .toolkit-gpa__row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.75rem; gap: .75rem; padding-block: 1rem; }
   .toolkit-gpa__name { grid-column: 1 / -1; }
   .toolkit-gpa__row input, .toolkit-gpa__scale select { font-size: 1rem; }

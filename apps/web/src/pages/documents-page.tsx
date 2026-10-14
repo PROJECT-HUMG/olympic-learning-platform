@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { LayoutGrid, List as ListIcon } from "lucide-react";
 import { useDocumentDownloadModal } from "@/features/documents/hooks/use-document-download-modal";
 import { DocumentDownloadModal } from "@/features/documents/components/document-download-modal";
+import { PublicPageHeader } from "@/components/ui/public-page-header";
 
 export default function DocumentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -74,20 +75,27 @@ export default function DocumentsPage() {
   };
 
   return (
-    <div className="page-shell page-shell--public">
-      <h1 className="sr-only">Kho tài liệu</h1>
+    <div className="page-shell page-shell--public document-library">
+      <PublicPageHeader
+        breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Kho tài liệu" }]}
+        title="Kho tài liệu"
+        description="Tìm theo tên, môn học và loại tài liệu."
+      />
 
-      <DocumentFilters />
+      <div className="document-browser">
+        <aside className="document-browser__filters" aria-label="Tìm và lọc tài liệu"><h2>Tìm tài liệu</h2><DocumentFilters /></aside>
+        <section className="document-browser__results" aria-labelledby="document-results-title">
+      <p className="list-search-status" role="status">{isFetching ? "Đang cập nhật tài liệu…" : ""}</p>
 
-      <div className="flex justify-between items-center gap-2">
-        <h2 className="text-sm font-medium text-muted-foreground">
+      <div className="document-browser__heading">
+        <h2 id="document-results-title" className="text-sm font-medium text-muted-foreground">
           {isError ? "Chưa tải được tài liệu" : data ? `${data.totalElements} tài liệu` : "Đang tìm kiếm…"}
         </h2>
         <div className="flex items-center gap-1">
           <Button
             variant={viewMode === "list" ? "secondary" : "ghost"}
             size="icon"
-            className={`h-11 w-11 rounded-full ${viewMode === "list" ? "bg-accent/80 text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
+            className={`h-11 w-11 rounded-md ${viewMode === "list" ? "bg-accent/80 text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
             onClick={() => setViewMode("list")}
             aria-label="Xem dạng danh sách"
             aria-pressed={viewMode === "list"}
@@ -97,7 +105,7 @@ export default function DocumentsPage() {
           <Button
             variant={viewMode === "grid" ? "secondary" : "ghost"}
             size="icon"
-            className={`h-11 w-11 rounded-full ${viewMode === "grid" ? "bg-accent/80 text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
+            className={`h-11 w-11 rounded-md ${viewMode === "grid" ? "bg-accent/80 text-foreground" : "text-muted-foreground hover:bg-accent/50"}`}
             onClick={() => setViewMode("grid")}
             aria-label="Xem dạng lưới"
             aria-pressed={viewMode === "grid"}
@@ -120,7 +128,7 @@ export default function DocumentsPage() {
         />
 
         {data && data.totalPages > 1 && (
-          <div className="mt-10 flex justify-center pb-8">
+          <div className="document-browser__pagination">
             <AppPagination
               currentPage={currentPage}
               totalPages={data.totalPages}
@@ -128,6 +136,8 @@ export default function DocumentsPage() {
             />
           </div>
         )}
+      </div>
+        </section>
       </div>
       <DocumentDownloadModal
         document={selectedDocument}

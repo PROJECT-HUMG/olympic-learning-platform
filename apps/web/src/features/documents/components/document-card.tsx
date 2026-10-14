@@ -35,13 +35,13 @@ export function DocumentCard({ document, onDownload }: DocumentCardProps) {
           </p>}
         </div>
       </Link>
-      <div className="border-t border-border/50 px-4 pb-3 pt-1">
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 text-xs text-muted-foreground">
+      <div className="document-card__footer">
+        <div className="document-card__byline">
           <UserIdentity user={document.owner} />
           <span className="break-words">Đăng {formattedDate}</span>
         </div>
-        <div className="mt-1 flex items-center justify-between gap-2">
-          <Button asChild variant="outline" className="min-h-11 min-w-0 flex-1">
+        <div className="document-card__actions">
+          <Button asChild variant="outline" className="min-h-11 min-w-0">
             <Link to={to} state={from} aria-label={`Mở tài liệu: ${document.title}`}>Mở tài liệu <ArrowRight aria-hidden="true" className="size-4" /></Link>
           </Button>
           {onDownload && <Button type="button" variant="ghost" size="icon" className="size-11 shrink-0"

@@ -1,33 +1,13 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Calculator, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CinematicScene } from "@/components/ui/cinematic-scene";
 import { ROUTES } from "@/router/route-constants";
-import { useHomeMotion } from "../hooks/use-home-motion";
 import "./home-hero-section.css";
 
 export function HomeHeroSection() {
   const navigate = useNavigate();
-  const { enabled } = useHomeMotion();
-  const introRef = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  const [tabVisible, setTabVisible] = useState(() => !document.hidden);
-
-  useEffect(() => {
-    const intro = introRef.current;
-    if (!intro) return;
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
-    const syncVisibility = () => setTabVisible(!document.hidden);
-    observer.observe(intro);
-    document.addEventListener("visibilitychange", syncVisibility);
-    return () => {
-      observer.disconnect();
-      document.removeEventListener("visibilitychange", syncVisibility);
-    };
-  }, []);
-
   function searchDocuments(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const keyword = String(new FormData(event.currentTarget).get("keyword") ?? "").trim();
@@ -37,23 +17,11 @@ export function HomeHeroSection() {
   }
 
   return (
-    <section className="home-hero" aria-labelledby="home-hero-title" data-motion={enabled} data-playing={enabled && visible && tabVisible}>
-      <div ref={introRef} className="home-hero__intro">
-        <div className="home-hero__ambient" aria-hidden="true">
-          <svg viewBox="0 0 1000 600" preserveAspectRatio="none">
-            <path d="M-120 470C150 100 440 620 1120 130" />
-            <path d="M-120 520C240 210 500 710 1120 240" />
-            <path d="M-120 280C230-90 600 470 1120-40" />
-          </svg>
-        </div>
-        <div className="home-hero__window">
-          <CinematicScene animated={enabled} respectReducedMotion={false} />
-        </div>
-
+    <section className="home-hero" aria-labelledby="home-hero-title">
+      <div className="home-hero__intro">
         <div className="home-hero__content">
           <h1 id="home-hero-title">
-            <span>Hôm nay,</span>
-            <span>bạn muốn học gì?</span>
+            Tài nguyên học tập Olympic HUMG
           </h1>
 
           <form className="home-hero__search" role="search" aria-label="Tìm tài liệu" onSubmit={searchDocuments}>
@@ -62,7 +30,7 @@ export function HomeHeroSection() {
               <Input id="home-document-search" name="keyword" type="search" placeholder="Tên tài liệu hoặc từ khóa" />
               <Button type="submit" variant="secondary">
                 <Search aria-hidden="true" className="size-4" />
-                Tìm
+                Mở kho tài liệu
               </Button>
             </div>
           </form>

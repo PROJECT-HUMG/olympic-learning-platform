@@ -21,7 +21,7 @@ import { usePost } from "@/features/post/hooks/use-post";
 import { PostForm } from "@/features/post/components/post-form";
 import { toast } from "sonner";
 import { CreationDialog, type CreationState } from "@/components/ui/creation-dialog";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useUrlListSearch } from "@/hooks/use-list-search";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,7 +38,7 @@ import { DashboardPostList } from "./dashboard-post-list";
 export function PostManagementFeature() {
   const [params, setParams] = useSearchParams();
   const keyword = params.get("keyword") ?? "";
-  const debouncedKeyword = useDebounce(keyword, 500);
+  const search = useUrlListSearch(keyword, value => setParams(previous => replaceListParam(previous, "keyword", value), { replace: true }));
   const currentPage = getPageNumber(params.get("page"));
   const setCurrentPage = (page: number) => setParams(previous => replaceListParam(previous, "page", String(page)), { replace: true });
 
@@ -51,7 +51,7 @@ export function PostManagementFeature() {
     refetch,
     isFetching,
   } = useManagementPosts({
-    keyword: debouncedKeyword,
+    keyword,
     page: apiPageOffset,
     size: 10,
     ...postManagementStatusQuery(params.get("status")),
@@ -145,7 +145,7 @@ export function PostManagementFeature() {
           ].map(([label, count]) => (
             <div
               key={String(label)}
-              className="rounded-xl border border-border/60 bg-card px-2 py-2 sm:px-4 sm:py-3"
+              className="rounded-lg border border-border/60 bg-card px-2 py-2 sm:px-4 sm:py-3"
             >
               <p className="text-[11px] leading-4 sm:text-xs text-muted-foreground">{label}</p>
               <p className="mt-1 text-base sm:text-xl font-bold tabular-nums">{count}</p>
@@ -159,10 +159,7 @@ export function PostManagementFeature() {
           <SearchInput aria-label="Tìm kiếm bài viết"
             placeholder="Tìm kiếm bài viết..."
             className="pl-9 h-11 bg-background"
-            value={keyword}
-            onChange={(e) => {
-              setParams(previous => replaceListParam(previous, "keyword", e.target.value), { replace: true });
-            }}
+            {...search.input}
           />
         </div>
         <label className="flex min-w-0 flex-1 flex-col gap-1 text-sm">Trạng thái
@@ -170,15 +167,15 @@ export function PostManagementFeature() {
             <option value="">Tất cả trạng thái</option><option value="DRAFT">Bản nháp</option><option value="PUBLISHED">Đã xuất bản, còn hiệu lực</option><option value="EXPIRED">Hết hiệu lực</option><option value="ARCHIVED">Lưu trữ</option>
           </NativeSelect>
         </label>
-        {(keyword || params.get("status")) && <Button type="button" variant="ghost" onClick={() => setParams(previous => {
+        {(keyword || params.get("status")) && <Button type="button" variant="ghost" onClick={() => { search.resetDraft(); setParams(previous => {
           const next = new URLSearchParams(previous); for (const key of ["keyword", "status", "page"]) next.delete(key); return next;
-        })}>Xóa bộ lọc</Button>}
+        }); }}>Xóa bộ lọc</Button>}
 
       </div>
 
       <div className="flex-1">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center p-16 border border-dashed border-border/60 rounded-2xl bg-card/30 text-center">
+          <div className="flex flex-col items-center justify-center py-8 border-b border-border text-center">
             <Loader2 className="w-8 h-8 animate-spin text-primary/40 mb-4" />
             <span className="text-muted-foreground text-sm">
               Đang tải dữ liệu...

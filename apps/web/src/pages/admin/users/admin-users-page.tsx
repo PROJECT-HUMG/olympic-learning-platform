@@ -31,15 +31,19 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Shield, ShieldAlert, Loader2 } from "lucide-react";
 import type { AdminUserResponse } from "@/features/admin/types/admin.types";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useUrlListSearch } from "@/hooks/use-list-search";
+import { useSearchParams } from "react-router-dom";
+import { getPageNumber, replaceListParam } from "@/lib/list-navigation";
 
 export default function AdminUsersPage() {
-  const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, 500);
-  const [page, setPage] = useState(0);
+  const [params, setParams] = useSearchParams();
+  const keyword = params.get("search") ?? "";
+  const page = getPageNumber(params.get("page")) - 1;
+  const setPage = (page: number) => setParams(previous => replaceListParam(previous, "page", String(page + 1)));
+  const search = useUrlListSearch(keyword, value => setParams(previous => replaceListParam(previous, "search", value), { replace: true }));
 
   const { data, isLoading, isError, refetch, isFetching } = useAdminUsers({
-    search: debouncedSearch,
+    search: keyword,
     page,
     size: 10,
   });
@@ -57,17 +61,13 @@ export default function AdminUsersPage() {
         <div className="relative flex-1 max-w-md">
           <SearchInput aria-label="Tìm theo email, tên"
             placeholder="Tìm theo email, tên..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(0);
-            }}
+            {...search.input}
             className="pl-9 bg-background"
           />
         </div>
       </div>
 
-      <div className="page-table flex flex-col min-h-[400px]">
+      <div className="page-table flex flex-col min-h-0">
         {!isLoading && !isError && !!data?.content.length && <>
           <ul className="divide-y divide-border md:hidden">
             {data.content.map(user => <li key={user.id} className="space-y-3 p-4">

@@ -1,7 +1,8 @@
-import { PageHeader } from "@/components/ui/page-header";
-import { useState } from "react";
+import { PublicPageHeader } from "@/components/ui/public-page-header";
+import { useUrlListSearch } from "@/hooks/use-list-search";
+import { replaceListParam } from "@/lib/list-navigation";
 import { ArrowUpRight, BookOpen, RefreshCw } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
@@ -14,7 +15,9 @@ function normalizeSearch(value: string) {
 }
 
 export function SubjectDirectory() {
-  const [keyword, setKeyword] = useState("");
+  const [params, setParams] = useSearchParams();
+  const keyword = params.get("q") ?? "";
+  const search = useUrlListSearch(keyword, value => setParams(previous => replaceListParam(previous, "q", value), { replace: true }));
   const metadata = useDocumentMetadata();
   const subjects = metadata.data?.subjects ?? [];
   const normalizedKeyword = normalizeSearch(keyword);
@@ -24,9 +27,20 @@ export function SubjectDirectory() {
 
   return (
     <section className="page-shell page-shell--public subject-directory" aria-labelledby="subjects-title">
-      <PageHeader titleId="subjects-title" title="Môn học"
-        description="Chọn môn bạn đang học để tìm tài liệu, giáo trình và đề ôn tập."
-        actions={<Button asChild variant="outline"><Link to={ROUTES.DOCUMENTS}><BookOpen aria-hidden="true" />Toàn bộ tài liệu</Link></Button>} />
+      <PublicPageHeader
+        titleId="subjects-title"
+        breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Môn học" }]}
+        title="Môn học"
+        description="Tìm môn học hoặc mã môn, rồi mở tài liệu tương ứng."
+        actions={
+          <Button asChild variant="outline" className="shadow-xs">
+            <Link to={ROUTES.DOCUMENTS}>
+              <BookOpen aria-hidden="true" className="mr-1.5 h-4 w-4" />
+              Toàn bộ tài liệu
+            </Link>
+          </Button>
+        }
+      />
 
       <div className="subject-directory__catalogue">
         <div className="subject-directory__toolbar">
@@ -36,8 +50,7 @@ export function SubjectDirectory() {
                 id="subject-search"
                 type="search"
                 placeholder="Tên môn hoặc mã môn…"
-                value={keyword}
-                onChange={(event) => setKeyword(event.target.value)}
+                {...search.input}
                 aria-controls="subject-results"
                 autoComplete="off"
                 className="bg-background"
@@ -103,7 +116,7 @@ export function SubjectDirectory() {
                   <h2>{subjects.length ? "Chưa tìm thấy môn học phù hợp." : "Danh mục môn học đang được cập nhật."}</h2>
                   <p>{subjects.length ? "Thử tên ngắn hơn hoặc tìm bằng mã môn." : "Bạn vẫn có thể tìm kiếm trong kho tài liệu."}</p>
                   {subjects.length > 0 && (
-                    <Button type="button" variant="outline" className="subject-directory__retry" onClick={() => setKeyword("")}>
+                    <Button type="button" variant="outline" className="subject-directory__retry" onClick={search.clear}>
                       Xem tất cả môn học
                     </Button>
                   )}

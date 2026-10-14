@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -16,12 +17,12 @@ export function UserIdentity({ user, from }: {
   const location = useLocation();
   const profile = usePublicProfile(user.id, open);
   const name = user.fullName || user.username || "Thành viên";
-  const content = <><UserAvatar user={user} /><span>{name}</span></>;
+  const content = <><UserAvatar user={user} /><span className="user-identity__name">{name}</span></>;
   // Historical/unavailable accounts retain attribution without a misleading profile link.
   if (user.profileAvailable === false || !hasUuidFormat(user.id)) return <span className="user-identity">{content}</span>;
   return <HoverCard open={open} onOpenChange={setOpen} openDelay={250} closeDelay={150}>
     <HoverCardTrigger asChild><Link className="user-identity" to={publicProfilePath(user.id)}
-      onClick={event => event.stopPropagation()} state={{ from: from ?? location.pathname + location.search }} aria-label={`Xem hồ sơ ${name}`}>{content}</Link></HoverCardTrigger>
+      onClick={event => event.stopPropagation()} state={{ from: from ?? location.pathname + location.search }} aria-label={`Xem hồ sơ ${name}`}>{content}<ChevronRight className="user-identity__affordance" aria-hidden="true" /></Link></HoverCardTrigger>
     <HoverCardContent className="identity-preview" align="start" collisionPadding={12}>
       {profile.isPending || profile.isFetching ? <p role="status">Đang tải hồ sơ…</p>
         : profile.isError ? <div role="alert"><p>Hồ sơ chưa khả dụng. Hãy thử lại.</p><Button variant="outline" size="sm" loading={profile.isFetching} onClick={() => void profile.refetch()}>Thử lại</Button></div>

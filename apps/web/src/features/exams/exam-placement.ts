@@ -135,7 +135,7 @@ export function toSaveRequest(draft: EditorDraft, mode: "create" | "update"): Sa
   const items: ExamItemInput[] = [];
   for (const item of draft.items) {
     const placed = placementBody(item);
-    if (!placed.ok) return placed;
+    if (placed.ok === false) return placed;
     items.push(placed.body);
   }
   const body: ExamDraftInput = { title: draft.title, subjectId: draft.subjectId, instructions: draft.instructions, releaseAt, items };

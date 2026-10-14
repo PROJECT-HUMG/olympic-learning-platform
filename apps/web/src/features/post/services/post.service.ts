@@ -11,27 +11,27 @@ import type {
 } from "../types/post.types";
 
 export const postService = {
-  getAll(params?: PostSearchRequest) {
+  getAll(params?: PostSearchRequest, signal?: AbortSignal) {
     return apiClient
-      .get<Page<PostSummaryResponse>>("/posts", { params })
+      .get<Page<PostSummaryResponse>>("/posts", { params, signal })
       .then((res) => res.data);
   },
 
-  getById(id: string) {
+  getById(id: string, signal?: AbortSignal) {
     return apiClient
-      .get<PostDetailResponse>(`/posts/${id}`)
+      .get<PostDetailResponse>(`/posts/${id}`, { signal })
       .then((res) => res.data);
   },
 
-  getBySlug(slug: string) {
+  getBySlug(slug: string, signal?: AbortSignal) {
     return apiClient
-      .get<PostDetailResponse>(`/posts/slug/${slug}`)
+      .get<PostDetailResponse>(`/posts/slug/${slug}`, { signal })
       .then((res) => res.data);
   },
 
-  getManagement(params?: PostSearchRequest) {
+  getManagement(params?: PostSearchRequest, signal?: AbortSignal) {
     return apiClient
-      .get<Page<PostSummaryResponse>>("/posts/management", { params })
+      .get<Page<PostSummaryResponse>>("/posts/management", { params, signal })
       .then((res) => res.data);
   },
 

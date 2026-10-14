@@ -18,13 +18,15 @@ export const documentKeys = {
 export const useSearchDocuments = (filters: DocumentSearchRequest) => {
   return useQuery({
     queryKey: documentKeys.list(filters),
-    queryFn: () => documentsService.search(filters).then((res) => res.data),
+    meta: { publicRead: !filters.ownerId },
+    queryFn: ({ signal }) => documentsService.search(filters, signal).then((res) => res.data),
   });
 };
 
 export const useDocumentBySlug = (slug: string) => {
   return useQuery({
     queryKey: documentKeys.detail(slug),
+    meta: { publicRead: true },
     queryFn: () => documentsService.getBySlug(slug).then((res) => res.data),
     enabled: !!slug,
   });
@@ -80,6 +82,7 @@ export const useDeleteDocument = () => {
 export const useDocumentMetadata = () => {
   return useQuery({
     queryKey: documentKeys.all,
+    meta: { publicRead: true },
     queryFn: () => documentsService.getMetadata(),
     staleTime: 1000 * 60 * 30, // 30 minutes
   });

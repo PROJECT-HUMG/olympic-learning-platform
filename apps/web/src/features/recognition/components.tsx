@@ -1,3 +1,4 @@
+import { useListSearch } from "@/hooks/use-list-search";
 import { UserIdentity } from "@/features/user/components/user-hover-card";
 import { UserAvatar } from "@/features/user/components/user-avatar";
 import { AppPagination } from "@/components/ui/app-pagination";
@@ -19,9 +20,9 @@ export function QueryFeedback({ pending, error, empty, retry, retrying, children
   if (empty) return <p className="recognition-feedback" role="status">Chưa có nội dung phù hợp với lựa chọn này.</p>;
   return children;
 }
-export function Field({ title, children, hint }: { title: string; children: (id: string) => ReactNode; hint?: string }) {
+export function Field({ title, children, hint, hideLabel = false }: { title: string; children: (id: string) => ReactNode; hint?: string; hideLabel?: boolean }) {
   const id = useId();
-  return <div className="recognition-field"><Label htmlFor={id}>{title}</Label>{children(id)}{hint && <p className="recognition-hint">{hint}</p>}</div>;
+  return <div className="recognition-field"><Label htmlFor={id} className={hideLabel ? "sr-only" : undefined}>{title}</Label>{children(id)}{hint && <p className="recognition-hint">{hint}</p>}</div>;
 }
 export function Checkbox({ title, checked, onChange, disabled }: { title: string; checked: boolean; onChange: (value: boolean) => void; disabled?: boolean }) {
   return <label className="recognition-checkbox"><input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} disabled={disabled} /><span>{title}</span></label>;
@@ -30,8 +31,8 @@ export function Pager({ page, value, onChange }: { page: number; value?: Recogni
   if (!value || value.totalPages < 2) return null;
   return <div className="recognition-pager"><AppPagination variant="compact" currentPage={page + 1} totalPages={value.totalPages} onPageChange={next => onChange(next - 1)} /></div>;
 }
-export function YearField({ value, onChange, allTime = false }: { value: string; onChange: (value: string) => void; allTime?: boolean }) {
-  return <Field title={allTime ? "Khoảng thời gian" : "Năm"}>{id => <NativeSelect id={id} value={value} onChange={e => onChange(e.target.value)}><option value="">{allTime ? "Tất cả thời gian" : "Tất cả năm"}</option>{Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => new Date().getFullYear() - i).map(year => <option key={year} value={year}>{year}</option>)}</NativeSelect>}</Field>;
+export function YearField({ value, onChange, allTime = false, hideLabel = false }: { value: string; onChange: (value: string) => void; allTime?: boolean; hideLabel?: boolean }) {
+  return <Field title={allTime ? "Thời gian" : "Năm"} hideLabel={hideLabel}>{id => <NativeSelect id={id} value={value} onChange={e => onChange(e.target.value)}><option value="">{allTime ? "Tất cả thời gian" : "Tất cả năm"}</option>{Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => new Date().getFullYear() - i).map(year => <option key={year} value={year}>{year}</option>)}</NativeSelect>}</Field>;
 }
 export function Participants({ items }: { items: Participant[] }) {
   return <ul className="recognition-participants">{items.map((person, index) => <li key={`${person.userId ?? person.fullName}-${index}`}><span>{person.userId ? <UserIdentity user={{ id: person.userId, ...person }} /> : <span className="user-identity"><UserAvatar user={person} /><span>{person.fullName}</span></span>}</span>{person.award && <span className="recognition-hint">{person.award}</span>}</li>)}</ul>;
@@ -84,10 +85,11 @@ export function ScoringRules() {
 }
 export function UserPicker({ selected, onChange, studentOnly = false }: { selected: string; onChange: (id: string, name: string) => void; studentOnly?: boolean }) {
   const [search, setSearch] = useState("");
+  const live = useListSearch(search, setSearch, studentOnly ? "student-picker" : "user-picker");
   const [selectedUser, setSelectedUser] = useState<{ id: string; label: string } | null>(null);
   const users = useQuery({ queryKey: ["recognition", "user-picker", search], queryFn: async () => {
     const { adminUsersService } = await import("@/features/admin/services/admin-users.service");
     return (await adminUsersService.search({ search, page: 0, size: 20 })).data;
   } });
-  return <div className="recognition-user-picker"><Field title="Tìm tài khoản" hint="Tìm theo tên, email hoặc username; sau đó chọn tài khoản.">{id => <Input id={id} value={search} onChange={e => setSearch(e.target.value)} placeholder="Tên hoặc email" />}</Field><QueryFeedback pending={users.isPending} error={users.isError} retrying={users.isFetching} retry={() => void users.refetch()}><Field title="Tài khoản">{id => <NativeSelect id={id} value={selected} onChange={e => { const user = users.data?.content.find(u => u.id === e.target.value); setSelectedUser(user ? { id: user.id, label: `${user.fullName} (${user.username})` } : null); onChange(e.target.value, user?.fullName ?? ""); }}><option value="">Chọn tài khoản</option>{selectedUser?.id === selected && !users.data?.content.some(user => user.id === selected) && <option value={selectedUser.id}>{selectedUser.label}</option>}{users.data?.content.filter(user => !studentOnly || (user.role === "STUDENT" && user.status === "ACTIVE")).map(user => <option key={user.id} value={user.id}>{user.fullName} ({user.username})</option>)}</NativeSelect>}</Field></QueryFeedback></div>;
+  return <div className="recognition-user-picker"><Field title="Tìm tài khoản" hint="Tìm theo tên, email hoặc username; sau đó chọn tài khoản.">{id => <Input id={id} {...live.input} placeholder="Tên hoặc email" />}</Field><QueryFeedback pending={users.isPending} error={users.isError} retrying={users.isFetching} retry={() => void users.refetch()}><Field title="Tài khoản">{id => <NativeSelect id={id} value={selected} onChange={e => { const user = users.data?.content.find(u => u.id === e.target.value); setSelectedUser(user ? { id: user.id, label: `${user.fullName} (${user.username})` } : null); onChange(e.target.value, user?.fullName ?? ""); }}><option value="">Chọn tài khoản</option>{selectedUser?.id === selected && !users.data?.content.some(user => user.id === selected) && <option value={selectedUser.id}>{selectedUser.label}</option>}{users.data?.content.filter(user => !studentOnly || (user.role === "STUDENT" && user.status === "ACTIVE")).map(user => <option key={user.id} value={user.id}>{user.fullName} ({user.username})</option>)}</NativeSelect>}</Field></QueryFeedback></div>;
 }

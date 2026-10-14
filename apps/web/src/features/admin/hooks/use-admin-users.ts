@@ -9,8 +9,8 @@ export const QUERY_KEY_ADMIN_PERMISSIONS = ["admin", "permissions"] as const;
 export function useAdminUsers(params: AdminUsersSearchRequest) {
   return useQuery({
     queryKey: [...QUERY_KEY_ADMIN_USERS, params],
-    queryFn: async () => {
-      const { data } = await adminUsersService.search(params);
+    queryFn: async ({ signal }) => {
+      const { data } = await adminUsersService.search(params, signal);
       return data;
     },
     placeholderData: (previousData) => previousData,

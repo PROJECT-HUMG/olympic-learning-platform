@@ -56,7 +56,7 @@ export function PublicFooter() {
 
   return (
     <footer className="public-footer relative z-10 border-t border-border/60 bg-card/60 text-foreground">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-(--page-width) px-(--page-gutter)">
         <div className="public-footer__columns grid md:grid-cols-2 lg:grid-cols-4">
           {/* Cột 1: Brand */}
           <div className="relative space-y-4">

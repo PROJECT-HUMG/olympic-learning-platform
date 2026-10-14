@@ -40,7 +40,7 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
       placeholder: _placeholder,
       className,
       type,
-      corner = 14,
+      corner = 6,
       endAdornment,
       onFocus,
       onBlur,

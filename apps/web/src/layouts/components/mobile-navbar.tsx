@@ -15,7 +15,7 @@ export function MobileNavbar({ account }: { account: ReactNode }) {
       {account}
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" aria-label="Mở menu điều hướng" className="shell-menu-trigger">
-          <Menu aria-hidden="true" /><span className="shell-menu-trigger__label">Menu</span>
+          <Menu aria-hidden="true" />
         </Button>
       </SheetTrigger>
     </div>

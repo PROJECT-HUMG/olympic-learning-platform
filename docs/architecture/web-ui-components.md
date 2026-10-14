@@ -1,5 +1,7 @@
 # Shared UI owners and screen adoption
 
+> Current page composition: [14/10/2026 decisions](#whole-page-composition--14102026).
+
 [UI authority](web-ui.md) · [Frontend guide](../../apps/web/README.md) · [Route definitions](../../apps/web/src/router/routes.tsx) · [Route constants](../../apps/web/src/router/route-constants.ts) · [Mobile modal audit](#mobile-modal-frame-audit-8773df0)
 
 ## Interaction owner lookup
@@ -416,8 +418,8 @@ responsible feature. Exceptions are intentional, not unreviewed route gaps.
 | [admin/users/admin-users-page.tsx](../../apps/web/src/pages/admin/users/admin-users-page.tsx) | Local filter-panel + inherited page-table; account operations/permissions retained; no user-create control. |
 | [assessment-import-page.tsx](../../apps/web/src/pages/assessment-import-page.tsx) | Inherited panels; PDF import action opens compact CreationDialog. Job polling/review/publish remain on page after upload. |
 | [auth/forgot-password-page.tsx](../../apps/web/src/pages/auth/forgot-password-page.tsx) | Intentional auth/floating-field shell; recovery is not content creation. |
-| [auth/login-page.tsx](../../apps/web/src/pages/auth/login-page.tsx) | Intentional auth shell; working password/Turnstile/OAuth unchanged. Create-account link opens routed modal. |
-| [auth/register-page.tsx](../../apps/web/src/pages/auth/register-page.tsx) | Compact routed CreationDialog around existing register/verification/resume owners; single shrinkable grid track, wrapping resume action and44px password controls; challenge persistence and Turnstile unchanged. |
+| [auth/login-page.tsx](../../apps/web/src/pages/auth/login-page.tsx) | Intentional auth shell; working password/Turnstile/OAuth unchanged. Create-account link navigates to register page. |
+| [auth/register-page.tsx](../../apps/web/src/pages/auth/register-page.tsx) | Direct RegisterForm inside AuthCardLayout / WelcomeLayout; single shrinkable grid track, wrapping resume action and 44px password controls; challenge persistence and Turnstile unchanged. |
 | [auth/reset-password-page.tsx](../../apps/web/src/pages/auth/reset-password-page.tsx) | Intentional auth shell; reset semantics untouched. |
 | [auth/verify-email-page.tsx](../../apps/web/src/pages/auth/verify-email-page.tsx) | Intentional verification shell; no new creation/policy. |
 | [competitions-page.tsx](../../apps/web/src/pages/competitions-page.tsx) | Local guidance surface + existing header/actions; no invented live registration feature. |
@@ -467,7 +469,7 @@ responsible feature. Exceptions are intentional, not unreviewed route gaps.
 | PDF import / [AssessmentImportPage](../../apps/web/src/pages/assessment-import-page.tsx) | Compact CreationDialog; selected-file validation/failure retention, pending dismissal blocked; ongoing analysis/review remains on page. |
 | Study-room create / [StudyRoomsLobby](../../apps/web/src/features/study-room/components/study-rooms-lobby.tsx) | CreationDialog instead of inline form; native constraints/policy/access, failure retention, pending close, success enters room. Track request is already its own installed Dialog; player is not remounted. |
 | GPA Add / [GpaCalculator](../../apps/web/src/features/toolkit/components/gpa-calculator.tsx) | Compact CreationDialog; credits/grade use existing calculation rules before explicit insertion. Existing partially edited rows/storage/results remain editable. |
-| Account creation / [RegisterPage](../../apps/web/src/pages/auth/register-page.tsx) | Addressable compact CreationDialog; register/verification/resume form owners, secure session, action/token reset and resumable challenge retained. No OTP sent by probes. |
+| Account creation / [RegisterPage](../../apps/web/src/pages/auth/register-page.tsx) | Direct card-based registration inside AuthCardLayout; register/verification/resume form owners, secure session, action/token reset and resumable challenge retained. No OTP sent by probes. |
 | Daily task/evidence/reflection/group creation | Already-modal [DailyDialogHeader](../../apps/web/src/features/daily/ui/daily-dialog-header.tsx) / installed/native feature owners retained. Native group dialog includes separately pending recovery. Serialized autosync, dirty/navigation/Submit and sharing/private gates stay with Daily; no replacement based only on markup similarity. |
 | Native file choices, form-row/options/parts/placements, ownership transfer, feedback | Subordinate editing/permission workflows, not independent entity-create destinations. Keep current parent/chooser or existing modal and business invariants. |
 | Legacy unrouted PostManagement/PostEditor | Not an active entry point in routes.tsx; retained source excluded from mounted creation counts. No misleading claim that legacy imports are routed adoption. |
@@ -846,3 +848,109 @@ Proof owner: [browser check](../../apps/web/tests/public-profile-browser-check.m
 controller/PostgreSQL integration tests. Exact runs/limits are in the existing
 [status](../reviews/ux-flow-audit.md#public-profiles-and-achievement-visibility--10102026).
 No fabricated activity/solved/streak totals, evidence galleries or public account fields.
+
+### Public Recognition/News control variants — 11/10/2026
+
+- [UserIdentity](../../apps/web/src/features/user/components/user-hover-card.tsx) and [profile CSS](../../apps/web/src/features/user/components/public-profile.css) own the compact avatar/name surface with a decorative chevron, hover/active border/background and visible keyboard focus. Link/preview/touch behavior and supplied URL/crop/initials remain with the same owners; unavailable historical attribution stays unlinked. Recognition styles no longer override identities into blue underlined names.
+- [RankingsPage](../../apps/web/src/features/recognition/public-pages.tsx) uses a bounded60rem public measure and a compact native timeframe field. [RankingList](../../apps/web/src/features/recognition/ranking-presentation.tsx) / [ranking CSS](../../apps/web/src/features/recognition/ranking-presentation.css) keep rank beside identity and group approved count/score beneath it. Ties and actual server ranks keep the existing quiet cue; no podium or derived awards.
+- Honors uses the same [public page owner](../../apps/web/src/features/recognition/public-pages.tsx) and [Recognition CSS](../../apps/web/src/features/recognition/recognition.css): public-only year/subject/submit grid,16:9 media, bounded24rem album cards, participant/award grouping and existing album Button link. [EditorialHonorLabel styles](../../apps/web/src/features/recognition/achievement-presentation.css) render an informational bordered badge, not an underlined action. Detail navigation uses Button-as-Link; prose links remain prose.
+- [PublicNewsFeature](../../apps/web/src/features/post/components/public-news-feature.tsx) / [News CSS](../../apps/web/src/features/post/components/public-news-feature.css) own one search/type/reset region. Existing Button-as-Link variants provide selected `default` versus unselected `outline` controls with `aria-current`; narrow screens use two columns and omit the decorative category icon. Keyword context and result count each appear once. Editorial rows keep one semantic reading link and a quiet inset reading cue, without a new nested interactive control or repeated row shadows.
+
+The apparent second “Thông báo” was the selected-summary text, not another category. Canonical IDs remain `ALL`, `ANNOUNCEMENT`, `NEWS`, `BLOG`; no dynamic category source or API taxonomy change was needed. Query submission/page-reset/pinned/sort behavior is unchanged. The [bounded browser regression](../../apps/web/tests/public-recognition-refinement-browser-check.mjs) covers actual routes with synthetic public APIs and geometric media only; existing [status](../reviews/ux-flow-audit.md) holds exact final proof and limits.
+
+
+### Shared visual lookup — 13/10/2026
+
+| Find by task | Owner / actual consumers |
+| --- | --- |
+| Page measure,gutters,heading/action alignment,section rhythm,filter bands | [page-layout.css](../../apps/web/src/components/ui/page-layout.css) → [PageHeader](../../apps/web/src/components/ui/page-header.tsx), [PublicPageHeader](../../apps/web/src/components/ui/public-page-header.tsx), [PageSection](../../apps/web/src/components/ui/page-section.tsx). Existing page-shell/filter-panel/content-card/page-table classes are the adoption seam. |
+| Card slots,surface hierarchy and table heading density | [Card](../../apps/web/src/components/ui/card.tsx), [Table](../../apps/web/src/components/ui/table.tsx), existing [theme tokens](../../apps/web/src/index.css); questions,documents and management consumers reuse slots. |
+| Action versus navigation/prose;44px mobile targets | [Button](../../apps/web/src/components/ui/button.tsx) plus page-layout.css; asChild retains anchors. Existing profile identity remains [UserIdentity](../../apps/web/src/features/user/components/user-hover-card.tsx), not a Button. |
+| Empty/error context | [ListFeedback](../../apps/web/src/components/ui/list-feedback.tsx) → [EmptyState](../../apps/web/src/components/ui/empty-state.tsx), DocumentList and legacy Post list; feature owns state and retry. Compact RetryFeedback/inline metadata variants remain intentional. |
+| Album grouping / compact real-rank rows | [public-pages](../../apps/web/src/features/recognition/public-pages.tsx), [Recognition CSS](../../apps/web/src/features/recognition/recognition.css), [RankingList](../../apps/web/src/features/recognition/ranking-presentation.tsx) and [ranking CSS](../../apps/web/src/features/recognition/ranking-presentation.css). Rankings54rem supersedes the earlier60rem note. |
+| Dashboard welcome | [DashboardWelcomeBanner](../../apps/web/src/features/dashboard/components/dashboard-welcome-banner.tsx) reuses PageHeader and existing role destinations. |
+| Long form frame / nested controls | Existing [interaction index](#interaction-owner-lookup), CreationDialog and Post/Document forms remain owners. Common layout adds no containing-block transform. |
+
+Proof runner: [taste-layout-browser-check.mjs](../../apps/web/tests/taste-layout-browser-check.mjs), actual routes with synthetic intercepted APIs. [Coverage/variants](web-ui.md#shared-foundation-adoption--13102026) and [status/evidence](../reviews/ux-flow-audit.md#taste-shared-foundations--13102026) distinguish source adoption from rendered coverage.
+
+RichTextViewer reading rhythm is owned by [rich-text-viewer.css](../../apps/web/src/components/ui/rich-text-viewer.css), imported by [RichTextViewer](../../apps/web/src/components/ui/rich-text-viewer.tsx); no typography plugin is installed. It scopes headings/paragraphs/lists/links/media/code/table bounds to rendered content and leaves Tiptap editor/frozen scientific readers distinct. [Public profile CSS](../../apps/web/src/features/user/components/public-profile.css) now owns the quiet resting identity target and two-line visible linked name, with the same full aria-label and optional preview/detail; Rankings needs no competing identity skin.
+
+
+## Full application owner and search lookup — 13/10/2026
+
+This is the current interaction/layout lookup, superseding the earlier manual-submit list-search descriptions. The existing route owner remains `src/router/routes.tsx`; no competing component system or directory restructure.
+
+| Family / task | Responsible composition and common adoption | Intentional variant / proof boundary |
+| --- | --- | --- |
+| All public/workspace routes | `index.css` tokens → `page-layout.css`, PageHeader/PublicPageHeader/PageSection; `navigation.css`/public-header/dashboard shell | Existing destinations/drawers/role guards; current screenshot matrix covers representative routes, not every role/state. |
+| Home / real discovery | `home-hero-section.tsx/css`, HomeStudyNotebook; `home-page.css` | Compact navigation search remains explicit because Home has no results list. Home notebook selectors never style Daily root. |
+| Subjects / Documents | SubjectDirectory; DocumentFilters/DocumentList/DocumentCard; document-discovery.css |3:4 preview/compact media, subject/code local match; actual title/subject/kind/tag only. PDF/storage/download unchanged. |
+| Honors / rankings / public profiles | Recognition public-pages/components/recognition.css; RankingList; public-profile.css; UserIdentity/UserAvatar | Year remains supported; published/approved-active/ranking consent/private evidence gates unchanged. |
+| News / reader | PublicNewsFeature, PostListItem, public-news-feature.css; RichTextViewer | Four canonical type links; editorial rows; no fake featured taxonomy/read-time. PublicRead query metadata survives anonymous expiry. |
+| Dashboard / placeholder guidance | DashboardPage + welcome/quick-actions; About/Competitions/Practice/History/NotFound use PageHeader/guidance/Button | No invented metrics/activity. Unmounted demo widgets/legacy PostManagement remain outside active adoption. |
+| Admin/lecturer records | Posts/Documents management, Users, Categories; management rows/Card/Table/PaginationFooter; filter-panel | Real supported filters only; same permissions/delete/pending/error owners. Users retains narrow identity/actions and bounded table scrolling. |
+| Recognition management / personal achievements | admin-page/private-pages + Recognition fields/status/CreationDialog | Review/evidence/score/draft semantics retained; common field/control surfaces, not gallery policy. |
+| Question/import/exam editing and lists | QuestionBank/QuestionDetail, AssessmentImport/AssessmentDraftList, ExamEditor/ExamRead; PageHeader/PageSection/Card + scientific CSS | Scientific content, frozen readers, release gates and identity revalidation remain task-specific. Chooser search never submits editor. |
+| Auth / private profile | WelcomeLayout/auth-card-layout; FormField/label-input.css; profile.css | Existing Auth/Turnstile/expiry/password/crop owners;52px labelled fields,44px password target; mobile one column. |
+| Daily day/week/group/shared review | StudyNotebook/flat work regions; groups.css; shared controls/header | Native dialogs/scroll lock, drafts/private gates and serialized800ms sync retained byte-for-byte except separate group presentation CSS. |
+| Toolkit / room | ToolkitFeature/GpaCalculator/toolkit.css; StudyRoomsLobby/study-room.css | GPA math/storage unchanged; persistent joined scene/player remains a separate variant. No route/card wrapper over media lifecycle. |
+| Long create/edit/viewer/chooser dialogs | Existing CreationDialog/Dialog/EvidenceGallery/native Daily/image-picker index above | Fixed inset/dvh/safe-area/root transform fix retained; no new modal positioning or animation controller. |
+
+`use-list-search.ts` extends existing `useDebounce` for the350ms list draft lifecycle. `useListSearch` serves local choosers; `useUrlListSearch` distinguishes REPLACE acknowledgement from POP/scope changes and rejects writes after browser URL leads a departing lazy route. SearchInput is presentation only. No timer duplication, universal matching parser, WebSocket or auto-submit.
+
+| Mounted search | Parameter / matching owner | Navigation/query contract |
+| --- | --- | --- |
+| Honors | `subject` → existing server subject match | Compact `year` immediately; page reset; keep unknown URL params. |
+| Documents public/management | `keyword`; existing subject/category/tag IDs | Metadata chooser immediate; explicit active chips/reset; server pagination retained. |
+| News | `q` → request `keyword`; canonical `type` | Type immediate, current publishedAt sort/priority rules; unknown params retained. |
+| Subjects | `q`; existing Vietnamese accent-insensitive name/code match | Local list only, existing sort and subject→Documents destination. |
+| Posts management | `keyword`; existing `status` mapping | Server paging/EXPIRED mapping unchanged. |
+| Users | `search`; URL one-based `page` → zero-based API | Current name/email match and permission owner; no new server fields. |
+| Question Bank | `search`; existing subject/topic/status | Immediate discrete filters and zero-based request paging. |
+| Exam published bank | local `search`, keyed by subject | Page resets; composition pauses; Enter cannot save surrounding form. |
+| Recognition UserPicker | local server `search` | Selected identity retained; existing student/active eligibility filter; no public lookup of private DTO. |
+
+Every list uses raw local typing and trimmed settled values;350ms debounce pauses IME, clear is immediate, changed filters reset page, typing uses REPLACE (no entry per keystroke), POP cancels pending drafts. Old request responses remain keyed to old queries; signals are consumed by Documents/News/Users/Questions services. Form save/submit/publish/OTP and OS native select do not inherit search semantics.
+
+Machine source ledger and exact rendered coverage are `/tmp/humg-product-20261013/source-adoption.json` and final manifest. The ledger inventories current sources/direct consumers/styles; it does not assert all-screen rendering. The existing [interaction-owner lookup](#interaction-owner-lookup) remains authoritative for nested/modal lifecycle.
+
+Current integration detail (14/10/2026): URL search retains newer typing across concurrent acknowledgements without consuming echo refs during render; browser POP resets mounted drafts immediately and old-route writes are rejected. CreationDialog returns focus from discard confirmation into the form only while the parent remains open, leaving full close to restore the opener. Dashboard quick links use actual library/News/Daily/profile destinations as compact rows; no upload or unavailable practice action is implied.
+
+
+### Ranking interaction lookup — 14/10/2026
+
+- Screen/timeframe/result state: [RankingsPage](../../apps/web/src/features/recognition/public-pages.tsx), [YearField/QueryFeedback/Pager](../../apps/web/src/features/recognition/components.tsx). Compact inline native select, result/busy context, existing retry and page reset; current rankings API has no keyword field.
+- Directory columns/full-name density: [RankingList/RankingRow](../../apps/web/src/features/recognition/ranking-presentation.tsx), [ranking-presentation.css](../../apps/web/src/features/recognition/ranking-presentation.css). Supersedes stacked count/score, medal fills and two-line ranking clamps. Presentation model preserves supplied rank/ties/order/score/count; no derived standings.
+- Identity/avatar/preview/detail: existing [UserIdentity](../../apps/web/src/features/user/components/user-hover-card.tsx), UserAvatar/public-profile query. No new profile/image fetch or DTO. Ranking CSS locally permits full wrapping; compact identities elsewhere retain their existing bounds.
+- GSAP: RankingRow useGSAP scoped ref and contextSafe event callbacks;140ms/3px chevron affordance only. Mouse/focus listeners removed and context reverted on unmount/user change; no data/refetch tween. @gsap/react2.1.2 uses installed gsap3.15.0. Native Select retains OS interaction; [floating-controls.css](../../apps/web/src/components/ui/floating-controls.css) remains the separate Radix motion owner. Shared Dialog fixed-inset geometry is untouched.
+- Proof: existing [product-layout-browser-check.mjs](../../apps/web/tests/product-layout-browser-check.mjs), PRODUCT_RANKING mode, plus current before/after/geometry/results in `/tmp/humg-ranking-20261014`. No new parallel component system or tracker. Source ledger now covers402 frontend sources and59 route definitions, including ADMIN/LECTURER exam templates; definition coverage is not every alias/role/state rendering.
+
+Home public navigation now remains sticky in normal flow with opaque token background; home-title/nav overlap and text showing through scrolling chrome were reproduced and repaired in public-header.css/public-layout.css. No backdrop/transform owner is introduced around portal dialogs.
+
+
+## Whole-page composition — 14/10/2026
+
+Quick source lookup for the current page arrangement (shared interaction/modal owners above remain authoritative):
+
+| Find by task | Responsible source / consumers |
+| --- | --- |
+| Page introduction,section hierarchy and layout rhythm | `components/ui/page-layout.css` → PageHeader/PublicPageHeader/PageSection and existing page-shell classes; no default extra header divider. |
+| Matching public/workspace edges | `layouts/components/public-header.css`, `public-footer.tsx`, `navigation.css`, `dashboard-layout.tsx`; retain drawers/rails/role guards/focus handoff. |
+| Browse/filter documents | `pages/documents-page.tsx` → DocumentFilters,DocumentList,DocumentCard; `document-discovery.css` owns desktop facets/results and mobile stacking. Search ownership remains useUrlListSearch; no matching or paging change. |
+| Scan News/pinned notices | PublicNewsFeature and `public-news-feature.css`; one existing `showPinned` condition owns both section presence and companion layout. No relational-CSS fallback dependency. |
+| Recognize albums / change Recognition destination | `features/recognition/public-pages.tsx` + `recognition.css`; local `RecognitionNavigation` uses Button-as-Link and `page-local-nav` selected state. RankingList/RankingRow/useGSAP files are byte-identical to the accepted parent. |
+| Start a learning/admin task | HomePage + `home-page.css` + HomeLatestNewsSection; DashboardPage/DashboardQuickActions + dashboard classes in page-layout.css. Real role destinations only. |
+| Read an article | NewsDetailFeature + new feature-local `news-detail.css`; existing RichTextViewer,ArticleToc,ImageLightbox,share/query/return-path owners retained; related links use existing board variant. |
+| Open a public identity/detail | Existing UserIdentity/UserAvatar/public profile query; `public-profile.css` and public-pages own quieter profile hierarchy/return actions. No DTO or avatar delivery change. |
+
+Machine source ledger: `/tmp/humg-composition-20261014/source-adoption.json` inventories403 frontend sources and59 route definitions, with hashes/direct shared owners/styles. The route matrix records actual rendered representatives separately. Scientific/frozen readers,auth,Daily/native dialogs,joined rooms/media and complex editor contracts remain intentional task layouts; shared heading/gutter adoption does not imply all-role/all-state rendering or live authorization proof.
+
+Owned proof extends the existing `tests/product-layout-browser-check.mjs` with bounded route/viewport selection,composition geometry/interactions and independent state cases. New comparisons and final manifest live under `/tmp/humg-composition-20261014`; no duplicate repository tracker or new UI framework.
+
+
+### Album, News and menu refinement — 14/10/2026
+
+- Honors: `public-pages.tsx` owns the cover/heading/participants/footer composition; `recognition.css` owns the two-column desktop gallery and full name wrapping (an explicit local override of UserIdentity's compact clamp). `components.tsx` Field/YearField accept `hideLabel` only for this Honors selector; its real Label/id relationship remains. Ranking timeframe is still visibly labelled.
+- News: PublicNewsFeature removes only the duplicate summary above [AppPagination](../../apps/web/src/components/ui/app-pagination.tsx); numbered current-page names/aria-current and compact mobile current/total remain with that owner. `public-news-feature.css` aligns44px search/category anchors without the extra category frame. Query/search/category/paging ownership is unchanged.
+- Top menu: PublicHeader/MobileNavbar in `layouts/components` retain `aria-label="Mở menu điều hướng"`, shared Sheet/Radix keyboard/dismissal and focus return; `navigation.css` owns44×44px icon geometry. Public-header.css retains the desktop divider. Desktop workspace side-rail destination labels remain intentional.
+- Proof: existing product-layout-browser-check.mjs `PRODUCT_REFINEMENTS` and `PRODUCT_REFINEMENTS_INTERACTIONS`; before/after,geometry and exact increment live under `/tmp/humg-refinements-20261014`. Synthetic fixtures only; no new media/identity/DTO/query owner.

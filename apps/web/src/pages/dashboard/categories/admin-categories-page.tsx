@@ -203,24 +203,24 @@ export default function AdminCategoriesPage() {
       >
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="scrollbar-hide overflow-x-auto overflow-y-hidden pb-2 sm:pb-0 w-full sm:w-auto">
-            <TabsList className="inline-flex h-auto min-h-13 items-stretch justify-start rounded-xl bg-muted p-1 text-muted-foreground border">
+            <TabsList className="inline-flex h-auto min-h-13 items-stretch justify-start rounded-none bg-transparent border-b border-border p-0 text-muted-foreground shadow-none">
               <TabsTrigger 
                 value="categories" 
-                className="min-h-11 gap-2 border-none px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none transition-colors font-medium"
+                className="min-h-11 gap-2 border-none px-4 rounded-lg data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all font-medium"
               >
                 <FolderTree className="h-4 w-4" />
                 Phân loại tài liệu
               </TabsTrigger>
               <TabsTrigger 
                 value="subjects" 
-                className="min-h-11 gap-2 border-none px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none transition-colors font-medium"
+                className="min-h-11 gap-2 border-none px-4 rounded-lg data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all font-medium"
               >
                 <Book className="h-4 w-4" />
                 Môn học
               </TabsTrigger>
               <TabsTrigger 
                 value="tags" 
-                className="min-h-11 gap-2 border-none px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none transition-colors font-medium"
+                className="min-h-11 gap-2 border-none px-4 rounded-lg data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all font-medium"
               >
                 <Tags className="h-4 w-4" />
                 Thẻ phân loại
@@ -236,7 +236,7 @@ export default function AdminCategoriesPage() {
         {isMetadataError && !metadata ? (
           <div
             role="alert"
-            className="space-y-3 rounded-xl border border-border p-8 text-center"
+            className="space-y-3 rounded-lg border border-border p-8 text-center"
           >
             <p className="text-sm text-muted-foreground">
               Không thể tải danh mục hệ thống.

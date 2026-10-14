@@ -2,8 +2,8 @@ import { apiClient } from "@/lib/axios";
 import type { AdminUserResponse, AdminUsersSearchRequest, Page, PermissionInfo } from "../types/admin.types";
 
 export const adminUsersService = {
-  search(params: AdminUsersSearchRequest) {
-    return apiClient.get<Page<AdminUserResponse>>("/admin/users", { params });
+  search(params: AdminUsersSearchRequest, signal?: AbortSignal) {
+    return apiClient.get<Page<AdminUserResponse>>("/admin/users", { params, signal });
   },
 
   grantPermission(userId: string, permission: string) {

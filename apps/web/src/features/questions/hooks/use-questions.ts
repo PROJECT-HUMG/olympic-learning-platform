@@ -21,7 +21,7 @@ export function useQuestions(params: {
 }) {
   return useQuery({
     queryKey: questionKeys.list(params),
-    queryFn: () => questionService.search(params),
+    queryFn: ({ signal }) => questionService.search(params, signal),
   });
 }
 

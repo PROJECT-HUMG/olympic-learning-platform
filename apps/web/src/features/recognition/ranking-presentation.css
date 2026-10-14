@@ -1,200 +1,85 @@
+/* A directory with aligned data, not a stack of promotional cards. */
 .ranking-presentation {
-  --rank-gold-fg: #795600;
-  --rank-gold-bg: #fff3cf;
-  --rank-gold-border: #795600;
-  --rank-silver-fg: #46576b;
-  --rank-silver-bg: #eaf0f5;
-  --rank-silver-border: #46576b;
-  --rank-bronze-fg: #82452b;
-  --rank-bronze-bg: #f9e8dd;
-  --rank-bronze-border: #82452b;
-  --rank-neutral-fg: var(--foreground);
-  --rank-neutral-bg: transparent;
-  --rank-neutral-border: var(--border);
   min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
   color: var(--foreground);
-  font-family: var(--font-sans);
+  border-block: 1px solid var(--border);
+  background: var(--card);
 }
-
-.dark .ranking-presentation {
-  --rank-gold-fg: #fff3cf;
-  --rank-gold-bg: #4a3800;
-  --rank-gold-border: #d4b06a;
-  --rank-silver-fg: #f7fbff;
-  --rank-silver-bg: #31485c;
-  --rank-silver-border: #c9d7e3;
-  --rank-bronze-fg: #fff1e6;
-  --rank-bronze-bg: #63341f;
-  --rank-bronze-border: #e4b89a;
-}
-
-.ranking-presentation__context,
-.ranking-presentation__count,
-.ranking-presentation__points,
-.ranking-presentation__identity a {
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.ranking-presentation__context,
-.ranking-presentation__count,
-.ranking-presentation__points,
-.ranking-presentation__list {
-  margin: 0;
-}
-
-.ranking-presentation__context,
-.ranking-presentation__count {
-  color: var(--muted-foreground);
-  font-size: 0.875rem;
-  font-weight: 400;
-  line-height: 1.7;
-}
-
-.ranking-presentation__context {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--muted);
-}
-
-.ranking-presentation__list {
-  min-width: 0;
-  padding: 0;
-  list-style: none;
-}
-
+.ranking-presentation__columns,
 .ranking-presentation__row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: "rank identity points";
+  grid-template-columns: 2.5rem minmax(0, 1fr) minmax(3rem, max-content);
   column-gap: 1rem;
-  row-gap: 0.25rem;
-  align-items: start;
-  min-width: 0;
-  padding: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.ranking-presentation__row:last-child { border-bottom: 0; }
-
-.ranking-presentation__rank {
-  position: relative;
-  display: inline-flex;
-  grid-area: rank;
-  align-self: start;
   align-items: center;
-  justify-content: center;
-  min-width: 2rem;
-  padding: 0.125rem 0.4rem;
-  border: 1px solid var(--rank-neutral-border);
-  border-radius: 2px;
-  background: var(--rank-neutral-bg);
-  color: var(--rank-neutral-fg);
-  font-size: 1rem;
-  font-weight: 600;
+  padding-inline: 1rem;
+}
+.ranking-presentation__columns {
+  min-height: 2.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-size: .75rem;
+}
+.ranking-presentation__columns > :last-child { text-align: right; }
+.ranking-presentation__list { margin: 0; padding: 0; list-style: none; }
+.ranking-presentation__row { min-width: 0; padding-block: .5rem; border-bottom: 1px solid var(--border); }
+.ranking-presentation__row:last-child { border-bottom: 0; }
+.ranking-presentation__rank {
+  align-self: start;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted-foreground);
+  font-size: .875rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.ranking-presentation__identity { min-width: 0; }
+.ranking-presentation .user-identity {
+  display: flex;
+  align-items: flex-start;
+  width: fit-content;
+  max-width: 100%;
+  gap: .5rem;
+  padding: .25rem;
+  border-radius: .25rem;
+}
+.ranking-presentation .user-avatar { width: 2rem; height: 2rem; font-size: .75rem; }
+.ranking-presentation a.user-identity .user-identity__name,
+.ranking-presentation .user-identity__name {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  font-size: .9375rem;
+  font-weight: 500;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.ranking-presentation .user-identity__affordance { margin-top: .25rem; width: .875rem; height: .875rem; opacity: .65; }
+.ranking-presentation__count { margin: 0 0 0 2.75rem; color: var(--muted-foreground); font-size: .75rem; line-height: 1.5; overflow-wrap: anywhere; }
+.ranking-presentation__points {
+  display: grid;
+  align-self: start;
+  padding-top: .25rem;
+  margin: 0;
+  text-align: right;
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
 }
-
-.ranking-presentation__rank[data-tone="gold"] {
-  border-color: var(--rank-gold-border);
-  background: var(--rank-gold-bg);
-  color: var(--rank-gold-fg);
-}
-
-.ranking-presentation__rank[data-tone="silver"] {
-  border-color: var(--rank-silver-border);
-  background: var(--rank-silver-bg);
-  color: var(--rank-silver-fg);
-}
-
-.ranking-presentation__rank[data-tone="bronze"] {
-  border-color: var(--rank-bronze-border);
-  background: var(--rank-bronze-bg);
-  color: var(--rank-bronze-fg);
-}
-
-.ranking-presentation__identity {
-  grid-area: identity;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.ranking-presentation__identity a {
-  display: flex;
-  align-items: center;
-  min-height: 2.75rem;
-  max-width: 100%;
-  color: var(--primary);
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.7;
-  text-decoration: underline;
-  text-underline-offset: 0.2rem;
-}
-
-.ranking-presentation__points {
-  grid-area: points;
-  justify-self: end;
-  align-self: start;
-  max-width: 100%;
-  color: var(--foreground);
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.7;
-  text-align: right;
-}
-
-.ranking-presentation__sr {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
-
-.ranking-presentation a:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 3px;
-}
-
-@media (max-width: 400px) {
-  .ranking-presentation__row {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas:
-      "rank identity"
-      ". points";
-  }
-
-  .ranking-presentation__points {
-    justify-self: start;
-    text-align: left;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ranking-presentation,
-  .ranking-presentation * {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-@media (forced-colors: active) {
-  .ranking-presentation__rank {
-    border-color: CanvasText;
-    background: Canvas;
-    color: CanvasText;
-  }
-
-  .ranking-presentation a:focus-visible {
-    outline-color: Highlight;
-  }
+.ranking-presentation__points strong { font-size: 1.0625rem; font-weight: 600; overflow-wrap: anywhere; }
+.ranking-presentation__points > span { color: var(--muted-foreground); font-size: .75rem; }
+.ranking-presentation__sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.ranking-toolbar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: .75rem 1.5rem; }
+.ranking-toolbar .recognition-field { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: .75rem; width: min(100%, 24rem); }
+.ranking-toolbar__context { margin: 0; padding-bottom: .625rem; color: var(--muted-foreground); font-size: .8125rem; }
+.recognition-page--rankings > .recognition-hint { max-width: 70ch; font-size: .8125rem; line-height: 1.6; }
+@media (max-width: 600px) {
+  .ranking-presentation__columns,
+  .ranking-presentation__row { grid-template-columns: 2rem minmax(0, 1fr) minmax(2.5rem, max-content); gap: .5rem; padding-inline: .5rem; }
+  .ranking-presentation .user-avatar { width: 1.75rem; height: 1.75rem; font-size: .6875rem; }
+  .ranking-presentation a.user-identity .user-identity__name,
+  .ranking-presentation .user-identity__name { font-size: .875rem; }
+  .ranking-presentation__count { margin-left: 2.5rem; }
+  .ranking-toolbar .recognition-field { width: 100%; }
+  .ranking-toolbar__context { padding-bottom: 0; }
 }

@@ -5,6 +5,7 @@ import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
+import "./rich-text-viewer.css";
 
 interface RichTextViewerProps {
   content: string | null | undefined;
@@ -44,7 +45,7 @@ export function RichTextViewer({ content, className = "" }: RichTextViewerProps)
 
   return (
     <div 
-      className={`prose prose-sm sm:prose-base dark:prose-invert max-w-none 
+      className={`rich-text-viewer prose prose-sm sm:prose-base dark:prose-invert max-w-none
         prose-headings:font-bold prose-a:text-primary prose-a:no-underline hover:prose-a:underline
         prose-img:rounded-xl prose-img:shadow-sm ${className}`}
       dangerouslySetInnerHTML={{ __html: htmlContent }}

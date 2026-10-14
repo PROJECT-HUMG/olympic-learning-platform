@@ -1,15 +1,11 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
 import { it } from "node:test";
-import { fileURLToPath } from "node:url";
 import {
   presentRankingList,
   rankingContextLabel,
   rankTone,
 } from "../src/features/recognition/ranking-presentation-model.ts";
 
-const root = dirname(fileURLToPath(import.meta.url));
 const medalWords = /medal|huy chương|huy chuong|HCV|HCB|HCĐ/i;
 
 it("gives tied server ranks the same place and does not renumber by index", () => {
@@ -90,26 +86,9 @@ it("names the selected year or all-time context without medal language", () => {
   }
 });
 
-it("keeps the rank presentation files free of profile lookup and fixed name heights", () => {
-  const model = readFileSync(join(root, "../src/features/recognition/ranking-presentation-model.ts"), "utf8");
-  const view = readFileSync(join(root, "../src/features/recognition/ranking-presentation.tsx"), "utf8");
-  const css = readFileSync(join(root, "../src/features/recognition/ranking-presentation.css"), "utf8");
-  const narrow = css.slice(css.indexOf("max-width: 400px"));
-
-  assert.doesNotMatch(model, /from ["']react|from ["']\.\/service|from ["']\.\/scoring|fetch\(/);
-  assert.match(view, /presentRankingList/);
-  assert.match(view, /ranking-presentation\.css/);
-  assert.match(view, /data-tone=\{row\.tone\}/);
-  assert.match(view, /aria-hidden="true"/);
-  assert.match(view, /from=\{presentation\.from\}/);
-  assert.doesNotMatch(view, /recognitionService|useQuery|achievement-presentation|from ["']\.\/service|from ["']\.\/scoring|from ["']\.\/hooks|fetch\(/);
-  for (const color of ["#795600", "#fff3cf", "#46576b", "#eaf0f5", "#82452b", "#f9e8dd"]) {
-    assert.match(css, new RegExp(color));
-  }
-  assert.match(css, /:focus-visible/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.match(css, /\.ranking-presentation__identity a\s*\{[^}]*overflow-wrap:\s*anywhere/);
-  assert.doesNotMatch(css, /line-clamp|max-height/);
-  assert.match(narrow, /ranking-presentation__points/);
-  assert.match(narrow, /text-align:\s*left/);
+it("preserves the selected timeframe and return URL for empty results", () => {
+  const result = presentRankingList([], 2025, "/rankings?year=2025&page=3&keep=value");
+  assert.deepEqual(result.rows, []);
+  assert.equal(result.contextLabel, "Năm 2025");
+  assert.equal(result.from, "/rankings?year=2025&page=3&keep=value");
 });

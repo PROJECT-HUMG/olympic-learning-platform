@@ -165,9 +165,10 @@
 .achievement-presentation__honor {
   display: inline-block;
   margin: 0;
-  padding: 0 0 2px;
-  border-bottom: 2px solid var(--primary);
-  background: none;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: .375rem;
+  background: var(--muted);
   color: var(--primary);
   font-family: var(--font-sans);
   font-size: 14px;

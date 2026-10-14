@@ -88,9 +88,11 @@ it("keeps bank search from submitting the save form", () => {
   assert.equal(bank.includes("<form"), false);
   assert.equal(bank.includes("onSubmit"), false);
   assert.equal(bank.includes('type="submit"'), false);
-  assert.equal(bank.includes("onKeyDown"), true);
-  assert.equal(bank.includes("bankSearchKey"), true);
+  assert.ok(bank.includes("useListSearch"));
+  assert.ok(bank.includes("{...live.input}"));
+  const lifecycle = readFileSync(new URL("../src/hooks/use-list-search.ts", import.meta.url), "utf8");
+  assert.ok(lifecycle.includes('event.key === "Enter"'));
+  assert.ok(lifecycle.includes("event.preventDefault()"));
+  assert.ok(lifecycle.includes("event.stopPropagation()"));
   assert.equal(bank.includes('type="button"'), true);
-  assert.equal(bank.includes("preventDefault"), true);
-  assert.equal(bank.includes("stopPropagation"), true);
 });

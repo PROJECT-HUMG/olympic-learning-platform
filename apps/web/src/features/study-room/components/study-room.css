@@ -8,12 +8,12 @@
 :is(.study-room-page, .study-rooms-lobby) :is(button, a, input, summary):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
 .study-room-note { color: var(--muted-foreground); font-size: .8125rem; line-height: 1.8; }
 .study-room-error { padding: .9rem 1rem; margin-block: 1rem; border-left: 2px solid var(--destructive); color: var(--destructive); background: color-mix(in srgb, var(--destructive) 5%, var(--card)); font-size: .875rem; line-height: 1.7; }
-.study-room-feedback { padding: 1.5rem; margin-block: 1rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--card); line-height: 1.8; }
+.study-room-feedback { padding: 1.5rem; margin-block: 1rem; border: 1px solid var(--border); border-radius: var(--panel-radius); background: var(--card); line-height: 1.8; }
 .study-room-feedback p { margin-bottom: .6rem; color: var(--muted-foreground); font-size: .875rem; }
 .study-room-feedback > svg { margin-bottom: .75rem; color: var(--muted-foreground); }
 .study-room-access { max-width: 32rem; margin: 1rem auto; padding: 2rem .5rem; text-align: center; }
 .study-room-access > svg { width: 2rem; height: 2rem; margin: 0 auto 1rem; color: var(--primary); stroke-width: 1.4; }
-.study-room-access h2 { font-family: var(--font-serif); font-size: 1.75rem; font-weight: 400; line-height: 1.5; }
+.study-room-access h2 { font-family:var(--font-sans); font-size:1.5rem; font-weight:600; line-height: 1.5; }
 .study-room-access p { margin: .75rem auto 1.5rem; max-width: 36ch; color: var(--muted-foreground); line-height: 1.8; }
 .study-room-access a { min-height: 2.75rem; padding-inline: 1rem; }
 .study-rooms-lobby__heading { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
@@ -46,10 +46,10 @@
 .study-room-back svg { width: 1rem; height: 1rem; }
 .study-room-copy { margin-bottom: 1rem; }
 .study-room-copy input { margin-top: .5rem; }
-.study-room-focus, .study-room-preview { display: grid; gap: 1rem; margin-bottom: 2rem; align-items: stretch; }
-.study-room-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 1fr); gap: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.study-room-focus, .study-room-preview { display: grid; gap: 1rem; margin-bottom:1.25rem; align-items: stretch; }
+.study-room-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 1fr); gap:1.25rem; padding-top:1.25rem; border-top: 1px solid var(--border); }
 .study-room-main, .study-room-aside { display: grid; align-content: start; gap: 1.5rem; min-width: 0; }
-.study-room-clock { display: grid; gap: 1rem; padding: 1.5rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--card); text-align: left; }
+.study-room-clock { display: grid; gap: 1rem; padding: 1.5rem; border: 1px solid var(--border); border-radius: var(--panel-radius); background: var(--card); text-align: left; }
 .study-room-clock__reading, .study-room-clock__guidance { display: grid; align-content: start; gap: .75rem; min-width: 0; }
 .study-room-clock__meta { display: flex; justify-content: space-between; align-items: center; gap: 1rem; color: var(--muted-foreground); font-size: .8125rem; }
 .study-room-clock__meta span:first-child { color: var(--primary); font-weight: 600; }
@@ -170,7 +170,7 @@
 .room-rhythm-fields input { width: 100%; min-width: 0; min-height: 2.75rem; padding: .5rem .75rem; border: 1px solid var(--input); border-radius: .5rem; color: var(--foreground); background: var(--background); font-size: 1rem; }
 .room-rhythm-fields input:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 .room-rhythm-note { margin-top: .75rem; color: var(--muted-foreground); font-size: .75rem; line-height: 1.8; }
-.room-rhythm-confirmation { margin-block: 1rem; padding: .85rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--muted); font-size: .8125rem; line-height: 1.7; }
+.room-rhythm-confirmation { margin-block: 1rem; padding: .85rem; border: 1px solid var(--border); border-radius: var(--panel-radius); background: var(--muted); font-size: .8125rem; line-height: 1.7; }
 .room-rhythm-confirmation strong { font-weight: 500; }
 .room-rhythm-confirmation p { margin-top: .3rem; color: var(--muted-foreground); }
 .room-rhythm-stale { margin-bottom: 1rem; padding: .85rem; border-left: 2px solid var(--primary); font-size: .8125rem; line-height: 1.7; }
@@ -209,7 +209,7 @@
 @keyframes room-workspace-reveal { from { opacity: .3; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
 /* The music dialog owns these form/control styles even in the browser top layer. */
-.room-music-dialog { width: min(42rem, calc(100vw - 2rem)); max-width: none; max-height: calc(100dvh - 2rem); margin: auto; padding: 1.25rem; border: 1px solid var(--border); border-radius: 1rem; color: var(--foreground); background: var(--card); overflow-y: auto; overscroll-behavior: contain; box-shadow: 0 24px 90px #0005; }
+.room-music-dialog { width: min(42rem, calc(100vw - 2rem)); max-width: none; max-height: calc(100dvh - 2rem); margin: auto; padding: 1.25rem; border: 1px solid var(--border); border-radius: var(--panel-radius); color: var(--foreground); background: var(--card); overflow-y: auto; overscroll-behavior: contain; box-shadow: 0 24px 90px #0005; }
 .room-music-dialog::backdrop { background: #07282fb3; backdrop-filter: blur(5px); }
 .room-music-dialog__header { position: sticky; z-index: 2; top: -1.25rem; display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; margin-bottom: 1rem; padding-block: .25rem .5rem; background: var(--card); }
 .room-music-dialog__header > div { min-width: 0; }
@@ -333,4 +333,4 @@
 
 .creation-dialog__body .study-room-create { max-width:none; margin:0; padding:0; border:0; }
 .study-rooms-lobby__list { display:grid; gap:.75rem; }
-.study-rooms-lobby__list li { border:1px solid var(--surface-border); border-radius:var(--panel-radius); background:var(--card); box-shadow:var(--surface-shadow); overflow:hidden; }
+.study-rooms-lobby__list li { border:1px solid var(--surface-border); border-radius:var(--panel-radius); background:var(--card); box-shadow:none; overflow:hidden; }

@@ -1,3 +1,4 @@
+import { useUrlListSearch } from "@/hooks/use-list-search";
 import { OptionQueryFeedback } from "@/components/ui/option-query-feedback";
 import { RetryFeedback } from "@/components/ui/retry-feedback";
 import { SearchInput } from "@/components/ui/search-input";
@@ -6,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useDocumentMetadata } from "@/features/documents/hooks/use-documents";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Archive, Copy, Eye, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
@@ -33,40 +34,11 @@ import {
   useRestoreQuestion,
 } from "@/features/questions/hooks/use-questions";
 
-function QuestionSearch({
-  value,
-  onSearch,
-}: {
-  value: string;
-  onSearch: (search: string) => void;
-}) {
-  const [draft, setDraft] = useState(value);
-  return (
-    <form
-      className="flex min-w-0 flex-[1_1_20rem] gap-2"
-      role="search"
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSearch(draft.trim());
-      }}
-    >
-      <SearchInput
-        aria-label="Tìm nội dung câu hỏi"
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        placeholder="Tìm nội dung câu hỏi…"
-      />
-      <Button type="submit" variant="secondary" className="h-11">
-        Tìm
-      </Button>
-    </form>
-  );
-}
-
 export default function QuestionBankPage() {
   const [params, setParams] = useSearchParams();
   const bank = questionBankQuery(params);
   const page = bank.page;
+  const search = useUrlListSearch(bank.search ?? "", value => setParams(previous => replaceQuestionBankParam(previous, "search", value), { replace: true }));
   const query = useQuestions({
     search: bank.search,
     subjectId: bank.subjectId,
@@ -120,11 +92,7 @@ export default function QuestionBankPage() {
         }
       />
       <div className="page-toolbar filter-panel !items-end">
-        <QuestionSearch
-          key={bank.search ?? ""}
-          value={bank.search ?? ""}
-          onSearch={(value) => setParams((previous) => replaceQuestionBankParam(previous, "search", value))}
-        />
+        <SearchInput {...search.input} aria-label="Tìm nội dung câu hỏi" placeholder="Tìm nội dung câu hỏi…" className="flex-[1_1_20rem]" />
         <div className="flex min-w-0 flex-[1_1_24rem] flex-wrap gap-3">
           <label className="flex min-w-0 flex-[1_1_12rem] flex-col gap-1 text-sm">
             Môn học

@@ -4,9 +4,9 @@
 .group-invitations h2 { font-size: 1rem; font-weight: 600; }
 .group-invitations svg { flex-shrink: 0; }
 .group-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 1rem; list-style: none; padding: 0; margin: 0; }
-.group-card { border: 1px solid var(--border); border-radius: .75rem; background: var(--card); transition: border-color 150ms ease; }
+.group-card { border: 1px solid var(--border); border-radius: var(--panel-radius); background: var(--card); transition: border-color 150ms ease; }
 .group-card:hover { border-color: var(--primary); }
-.group-card__link { display: flex; align-items: center; gap: 1rem; padding: 1.25rem; min-height: 88px; text-decoration: none; color: inherit; }
+.group-card__link { display: flex; align-items: center; gap: 1rem; padding:1rem; min-height:72px; text-decoration: none; color: inherit; }
 .group-card__avatar, .group-hero__avatar { display: grid; place-items: center; flex: 0 0 2.5rem; height: 2.5rem; border-radius: 50%; overflow: hidden; background: var(--accent); color: var(--primary); font-weight: 600; }
 .group-card__info { min-width: 0; flex: 1; }
 .group-card__name { font-size: 1rem; font-weight: 600; overflow-wrap: anywhere; }

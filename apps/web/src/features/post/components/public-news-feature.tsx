@@ -1,5 +1,5 @@
-import { PageHeader } from "@/components/ui/page-header";
-import type { FormEvent } from "react";
+import { PublicPageHeader } from "@/components/ui/public-page-header";
+import { useUrlListSearch } from "@/hooks/use-list-search";
 import { Bell, Pin, RefreshCw } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -46,56 +46,39 @@ export function PublicNewsFeature() {
     Object.entries(changes).forEach(([key, value]) => value ? next.set(key, value) : next.delete(key));
     return next;
   };
-  const search = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const value = String(new FormData(event.currentTarget).get("q") || "").trim();
-    setSearchParams(changedParams({ q: value || undefined, page: undefined }));
-  };
-  const reset = () => setSearchParams({});
+  const search = useUrlListSearch(keyword, value => setSearchParams(previous => { const next = new URLSearchParams(previous); if (value) next.set("q", value); else next.delete("q"); next.delete("page"); return next; }, { replace: true }));
+  const reset = () => { search.resetDraft(); setSearchParams(previous => { const next = new URLSearchParams(previous); for (const key of ["q", "type", "page"]) next.delete(key); return next; }); };
   const pageOutOfRange = Boolean(feed.data && currentPage > Math.max(1, feed.data.totalPages));
+  const showPinned = showPriority && (priority.isLoading || priority.isError || Boolean(priority.data?.content.length));
 
   return (
     <div className="page-shell page-shell--public school-news">
-      <PageHeader title="Bảng tin học đường" description="Thông báo cần nhớ, chuyện trong trường và những điều đáng đọc." />
+      <PublicPageHeader breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Bảng tin" }]} title="Bảng tin" description="Thông báo và bài viết của Olympic HUMG." />
 
       <section className="school-news__discovery filter-panel" aria-labelledby="school-news-discovery-title">
-        <div className="school-news__discovery-header">
-          <div>
-            <h2 id="school-news-discovery-title">Tìm bài viết</h2>
-            <p aria-live="polite">
-              {keyword ? <>Từ khóa “{keyword}”{feed.data && !feed.isError ? ` · ${feed.data.totalElements} bài viết` : ""}</> : "Tìm theo tiêu đề, chọn loại bài viết cần xem."}
-            </p>
-          </div>
-          <form key={searchParams.toString()} role="search" onSubmit={search} className="school-news__search">
-            <label className="sr-only" htmlFor="school-news-search">Tìm bài viết</label>
-            <SearchInput id="school-news-search" type="search" name="q" defaultValue={keyword} placeholder="Tìm trong bảng tin…" className="bg-card" />
-            <Button type="submit" variant="secondary">Tìm</Button>
-          </form>
+        <div role="search" className="school-news__search">
+          <label id="school-news-discovery-title" htmlFor="school-news-search" className="sr-only">Tìm bài viết</label>
+          <SearchInput {...search.input} id="school-news-search" type="search" name="q" placeholder="Tìm trong bảng tin…" />
         </div>
-
-        <nav className="school-news__categories" aria-label="Loại bài viết">
-          {categories.map((category) => (
-            <Link
-              key={category.value}
-              to={{ search: changedParams({ type: category.value === "ALL" ? undefined : category.value, page: undefined }).toString() }}
-              aria-current={type === category.value ? "page" : undefined}
-            >
-              {category.value === "ANNOUNCEMENT" && <Bell aria-hidden="true" />}
-              {category.label}
-            </Link>
-          ))}
-        </nav>
-
-        {hasFilters && (
-          <div className="school-news__filter-summary">
-            <span>{type !== "ALL" && categories.find(category => category.value === type)?.label}{type !== "ALL" && keyword ? " · " : ""}{keyword && <>“{keyword}”</>}</span>
-            <Button type="button" variant="ghost" onClick={reset}>Xóa bộ lọc</Button>
-          </div>
-        )}
+        <div className="school-news__type-controls">
+          <nav className="school-news__categories" aria-label="Loại bài viết">
+            {categories.map(category => (
+              <Button key={category.value} asChild variant={type === category.value ? "secondary" : "ghost"}>
+                <Link to={{ search: changedParams({ type: category.value === "ALL" ? undefined : category.value, page: undefined }).toString() }} aria-current={type === category.value ? "page" : undefined}>
+                  {category.value === "ANNOUNCEMENT" && <Bell aria-hidden="true" />}{category.label}
+                </Link>
+              </Button>
+            ))}
+          </nav>
+          {hasFilters && <Button type="button" variant="ghost" onClick={reset}>Xóa bộ lọc</Button>}
+        </div>
+        {keyword && <p className="school-news__filter-summary" aria-live="polite">Từ khóa “{keyword}”</p>}
 
       </section>
 
-      {showPriority && (priority.isLoading || priority.isError || Boolean(priority.data?.content.length)) && (
+      <p className="list-search-status" role="status">{search.pending || feed.isFetching ? "Đang cập nhật bảng tin…" : ""}</p>
+      <div className={"school-news__body" + (showPinned ? " school-news__body--with-pinned" : "")}>
+      {showPinned && (
         <section className="school-news__pinned" aria-labelledby="school-news-pinned-title" aria-busy={priority.isFetching}>
           <div className="school-news__pinned-heading">
             <span className="school-news__pin"><Pin aria-hidden="true" /></span>
@@ -148,11 +131,11 @@ export function PublicNewsFeature() {
 
         {!feed.isError && !pageOutOfRange && feed.data && feed.data.totalPages > 1 && (
           <div className="school-news__pagination">
-            <p>Trang {currentPage} / {feed.data.totalPages}</p>
             <AppPagination currentPage={currentPage} totalPages={feed.data.totalPages} siblingCount={0} onPageChange={(page) => setSearchParams(changedParams({ page: page === 1 ? undefined : String(page) }))} />
           </div>
         )}
       </section>
+      </div>
     </div>
   );
 }

@@ -39,7 +39,7 @@
   stroke: var(--border);
   stroke-width: 1;
   stroke-linecap: butt;
-  transition: stroke 240ms ease, stroke-width 240ms ease;
+  transition: stroke 160ms ease, stroke-width 160ms ease;
 }
 
 .lbi[data-focus="true"] .lbi-ring path {
@@ -63,8 +63,8 @@
 .lbi-gap {
   stroke-dasharray: 1 2;
   stroke-dashoffset: 0;
-  transition: stroke 240ms ease, stroke-width 240ms ease,
-    stroke-dashoffset 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: stroke 160ms ease, stroke-width 160ms ease,
+    stroke-dashoffset 160ms ease;
 }
 
 .lbi[data-focus="true"] .lbi-gap,
@@ -87,7 +87,7 @@
   color: var(--muted-foreground);
   transform-origin: left center;
   transform: translateY(-50%);
-  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), color 200ms ease;
+  transition: transform 160ms ease, color 200ms ease;
   cursor: text;
   -webkit-user-select: none;
   user-select: none;
@@ -109,13 +109,6 @@
 
 .lbi-label span {
   display: inline-block;
-}
-
-/* the hop: each letter lifts a hair and settles, one after the
-   next, so the word ripples as it rises */
-.lbi[data-focus="true"] .lbi-label span {
-  animation: lbi-hop 460ms cubic-bezier(0.3, 0.7, 0.3, 1) both;
-  animation-delay: calc(var(--i) * 24ms);
 }
 
 /* ── the field ──────────────────────────────────────────── */
@@ -140,29 +133,19 @@
   color: transparent;
 }
 
-/* the reveal: the text passes through a soft blur rather than
-   snapping between dots and letters */
-.lbi-field[data-flip="1"] {
-  animation: lbi-flip-a 260ms ease-out;
-}
-
-.lbi-field[data-flip="0"] {
-  animation: lbi-flip-b 260ms ease-out;
-}
-
 /* ── password eye toggle ────────────────────────────────── */
 .lbi-eye {
   position: absolute;
-  right: 10px;
+  right: 4px;
   top: 50%;
-  width: 30px;
-  height: 30px;
-  margin-top: -15px;
+  width: 44px;
+  height: 44px;
+  margin-top: -22px;
   display: grid;
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 999px;
+  border-radius: 6px;
   background: transparent;
   color: var(--muted-foreground);
   cursor: pointer;
@@ -237,29 +220,6 @@
   }
 }
 
-/* ── keyframes ──────────────────────────────────────────── */
-@keyframes lbi-hop {
-  0% {
-    transform: translateY(0);
-  }
-  38% {
-    transform: translateY(-3px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
 
-@keyframes lbi-flip-a {
-  from {
-    filter: blur(3px);
-    opacity: 0.5;
-  }
-}
-
-@keyframes lbi-flip-b {
-  from {
-    filter: blur(3px);
-    opacity: 0.5;
-  }
-}
+.lbi-eye:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
+@media(max-width:640px) { .lbi-field { font-size:1rem; } }

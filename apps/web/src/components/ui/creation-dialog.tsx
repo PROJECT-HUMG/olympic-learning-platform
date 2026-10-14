@@ -60,7 +60,7 @@ export function CreationDialog({ open, onOpenChange, title, description, dirty =
       </DialogContent>
     </Dialog>
     <AlertDialog open={open && confirmClose} onOpenChange={setConfirmClose}>
-      <AlertDialogContent onCloseAutoFocus={event => { event.preventDefault(); if (confirmReturn.current?.isConnected) confirmReturn.current.focus(); }}>
+      <AlertDialogContent onCloseAutoFocus={event => { event.preventDefault(); if (open && confirmReturn.current?.isConnected) confirmReturn.current.focus(); }}>
         <AlertDialogHeader><AlertDialogTitle>Bỏ thay đổi chưa lưu?</AlertDialogTitle><AlertDialogDescription>Nội dung trong biểu mẫu chưa được lưu. Tiếp tục chỉnh sửa để giữ lại, hoặc đóng và bỏ thay đổi này.</AlertDialogDescription></AlertDialogHeader>
         <AlertDialogFooter><AlertDialogCancel>Tiếp tục chỉnh sửa</AlertDialogCancel><AlertDialogAction variant="destructive-solid" disabled={busy} onClick={() => { setConfirmClose(false); onOpenChange(false); }}>Bỏ thay đổi</AlertDialogAction></AlertDialogFooter>
       </AlertDialogContent>

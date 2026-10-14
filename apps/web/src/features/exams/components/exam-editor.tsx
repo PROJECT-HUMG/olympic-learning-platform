@@ -1,3 +1,4 @@
+import { useListSearch } from "@/hooks/use-list-search";
 import { OptionQueryFeedback } from "@/components/ui/option-query-feedback";
 import type { CreationState } from "@/components/ui/creation-dialog";
 import { SearchInput } from "@/components/ui/search-input";
@@ -17,7 +18,7 @@ import { useQuestion, useQuestions } from "@/features/questions/hooks/use-questi
 import { getListReturnPath } from "@/lib/list-navigation";
 import type { Question } from "@/features/questions/types/question.types";
 import { examErrorMessage, frozenPaperId, isExamConflict, readManualContent } from "../exam-contract";
-import { bankSearchKey, bankSearchQuery, publishEligibility } from "../exam-editor-policy";
+import { bankSearchQuery, publishEligibility } from "../exam-editor-policy";
 import { alignPlacement, editorFromDraft, emptyEditor, hydratePlacementItem, movePlacement, replacePlacementItem, shouldLoadServerDraft, toSaveRequest, type EditorDraft, type EditorPlacement } from "../exam-placement";
 import { formatRelease, localInputToOffsetDateTime, zoneLabel } from "../exam-time";
 import { useCreateExam, useExamDraft, usePublishExam, useUpdateExam } from "../hooks/use-exams";
@@ -56,7 +57,7 @@ function ExamForm({ examId, initial, reload, listPath, papersPath, back, onState
   }, [server, dirty, conflict]);
   async function save() {
     const request = toSaveRequest(form, examId ? "update" : "create");
-    if (!request.ok) { setNotice(request.message); return; }
+    if (request.ok === false) { setNotice(request.message); return; }
     try {
       const saved = examId ? await update.mutateAsync(request.body) : await create.mutateAsync(request.body);
       setForm(editorFromDraft(saved));
@@ -76,7 +77,7 @@ function ExamForm({ examId, initial, reload, listPath, papersPath, back, onState
       return;
     }
     const ready = toSaveRequest(form, "update");
-    if (!ready.ok) { setNotice(ready.message); return; }
+    if (ready.ok === false) { setNotice(ready.message); return; }
     const version = form.version;
     if (version === null) { setNotice("Hãy lưu đề trước khi xuất bản."); return; }
     try {
@@ -120,14 +121,14 @@ function ExamForm({ examId, initial, reload, listPath, papersPath, back, onState
       </div></PageSection>
       <PageSection title="Câu trong đề" description="Thứ tự trên màn hình là thứ tự lưu.">
         <ol className="space-y-6">{form.items.map((item, index) => <PlacementEditor key={`${item.questionId}-${index}`} index={index} item={item} onHydrate={(content) => hydratePlacement(index, item.questionId, content)} onChange={(update) => edit((current) => replacePlacementItem(current, index, update))} onMove={(direction) => edit((current) => ({ ...current, items: movePlacement(current.items, index, direction) }))} onRemove={() => edit((current) => ({ ...current, items: current.items.filter((_, rowIndex) => rowIndex !== index) }))} />)}</ol>
-        {form.subjectId ? <PublishedBank subjectId={form.subjectId} onAdd={(question) => {
+        {form.subjectId ? <PublishedBank key={form.subjectId} subjectId={form.subjectId} onAdd={(question) => {
           const content = readManualContent(question.content);
           if (!content || question.status !== "PUBLISHED") { setNotice("Chỉ thêm câu schema 1 đã xuất bản."); return; }
           edit((current) => ({ ...current, items: [...current.items, alignPlacement({ questionId: question.id, points: "", instructions: "", structure: content.structure, partIds: content.parts.map((part) => part.id), partPoints: {} }, content)] }));
         }} /> : <p>Hãy chọn môn học trước khi thêm câu.</p>}
       </PageSection>
       {eligibility.notice ? <p className="text-sm" role="status">{eligibility.notice}</p> : null}
-      <div className="flex flex-wrap gap-3">
+      <div className="sticky-form-actions">
         <Button type="submit" disabled={busy}>Lưu đề</Button>
         {onClose && <Button type="button" variant="outline" disabled={busy} onClick={onClose}>Hủy</Button>}
         <Button type="button" variant="outline" disabled={busy || !eligibility.enabled} onClick={() => void publishDraft()}>Xuất bản phiên bản</Button>
@@ -154,21 +155,15 @@ function PlacementEditor({ index, item, onChange, onHydrate, onMove, onRemove }:
 }
 
 function PublishedBank({ subjectId, onAdd }: { subjectId: string; onAdd: (question: Question) => void }) {
-  const [text, setText] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const query = useQuestions({ status: "PUBLISHED", subjectId, search: search || undefined, page, size: 10 });
-  function applySearch() {
-    const next = bankSearchQuery(text);
-    setPage(next.page);
-    setSearch(next.search);
-  }
+  const live = useListSearch(search, value => { const next = bankSearchQuery(value); setPage(next.page); setSearch(next.search); }, subjectId);
   return <div className="space-y-3 border-t pt-4">
     <h3 className="font-semibold">Ngân hàng đã xuất bản</h3>
     <div className="flex flex-wrap gap-2">
       <Label className="sr-only" htmlFor="bank-search">Tìm câu đã xuất bản</Label>
-      <SearchInput id="bank-search" value={text} onChange={(event) => setText(event.target.value)} onKeyDown={(event) => { if (!bankSearchKey(event)) return; applySearch(); }} />
-      <Button type="button" variant="outline" onClick={(event) => { event.preventDefault(); event.stopPropagation(); applySearch(); }}>Tìm</Button>
+      <SearchInput id="bank-search" {...live.input} />
     </div>
     {query.isLoading ? <ExamLoading label="Đang tải câu hỏi…" /> : null}
     {query.isError ? <ExamProblem message={examErrorMessage(query.error)} retrying={query.isFetching} onRetry={() => void query.refetch()} /> : null}

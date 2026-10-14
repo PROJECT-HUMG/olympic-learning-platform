@@ -7,10 +7,11 @@ export default function HomePage() {
   return (
     <div className="home-page">
       <HomeHeroSection />
+      <div className="home-page__content">
       <section id="study-notebook" className="home-study" aria-labelledby="home-study-title">
         <div className="home-page__container">
           <header className="home-study__heading">
-            <h2 id="home-study-title">Bàn học của bạn</h2>
+            <h2 id="home-study-title">Không gian học tập</h2>
             <p>Tài liệu mới, thông báo và các tiện ích học tập.</p>
           </header>
           <HomeStudyNotebook />
@@ -20,6 +21,7 @@ export default function HomePage() {
         <div className="home-page__section">
           <HomeLatestNewsSection />
         </div>
+      </div>
       </div>
     </div>
   );

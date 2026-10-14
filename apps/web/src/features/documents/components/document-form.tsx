@@ -332,7 +332,7 @@ export function DocumentForm({
           )}
         </div>
 
-        <div className="flex flex-col-reverse gap-3 pt-4 border-t sm:flex-row sm:flex-wrap sm:justify-end">
+        <div className="sticky-form-actions">
           <Button
             type="button"
             variant="outline"

@@ -1,5 +1,7 @@
 # Giao diện chung
 
+> Current page composition: [14/10/2026 decisions](#whole-page-composition--14102026).
+
 For actual component APIs, route-by-route adoption, intentional exceptions and
 remaining duplication, read the [shared UI owner reference](web-ui-components.md).
 This authority defines the standard; that reference inventories current source
@@ -39,7 +41,7 @@ Workspace navigation separates personal/content/system tasks from public discove
 
 Expressive user-triggered motion is allowed: a 360ms drawer reveal, staged group reveals, responsive sidebar width transition, shared floating-control account reveal and active-route markers. Do not delay links or add continuous navigation motion. OS prefers-reduced-motion suppresses these animations automatically. The visible “Nền động” control (HomeMotionToggle and PublicDisplaySettings switch) and its now-unused preference store are removed; the home-motion hook follows OS preference, preserving theme settings. This is not authority to override browser accessibility or add new background effects.
 
-Rendered recheck: retain the visible Menu label on tablet/mobile; below 768px keep the school logo but omit the adjacent brand text to make room for sign-in/Menu. Compact workspace rails have one Menu trigger, not a second discovery trigger to the same drawer. Staff rail order is Overview, Documents, Questions, Daily, Daily groups; the expanded sidebar/full drawer retain every destination and the same role restrictions. Active rail entries use a text-weight/background/edge marker, not color alone. Existing account/theme, draft blocking and focus return stay intact.
+Historical rendered recheck (superseded by the14/10/2026 icon-only top-menu refinement): retain the visible Menu label on tablet/mobile; below 768px keep the school logo but omit the adjacent brand text to make room for sign-in/Menu. Compact workspace rails have one Menu trigger, not a second discovery trigger to the same drawer. Staff rail order is Overview, Documents, Questions, Daily, Daily groups; the expanded sidebar/full drawer retain every destination and the same role restrictions. Active rail entries use a text-weight/background/edge marker, not color alone. Existing account/theme, draft blocking and focus return stay intact.
 
 Study-room presentation (06/10/2026): `/toolkit?tool=rooms` retains flat discovery; creation now uses CreationDialog (10/10 update below). GPA calculation rules remain unchanged. `/study-rooms/:roomId` keeps explicit preview/Join. The joined room is listening-first: real selected title and local controls, original Three.js observatory, then a compact rhythm/accounting band with the same aligned edges. Desktop >=1200px pairs the stage with a 19rem Queue/People companion; tablet/mobile move those tabs below it. Below 768px Play/Player/Volume form one deliberate control row and volume uses a bounded popover. Rounded stone/oak, an orbital window, smoother seated characters and daylight/evening lighting replace the prior dense timber/mountain scene; retain platform tokens and Be Vietnam Pro for DOM content, with no fabricated artwork or metadata. Character/DOM identity interactions remain accessible and fallback does not block controls. Music/TV use one persistent player modal; Add uses a focused shadcn dialog respecting the existing one-outstanding-track rule. Management/Leave occupy the compact More menu. Bell/phase feedback, OS reduced motion, keyboard/focus, routes/API/access remain. This supersedes the timer-first 320px rail, not room semantics; no group-room links, authoritative seats or saved customization.
 
@@ -144,6 +146,13 @@ and prominent search, search-first Documents' sr-only h1, fallback/404 presentat
 calendars and persistent player remain intentional exceptions. No shared header has
 fixed height or clamped title/description content. Actual route adoption and bounded
 rendered evidence are in the [component reference](web-ui-components.md).
+
+### Modern Layout & Rich Design Refresh (11/10/2026)
+
+1. **Workspace Topbar Breadcrumbs**: Integrated `<Breadcrumb>` into `.workspace-topbar__identity` alongside user role badge and active page title. Enhances navigation hierarchy across workspace views.
+2. **2-Column Asymmetric Dashboard Layout**: Replaced the previous single-column layout on `/dashboard` with an 8-col main learning section (`DashboardContinueLearning`, `DashboardRecentActivities`, shortcuts) and a 4-col side rail (`DashboardQuickActions`, `DashboardUpcomingContests`).
+3. **Public Sub-Hero Banner (`PublicPageHeader`)**: Introduced a rich sub-hero banner for discovery portal pages (`/documents`, `/subjects`, `/rankings`, `/honors`). Features ambient radial glow, category pill badge, breadcrumbs trail, prominent typography, and action buttons slot.
+4. **Sticky Action Bar (`.sticky-form-actions`)**: Long forms (`DocumentForm`, `PostForm`, `ExamEditor`) provide sticky action bars at the bottom with frosted glass backdrop (`backdrop-filter: blur(12px)`), upward shadow, and responsive button layout so critical submission/draft actions remain immediately reachable during lengthy edits.
 
 
 ## Màu và chữ
@@ -312,7 +321,7 @@ floating fields, 44px recovery/reveal targets, validation associations and login
 Turnstile/token lifecycle. Desktop retains its compact above-field recovery link;
 other auth forms are unchanged. Mobile navigation (<768px) keeps logo-only public
 branding with its accessible home-link name. Both shells use the public-derived
-MobileNavbar row: logo left, ThemeToggle → account/login → labelled Menu right.
+MobileNavbar row: logo left, ThemeToggle → account/login → icon-only menu right (accessible name retained).
 Its 64px row has 1rem horizontal padding (12px below360px),8px control gaps,
 44px targets, Menu divider and shared focus ring. Workspace page context stays
 visible beneath the sticky row, wrapping independently of the controls.
@@ -340,7 +349,7 @@ See the [component APIs and consumers](web-ui-components.md#mobile-and-recogniti
 
 Narrow anonymous public navigation also keeps the logo from shrinking into the
 theme target: at <360px only horizontal navbar/button padding is compacted,
-retaining44px height,8px target separation and complete login/Menu labels.
+retaining44px height,8px target separation and complete login label and accessible menu name.
 
 
 ## Visual hierarchy and creation entry flows (10/10/2026, local candidate)
@@ -588,3 +597,96 @@ honest empty state; no synthetic activity heatmap or inferred participation. App
 public visibility, evidence permission and ranking enrollment remain separate gates.
 See [owner lookup](web-ui-components.md#public-identity-and-profile-quick-lookup--10102026)
 and [actual exposure/migration policy](recognition.md#duyệt-và-quyền-riêng-tư).
+
+
+### Public Recognition and News refinement — 11/10/2026
+
+Use the existing HUMG light/dark tokens and sans typography. Public profile identities are compact avatar/name links with a quiet bounded surface and chevron, rather than detached blue underlined text. The link remains a Link; optional hover/focus summary and click/touch profile access share one owner. Do not turn ordinary prose links into buttons.
+
+Rankings is a compact record list within a60rem page, with native timeframe selection rather than a full-width mostly empty filter card. Rank, identity, approved count and score form one local group at every width; very long names wrap naturally without truncation or fixed row heights. Honors remains an album grid, with16:9 media and24rem maximum card width, status badge, subject/year, participant/award and album action grouped in one surface. Only its public filter form adopts the deliberate year/subject/action grid; admin editor contracts are unchanged.
+
+News discovery combines labelled search and URL-driven type controls in one region. Navigation uses shared Button-as-Link selected/unselected variants,44px minimum targets and an8px gap. Mobile uses a two-column category grid; the selected category itself supplies the visible state, so its label is not repeated as a second-looking filter. Keyword context, reset and result count remain available. Retain editorial reading rows and restrained borders; avoid a second heading/helper block or repeated elevation for each story. No publication, ranking-consent, approval or filter taxonomy rule changed.
+
+Concrete rejected alternatives: a podium would invent distinction beyond server ranks; stretching a lone album would make its photo dominate sparse results; another tab/underline style would retain the mobile blue-text problem. Responsible owners and proof are linked from the [component reference](web-ui-components.md#public-recognitionnews-control-variants--11102026).
+
+## Visual depth and modern aesthetic refresh — 11/10/2026
+
+Addresses the previous flat, monochrome appearance across public and workspace surfaces. The system replaces flat navy fills and uniform gray borders with rich multi-layer elevation, subtle gradient accents, and responsive micro-interactions:
+
+- **Tokens & Gradients:** Upgraded `--primary` (`#1e40af` to `#3b82f6` gradient) with secondary teal (`#0d9488`), amber (`#d97706`), violet (`#7c3aed`), and rose accents. Added multi-layer shadow system (`--shadow-xs` to `--shadow-2xl`, `--shadow-card-hover`).
+- **Core Primitives:**
+  - `Button`: Subtle directional gradients, hover brightness and lift, active `scale(0.98)` tactile response, and crisp focus rings.
+  - `Card`: Gradient-swept card headers, refined border-radii (`rounded-2xl`), multi-layer resting shadows, and smooth hover transforms (`translateY(-2px)` / `-4px`).
+  - `Badge`: Crisp tinted pill variants with subtle borders and enhanced contrast across all semantic states (`success`, `warning`, `info`, `purple`, `gradient`).
+  - `Table`: Uppercase tracking header styling, comfortable cell padding, and smooth row hover transitions.
+  - `Skeleton`: Custom shimmer gradient sweep animation (`animate-shimmer`), gracefully falling back to pulse under `prefers-reduced-motion`.
+  - `ListFeedback` / `EmptyState`: Soft circular radial badge behind icons, modern dashed borders, and clear typographic hierarchy.
+- **Surface Modernization:**
+  - `Home`: Ambient radial mesh gradient behind hero, glassmorphic search input with multi-layer focus glow, gradient h1 typography, and hover lift on latest news cards.
+  - `Documents & Discovery`: Refined document card thumbnails with zoom-on-hover transforms, uppercase subject badges, and clear metadata hierarchy.
+  - `Navigation & Shell`: Frosted glass backdrop blur on topbar, gradient indicator on active links and sidebar items, and smooth spring cubic-bezier transitions.
+  - `System Categories / Document Tree ("Phân loại tài liệu")`: Modernized administrative category tree management with styled card wrappers, enhanced segmented tab indicators, and clean action button feedback.
+- **Accessibility & Dark Mode:** Complete dark mode harmony with tailored dark contrast tokens and automatic suppression of continuous animations when `prefers-reduced-motion` is active.
+
+
+## Shared foundation adoption — 13/10/2026
+
+Shared page/layout contracts live in [page-layout.css](../../apps/web/src/components/ui/page-layout.css), consumed by PageHeader/PublicPageHeader/PageSection and existing page-shell/content-card/filter-panel/page-table classes. Heading actions wrap below copy on phones; contextual strings can wrap without widening the shell. Toolbars align labeled controls at their bottom edge. Card header/body/footer remain distinct slots with matching padding. Shared ListFeedback/EmptyState is compact, left aligned and contextual; consumers retain loading/error/empty precedence and recovery callbacks. Button semantic variants supply clear action affordances without converting prose links. No page entrance transforms are added, preserving fixed dialog geometry.
+
+Source adoption ledger:401 frontend TS/TSX/CSS files and43 route-page files scanned;139 files directly reference these owners/patterns. Thin route wrappers delegate to features and are not missing adoption. Complete path-level direct matches/hashes are in the local candidate coverage artifact; this table records semantic disposition, not universal rendered proof.
+
+| Family / direct matching files | Adoption and purposeful variant | Render coverage for this pass |
+| --- | --- | --- |
+| Public Documents/subjects, News/readers;10 documents,1 subjects,11 post files | Shared public heading, surfaces, filters and actions; existing document recognition/list and editorial News compositions retained | Documents listing and News reader; subject directory source-inspected |
+| Recognition;8 files | Honors gallery and54rem Rankings rows refined locally on shared foundations; profile/private/admin forms retain their existing owners | Honors/Rankings0/1/many,long names,filters/profile; public profile destination interactions |
+| Dashboard;3 files | Welcome uses PageHeader, removes unsupported68% progress and uses real role-specific document destination; shortcut sections inherit layout | ADMIN dashboard; student companion/demo widgets unverified |
+| Management/categories/users;2 category files plus route consumers | Existing tables/filters/dialogs inherit readable headers and controls; horizontal data scrolling remains intentional | Documents management and Users table; categories source-inspected |
+| Questions/exams/import/assessment;3 questions,3 exams,3 assessment files | Shared headers/sections/Card/controls; frozen question readers and specialist editors retain compositions and gates | Source-inspected; no new full exam/import runtime matrix |
+| Long create/edit forms | Existing CreationDialog body scroll and sticky actions retained; shared Button sizes checked in actual Post/Document forms | Populated validation/error forms with opening/actions and focus lifecycle |
+| Toolkit/GPA;2 files | Shared page/action/modal contracts; calculator row density retained | Source-inspected |
+| Auth;9 files | Shared controls inherit variants/targets; split layouts,Turnstile/session fields retained | Source-inspected; no real authentication proof |
+| Daily;12 files | Shared section/controls inherit styling; notebook/native dialogs/autosync/private draft contracts remain distinct | Source-inspected; pending recovery bytes preserved |
+| Rooms;10 files | Existing workspace/media/chat layout,dialog and room lifecycle retained | Source-inspected; continuity not re-exercised |
+| User;7 files / shells4 / home4 / AI1 | Profile/access and shell owners retained; home cinematic composition is deliberately separate; AI retains its task UI | Profile interaction destination; no new home/AI runtime claim |
+| Shared26 / direct route pages20 | Responsible primitives are changed once; no per-route CSS clones or new wrapper system | Representative families above only |
+
+Query/submission/pagination/permissions/consent/visibility/upload/draft policies are unchanged by presentation. News independent edits and all pre-entry theme/navigation/task work remain separate pending scope. Source-wide adoption does not establish all-screen live or physical-device usability.
+
+Rendered critique added two bounded common-owner refinements: compact UserIdentity links use quiet resting surfaces and two-line visible names while retaining full accessible names/preview/detail; unavailable nonlinks keep full attribution. RichTextViewer owns actual heading/paragraph/list/media/code/table reading styles because typography-plugin prose utilities were inert. Reader measure,content conversion and editor layouts stay unchanged; no plugin dependency is added.
+
+
+## Full-app product layout and automatic list search — 13/10/2026
+
+The current product direction supersedes manual “Tìm” submission for mounted result lists and cinematic/puffy task presentation. Use the [mature HUMG design rules](design-system.md#mature-humg-product-language--13102026) and [family/search owner ledger](web-ui-components.md#full-application-owner-and-search-lookup--13102026). Ordinary PageHeader22–30px/600,20px page rhythm,8px surfaces and6px controls share existing72rem container/gutters; filters use one unframed band, not nested rounded containers. Source adoption and actual render coverage remain separate.
+
+SearchInput stays a labelled44px presentation owner. List features use350ms `useUrlListSearch`/`useListSearch`, retain raw text during typing, pause composition, settle trimmed values, clear immediately and replace URL history. Discrete filters apply immediately; page resets on changed filtering; unknown params/deep links/POP are retained. The hook cancels departing-route writes even while lazy navigation leads React. Query keys keep stale responses isolated; supported query owners consume cancellation signals. Enter in an embedded chooser never submits its editor. Do not convert save/auth/OTP/publish/upload forms into automatic submission.
+
+Home is a navigation entry with no mounted results, so “Mở kho tài liệu” remains explicit. Combobox local typeahead and native OS select remain immediate. Unmounted legacy PostManagement is not an active route; do not reuse its obsolete request cast or route links.
+
+Honors YEAR recommendation: retain a compact “Năm” secondary select beside subject discovery. Album year is a genuine backend predicate and helps retrieve an older event/cohort when titles overlap. Do not replace it with an invented “recent” policy or remove old years. The existing1900–current options remain because no year-facet API exists; future shortening should use real available-year metadata. Search no longer needs a separate action, and year selection applies immediately.
+
+Public News and slug reader use explicitly public minimal query keys/metadata. A delayed anonymous refresh401 must preserve those public records while clearing private queries; management and by-ID editor queries remain private. This does not change direct-slug expiry/publication authorization or asset URL policy.
+
+The final URL/focus concurrency details and actual Dashboard destinations are recorded in the [owner lookup](web-ui-components.md#full-application-owner-and-search-lookup--13102026); these are navigation/presentation changes,not new upload or practice workflows.
+
+
+### Current ranking/mobile and source-coverage disposition — 14/10/2026
+
+The latest [ranking composition/motion rules](design-system.md#ranking-composition-and-purposeful-gsap--14102026) supersede earlier ranking medal colors, stacked metrics and two-line linked-name truncation. Real rank, identity and score stay horizontally associated at320px; approved count is secondary. Profile anchors remain44px minimum with full accessible names, hover/focus preview and click/touch detail. Native timeframe/result/busy/retry context stays near the list; no unsupported ranking keyword search is introduced.
+
+The current full-app source ledger records all402 TS/TSX/CSS sources, direct shared owners/styles and59 router path definitions/component owners. Parametrized staff exam routes expand for both roles; alias/redirect coverage is explicitly distinct from rendered routes. Common foundations and local composition adoption cover the public,profile,auth,Daily,admin/management,assessment/readers,toolkit and room families in the owner table above. Scientific editors/frozen readers,native Daily and joined room/player remain intentional task variants. No claim that every route/role/private state was rendered.
+
+Representative before/after proof includes320/390/mobile-short/landscape/tablet/desktop/light-dark, public listings,authenticated dashboard,admin records,auth/profile,scientific reader/exam editor,Daily/group and Toolkit/lobby plus populated Post/Document creation/error/dirty frames. Joined-room/live media,Daily sync/private authorization,physical IME,Turnstile and live CDN are preserved/source-inspected or covered by inherited checks,not newly live-exercised. Failed fixtures and intermediate visual captures remain rejected/superseded. Current comparison gallery and manifest hold exact adoption,proof and preservation hashes.
+
+
+## Whole-page composition — 14/10/2026
+
+The current layout extends the accepted local ranking/foundations with whole-screen composition. Follow the [current design decisions](design-system.md#whole-page-composition--14102026) and [owner lookup](web-ui-components.md#whole-page-composition--14102026). Shared page introductions and gutters supply a common rhythm; task-specific working areas provide hierarchy. Public header/page/footer align; workspace role context is quiet; PageSection retains semantic heading/body boundaries without another tinted heading band.
+
+Documents uses desktop facets beside results and stacked mobile controls. News uses a main feed plus compact pinned companion, stacking on narrow screens and expanding feed when pinned content is absent. Honors uses a two-column compact desktop gallery from1100px,thumbnail/title/context groups,full-width participant rows and a remaining-member/album-action footer. Narrow layouts stack awards below identities; titles/names wrap fully. The year selector retains a visually hidden associated label. Home resources/News and Dashboard role tasks/discovery now form deliberate paired working areas. News reader edges align; public profile navigation/type hierarchy follows the same control language. Selected Recognition links preserve the current URL/hash and use semantic anchors.
+
+Business/query/publication/visibility/ranking consent,avatar/preview/private evidence,auth/Turnstile,Daily synchronization/drafts/private gates,frozen exams,room continuity and modal busy/dirty/focus contracts are retained. Ranking row geometry/GSAP owner and list-search hooks/services are unchanged. Library and News remain debounced; Home remains an explicit navigation form. No backend filter,stats,asset visibility,external setting or dependency is added.
+
+Source coverage includes all403 frontend sources/59 route definitions. New owned captures inspect10 actual representative routes (Home,Honors,Rankings,Documents,News,admin Dashboard,Documents management,Users,public profile,News reader) at320/390/768/1280 light/dark,plus scrolled compositions and short/error/dirty/empty cases. Coverage artifacts list exact completed captures and partial/superseded runs; source adoption is separate from rendered evidence. No every-role/every-state/live/physical-device claim.
+
+Current refinement: News removes its extra category frame so search/category controls align at44px,and omits the redundant page summary above AppPagination. The existing numbered/compact current-page owner remains accessible. PublicHeader/MobileNavbar menu triggers show only the icon in a44px square,with aria-label,keyboard,focus and drawer return retained; desktop workspace rail labels are distinct. See the [owner lookup](web-ui-components.md#album-news-and-menu-refinement--14102026) and [actual proof/status](../reviews/ux-flow-audit.md#album-news-and-menu-refinement--14102026).

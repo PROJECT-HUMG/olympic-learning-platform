@@ -12,6 +12,13 @@ import { NavigationGroups } from "./components/navigation-groups";
 import { NavigationDrawer } from "./components/navigation-drawer";
 import { MobileNavbar } from "./components/mobile-navbar";
 import { getActiveNavigationItem, getDrawerNavigationGroups, getNavigationGroups, getWorkspaceNavigationGroups, getWorkspaceShortcuts } from "./navigation";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { ROUTES } from "@/router/route-constants";
 import "./navigation.css";
 
@@ -78,12 +85,30 @@ export function DashboardLayout() {
         <header className="workspace-topbar">
           {!hasRail ? <MobileNavbar account={<UserDropdown direction="down" compact className="shell-account" avatarClassName="size-9" />} /> : <>
             <div className="workspace-topbar__identity">
-              <div className="workspace-topbar__context"><span>{roleLabel}</span><p>{pageContext}</p></div>
+              <Breadcrumb className="hidden sm:block">
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <span className="text-xs text-muted-foreground">
+                      {roleLabel}
+                    </span>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="font-semibold text-foreground text-sm">
+                      {pageContext}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+              <div className="workspace-topbar__context sm:hidden">
+                <span>{roleLabel}</span>
+                <p>{pageContext}</p>
+              </div>
             </div>
             <div className="workspace-topbar__actions"><ThemeToggle className="shell-icon-control" /><UserDropdown direction="down" compact className="shell-account" avatarClassName="size-9" /></div>
           </>}
         </header>
-        {!hasRail && <p className="workspace-mobile-context">{pageContext}</p>}
+        {!hasRail && dailyArea && <p className="workspace-mobile-context">{pageContext}</p>}
         <div className="workspace-content" id="workspace-content" tabIndex={-1}><Outlet /></div>
       </main>
     </div>

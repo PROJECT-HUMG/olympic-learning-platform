@@ -283,7 +283,7 @@ export function PostForm({
           </CardContent>
         </Card>
 
-        <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
+        <div className="sticky-form-actions">
           <Button type="button" variant="outline" onClick={onCancel} disabled={isBusy}>
             Hủy
           </Button>

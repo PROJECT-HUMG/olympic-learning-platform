@@ -11,8 +11,8 @@ import type { AxiosProgressEvent } from "axios";
 import axios from "axios";
 
 export const documentsService = {
-  search(params: DocumentSearchRequest) {
-    return apiClient.get<Page<DocumentResponse>>("/documents", { params });
+  search(params: DocumentSearchRequest, signal?: AbortSignal) {
+    return apiClient.get<Page<DocumentResponse>>("/documents", { params, signal });
   },
 
   getBySlug(slug: string) {

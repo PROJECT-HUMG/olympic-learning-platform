@@ -37,7 +37,7 @@ export function SystemCategoryDataTable<T extends { id: string }>({
 }: SystemCategoryDataTableProps<T>) {
   if (isLoading) {
     return (
-      <div className="rounded-md border" role="status" aria-label="Đang tải danh mục" aria-busy="true">
+      <div className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-xs" role="status" aria-label="Đang tải danh mục" aria-busy="true">
         <Table>
           <TableHeader>
             <TableRow>
@@ -73,14 +73,14 @@ export function SystemCategoryDataTable<T extends { id: string }>({
 
   if (!data || data.length === 0) {
     return (
-      <div className="rounded-md border p-8 text-center text-muted-foreground">
-        Không có dữ liệu
+      <div className="rounded-xl border border-dashed border-border/80 bg-card/40 p-12 text-center">
+        <p className="text-sm font-medium text-muted-foreground">Chưa có dữ liệu nào trong mục này</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-xs">
       <Table>
         <TableHeader>
           <TableRow>

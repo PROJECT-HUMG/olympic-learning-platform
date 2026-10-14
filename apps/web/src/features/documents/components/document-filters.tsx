@@ -1,61 +1,10 @@
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useUrlListSearch } from "@/hooks/use-list-search";
 import { useSearchParams } from "react-router-dom";
 import { SearchInput } from "@/components/ui/search-input";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
 import { useDocumentMetadata } from "../hooks/use-documents";
-
-function KeywordSearch({
-  keyword,
-  onApply,
-}: {
-  keyword: string;
-  onApply: (value: string) => void;
-}) {
-  const [draft, setDraft] = useState(keyword);
-  return (
-    <form
-      role="search"
-      className="flex w-full items-center gap-2"
-      onSubmit={(event) => {
-        event.preventDefault();
-        onApply(draft.trim());
-      }}
-    >
-      <div className="relative min-w-0 flex-1">
-        <SearchInput
-          type="text"
-          aria-label="Tìm trong kho tài liệu"
-          placeholder="Tìm tên hoặc mô tả tài liệu…"
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          className="bg-background pr-12"
-        />
-        {draft && (
-          <button
-            type="button"
-            aria-label="Xóa từ khóa tìm kiếm"
-            className="absolute right-0 top-0 size-11 rounded-lg text-muted-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
-            onClick={() => {
-              setDraft("");
-              onApply("");
-            }}
-          >
-            <X aria-hidden="true" className="mx-auto size-4" />
-          </button>
-        )}
-      </div>
-      <Button
-        type="submit"
-        variant="secondary"
-        className="px-4"
-      >
-        Tìm
-      </Button>
-    </form>
-  );
-}
 
 export function DocumentFilters() {
   const [params, setParams] = useSearchParams();
@@ -69,6 +18,7 @@ export function DocumentFilters() {
       next.delete("page");
       return next;
     });
+  const search = useUrlListSearch(keyword, value => setParams(previous => { const next = new URLSearchParams(previous); if (value) next.set("keyword", value); else next.delete("keyword"); next.delete("page"); return next; }, { replace: true }));
   const filters = [
     {
       key: "subjectId",
@@ -82,15 +32,13 @@ export function DocumentFilters() {
     },
     { key: "tagId", label: "Thẻ", options: metadata.data?.tags ?? [] },
   ];
-  const hasFilters = keyword || filters.some(({ key }) => params.has(key));
+  const hasFilters = search.input.value || filters.some(({ key }) => params.has(key));
   return (
-    <div className="filter-panel !flex-col !items-stretch w-full gap-3">
-      <KeywordSearch
-        key={keyword}
-        keyword={keyword}
-        onApply={(value) => updateFilter("keyword", value)}
-      />
-      <p className="text-sm leading-5 text-muted-foreground">Chọn môn học, loại hoặc thẻ để thu hẹp kết quả.</p>
+    <div className="filter-panel document-filter-bar">
+      <div className="document-filter-search relative" role="search">
+        <SearchInput {...search.input} aria-label="Tìm trong kho tài liệu" placeholder="Tìm tài liệu…" className="pr-12" />
+        {search.input.value && <Button type="button" variant="ghost" size="icon" aria-label="Xóa từ khóa tìm kiếm" className="absolute right-0 top-0" onClick={search.clear}><X aria-hidden="true" /></Button>}
+      </div>
       <div className="document-filter-fields">
         {filters.map(({ key, label, options }) => (
           <div key={key} className="min-w-0 space-y-1">
@@ -129,7 +77,7 @@ export function DocumentFilters() {
         <div className="flex flex-wrap items-center gap-2 text-sm">
           {keyword && (
             <Button variant="secondary" className="min-h-11 h-auto max-w-full whitespace-normal text-left"
-              aria-label="Bỏ lọc từ khóa" onClick={() => updateFilter("keyword", "")}>
+              aria-label="Bỏ lọc từ khóa" onClick={search.clear}>
               <span className="min-w-0 [overflow-wrap:anywhere]">Từ khóa: {keyword}</span><X aria-hidden="true" className="size-3.5" />
             </Button>
           )}
@@ -150,7 +98,7 @@ export function DocumentFilters() {
           <Button
             variant="ghost"
             className="h-11"
-            onClick={() =>
+            onClick={() => { search.resetDraft();
               setParams((previous) => {
                 const next = new URLSearchParams(previous);
                 for (const key of [
@@ -162,8 +110,8 @@ export function DocumentFilters() {
                 ])
                   next.delete(key);
                 return next;
-              })
-            }
+              });
+            }}
           >
             Xóa tất cả
           </Button>

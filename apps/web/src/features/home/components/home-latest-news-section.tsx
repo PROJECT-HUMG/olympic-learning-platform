@@ -42,7 +42,7 @@ export function HomeLatestNewsSection() {
           <h2 id="home-news-title">Bảng tin mới nhất</h2>
           <p>Chuyện trong trường và những bài viết dành cho việc học.</p>
         </div>
-        <Link to={ROUTES.NEWS}>Xem bảng tin <ArrowUpRight aria-hidden="true" /></Link>
+        <Button asChild variant="outline"><Link to={ROUTES.NEWS}>Xem bảng tin <ArrowUpRight aria-hidden="true" /></Link></Button>
       </header>
       {isError && <div role="alert" className="home-news__feedback">
         <p>{posts.length ? "Một phần bảng tin chưa tải được." : "Chưa tải được bảng tin. Kiểm tra kết nối rồi thử lại."}</p>
@@ -55,7 +55,7 @@ export function HomeLatestNewsSection() {
           {posts.map((post) => <HomeNewsItem key={post.id} post={post} />)}
         </div>
       ) : !isError && <div role="status" className="home-news__feedback">
-        <p>Chưa có tin tức hoặc bài viết mới. Bạn có thể xem thông báo ở bàn học phía trên.</p>
+        <p>Chưa có tin tức hoặc bài viết mới. Bạn có thể xem thông báo trong mục Không gian học tập.</p>
       </div>}
     </section>
   );

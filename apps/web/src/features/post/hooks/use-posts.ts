@@ -8,8 +8,9 @@ export function usePosts(
   options?: Omit<UseQueryOptions<Page<PostSummaryResponse>, Error>, "queryKey" | "queryFn">
 ) {
   return useQuery({
-    queryKey: ["posts", params],
-    queryFn: () => postService.getAll(params),
+    queryKey: ["posts", "public", params],
+    meta: { publicRead: true },
+    queryFn: ({ signal }) => postService.getAll(params, signal),
     ...options,
   });
 }
@@ -20,7 +21,7 @@ export function useManagementPosts(
 ) {
   return useQuery({
     queryKey: ["posts", "management", params],
-    queryFn: () => postService.getManagement(params),
+    queryFn: ({ signal }) => postService.getManagement(params, signal),
     ...options,
   });
 }
