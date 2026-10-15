@@ -1,5 +1,24 @@
-/* Presentation only: Sonner owns stacking, timers and dismissal. */
-.olympic-toaster[data-sonner-toaster] [data-sonner-toast].olympic-toast[data-styled="true"] {
+/* Sonner owns the API/store; React Bits SwipeToast owns presentation and one timer. */
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] { position:fixed; inset:auto; transform:none; transition:none; z-index:999999; display:flex; flex-direction:column; gap:.625rem; margin:0; padding:0; width:min(var(--width),calc(100vw - var(--toast-left) - var(--toast-right))); max-height:calc(100dvh - var(--toast-top) - var(--toast-bottom)); overflow-y:auto; overflow-x:clip; list-style:none; outline:none; pointer-events:none; }
+[data-swipe-toast-owner] .olympic-toaster[data-y-position="top"] { top:var(--toast-top); }
+[data-swipe-toast-owner] .olympic-toaster[data-y-position="bottom"] { bottom:var(--toast-bottom); flex-direction:column-reverse; }
+[data-swipe-toast-owner] .olympic-toaster[data-x-position="right"] { right:var(--toast-right); }
+[data-swipe-toast-owner] .olympic-toaster[data-x-position="left"] { left:var(--toast-left); }
+[data-swipe-toast-owner] .olympic-toaster[data-x-position="center"] { left:50%; transform:translateX(-50%); }
+[data-swipe-toast-owner] .olympic-toaster [data-sonner-toast] { position:relative; inset:auto; flex:none; width:100%; height:auto; box-sizing:border-box; pointer-events:auto; opacity:1; transition:none; touch-action:pan-x; }
+[data-swipe-toast-owner] .olympic-toaster [data-sonner-toast][data-dismissible="false"] { touch-action:auto; }
+[data-swipe-toast-owner] .olympic-toaster [data-close-button] { position:absolute; display:grid; place-items:center; cursor:pointer; }
+[data-swipe-toast-owner] .olympic-toaster [data-close-button]:disabled { opacity:.5; cursor:default; }
+[data-swipe-toast-owner] .olympic-toaster [data-content] { display:flex; flex-direction:column; }
+[data-swipe-toast-owner] .olympic-toaster [data-sonner-toast][data-type="error"] { --toast-accent:var(--destructive); }
+@media (max-width:640px) {
+  [data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] { width:min(var(--width),calc(100vw - var(--toast-mobile-left) - var(--toast-mobile-right))); max-height:calc(100dvh - var(--toast-mobile-top) - var(--toast-mobile-bottom)); }
+  [data-swipe-toast-owner] .olympic-toaster[data-y-position="top"] { top:var(--toast-mobile-top); }
+  [data-swipe-toast-owner] .olympic-toaster[data-y-position="bottom"] { bottom:var(--toast-mobile-bottom); }
+  [data-swipe-toast-owner] .olympic-toaster[data-x-position="right"] { right:var(--toast-mobile-right); }
+  [data-swipe-toast-owner] .olympic-toaster[data-x-position="left"] { left:var(--toast-mobile-left); }
+}
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] [data-sonner-toast].olympic-toast[data-styled="true"] {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr);
   align-items: start;
@@ -14,7 +33,7 @@
   font-size: .875rem;
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-icon] {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-icon] {
   grid-column: 1;
   grid-row: 1;
   width: 24px;
@@ -27,42 +46,42 @@
   border-radius: 50%;
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"][data-type="error"] [data-icon] {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"][data-type="error"] [data-icon] {
   color: var(--destructive);
   background: color-mix(in srgb, var(--destructive) 12%, var(--card));
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-icon] svg {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-icon] svg {
   width: 16px;
   height: 16px;
   margin: 0;
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-content] {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-content] {
   grid-column: 2;
   min-width: 0;
   gap: .25rem;
   overflow-wrap: anywhere;
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-title] {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-title] {
   font-weight: 500;
   line-height: 1.5;
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:has([data-close-button]) [data-title] {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:has([data-close-button]) [data-title] {
   min-height: 28px;
   padding-inline-end: 32px;
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-description] {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-description] {
   color: var(--muted-foreground);
   font-size: .8125rem;
   line-height: 1.6;
 }
 
 /* Actions use their own rows rather than reducing the message's reading width. */
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-button] {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-button] {
   grid-column: 2;
   justify-self: start;
   min-width: 44px;
@@ -81,20 +100,20 @@
   color: var(--action-foreground);
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-button]:hover {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-button]:hover {
   background: var(--action-hover);
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-button][data-cancel] {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-button][data-cancel] {
   background: var(--muted);
   color: var(--foreground);
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-button][data-cancel]:hover {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-button][data-cancel]:hover {
   background: var(--accent);
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-close-button] {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-close-button] {
   inset-inline-start: auto;
   inset-inline-end: 4px;
   top: 4px;
@@ -109,45 +128,50 @@
   color: var(--muted-foreground);
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-close-button] svg {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-close-button] svg {
   width: 18px;
   height: 18px;
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-close-button]:hover {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] [data-close-button]:hover {
   color: var(--foreground);
   background: var(--muted);
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:focus-visible,
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] button:focus-visible {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:focus-visible,
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"] button:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:not(:has([data-icon])) {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:not(:has([data-icon])) {
   grid-template-columns: minmax(0, 1fr);
 }
 
-.olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:not(:has([data-icon])) :is([data-content], [data-button]) {
+[data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster] .olympic-toast[data-styled="true"]:not(:has([data-icon])) :is([data-content], [data-button]) {
   grid-column: 1;
 }
 
 /* CreationDialog owns a68rem frame and a top-right Close action. Keep transient
    notifications beside that action, not over it, including full-screen forms. */
-body:has(.creation-dialog[data-state="open"]) .olympic-toaster[data-sonner-toaster][data-y-position="top"][data-x-position="right"] {
+body:has(.creation-dialog[data-state="open"]) [data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster][data-y-position="top"][data-x-position="right"] {
   --dialog-toast-gutter: max(8rem, calc((100vw - 68rem) / 2 + 7rem));
   left: auto;
   right: var(--dialog-toast-gutter);
   width: min(var(--width), calc(100vw - max(1rem, env(safe-area-inset-left)) - var(--dialog-toast-gutter)));
 }
 
-body:has(.creation-dialog[data-state="open"]) .olympic-toaster[data-sonner-toaster][data-y-position="top"][data-x-position="right"] [data-sonner-toast] {
+body:has(.creation-dialog[data-state="open"]) [data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster][data-y-position="top"][data-x-position="right"] [data-sonner-toast] {
   width: 100%;
 }
 
 @media (max-width: 640px), (max-width: 1024px) and (max-height: 480px) {
-  body:has(.creation-dialog[data-state="open"]) .olympic-toaster[data-sonner-toaster][data-y-position="top"][data-x-position="right"] {
+  body:has(.creation-dialog[data-state="open"]) [data-swipe-toast-owner] .olympic-toaster[data-sonner-toaster][data-y-position="top"][data-x-position="right"] {
     --dialog-toast-gutter: max(6rem, calc(5rem + env(safe-area-inset-right)));
   }
+}
+
+/* Short screens retain the complete message in a local scroller; Close/actions remain outside it. */
+@media (max-height:480px) {
+  [data-swipe-toast-owner] .olympic-toaster [data-content] { max-height:max(3rem,calc(100dvh - 13rem)); overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; }
 }

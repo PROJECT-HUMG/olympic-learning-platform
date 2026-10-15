@@ -1,0 +1,21 @@
+.masked-heading { position: relative; display: block; width: 100%; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+.masked-heading__measure { color: inherit; }
+.masked-heading__word { display: inline-block; white-space: pre; }
+.masked-heading__baseline { display: inline-block; width: 0; height: 0; }
+.masked-heading__defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.masked-heading__reveal, .masked-heading__clip { position: absolute; inset: 0; display: block; pointer-events: none; }
+.masked-heading__reveal { opacity: 0; }
+.masked-heading__media {
+  position: absolute; inset: -12px; display: block;
+  /* Restrained HUMG mesh, clipped through actual Vietnamese SVG glyphs. */
+  background:
+    radial-gradient(ellipse at 15% 20%, color-mix(in srgb, var(--primary) 72%, var(--foreground)), transparent 68%),
+    radial-gradient(ellipse at 85% 80%, color-mix(in srgb, var(--primary) 32%, var(--foreground)), transparent 65%),
+    var(--foreground);
+}
+.masked-heading[data-ready="true"] .masked-heading__measure { opacity: 0; }
+.masked-heading[data-ready="true"] .masked-heading__reveal { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .masked-heading[data-ready="true"] .masked-heading__measure { opacity: 1; }
+  .masked-heading .masked-heading__reveal { display: none; }
+}

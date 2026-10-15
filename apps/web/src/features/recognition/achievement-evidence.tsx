@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { EvidencePreviews, EvidenceViewer } from "@/components/ui/evidence-gallery";
+import { DepthCarousel } from "@/components/react-bits/depth-carousel";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -32,6 +33,8 @@ function AuthorizedEvidence({ record }: { record: Achievement }) {
     <EvidenceViewer items={items} open={open} onOpenChange={setOpen} selectedId={selectedId} onSelect={id => { setSelectedId(id); setRetry(0); }}
       description={`${record.title} · Minh chứng riêng tư, chỉ chủ hồ sơ và quản trị viên được xem`}
       renderImage={item => <EvidenceImage key={`${item.id}:${retry}`} achievementId={record.id} attachment={item} immediate />}
+      renderGallery={selected => <DepthCarousel items={items} selectedId={selected.id} onSelect={id => { setSelectedId(id); setRetry(0); }} label="Ảnh minh chứng" controls={false}
+        renderItem={item => <EvidenceImage key={`${item.id}:${retry}`} achievementId={record.id} attachment={item} immediate />} />}
       renderActions={item => <>
         <EvidenceDownload key={item.id} achievementId={record.id} attachment={item} />
         {item.image && <Button type="button" variant="ghost" data-retry-image onClick={() => setRetry(value => value + 1)}>Thử tải ảnh lại</Button>}

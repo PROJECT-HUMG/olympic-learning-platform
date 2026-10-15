@@ -34,9 +34,10 @@ export function EvidencePreviews<T extends EvidenceGalleryItem>({ items, open, r
 }
 
 export function EvidenceViewer<T extends EvidenceGalleryItem>({ items, open, onOpenChange, selectedId, onSelect, description,
-  renderImage, renderActions, feedback, empty, onCloseAutoFocus }: {
+  renderImage, renderGallery, renderActions, feedback, empty, onCloseAutoFocus }: {
   items: T[]; open: boolean; onOpenChange: (open: boolean) => void; selectedId: string | null;
   onSelect: (id: string) => void; description: ReactNode; renderImage: (item: T) => ReactNode;
+  renderGallery?: (selected: T) => ReactNode;
   renderActions: (item: T) => ReactNode; feedback?: ReactNode; empty?: ReactNode;
   onCloseAutoFocus: (event: Event) => void;
 }) {
@@ -57,7 +58,7 @@ export function EvidenceViewer<T extends EvidenceGalleryItem>({ items, open, onO
       {feedback}
       {selected ? <>
         <div className={cn("evidence-gallery-view", zoomed && "evidence-gallery-view--zoomed")} aria-live="polite" tabIndex={zoomed ? 0 : undefined} aria-label={zoomed ? "Ảnh phóng to; cuộn để xem" : undefined}>
-          {selected.image ? renderImage(selected) : <div className="evidence-gallery-file"><FileText size={40} aria-hidden="true" /><p>{selected.name}</p><p className="text-muted-foreground">Tệp đính kèm; không có bản xem trước ảnh.</p></div>}
+          {selected.image ? !zoomed && renderGallery ? renderGallery(selected) : renderImage(selected) : <div className="evidence-gallery-file"><FileText size={40} aria-hidden="true" /><p>{selected.name}</p><p className="text-muted-foreground">Tệp đính kèm; không có bản xem trước ảnh.</p></div>}
         </div>
         <div className="evidence-gallery-caption"><strong>{selected.name}</strong><span>{index + 1} / {items.length}</span></div>
         <div className="evidence-gallery-controls">

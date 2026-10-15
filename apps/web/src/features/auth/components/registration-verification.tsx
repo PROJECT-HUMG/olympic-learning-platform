@@ -5,6 +5,7 @@ import { z } from "zod";
 import { CheckCircle2Icon, MailCheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
+import { CodeSlots } from "@/components/react-bits/code-slots";
 import { authService } from "../services/auth.service";
 import type { RegistrationChallenge } from "../types/auth.types";
 import { secondsUntil } from "../lib/registration-session";
@@ -126,12 +127,15 @@ export function RegistrationVerification({ challenge, onUpdate, onResume, onStat
       ) : (
         <>
           <form noValidate className="space-y-4" onSubmit={(event) => { event.preventDefault(); void perform("verify"); }}>
-            <FormField ref={codeRef} id="registration-code" label="Mã xác thực" type="text"
-              inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6}
-              value={code} onChange={(event) => setCode(event.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
-              className="text-center text-xl tracking-[0.35em] tabular-nums" disabled={busy !== null || locked}
-              helperText={locked ? "Đã nhập sai 5 lần. Hãy yêu cầu mã mới." : codeSeconds === 0 ? "Mã đã hết hạn. Hãy yêu cầu mã mới." : `Mã hết hạn sau ${Math.floor(codeSeconds / 60)}:${String(codeSeconds % 60).padStart(2, "0")}`}
-            />
+            <div className="space-y-2">
+              <label htmlFor="registration-code" className="block text-sm font-medium">Mã xác thực</label>
+              <CodeSlots ref={codeRef} id="registration-code" value={code} onValueChange={setCode}
+                disabled={busy !== null || locked} aria-invalid={!!error}
+                aria-describedby={`registration-code-helper${error ? " registration-code-error" : ""}`} />
+              <p id="registration-code-helper" className="text-xs text-muted-foreground">
+                {locked ? "Đã nhập sai 5 lần. Hãy yêu cầu mã mới." : codeSeconds === 0 ? "Mã đã hết hạn. Hãy yêu cầu mã mới." : `Mã hết hạn sau ${Math.floor(codeSeconds / 60)}:${String(codeSeconds % 60).padStart(2, "0")}`}
+              </p>
+            </div>
             <Button type="submit" className="w-full" loading={busy === "verify"} disabled={busy !== null || locked || codeSeconds === 0}>Xác thực email</Button>
           </form>
           <div className="flex flex-wrap items-center gap-2">
@@ -153,7 +157,7 @@ export function RegistrationVerification({ challenge, onUpdate, onResume, onStat
           )}
         </>
       )}
-      {error && !sessionExpired && <p role="alert" className="text-sm text-destructive">{error}</p>}
+      {error && !sessionExpired && <p id="registration-code-error" role="alert" className="text-sm text-destructive">{error}</p>}
       {notice && <p role="status" className="text-sm leading-relaxed text-muted-foreground">{notice}</p>}
       <Link to={ROUTES.LOGIN} state={location.state} onClick={onClose ? event => { event.preventDefault(); onClose(); } : undefined} className="text-center text-sm underline underline-offset-4">Về đăng nhập</Link>
     </div>

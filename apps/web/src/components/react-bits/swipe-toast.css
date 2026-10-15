@@ -1,0 +1,6 @@
+/* React Bits SwipeToast: downward drag, resisted upward pull and lifetime fuse. */
+.swipe-toast__card { position:relative; touch-action:pan-x; cursor:grab; overflow:hidden; }
+.swipe-toast__card[data-swiping] { cursor:grabbing; user-select:none; }
+.swipe-toast__card[data-dismissible="false"] { cursor:default; touch-action:auto; }
+.swipe-toast__fuse { position:absolute; inset:auto 0 0; height:2px; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--toast-accent,var(--primary)) 55%,transparent) 20%,var(--toast-accent,var(--primary)) 50%,transparent); transform-origin:left center; pointer-events:none; }
+@media (prefers-reduced-motion:reduce) { .swipe-toast__fuse { display:none; } }

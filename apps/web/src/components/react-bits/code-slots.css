@@ -1,0 +1,88 @@
+/* Free React Bits CodeSlots geometry/ink, adapted to HUMG tokens and a native input. */
+.code-slots {
+  --cs-gap: 6px;
+  display: block;
+  width: 100%;
+  max-width: 304px;
+}
+
+.code-slots__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--cs-length), minmax(0, 1fr));
+  gap: var(--cs-gap);
+  min-height: 52px;
+  isolation: isolate;
+}
+
+.code-slots__input {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  opacity: 0;
+  font-size: 16px;
+  cursor: text;
+  touch-action: manipulation;
+}
+
+.code-slots__slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--muted);
+  user-select: none;
+  pointer-events: none;
+}
+
+.code-slots__row[data-disabled] { opacity: 0.55; }
+.code-slots__input:disabled { cursor: not-allowed; }
+.code-slots__row[data-focused] {
+  outline: 2px solid var(--ring);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+.code-slots__slot[data-active] { border-color: var(--primary); }
+.code-slots__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--primary) 13%, var(--background));
+  transform-origin: center;
+}
+.code-slots__digit {
+  position: relative;
+  color: var(--foreground);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.code-slots__row[data-invalid="true"] .code-slots__slot { border-color: var(--destructive); }
+.code-slots__row[data-invalid="true"] .code-slots__fill {
+  background: color-mix(in srgb, var(--destructive) 10%, var(--background));
+}
+.code-slots__caret {
+  position: absolute;
+  width: 2px;
+  height: 24px;
+  background: var(--foreground);
+  animation: code-slots-blink 1s linear infinite;
+}
+@keyframes code-slots-blink { 0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .code-slots__caret { animation: none; }
+  .code-slots__fill, .code-slots__digit { transform: none !important; }
+  .code-slots__digit { opacity: 1 !important; }
+  .code-slots__slot:not([data-filled]) .code-slots__fill { visibility: hidden; }
+}

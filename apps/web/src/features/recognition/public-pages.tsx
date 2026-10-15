@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { getListReturnPath, getPageNumber, replaceListParam } from "@/lib/list-navigation";
@@ -8,7 +7,7 @@ import { SearchInput } from "@/components/ui/search-input";
 import { PageHeader } from "@/components/ui/page-header";
 import { PublicPageHeader } from "@/components/ui/public-page-header";
 import { PageSection } from "@/components/ui/page-section";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { HonorGallery } from "./honor-gallery";
 import { recognitionService as service } from "./service";
 import { HonorImage, Pager, Participants, QueryFeedback, ScoringRules, YearField } from "./components";
 import type { PublicAchievement } from "./types";
@@ -83,15 +82,12 @@ export function HonorDetailPage() {
   const location = useLocation();
   const from = getListReturnPath(location.state?.from, "/honors");
   const honor = useQuery({ meta: { publicRead: true }, queryKey: ["recognition", "honor", id], queryFn: () => service.honor(id) });
-  const [selected, setSelected] = useState<string | null>(null);
-  const photo = honor.data?.photos.find(item => item.id === selected);
   return <div className="page-shell page-shell--public recognition-page"><nav className="recognition-links" aria-label="Điều hướng vinh danh"><Button asChild variant="outline"><Link to={from}>Về vinh danh</Link></Button><Button asChild variant="outline"><Link to="/rankings">Xếp hạng</Link></Button></nav><QueryFeedback pending={honor.isPending} error={honor.isError} retrying={honor.isFetching} retry={() => void honor.refetch()}>{honor.data && <>
     <EditorialHonorLabel /><p className="recognition-hint">Kỷ niệm do ban quản trị biên tập; không phải hồ sơ thành tích đã duyệt và không cộng điểm.</p>
     <PageHeader title={honor.data.title} description={`${honor.data.subject} · ${honor.data.year}`} />
     {honor.data.description && <p>{honor.data.description}</p>}
     <PageSection title={`Những gương mặt được vinh danh (${honor.data.participants.length})`}><Participants items={honor.data.participants} /></PageSection>
-    <PageSection title={`Album kỷ niệm (${honor.data.photos.length} ảnh)`}><div className="recognition-photo-grid">{honor.data.photos.map((item, index) => <button key={item.id} className="recognition-photo" onClick={() => setSelected(item.id)} aria-label={`Mở ảnh ${index + 1}: ${item.originalName}`}><HonorImage honor={honor.data!} photoId={item.id} alt={`${honor.data!.title}, ảnh ${index + 1}`} interactive={false} /></button>)}</div>{!honor.data.photos.length && <p className="recognition-hint">Chưa có ảnh kỷ niệm.</p>}</PageSection>
-    <Dialog open={!!photo} onOpenChange={open => { if (!open) setSelected(null); }}><DialogContent className="recognition-review-dialog"><DialogTitle>{honor.data.title}</DialogTitle><DialogDescription>{photo?.originalName}</DialogDescription>{photo && <div className="recognition-photo recognition-photo--full"><HonorImage honor={honor.data} photoId={photo.id} alt={photo.originalName} /></div>}</DialogContent></Dialog>
+    <PageSection title={`Album kỷ niệm (${honor.data.photos.length} ảnh)`}><HonorGallery key={`${honor.data.id}:${honor.data.version}`} honor={honor.data} /></PageSection>
   </>}</QueryFeedback></div>;
 }
 export function RankingsPage() {

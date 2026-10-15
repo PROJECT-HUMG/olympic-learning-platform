@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Calculator, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import BlurText from "@/components/react-bits/blur-text";
+import MaskedHeading from "@/components/react-bits/masked-heading";
 import { ROUTES } from "@/router/route-constants";
 import { CinematicScene } from "@/components/ui/cinematic-scene";
 import "./home-hero-section.css";
@@ -23,7 +23,7 @@ export function HomeHeroSection() {
       <div className="home-hero__intro">
         <div className="home-hero__content">
           <h1 id="home-hero-title">
-            <BlurText text="Tài nguyên học tập Olympic HUMG" />
+            <MaskedHeading text="Tài nguyên học tập Olympic HUMG" />
           </h1>
 
           <div className="home-hero__discovery">

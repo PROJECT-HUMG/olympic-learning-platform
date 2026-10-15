@@ -1,0 +1,22 @@
+.depth-carousel { width:100%; min-width:0; overflow:clip; }
+.depth-carousel__stage { position:relative; height:clamp(180px, 45vw, 420px); perspective:1400px; perspective-origin:50% 50%; touch-action:pan-y pinch-zoom; user-select:none; }
+.depth-carousel__stage:focus-visible { outline:2px solid var(--ring); outline-offset:-3px; border-radius:var(--radius); }
+.depth-carousel__card { position:absolute; top:50%; left:50%; width:calc(100% - 4rem); height:calc(100% - 1rem); max-width:720px; transform:translate(-50%,-50%); transform-origin:center; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius); background:var(--muted); box-shadow:0 6px 16px -10px rgb(0 0 0 / .35); }
+.depth-carousel__card:not(:first-child) { opacity:0; }
+.depth-carousel__card > *, .depth-carousel__card .recognition-image, .depth-carousel__card .recognition-evidence-image { width:100%; height:100%; display:grid; place-items:center; }
+.depth-carousel__card img { display:block; width:100%; height:100%; max-height:100%; object-fit:contain; pointer-events:none; -webkit-user-drag:none; }
+.depth-carousel__back { background:color-mix(in srgb, var(--primary) 7%, var(--muted)); }
+.depth-carousel__controls { display:flex; justify-content:center; align-items:center; gap:1rem; padding:.5rem 0; }
+.depth-carousel__controls button { min-width:44px; min-height:44px; }
+.depth-carousel__controls p { font-size:.8125rem; font-variant-numeric:tabular-nums; color:var(--muted-foreground); }
+.evidence-gallery-view:has(.depth-carousel) { display:block; overflow:clip; }
+.evidence-gallery-view .depth-carousel__stage { height:clamp(160px, 38dvh, 380px); }
+@media(max-width:480px) { .depth-carousel__card { width:calc(100% - 2rem); } }
+@media(prefers-reduced-motion:reduce) { .depth-carousel__card { box-shadow:none; } }
+
+.honor-gallery-placeholder { height:calc(clamp(180px, 45vw, 420px) + 60px); }
+
+.honor-gallery-dialog__header { position:sticky; top:-1rem; margin-top:-1rem; padding-block:1rem .5rem; display:flex; align-items:start; gap:.5rem; background:var(--popover); z-index:2; }
+.honor-gallery-dialog__header [data-slot="dialog-title"] { flex:1; padding-right:0; }
+.honor-gallery-dialog__header button { flex:none; width:44px; height:44px; }
+.depth-carousel__stage { isolation:isolate; }

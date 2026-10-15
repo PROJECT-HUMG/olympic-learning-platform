@@ -49,7 +49,7 @@ export function HonorImage({ honor, photoId, alt, management = false, interactiv
     observer.observe(container.current);
     return () => observer.disconnect();
   }, []);
-  const photo = useQuery({ queryKey: ["recognition", "photo", honor.id, photoId, management], queryFn: () => service.photo(honor.id, photoId, management), staleTime: 5 * 60_000, retry: 1, enabled: visible });
+  const photo = useQuery({ meta: { publicRead: !management }, queryKey: ["recognition", "photo", honor.id, photoId, management], queryFn: () => service.photo(honor.id, photoId, management), staleTime: 5 * 60_000, retry: 1, enabled: visible });
   const [url, setUrl] = useState("");
   const [failed, setFailed] = useState(false);
   useEffect(() => { setFailed(false); if (!photo.data) { setUrl(""); return; } const next = URL.createObjectURL(photo.data); setUrl(next); return () => URL.revokeObjectURL(next); }, [photo.data]);
