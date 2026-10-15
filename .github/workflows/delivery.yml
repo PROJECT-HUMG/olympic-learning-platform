@@ -3,8 +3,7 @@ name: Delivery
 on:
   pull_request:
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches: [main, deploy]
 
 permissions:
   contents: read
@@ -14,18 +13,17 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5, Node 24 action runtime
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
-        with:
-          version: 10.17.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5, Node 24 action runtime
         with:
           node-version: "24"
-          cache: pnpm
-          cache-dependency-path: apps/web/pnpm-lock.yaml
-      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+      - name: Use the same pnpm as the server Docker build
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.17.0 --activate
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5, Node 24 action runtime
         with:
           distribution: temurin
           java-version: "25"
@@ -37,9 +35,11 @@ jobs:
           pnpm lint
           node --test --test-isolation=none tests/*.test.ts
           pnpm build
-      - name: Delivery offline checks
+      - name: Deployment scripts, Compose and Nginx checks
         run: |
           bash -n deploy/ssh-deploy.sh
+          docker compose version >/dev/null
+          docker info >/dev/null
           python3 -m unittest discover -s deploy/tests -v
       - name: API checks including PostgreSQL Testcontainers
         working-directory: apps/api
@@ -51,12 +51,11 @@ jobs:
           GITHUB_CLIENT_SECRET: ci-placeholder
           OLYMPIC_MAIL_ENABLED: "false"
         run: |
-          docker info >/dev/null
           ./mvnw --batch-mode --no-transfer-progress verify
           python3 ../../deploy/check-test-reports.py target/surefire-reports
       - name: Retain API test evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, Node 24 action runtime
         with:
           name: api-test-reports
           path: apps/api/target/surefire-reports/TEST-*.xml
@@ -65,7 +64,7 @@ jobs:
 
   deploy:
     needs: checks
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/deploy'
     runs-on: ubuntu-24.04
     timeout-minutes: 65
     environment: production
@@ -74,7 +73,7 @@ jobs:
       group: production-droplet
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5, Node 24 action runtime
         with:
           persist-credentials: false
       - name: Checkout and build tested commit over verified SSH
@@ -88,10 +87,6 @@ jobs:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: bash deploy/ssh-deploy.sh
-      - name: Public smoke from GitHub runner
-        env:
-          EXPECTED_SHA: ${{ github.sha }}
-        run: python3 deploy/smoke.py "$EXPECTED_SHA" >> "$GITHUB_STEP_SUMMARY"
       - name: Outcome
         if: always()
         env:

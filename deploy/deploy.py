@@ -120,11 +120,13 @@ class Deployment:
             raise ValueError("Checkout origin differs from configured GitHub repository; no remote was changed")
         if self.git("status", "--porcelain", "--untracked-files=all").strip():
             raise ValueError("Checkout has local changes/untracked files; preserve and resolve them outside deployment. No reset/clean performed")
-        # HTTPS for this public repository avoids a second server-side SSH credential.
-        self.git("fetch", "--no-tags", "--depth=1", self.url, self.sha)
+        # Fetch the release branch, then pin the tested event SHA. Never deploy a
+        # different branch or let an older queued run replace a newer branch tip.
+        # HTTPS for this public repository avoids another server-side credential.
+        self.git("fetch", "--no-tags", "--depth=1", self.url, "refs/heads/deploy")
         fetched = self.git("rev-parse", "FETCH_HEAD^{commit}").decode().strip()
         if fetched != self.sha:
-            raise ValueError("Fetched commit differs from the tested SHA")
+            raise ValueError("deploy branch tip differs from the tested SHA; run checks/deployment for the current deploy push")
         names = self.git("ls-tree", "-r", "--name-only", self.sha).decode().splitlines()
         if any((Path(n).name == ".env" or Path(n).name.startswith(".env.") or Path(n).name == "production.env")
                and Path(n).name != ".env.example" for n in names):
@@ -153,6 +155,7 @@ class Deployment:
             def mark(stage):
                 self.stage = stage
                 self.record("deploying", previous)
+                print(f"Deployment stage: {stage}", flush=True)
             try:
                 mark("host prerequisites")
                 self.run(["docker", "info", "--format", "{{.ServerVersion}}"], hint="Deploy user needs access to the Docker daemon")

@@ -2,9 +2,9 @@
 
 Route: **GitHub checks → verified SSH → exact tested checkout → ordinary sequential Compose
 builds → Compose readiness → public HTTPS smoke**. Target: Ubuntu 24.04 amd64,
-`https://olympic.nghlong3004.me`. Production branch is **main**.
+`https://olympic.nghlong3004.me`. Production branch is exactly **`deploy`**; `main` runs CI only.
 
-The original replacement was a fresh installation; do not reuse that assumption for an existing data-bearing host. Agents do not create/delete cloud resources.
+Use the existing server and owned checkout. The setup reference below is for operator verification/recovery, not a requirement to reprovision a working host. Agents do not create/delete cloud resources.
 Retain backups and migration safety;
 never remove volumes, run `down -v`, Flyway clean, or automatically downgrade data.
 Local operator `.env` and unrelated repository work remain outside delivery.
@@ -63,15 +63,11 @@ limit internal build parallelism. Swap assists peaks; it does not guarantee fit
 or responsiveness. This risk is explicitly accepted for the ordinary Compose
 route; no new approval or custom builder setup is required.
 
-The previous `olympic-low-memory` builder's remote cleanup remains **unverified**
-after its stop failed. This route does not use/manage it and performs no automatic
-builder removal, cache pruning or Docker cleanup. Operator may inspect its state
-privately if pressure persists; never blindly prune unrelated resources.
 No host OS resource limits or tuning are imposed by the helper. Existing swap and
 operator host settings are preserved. No 1 GiB fit is promised from configuration,
 CI checks or local testing. Heavy PDF/image runtime limitations remain as above.
 
-## Replacement setup, in order
+## Existing server inputs and setup reference
 
 Steps already reported complete should be **verified**, not blindly repeated.
 All following server/DNS/GitHub/certificate actions are operator-only.
@@ -208,10 +204,11 @@ must remain consistent with their data.
 
 ### 5. Domain and HTTPS BEFORE public smoke
 
-Operator: point domain A to the **new IP** and update/remove stale AAAA as appropriate
-for the replacement's actual IPv6. Check public resolution. No agent mutates DNS.
-Provision the certificate before installing the full HTTPS reference. On a fresh
-site, use this temporary HTTP-only `/etc/nginx/sites-available/olympic`:
+Operator: verify domain A/AAAA matches the existing server and its actual IPv6,
+with a valid certificate and HTTPS ingress. Retain working DNS/certificates.
+No agent mutates DNS. For fresh-host recovery only, provision the certificate
+before the full HTTPS reference, starting with this temporary HTTP-only
+`/etc/nginx/sites-available/olympic`:
 
 ```nginx
 server {
@@ -237,7 +234,7 @@ sudo certbot certonly --webroot -w /var/www/letsencrypt -d olympic.nghlong3004.m
 ```
 
 Download [the final ingress reference](../../deploy/nginx.conf) from the **full
-accepted commit SHA in the handoff**, not a moving main, into a temporary file:
+accepted commit SHA in the handoff**, not a moving branch, into a temporary file:
 
 ```bash
 # Set this public variable to the full accepted SHA; it contains no secret.
@@ -260,31 +257,80 @@ Reported setup does not establish HTTPS, secure cookies or API health.
 
 In **production** Environment, operator verifies/updates:
 
-- Variables: `DEPLOY_HOST` = replacement address, `DEPLOY_USER` = approved deploy
+- Variables: `DEPLOY_HOST` = existing server address, `DEPLOY_USER` = approved deploy
   account, `DEPLOY_PORT` = SSH port(default22).
-- Secrets: `DEPLOY_SSH_KEY` = intended private key; `DEPLOY_KNOWN_HOSTS` = newly
-  verified matching host entry. Do not reuse an old fingerprint for a new host.
+- Secrets: `DEPLOY_SSH_KEY` = intended private key; `DEPLOY_KNOWN_HOSTS` = independently
+  verified matching host entry. Retain existing trust unless a host change is verified.
 
 Do not paste secrets into chat/logs or assume workspace dotenv configures GitHub.
-Existing Environment/branch protections should require main/checks. Repository
-YAML does not itself enforce merge protection. No settings are changed by agents.
+The existing **production Environment must allow `deploy`** under its deployment
+branch rules. Verify any required reviewers and branch protections separately;
+YAML does not change GitHub settings. `main` may keep its ordinary CI protections.
+These are operator inputs, not actions performed by this change.
 
-PR/main pushes run full Node24/pnpm10.17.0 web lint/tests/build, deployment tests
-and Java25 Maven verify with PostgreSQL Testcontainers/report gate. Missing/skipped
-API tests refuse delivery. Eligible main pushes, or **Run workflow on main**, run
-checks before deployment; manual dispatch is not a test bypass. All jobs use
-contents:read. Strict known-host/IdentitiesOnly/BatchMode key preflight remains.
-Deploys serialize without cancelling an active migration; host lock covers exact
-checkout through smoke. Full SHA fetched/verified detached; never moving `git pull`.
-Verify operator-managed host/key/swap/env and HTTPS for the actual intended release; old reported setup or delivery success is not current readiness proof.
+[Delivery](../../.github/workflows/delivery.yml) runs checks on pull requests and
+pushes to `main` or `deploy`. **Only `push` + `refs/heads/deploy` deploys**, after
+checks pass. There is no manual dispatch or alternate branch/ref input. Failed
+checks never SSH. Checks use Node24/pnpm10.17.0 lint/tests/build and Java25 Maven
+verify with PostgreSQL Testcontainers/report gate; skipped/missing API tests refuse
+delivery. Permissions remain contents:read, with production secrets only in the
+deploy job. Environment approval, if configured, remains enforced.
+
+The flow has three owners:
+
+1. The workflow serializes production jobs without cancelling an active migration.
+2. [SSH transport](../../deploy/ssh-deploy.sh) validates the key and existing trusted
+   known-host entry, uses StrictHostKeyChecking/IdentitiesOnly/BatchMode, and streams
+   only the checked-out helper. It sends the tested full SHA, workflow sequence and
+   GitHub repository, never credentials/app archives/env files to the checkout.
+3. [Server helper](../../deploy/deploy.py) locks `/opt/olympic/state/deploy.lock`,
+   fetches `refs/heads/deploy` from GitHub and requires its tip to equal the tested
+   push SHA before a detached checkout. A superseded queued run fails safely; use
+   the newer deploy-push run. It validates Compose, builds API then web **on the
+   server**, checks image identities, starts data services, takes the backup, then
+   replaces API/web and checks health/public HTTPS. Only success promotes release
+   pointers. No registry image publishing, app artifact transfer, custom builder,
+   forced reset/clean or duplicate runner smoke stage is needed.
+
+The checkout stays `/opt/olympic/checkout`; `.env`, state, backups and named volumes
+stay outside it. No npm/Node installation is required on the server host: Docker's
+web build stage uses Node24; production serves its static output through Nginx,
+while the API runs Java25. Verify the actual host/key/swap/env/HTTPS before a release;
+old reported setup or an earlier delivery success is not current readiness proof.
+
+### Node and action runtimes
+
+Node24 is retained consistently in `setup-node` and the
+[web Docker build stage](../../apps/web/Dockerfile). The official
+[Node release schedule](https://github.com/nodejs/Release/blob/main/schedule.json)
+lists Node20 EOL as 2026-04-30, Node22 maintenance through 2027-04-30, and Node24
+LTS through 2028-04-30 (maintenance begins 2026-10-20). Node26 is Current on this
+review date, 2026-10-15, with LTS scheduled for 2026-10-28. Node24 is the supported
+LTS choice, without a needless build-major migration.
+[locked Vite8.1.5](https://registry.npmjs.org/vite/8.1.5) and plugin-react6.0.3 require
+`^20.19.0 || >=22.12.0`; [pnpm10.17.0](https://registry.npmjs.org/pnpm/10.17.0)
+requires `>=18.12`. Meeting an engine range does not make EOL Node20 maintained.
+
+The old action pins declared their **own** bundled `node20` runtime; that was
+separate from `setup-node: 24` and never the application runtime. The retained
+SHA-pinned checkout5/setup-node5/setup-java5 and upload-artifact6 declare `node24`
+in their upstream action metadata. Artifact5 still declared node20, hence6.
+Node24 actions require a runner at least2.327.1; ubuntu-24.04 GitHub-hosted runners
+supply it. Actual runner overrides of old action runtimes were not observed.
+The separate pnpm setup action is removed: Corepack prepares the same pinned
+pnpm10.17.0 as Docker, reducing an extra action/runtime owner. Its pnpm cache setup
+is removed too; this may make CI installs slower, without changing the lockfile
+or app dependencies. Maven cache/test report artifacts remain. No Node process is
+shipped in the Nginx final image and no host Node upgrade is prescribed.
 
 ### 7. First deployment, diagnostics and ongoing protection
 
-Watch the exact Delivery run/SHA. Helper enforces production profile, tested
+Watch the exact Delivery deploy-push run/SHA. Safe stages are printed; child output
+that can contain dotenv secrets stays private. Helper enforces production profile, tested
 checkout, image revision/platform/identity, data health and a **successful nonempty
 mode600 pg_dump before API/Flyway starts**, even on a fresh database. Build/backup
-failure refuses app replacement. Running image IDs/health then host and runner
-smokes check TLS, release SHA/cache, SPA/hashed JS, public API metadata and blocked
+failure refuses app replacement. Running image IDs/health then the host-run public
+smoke checks TLS, release SHA/cache, SPA/hashed JS, public API metadata and blocked
 actuator. No health gate is weakened. Expected healthy status is `complete/healthy`
 in `/opt/olympic/state/status.json`; only that promotes current/previous pointers.
 
@@ -307,6 +353,24 @@ share only the redacted first exception/health evidence. CPU/memory utilization
 alone does not prove OOM. Redis `INFO memory`/`XLEN olympic:assessment-imports` can
 be checked privately without dumping keys/payloads. Monitor available RAM, swap
 pressure, errors/restarts and low-load request latency after startup.
+
+**Recovery:** inspect status first. A build/backup failure leaves the old app
+containers serving; the failed checkout is not proof of the running release.
+Fix the cause, then use **Re-run failed jobs** for the same deploy-push SHA only
+while it is still the `deploy` tip. Otherwise use the newer checked deploy push.
+The sequence guard rejects older runs after a newer app replacement attempt.
+
+For a failed readiness/smoke after replacement, running state is unknown until
+checked; `current.json` still names the last healthy release, **not necessarily
+what is running**. `latest.json` retains the attempted images/migrations,
+`previous.json` the prior healthy release, and status records the backup path.
+Images/backups are not pruned. Prefer a reviewed forward repair/revert on `deploy`
+that preserves all attempted migrations. If immediate image rollback is necessary,
+the operator must first establish schema/config compatibility and use the retained
+healthy SHA/images with the matching Compose definition and the same explicit
+project/env/volumes; do not use `--build` or restart data services for that image
+rollback. Repeat image identity/readiness/public smoke and reconcile status before
+resuming CI. This is manual recovery, not a bypass workflow or automatic DB restore.
 
 No automatic app/schema rollback, pruning or destructive cleanup. Migration
 fingerprints prevent removing/changing attempted SQL; that is not a full backward

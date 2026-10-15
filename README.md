@@ -35,9 +35,10 @@ Web chạy tại `http://localhost:3000`, API tại `http://localhost:8080`. Vit
 
 ## Production delivery
 
-Pull requests and pushes to `main` run the repository-owned GitHub Actions checks.
-Successful `main` pushes SSH to the existing server, fetch the exact tested commit
-into an owned checkout and build/start API/web with production Docker Compose.
+Pull requests and pushes to `main` or `deploy` run the repository-owned GitHub Actions checks.
+Only successful pushes to the exact branch `deploy` SSH to the existing server,
+fetch that branch and verify its tip matches the tested commit
+in the owned checkout, then build/start API/web with production Docker Compose.
 `/opt/olympic/.env` stays outside the checkout/build contexts; explicit `prod`,
 persistent volumes, pre-migration backup and host HTTPS ingress remain in place.
 See the [operator runbook](docs/deployment/README.md) for setup reconciliation,

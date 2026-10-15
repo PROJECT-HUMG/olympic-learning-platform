@@ -12,7 +12,9 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[2]
 
 
-@unittest.skipUnless(shutil.which("docker"), "Docker CLI unavailable")
+@unittest.skipUnless(shutil.which("docker") and subprocess.run(
+    ["docker", "info"], capture_output=True).returncode == 0,
+    "Docker daemon unavailable; real Nginx runtime test not run")
 class WebStaticTests(unittest.TestCase):
     def test_nginx_worker_reads_restrictive_build_assets_without_write_access(self):
         image = "olympic-static-test:" + uuid.uuid4().hex

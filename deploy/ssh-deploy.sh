@@ -46,6 +46,6 @@ transport_failure() {
   exit "$2"
 }
 # Send only the tested deployment program, never archives, app data or env files.
-# It fetches the exact SHA into the owned server checkout before Compose builds.
+# It fetches deploy, verifies the tested SHA and builds in the owned checkout.
 ssh -F "$ssh_dir/config" production "python3 - '$DEPLOY_SHA' '$DEPLOY_SEQUENCE' '$DEPLOY_REPOSITORY'" \
   < deploy/deploy.py || transport_failure 'SSH checkout/build deployment session' "$?"

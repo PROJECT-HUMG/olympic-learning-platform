@@ -20,7 +20,7 @@ import smoke
 REPO = "PROJECT-HUMG/olympic-learning-platform"
 
 
-@unittest.skipUnless(shutil.which("git") and shutil.which("docker"), "Git/Docker CLI unavailable")
+@unittest.skipUnless(shutil.which("git"), "Git CLI unavailable")
 class DeliveryTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="olympic-checkout-test-")
@@ -32,7 +32,7 @@ class DeliveryTests(unittest.TestCase):
         self.secret.chmod(0o600)
         self.source = self.folder / "source"
         self.source.mkdir()
-        self.git("init", "--quiet")
+        self.git("init", "--quiet", "--initial-branch=main")
         self.git("config", "user.email", "fixture@example.test")
         self.git("config", "user.name", "Fixture")
         migrations = self.source / "apps/api/src/main/resources/db/migration"
@@ -57,7 +57,9 @@ class DeliveryTests(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
-    def target(self, sha=None, sequence=1):
+    def target(self, sha=None, sequence=1, deploy_sha=None):
+        # Model the deploy push independently from the newer ordinary main tip.
+        self.git("branch", "-f", "deploy", deploy_sha or sha or self.sha)
         with patch("deploy.repository_url", return_value=str(self.source)):
             return deploy.Deployment(self.root, sha or self.sha, sequence, REPO)
 
@@ -128,6 +130,36 @@ class DeliveryTests(unittest.TestCase):
         subprocess.run(["git", "-C", str(target.checkout), "remote", "set-url", "origin", "https://github.com/other/project.git"], check=True)
         with self.assertRaisesRegex(ValueError, "origin differs"):
             self.execute(target)
+
+    def test_superseded_push_or_wrong_branch_sha_refuses_build_and_checkout(self):
+        target = self.target(deploy_sha=self.newer)
+        with self.assertRaisesRegex(ValueError, "deploy branch tip differs"):
+            self.execute(target)
+        self.assertFalse(any("build" in call for call in self.calls))
+        self.assertFalse(any("checkout" in call for call in self.calls))
+        self.assertEqual(deploy.read_json(target.state / "status.json")["outcome"], "failed")
+        # A commit that exists only on main is not an eligible deployment either.
+        target = self.target(self.newer, deploy_sha=self.sha)
+        with self.assertRaisesRegex(ValueError, "deploy branch tip differs"):
+            self.execute(target)
+
+    def test_missing_deploy_branch_refuses_without_building_main(self):
+        target = self.target()
+        self.git("branch", "-D", "deploy")
+        with self.assertRaises(RuntimeError):
+            self.execute(target)
+        self.assertFalse(any("build" in call for call in self.calls))
+
+    def test_retry_and_success_preserve_previous_healthy_release_for_recovery(self):
+        self.execute(self.target())
+        target = self.target(self.newer, 2)
+        self.execute(target)
+        previous = deploy.read_json(target.state / "previous.json")
+        self.assertEqual(previous["sha"], self.sha)
+        self.execute(self.target(self.newer, 2))
+        self.assertEqual(deploy.read_json(target.state / "previous.json"), previous)
+        self.assertEqual(deploy.read_json(target.state / "current.json")["sha"], self.newer)
+        self.assertEqual(len(list((self.root / "backups").glob("*.dump"))), 3)
 
     def test_ignored_env_in_checkout_is_retained_and_never_selected(self):
         target = self.target()
@@ -242,6 +274,9 @@ class DeliveryTests(unittest.TestCase):
             (reports / "TEST-fixture.xml").write_text(f'<testsuite tests="1" failures="0" errors="0" skipped="{skipped}"/>')
             self.assertEqual(subprocess.run(command, capture_output=True).returncode, skipped)
 
+    @unittest.skipUnless(shutil.which("docker") and subprocess.run(
+        ["docker", "compose", "version"], capture_output=True).returncode == 0,
+        "Docker Compose unavailable; other delivery tests use mocked Docker")
     def test_production_compose_build_contexts_tokens_ports_and_preserved_volumes(self):
         names = ("POSTGRES_PASSWORD", "JWT_SECRET_KEY", "ENCRYPTION_KEY", "ENCRYPTION_SALT", "OLYMPIC_ADMIN_EMAIL",
                  "OLYMPIC_ADMIN_USERNAME", "OLYMPIC_ADMIN_PASSWORD", "CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY",
