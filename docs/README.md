@@ -41,7 +41,7 @@ For shared search, dialogs, toast, loading and motion use [the UI owner index](u
 
 ## Setup, rules and current state
 
-- [Repository setup](../README.md), [API setup](../apps/api/README.md), [web setup/checks](../apps/web/README.md); root/app AGENTS and the [workspace protocol](WORKSPACE_PROTOCOL.md) remain authoritative.
+- [Repository setup](../README.md), [API setup / Flyway baseline](../apps/api/README.md), [web setup/checks](../apps/web/README.md); root/app AGENTS and the [workspace protocol](WORKSPACE_PROTOCOL.md) remain authoritative.
 - [Architecture/contracts](architecture/README.md), [HUMG UI rules](architecture/web-ui.md), [shared UI owners](ui/README.md).
 - [Product constraints/open decisions](prd.md), [operator setup/backup/recovery](deployment/README.md), [current local work/verification limits](reviews/ux-flow-audit.md).
 

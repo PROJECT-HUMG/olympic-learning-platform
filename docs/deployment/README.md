@@ -169,6 +169,30 @@ port the entry must be `[host]:port`, matching DEPLOY_HOST/PORT exactly. Test a
 normal strict-host-checking connection before enabling a pipeline. A stall before
 the server banner is pre-authentication; don't diagnose a bad key from that alone.
 
+`DEPLOY_KNOWN_HOSTS` is the runner's list of **trusted public SSH host keys for
+the application server** (`DEPLOY_HOST`/`DEPLOY_PORT`), not GitHub's identity and
+not the private login key. It stops the runner sending its login attempt to an
+impostor. The transport writes it into a temporary `known_hosts`, checks the
+host/port entry and uses `StrictHostKeyChecking yes`; a changed/mismatched key
+fails closed. `DEPLOY_SSH_KEY` is separate: its private login key proves the deploy
+account's identity to that server; the matching public login key is authorized
+on the server. Never copy a private host key or login key into `known_hosts`.
+
+Configure the complete verified line once in the existing GitHub **production
+Environment secret `DEPLOY_KNOWN_HOSTS`**. Its shape is
+`HOST ssh-ed25519 BASE64_PUBLIC_HOST_KEY`, or `[HOST]:PORT ...` for a non-22 port;
+a fingerprint alone is not a known-host entry. The trusted server console's
+`/etc/ssh/ssh_host_ed25519_key.pub` supplies the public key; prefix it with the exact
+configured host, or collect a candidate with keyscan and compare its fingerprint
+with that console as above. An already independently verified local `known_hosts`
+entry is also usable (hashed hostnames are supported). Convenient setup is to
+prepare/verify a small file once and paste/import it into that Environment secret;
+normal deployments reuse it. Public host keys could instead be kept in a reviewed
+repository file or Environment variable, but this implementation expects the secret.
+Do not run unverified keyscan on every workflow run or disable checking for convenience.
+Stable DNS can simplify addressing; changing the server/key still requires verification.
+No settings or secret values are changed by this documentation.
+
 ### 4. Application env and owned paths
 
 Keep the exact server path **`/opt/olympic/.env`**, deploy-owned/mode600. If already
@@ -353,6 +377,13 @@ share only the redacted first exception/health evidence. CPU/memory utilization
 alone does not prove OOM. Redis `INFO memory`/`XLEN olympic:assessment-imports` can
 be checked privately without dumping keys/payloads. Monitor available RAM, swap
 pressure, errors/restarts and low-load request latency after startup.
+
+The API now has a [fresh-install V1 baseline](../../apps/api/README.md#flyway-baseline),
+consolidated with explicit authorization while the old V1–V24 were unapplied.
+The helper still rejects changed/removed migration fingerprints in existing state.
+If an operator host has old history/fingerprints despite that premise, stop and
+reconcile the actual state separately; do not delete/repair state or reset a DB
+as part of delivery. No compatibility with an already-migrated old database is claimed.
 
 **Recovery:** inspect status first. A build/backup failure leaves the old app
 containers serving; the failed checkout is not proof of the running release.

@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Clock;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.lang.reflect.RecordComponent;
 import me.nghlong3004.olympic.recognition.response.PublicAchievementResponse;
 import java.time.Instant;
@@ -494,8 +492,8 @@ class RecognitionIntegrationTest {
   }
 
   @Test
-  void additiveVisibilityMigrationPublishesExistingEligibleRecordsWithoutApprovingOrEnrolling() throws Exception {
-    var approved = approve(submit("Old private approved", false, AchievementAward.FIRST, DATE));
+  void defaultVisibilityPreservesEligibilityConsentAndOwnerChoice() {
+    var approved = approve(submit("Visible approved", true, AchievementAward.FIRST, DATE));
     users.id.set(OWNER);
     var pending = submit("Old private pending", false, AchievementAward.SECOND, DATE.minusDays(1));
     var rejectedClaim = submit("Old private rejected", false, AchievementAward.THIRD, DATE.minusDays(2));
@@ -505,10 +503,8 @@ class RecognitionIntegrationTest {
     var revokedApproved = approve(submit("Old private revoked", false, AchievementAward.THIRD, DATE.minusDays(3)));
     var revoked = service.reviewAchievement(revokedApproved.id(), new ReviewAchievementRequest(AchievementStatus.REVOKED, "Internal revocation note", revokedApproved.version()));
     users.id.set(OWNER);
-    var sql = Files.readString(Path.of("src/main/resources/db/migration/V24__public_achievement_defaults.sql"));
-    jdbc.execute(sql);
-    assertThat(jdbc.queryForObject("SELECT count(*) FROM recognition_achievements WHERE public_visible", Long.class)).isEqualTo(4);
-    assertThat(jdbc.queryForObject("SELECT version FROM recognition_achievements WHERE id=?", Long.class, approved.id())).isEqualTo(approved.version() + 1);
+    assertThat(jdbc.queryForObject("SELECT count(*) FROM recognition_achievements WHERE public_visible", Long.class)).isEqualTo(1);
+    assertThat(jdbc.queryForObject("SELECT version FROM recognition_achievements WHERE id=?", Long.class, approved.id())).isEqualTo(approved.version());
     assertThat(jdbc.queryForObject("SELECT status FROM recognition_achievements WHERE id=?", String.class, pending.id())).isEqualTo("PENDING");
     assertThat(jdbc.queryForObject("SELECT status FROM recognition_achievements WHERE id=?", String.class, rejected.id())).isEqualTo("REJECTED");
     assertThat(jdbc.queryForObject("SELECT status FROM recognition_achievements WHERE id=?", String.class, revoked.id())).isEqualTo("REVOKED");

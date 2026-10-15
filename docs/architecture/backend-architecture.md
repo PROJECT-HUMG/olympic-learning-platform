@@ -4,7 +4,7 @@ Start with [named features](../README.md#feature-lookup), [API setup](../../apps
 
 ## Responsible layers
 
-Controllers bind HTTP/method security; services own rules/transactions; repositories/queries and DTO/mappers own persistence/projections. App instructions/skill own conventions and actual module structure; do not infer required interfaces or modules from old diagrams. Preserve `/api/v1`, boundary validation, ownership/version concurrency and public/private DTO separation. Applied Flyway migrations are append-only; [runbook](../deployment/README.md) owns backup/restore and release safety.
+Controllers bind HTTP/method security; services own rules/transactions; repositories/queries and DTO/mappers own persistence/projections. App instructions/skill own conventions and actual module structure; do not infer required interfaces or modules from old diagrams. Preserve `/api/v1`, boundary validation, ownership/version concurrency and public/private DTO separation. The [V1 fresh-install baseline](../../apps/api/src/main/resources/db/migration/V1__baseline.sql) consolidates the explicitly authorized unapplied V1–V24 history; subsequent applied migrations are append-only; [runbook](../deployment/README.md) owns backup/restore and release safety.
 
 ## Auth and private data
 

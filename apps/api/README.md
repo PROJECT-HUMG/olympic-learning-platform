@@ -23,6 +23,30 @@ DB_PASSWORD='<local-password>' \
 
 API mặc định ở `http://localhost:8080`. Profile mặc định là `dev`; profile `prod` yêu cầu cấu hình môi trường chặt hơn. Flyway chạy lúc khởi động và JPA kiểm tra schema bằng `ddl-auto: validate`. Swagger UI thường ở `/swagger-ui/index.html`, OpenAPI JSON ở `/v3/api-docs`, health ở `/actuator/health`.
 
+## Flyway baseline
+
+[`V1__baseline.sql`](src/main/resources/db/migration/V1__baseline.sql) replaces the
+unapplied V1–V24 sequence, with explicit authorization before any migration ran.
+It creates the final schema directly: no reference seed inserts existed in that
+sequence; application-owned initialization remains unchanged. Historical timeline
+and visibility backfills have no rows on a fresh database and are omitted. The
+visibility default is true; future owner opt-outs are not republished on restart.
+
+This is a **fresh-install baseline**, not an upgrade/reset recipe for an arbitrary
+existing database. Keep `baseline-on-migrate: false`, validation and production
+`clean-disabled: true`. Never repair/delete an operator's history, schema, volumes
+or deployment fingerprints to force this baseline through. Future applied changes
+are append-only. Run `./mvnw clean test` after updating an existing build directory
+so old copied SQL does not remain in `target/classes`; Docker already builds from
+source without copying `target`.
+
+[FlywayBaselineIntegrationTest](src/test/java/me/nghlong3004/olympic/common/FlywayBaselineIntegrationTest.java) migrates a disposable PostgreSQL schema, validates
+all JPA entities, checks final defaults/constraints/frozen exams, reopens without
+reapplying and refuses nonempty/legacy-history schemas. Default execution uses
+Testcontainers. For an explicitly disposable local PostgreSQL, pass
+`-DmigrationTest.jdbcUrl=jdbc:postgresql://127.0.0.1:PORT/postgres` and
+`-DmigrationTest.user=USER`; only its randomly named test schemas are created/dropped.
+
 ## Cấu hình
 
 `src/main/resources/application.yaml` chứa cấu hình chung; `application-dev.yaml` và `application-prod.yaml` chứa giá trị theo profile. Các biến chính: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `REDIS_HOST`, `REDIS_PORT`, `JWT_SECRET_KEY`, `ENCRYPTION_KEY`, `ENCRYPTION_SALT`, `OLYMPIC_ADMIN_*`. Tùy tính năng sử dụng thêm `CLOUDINARY_*`, `GOOGLE_CLIENT_*`, `GITHUB_CLIENT_*`, `GEMINI_*`, `DEEPSEEK_*`, `MAIL_*`. Xem file cấu hình và `compose.yml` để biết điều kiện cụ thể; không dùng default phát triển cho production.
@@ -36,7 +60,7 @@ API mặc định ở `http://localhost:8080`. Profile mặc định là `dev`; 
 
 Mã Java ở `src/main/java/me/nghlong3004/olympic`, test ở `src/test/java`, migrations ở `src/main/resources/db/migration`. Đọc [AGENTS.md](AGENTS.md) và skill backend được chỉ định trước khi sửa Java. Test tích hợp dùng Testcontainers có thể cần Docker. Contract API thay đổi cần cập nhật types và services ở web.
 
-Phòng học chung dùng `/api/v1/study-rooms`, yêu cầu JWT và tài khoản đang hoạt động. Chủ phòng chuyển quyền qua `POST /{id}/owner` với `{userId}`; người nhận phải đang online trong phòng và chưa làm chủ 3 phòng mở. Chủ phòng chỉnh thời lượng qua `PATCH /{id}/rhythm` với `{focusMinutes, breakMinutes, longBreakMinutes, expectedVersion}`; bắt đầu phiên tập trung mới, giữ thời gian đã ghi nhận và nhạc. Snapshot trả `rhythmVersion`; phiên bản cũ trả 409. Flyway `V10` tạo ba bảng phòng/thành viên/hàng đợi; `V11` thêm mốc timeline và phiên bản nhịp, giữ lịch của phòng hiện có khi migration. Cập nhật mọi instance API trước web chỉnh giờ. Không cần biến môi trường hay YouTube API key mới. Xem [contract, polling và vận hành](../../docs/architecture/study-rooms.md). Kiểm tra module (Docker cần chạy cho PostgreSQL integration):
+Phòng học chung dùng `/api/v1/study-rooms`, yêu cầu JWT và tài khoản đang hoạt động. Chủ phòng chuyển quyền qua `POST /{id}/owner` với `{userId}`; người nhận phải đang online trong phòng và chưa làm chủ 3 phòng mở. Chủ phòng chỉnh thời lượng qua `PATCH /{id}/rhythm` với `{focusMinutes, breakMinutes, longBreakMinutes, expectedVersion}`; bắt đầu phiên tập trung mới, giữ thời gian đã ghi nhận và nhạc. Snapshot trả `rhythmVersion`; phiên bản cũ trả 409. Baseline Flyway `V1` tạo sẵn ba bảng phòng/thành viên/hàng đợi cùng mốc timeline và phiên bản nhịp. Cập nhật mọi instance API trước web chỉnh giờ. Không cần biến môi trường hay YouTube API key mới. Xem [contract, polling và vận hành](../../docs/architecture/study-rooms.md). Kiểm tra module (Docker cần chạy cho PostgreSQL integration):
 
 ```bash
 ./mvnw -Dtest=StudyRoomRulesTest,StudyRoomIntegrationTest,StudyRoomControllerTest test
@@ -46,7 +70,7 @@ Phòng học chung dùng `/api/v1/study-rooms`, yêu cầu JWT và tài khoản 
 
 `POST /api/v1/daily/plans/tasks?date=YYYY-MM-DD` appends one task for the authenticated ACTIVE owner. Body: `{taskId, expectedVersion, title, priority, status}`. `taskId` is a stable client UUID for transport retries; `expectedVersion` is the saved version, null only for a missing plan. Existing plans are locked/version-checked; identical retries at the immediately resulting version return the saved plan without duplicating the task. Stale/changed retries or foreign task UUIDs conflict. At most 50 tasks; existing tasks, reflection, first submission and sharing are not replaced. Other edits still use plan Save, and Submit is separate. `GET /api/v1/daily/plans/dates` returns only the owner's saved dates, including empty saved plans, newest first.
 
-Deploy-compatible schema preparation requires new Flyway **V23** (V22 already owns group avatars), never a rewrite of V19. Evidence file uploads default to GENERAL when `stage` is absent. START/FINISH records, bytes and legacy link APIs remain intact. Existing owned/shared read checks and revocation still apply to metadata and bytes, with no-store private downloads; no public storage URL is introduced. The web upload UI is file-only and retains the existing 10 items × 5 MiB/task limits. Reflection questions/saving are unchanged; the only current timed Daily rule is the Vietnam-local 07:30 first-submission cutoff, not a reflection deadline.
+The fresh-install **V1 baseline** includes GENERAL evidence and group avatars. Evidence file uploads default to GENERAL when `stage` is absent. START/FINISH records, bytes and legacy link APIs remain intact. Existing owned/shared read checks and revocation still apply to metadata and bytes, with no-store private downloads; no public storage URL is introduced. The web upload UI is file-only and retains the existing 10 items × 5 MiB/task limits. Reflection questions/saving are unchanged; the only current timed Daily rule is the Vietnam-local 07:30 first-submission cutoff, not a reflection deadline.
 
 Focused local verification (Docker is required for disposable PostgreSQL; skipped integration tests are not persistence proof):
 
@@ -56,11 +80,11 @@ Focused local verification (Docker is required for disposable PostgreSQL; skippe
 
 ## Khung avatar và ảnh gốc
 
-Ảnh gốc giữ nguyên trong storage; vị trí/độ phóng lưu riêng ở user qua migration V12. Upload avatar nhận thêm part JSON crop tùy chọn; PATCH /api/v1/users/me/avatar/crop chỉnh lại khung mà không upload ảnh. API trả avatarCrop cùng avatarUrl cho frontend. Xem [contract khung avatar](../../docs/ui/owners/identity-and-recognition.md#avatar-crop-and-storage-contract).
+Ảnh gốc giữ nguyên trong storage; vị trí/độ phóng lưu riêng ở user trong baseline V1. Upload avatar nhận thêm part JSON crop tùy chọn; PATCH /api/v1/users/me/avatar/crop chỉnh lại khung mà không upload ảnh. API trả avatarCrop cùng avatarUrl cho frontend. Xem [contract khung avatar](../../docs/ui/owners/identity-and-recognition.md#avatar-crop-and-storage-contract).
 
 ## Vinh danh và thành tích học thuật
 
-Module recognition tách bài vinh danh công khai/bản nháp khỏi hồ sơ thành tích có minh chứng riêng tư. Điểm chỉ đến từ hồ sơ Olympic/NCKH đã được admin duyệt; tổng mọi năm/theo năm không áp dụng trần hoặc chỉ lấy giải cao nhất, và cộng điểm tham gia khi nhóm có quy tắc. Chủ tài khoản tự bật xếp hạng và chọn hiển thị từng hồ sơ. Flyway V14 bổ sung dữ liệu; cập nhật cùng web, không cần biến môi trường mới. Minh chứng lưu trong PostgreSQL, tối đa 3 file × 5 MB; request cần cho phép đủ 15 MB dữ liệu cùng metadata. Xem [contract, quyền riêng tư và kiểm tra](../../docs/architecture/recognition.md).
+Module recognition tách bài vinh danh công khai/bản nháp khỏi hồ sơ thành tích có minh chứng riêng tư. Điểm chỉ đến từ hồ sơ Olympic/NCKH đã được admin duyệt; tổng mọi năm/theo năm không áp dụng trần hoặc chỉ lấy giải cao nhất, và cộng điểm tham gia khi nhóm có quy tắc. Chủ tài khoản tự bật xếp hạng và chọn hiển thị từng hồ sơ. Baseline Flyway V1 tạo các bảng tương ứng; cập nhật cùng web, không cần biến môi trường mới. Minh chứng lưu trong PostgreSQL, tối đa 3 file × 5 MB; request cần cho phép đủ 15 MB dữ liệu cùng metadata. Xem [contract, quyền riêng tư và kiểm tra](../../docs/architecture/recognition.md).
 
 ```bash
 ./mvnw -Dtest=RecognitionPointsPolicyTest,RecognitionIntegrationTest,RecognitionControllerTest test
@@ -70,7 +94,7 @@ Integration test cần Docker/PostgreSQL Testcontainers; nếu bị bỏ qua th�
 
 ## OTP đăng ký
 
-Đăng ký mới dùng OTP 6 số, sống 10 phút; sửa email/resend/resume có phiên đăng ký riêng, cooldown và giới hạn theo user/IP. API cần Flyway V13 và cập nhật cùng đợt với web. Link xác thực cũ vẫn được hỗ trợ tới khi dùng/hết hạn/bị thay thế. Xem [contract và vận hành OTP](../../docs/architecture/authentication.md#registration-otp).
+Đăng ký mới dùng OTP 6 số, sống 10 phút; sửa email/resend/resume có phiên đăng ký riêng, cooldown và giới hạn theo user/IP. API cần schema OTP trong baseline V1 và cập nhật cùng đợt với web. Link xác thực cũ vẫn được hỗ trợ tới khi dùng/hết hạn/bị thay thế. Xem [contract và vận hành OTP](../../docs/architecture/authentication.md#registration-otp).
 
 ## Email tài khoản
 
