@@ -13,7 +13,7 @@ import { TurnstileChallenge } from "./turnstile-challenge";
 import { useTurnstileChallenge } from "../hooks/use-turnstile-challenge";
 
 const loginSchema = z.object({
-  identifier: z.string().min(1, "Vui lòng nhập Email hoặc Tên đăng nhập"),
+  identifier: z.string().min(1, "Vui lòng nhập email hoặc tên đăng nhập"),
   password: z.string().min(1, "Vui lòng nhập mật khẩu"),
 });
 
@@ -50,9 +50,9 @@ export function LoginForm() {
   return (
     <div className="auth-form auth-form--login">
       <div>
-        <h1 className="auth-heading auth-heading--greeting">Chào bạn trở lại.</h1>
+        <h1 className="auth-heading auth-heading--greeting">Đăng nhập</h1>
         <p className="auth-description">
-          Đăng nhập để tiếp tục việc học của bạn.
+          Tiếp tục học tập cùng Olympic HUMG.
         </p>
       </div>
 
@@ -60,7 +60,8 @@ export function LoginForm() {
         <FormField
           id="login-identifier"
           type="text"
-          label="Email hoặc Tên đăng nhập"
+          label="Email hoặc tên đăng nhập"
+          autoComplete="username"
           required
           placeholder="user@example.com hoặc username"
           error={errors.identifier?.message}
@@ -72,6 +73,7 @@ export function LoginForm() {
             id="login-password"
             type="password"
             label="Mật khẩu"
+            autoComplete="current-password"
             required
             placeholder="••••••••"
             error={errors.password?.message}

@@ -37,18 +37,6 @@ export function GuestRoute() {
                 <Skeleton className="h-4 w-60 max-w-full rounded-md" />
               </div>
 
-              {!isRegister && !isForgotPassword && !isResetPassword && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-2.5">
-                    <Skeleton className="h-10 w-full rounded-lg" />
-                    <Skeleton className="h-10 w-full rounded-lg" />
-                    <Skeleton className="h-10 w-full rounded-lg" />
-                  </div>
-                  <div className="relative flex items-center justify-center">
-                    <Skeleton className="h-3 w-32 rounded-md" />
-                  </div>
-                </div>
-              )}
 
               <div className="space-y-4">
                 <div className="space-y-1.5">

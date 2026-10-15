@@ -10,7 +10,10 @@ import { CheckCircle2Icon, XCircleIcon } from "lucide-react";
 export function VerifyEmailCard() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  return <EmailVerification key={token ?? ""} token={token} />;
+}
 
+function EmailVerification({ token }: { token: string | null }) {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -53,21 +56,21 @@ export function VerifyEmailCard() {
     <div aria-busy={status === "loading"}>
       {status === "loading" && (
         <div className="auth-status" role="status" aria-label="Đang xác thực email">
-          <Skeleton className="size-12 rounded-full" />
-          <Skeleton className="h-12 w-60 max-w-full rounded-md" />
+          <Skeleton className="size-8 rounded-md" />
+          <Skeleton className="h-8 w-60 max-w-full rounded-md" />
           <Skeleton className="h-4 w-72 max-w-full rounded-md" />
-          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-11 w-40 max-w-full rounded-md" />
         </div>
       )}
 
       {status === "success" && (
         <div className="auth-status" role="status">
-          <CheckCircle2Icon className="auth-status__icon" />
-          <h1 className="auth-heading">Sẵn sàng<br />khám phá.</h1>
-          <p className="auth-status__message">
-            Tài khoản của bạn đã được kích hoạt thành công. Bạn có thể đăng nhập ngay bây giờ.
+          <CheckCircle2Icon className="auth-status__icon" aria-hidden="true" />
+          <h1 className="auth-heading">Email đã được xác thực</h1>
+          <p className="auth-description">
+            Tài khoản đã sẵn sàng. Bạn có thể đăng nhập ngay.
           </p>
-          <Button asChild className="h-11 rounded-full px-6">
+          <Button asChild>
             <Link to={ROUTES.LOGIN}>Đăng nhập ngay</Link>
           </Button>
         </div>
@@ -75,10 +78,10 @@ export function VerifyEmailCard() {
 
       {status === "error" && (
         <div className="auth-status" role="alert">
-          <XCircleIcon className="size-12 text-destructive" strokeWidth={1.25} />
-          <h1 className="auth-heading">Chưa thể xác thực.</h1>
-          <p className="auth-status__message">{errorMessage}</p>
-          <Button asChild variant="outline" className="h-11 rounded-full px-6">
+          <XCircleIcon className="auth-status__icon auth-status__icon--error" aria-hidden="true" />
+          <h1 className="auth-heading">Chưa thể xác thực email</h1>
+          <p className="auth-description">{errorMessage}</p>
+          <Button asChild variant="outline">
             <Link to={ROUTES.REGISTER + "?resume=1"}>Nhận mã xác thực mới</Link>
           </Button>
         </div>

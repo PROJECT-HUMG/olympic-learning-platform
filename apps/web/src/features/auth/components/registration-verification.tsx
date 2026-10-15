@@ -1,8 +1,8 @@
 import type { CreationState } from "@/components/ui/creation-dialog";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { z } from "zod";
-import { CheckCircle2Icon, MailCheckIcon } from "lucide-react";
+import { ArrowLeftIcon, CheckCircle2Icon, MailCheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { CodeSlots } from "@/components/react-bits/code-slots";
@@ -11,6 +11,7 @@ import type { RegistrationChallenge } from "../types/auth.types";
 import { secondsUntil } from "../lib/registration-session";
 import { parseApiError } from "@/lib/api-error";
 import { ROUTES } from "@/router/route-constants";
+import "./registration-verification.css";
 
 type Props = {
   onStateChange?: (state: CreationState) => void;
@@ -27,6 +28,7 @@ export function RegistrationVerification({ challenge, onUpdate, onResume, onStat
   const [editingEmail, setEditingEmail] = useState(false);
   const [busy, setBusy] = useState<"verify" | "send" | "email" | null>(null);
   const [error, setError] = useState("");
+  const [errorTarget, setErrorTarget] = useState<"code" | "email">("code");
   const [notice, setNotice] = useState("");
   const [locked, setLocked] = useState(false);
   const [invalidSession, setInvalidSession] = useState(false);
@@ -52,6 +54,7 @@ export function RegistrationVerification({ challenge, onUpdate, onResume, onStat
 
   async function perform(action: "verify" | "send" | "email") {
     if (pending.current) return;
+    setErrorTarget(action === "email" ? "email" : "code");
     if (action === "verify" && !/^[0-9]{6}$/.test(code)) {
       setError("Vui lòng nhập đủ 6 chữ số.");
       codeRef.current?.focus();
@@ -80,7 +83,7 @@ export function RegistrationVerification({ challenge, onUpdate, onResume, onStat
         setCode("");
         setLocked(false);
         setEditingEmail(false);
-        setNotice("Mã mới đã được yêu cầu. Kiểm tra hộp thư và mục thư rác; mã cũ không còn hiệu lực.");
+        setNotice("Đã yêu cầu mã mới. Kiểm tra hộp thư và mục thư rác. Mã cũ không còn hiệu lực.");
         setNow(Date.now());
         codeRef.current?.focus();
       }
@@ -99,67 +102,103 @@ export function RegistrationVerification({ challenge, onUpdate, onResume, onStat
     }
   }
 
+  const codeWarning = locked ? "Đã nhập sai 5 lần. Hãy yêu cầu mã mới."
+    : codeSeconds === 0 ? "Mã đã hết hạn. Hãy yêu cầu mã mới." : "";
+  const showCodeWarning = !!codeWarning && !(errorTarget === "code" && error === codeWarning);
+
+  const errorFeedback = error && <p id={`registration-${errorTarget}-error`} role="alert"
+    className="registration-verification__feedback registration-verification__feedback--error">{error}</p>;
+
   if (verified) return (
-    <div className="auth-status" role="status">
-      <CheckCircle2Icon className="auth-status__icon" />
-      <h1 className="auth-heading">Email đã xác thực.</h1>
-      <p className="auth-status__message">Tài khoản đã sẵn sàng. Đăng nhập để bắt đầu học nhé.</p>
+    <div className="auth-status registration-verification" role="status">
+      <CheckCircle2Icon className="auth-status__icon" aria-hidden="true" />
+      <h1 className="auth-heading">Email đã được xác thực</h1>
+      <p className="auth-description">Tài khoản đã sẵn sàng. Bạn có thể đăng nhập ngay.</p>
       <Button asChild><Link to={ROUTES.LOGIN} state={location.state} onClick={onClose ? event => { event.preventDefault(); onClose(); } : undefined}>Đăng nhập ngay</Link></Button>
     </div>
   );
 
   return (
-    <div className="auth-form" aria-busy={busy !== null}>
-      <div className="space-y-3">
-        <MailCheckIcon className="auth-status__icon" aria-hidden="true" />
+    <div className="registration-verification" aria-busy={busy !== null}>
+      <header className="registration-verification__header">
+        <p className="registration-verification__eyebrow">Hoàn tất đăng ký</p>
         <h1 className="auth-heading">Xác thực email</h1>
-        <p className="auth-description">Nhập mã 6 số gửi tới
-          <strong className="mt-1 block break-words text-foreground [overflow-wrap:anywhere]">{challenge.email}</strong>
-        </p>
-        <p className="text-xs leading-relaxed text-muted-foreground">Chưa thấy email? Kiểm tra cả mục thư rác. Mã có hiệu lực trong 10 phút.</p>
+        <p className="auth-description">Nhập mã 6 số đã gửi đến địa chỉ email của bạn.</p>
+      </header>
+
+      <div className="registration-verification__recipient">
+        <div className="registration-verification__address">
+          <MailCheckIcon aria-hidden="true" />
+          <strong>{challenge.email.split("@").map((part, index) => (
+            <Fragment key={index}>{index > 0 && <>@<wbr /></>}{part}</Fragment>
+          ))}</strong>
+        </div>
+        {!sessionExpired && <Button type="button" variant="ghost" disabled={busy !== null}
+          aria-expanded={editingEmail} aria-controls="registration-email-editor"
+          onClick={() => {
+            setEditingEmail(!editingEmail); setEmail(challenge.email); setError("");
+            if (editingEmail) codeRef.current?.focus();
+          }}>Sửa email</Button>}
       </div>
 
       {sessionExpired ? (
-        <div className="space-y-4">
-          <p role="alert" className="text-sm text-muted-foreground">Phiên đăng ký đã hết hạn. Dùng email hoặc tên đăng nhập và mật khẩu đã tạo để tiếp tục.</p>
+        <div className="registration-verification__recovery">
+          <div role="alert" className="registration-verification__feedback">
+            <p className="font-medium text-foreground">Phiên đăng ký đã hết hạn</p>
+            <p>Dùng email hoặc tên đăng nhập và mật khẩu đã tạo để tiếp tục xác thực.</p>
+          </div>
           <Button className="w-full" onClick={onResume}>Tiếp tục xác thực</Button>
         </div>
       ) : (
         <>
-          <form noValidate className="space-y-4" onSubmit={(event) => { event.preventDefault(); void perform("verify"); }}>
-            <div className="space-y-2">
-              <label htmlFor="registration-code" className="block text-sm font-medium">Mã xác thực</label>
-              <CodeSlots ref={codeRef} id="registration-code" value={code} onValueChange={setCode}
-                disabled={busy !== null || locked} aria-invalid={!!error}
-                aria-describedby={`registration-code-helper${error ? " registration-code-error" : ""}`} />
-              <p id="registration-code-helper" className="text-xs text-muted-foreground">
-                {locked ? "Đã nhập sai 5 lần. Hãy yêu cầu mã mới." : codeSeconds === 0 ? "Mã đã hết hạn. Hãy yêu cầu mã mới." : `Mã hết hạn sau ${Math.floor(codeSeconds / 60)}:${String(codeSeconds % 60).padStart(2, "0")}`}
-              </p>
-            </div>
-            <Button type="submit" className="w-full" loading={busy === "verify"} disabled={busy !== null || locked || codeSeconds === 0}>Xác thực email</Button>
-          </form>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button type="button" variant="outline" loading={busy === "send"} disabled={busy !== null || resendSeconds > 0}
-              onClick={() => void perform("send")}>{resendSeconds > 0 ? `Gửi lại sau ${resendSeconds}s` : "Gửi lại mã"}</Button>
-            <Button type="button" variant="ghost" disabled={busy !== null} aria-expanded={editingEmail}
-              onClick={() => { setEditingEmail(!editingEmail); setEmail(challenge.email); setError(""); }}>Sửa email</Button>
-          </div>
           {editingEmail && (
-            <form noValidate className="space-y-3 rounded-xl border border-border p-4" onSubmit={(event) => { event.preventDefault(); void perform("email"); }}>
-              <FormField id="registration-new-email" type="email" label="Email chính xác" autoComplete="email"
-                value={email} onChange={(event) => setEmail(event.target.value)} maxLength={100} disabled={busy !== null} autoFocus />
-              <p className="text-xs leading-relaxed text-muted-foreground">Gửi mã tới email mới sẽ hủy mã đã gửi trước đó.</p>
+            <form id="registration-email-editor" noValidate className="registration-verification__email-editor"
+              onSubmit={(event) => { event.preventDefault(); void perform("email"); }}>
+              <FormField id="registration-new-email" type="email" label="Email nhận mã" autoComplete="email"
+                value={email} onChange={(event) => setEmail(event.target.value)} maxLength={100} disabled={busy !== null} autoFocus
+                aria-invalid={!!error && errorTarget === "email"}
+                aria-describedby={error && errorTarget === "email" ? "registration-email-error" : undefined} />
+              <p className="registration-verification__hint">Mã cũ sẽ hết hiệu lực khi bạn yêu cầu mã cho email mới.</p>
               <div className="flex flex-wrap gap-2">
                 <Button type="submit" loading={busy === "email"} disabled={busy !== null}>Lưu và gửi mã</Button>
-                <Button type="button" variant="ghost" disabled={busy !== null} onClick={() => { setEditingEmail(false); setError(""); }}>Hủy</Button>
+                <Button type="button" variant="ghost" disabled={busy !== null} onClick={() => {
+                  setEditingEmail(false); setError(""); codeRef.current?.focus();
+                }}>Hủy</Button>
               </div>
+              {errorTarget === "email" && errorFeedback}
             </form>
           )}
+          <form noValidate className="registration-verification__code-form"
+            onSubmit={(event) => { event.preventDefault(); void perform("verify"); }}>
+            <div className="registration-verification__code-label">
+              <label htmlFor="registration-code">Mã xác thực</label>
+              {!locked && codeSeconds > 0 && <span className="registration-verification__countdown">
+                Còn {Math.floor(codeSeconds / 60)}:{String(codeSeconds % 60).padStart(2, "0")}
+              </span>}
+            </div>
+            <CodeSlots ref={codeRef} id="registration-code" value={code} onValueChange={setCode}
+              disabled={busy !== null || locked} aria-invalid={!!error && errorTarget === "code"}
+              aria-describedby={`registration-code-helper${error && errorTarget === "code" ? " registration-code-error" : ""}`} />
+            <p id="registration-code-helper" role={showCodeWarning ? "status" : undefined} className={showCodeWarning ? "registration-verification__hint text-destructive" : "sr-only"}>
+              {showCodeWarning ? codeWarning : "Nhập đủ 6 chữ số. Mã có hiệu lực trong 10 phút."}
+            </p>
+            {errorTarget === "code" && errorFeedback}
+            {notice && <p role="status" className="registration-verification__feedback">{notice}</p>}
+            <Button type="submit" className="w-full registration-verification__submit" loading={busy === "verify"}
+              disabled={busy !== null || locked || codeSeconds === 0}>Xác thực email</Button>
+          </form>
+          <div className="registration-verification__resend">
+            <div>
+              <p className="registration-verification__resend-title">Chưa nhận được mã?</p>
+              <p className="registration-verification__hint">Kiểm tra cả mục thư rác.</p>
+            </div>
+            <Button type="button" variant="outline" loading={busy === "send"} disabled={busy !== null || resendSeconds > 0}
+              onClick={() => void perform("send")}>{resendSeconds > 0 ? `Gửi lại sau ${resendSeconds}s` : "Gửi lại mã"}</Button>
+          </div>
         </>
       )}
-      {error && !sessionExpired && <p id="registration-code-error" role="alert" className="text-sm text-destructive">{error}</p>}
-      {notice && <p role="status" className="text-sm leading-relaxed text-muted-foreground">{notice}</p>}
-      <Link to={ROUTES.LOGIN} state={location.state} onClick={onClose ? event => { event.preventDefault(); onClose(); } : undefined} className="text-center text-sm underline underline-offset-4">Về đăng nhập</Link>
+      <Link to={ROUTES.LOGIN} state={location.state} onClick={onClose ? event => { event.preventDefault(); onClose(); } : undefined}
+        className="registration-verification__back"><ArrowLeftIcon aria-hidden="true" />Về đăng nhập</Link>
     </div>
   );
 }

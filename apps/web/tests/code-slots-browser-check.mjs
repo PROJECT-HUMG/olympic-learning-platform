@@ -83,7 +83,7 @@ try {
     await reset('expired'); assert.ok(await js('document.querySelector("button[type=submit]").disabled')); assert.ok(await js('document.body.innerText.includes("Mã đã hết hạn")'));
     await reset(); mode='session'; await fill('123456'); await submit(); await wait('!document.querySelector("#registration-code")'); await js(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Tiếp tục xác thực').click()`); assert.ok(await js('window.resumed'));
     await reset('cooldown'); assert.ok(await js(`[...document.querySelectorAll('button')].some(b=>b.disabled&&b.textContent.includes('Gửi lại sau'))`));
-    await reset(); mode='success'; await fill('000001'); await submit(); await wait('document.body.innerText.includes("Email đã xác thực.")'); assert.equal(await js('window.updated'),null);
+    await reset(); mode='success'; await fill('000001'); await submit(); await wait('document.body.innerText.includes("Email đã được xác thực")'); assert.equal(await js('window.updated'),null);
     checks.push('Expired OTP prevents verification; invalid session offers resume; resend deadline retained; only actual synthetic server success clears challenge and shows verified state.');
     await reset(); await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]}); await fill('001234'); await sleep(50);
     assert.ok(await js('[...document.querySelectorAll(".code-slots__digit")].every(e=>getComputedStyle(e).transform==="none"&&getComputedStyle(e).opacity==="1")')); await shot('reduced-static');

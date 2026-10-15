@@ -448,7 +448,7 @@ Limits: synthetic Chromium/CDP demonstrates frontend requests/state, not real DB
 
 ## Registry Home, auth, media and toast integration — 15/10/2026
 
-Current publication base is local checkpoint `97554cdf2d9f6d526a4077b10cf31820cd72a0f5`, which committed the accepted Kokonut evidence-upload and CreationDialog outer-scroll correction. Subsequent work in this section is local/uncommitted only. No push/deployment, live content mutation, auth/mail/provider operation, dependency installation or operator/environment inspection. Static logo/navigation/assets, original theme-selected ambient-video owner and accepted checkpoints remain intact.
+This integration was built on local checkpoint `97554cdf2d9f6d526a4077b10cf31820cd72a0f5`, which committed the accepted Kokonut evidence-upload and CreationDialog outer-scroll correction. The accepted28-path candidate was subsequently committed as `2c8b3133b3727fe11a4c0d00abc24babcd72c592` (`feat(web): integrate React Bits UI patterns`), with exact manifest/blob verification and a clean tree. The detailed acceptance below records its pre-commit state; it does not denote pending changes now. No push/deployment, live content mutation, auth/mail/provider operation, dependency installation or operator/environment inspection. Static logo/navigation/assets, original theme-selected ambient-video owner and accepted checkpoints remain intact.
 
 The user replaced the temporary Tech Text direction with actual free React Bits `MaskedHeading-JS-CSS`; MCP provides the equivalent official `MaskedHeading-TS-CSS`. Lead implemented that actual SVG word-mask/GSAP reveal pattern using current typography and restrained HUMG mesh fill. All task-only Tech Text source/CSS/runner files were removed, with historical local proof retained only outside the repository. The prior source-only rejection/trial status is superseded; MaskedHeading is the intended resulting local UI, with no further aesthetic approval gate. [Home motion owner](../ui/owners/home-registry-and-motion.md#home-masked-heading--15102026).
 
@@ -464,4 +464,258 @@ Native toast owner returned exact candidate `60cc7448c839310814ae844cd9f9971934f
 
 Toast presentation now uses a readable scrollable stack rather than native Sonner's compressed stack. The unused native wrapper options `invert`, `theme`, `swipeDirections`, `gap`, `expand` and `visibleToasts` are not implemented by this app adapter; current App/current callers use supported semantic colors, position and close-button behavior. This is a wrapper configuration limit, not a claim of complete Sonner-renderer equivalence. [Current control owner](../ui/owners/shared-controls.md#codeslots-verification-and-swipetoast--15102026).
 
-Final Lead validation: app TypeScript passes; production Vite bundle passes with `configFile:false`/`envDir:false` and128JS chunks; full Oxlint passes with inherited warnings only, focused changed-source checks clean; whitespace/new owner links pass. The build retains a large-chunk warning (main entry approximately804KB/256KB gzip); this is a bundle-size observation, not production-performance measurement. The one Home optional-contextSafe typing failure was corrected with a native-fallback guard and rechecked; no repeated browser matrix was needed for the supported installed API. No backend files or tests changed/repeated. Installed GSAP/@gsap/react, Framer Motion and lucide are reused. Source and tests are technically accepted locally, with exact combined file hashes and before/after/motion gallery in `/tmp/humg-registry-auth-media-toast-20261015/final/`. There is no new commit, push or deployment; index remains empty and protected logo/video/package/lock/asset bytes match97554cd.
+Final Lead validation: app TypeScript passes; production Vite bundle passes with `configFile:false`/`envDir:false` and128JS chunks; full Oxlint passes with inherited warnings only, focused changed-source checks clean; whitespace/new owner links pass. The build retains a large-chunk warning (main entry approximately804KB/256KB gzip); this is a bundle-size observation, not production-performance measurement. The one Home optional-contextSafe typing failure was corrected with a native-fallback guard and rechecked; no repeated browser matrix was needed for the supported installed API. No backend files or tests changed/repeated. Installed GSAP/@gsap/react, Framer Motion and lucide are reused. Source and tests are technically accepted locally, with exact combined file hashes and before/after/motion gallery in `/tmp/humg-registry-auth-media-toast-20261015/final/`. At that acceptance there was no new commit, push or deployment, the index was empty and protected logo/video/package/lock/asset bytes matched97554cd. The subsequent local commit is identified above; no publication was performed.
+
+
+## Routed OTP screen refinement — 15/10/2026
+
+Base is committed `2c8b3133b3727fe11a4c0d00abc24babcd72c592`. This subsequent
+six-path OTP refinement is local and uncommitted; no stage, commit, push or deploy
+is authorized/performed. The previous React Bits integration, static logo, Home
+hero/ambient video, shared auth shell, services and security policy are retained.
+
+Lead applied the explicitly requested `design-taste-frontend` skill as a
+preserve-mode redesign: trust-first university registration, variance3/motion2/
+density5. Its audit, hierarchy, spacing, cohesion and critique principles fit;
+marketing heroes, new fonts/systems and cinematic effects do not fit this form.
+The actual journey is `/register` → `GuestRoute` → `AuthCardLayout` →
+`WelcomeLayout` → `RegisterForm` → `RegistrationVerification`. OTP replaces the
+registration form in place. `/verify-email` remains separate token-link handling.
+Earlier isolated CodeSlots screenshots omitted the shared shell by design; they
+were never evidence of a product layout bypass.
+
+The old destination, instructions and helper/actions had similar visual weight;
+its304px code rail and full-width submit did not align. The revised OTP owner
+composes concise “Hoàn tất đăng ký” / “Xác thực email” copy, actual recipient and
+“Sửa email” together, a quiet code deadline beside its label, full-width six-slot
+entry/primary action, then resend/help and back navigation. No outer card or
+motion layer. Email has a natural break opportunity after `@` without altering
+its text; long parts still wrap. Editing adds a small inline form and natural
+page scroll instead of squeezing controls or clipping content. Existing desktop
+right form rail/video and mobile shared logo/theme header are unchanged.
+
+The rendered lock-state critique also removed an exact duplicate helper/error
+warning; the single visible error retains its described association and alert.
+Errors now sit beside the form that caused them, with distinct described IDs:
+email validation/server errors do not mark the OTP invalid. Cancel/toggling the
+editor shut returns code focus. Existing resend/email response handling resets
+code, recipient/deadlines and focus. Expiry/lock changes have status semantics;
+second-by-second countdown text is not a live announcement. Native six-digit
+CodeSlots/zeros/paste/autofill/editing, explicit submission, pending single-flight,
+server lock/cooldown/expiry/session recovery and verified/session-clear behavior
+remain with current owners. No invented verification policy or delivery claim.
+
+Proof uses the actual routed app, synthetic session challenges, an advancing
+synthetic clock and intercepted APIs. The new
+`apps/web/tests/registration-verification-browser-check.mjs` supports `--before`
+(checkpoint source), `--visual-only` and `--interactions-only`. Before matrix:
+`/tmp/humg-otp-design-before-Aw3GiY/`. Final responsive and routed state evidence
+are linked in `/tmp/humg-otp-refinement-20261015/index.html` and its manifest.
+320/390/768/1280 light/dark show the proper shell without horizontal overflow;
+code rails now match288/358/469/432px form widths, with56px mobile/tablet and60px
+desktop height. Actions are at least44px and primary submit48px. Measured body
+contrast5.67/8.42, primary8.72/6.96 and empty-slot outline3.68/5.84 (light/dark).
+A final contrast critique caught red-on-tint below4.5:1; scoped text mixing fixed
+it to4.89:1 without changing semantic colors elsewhere.
+
+Routed interactions cover AX name/value, leading zeros, full formatted paste,
+backspace/arrows, keyboard Enter without automatic submit, exact JSON code/session,
+held single-flight busy, invalid-code retention, lock plus failed/successful resend,
+reset/cooldown/focus, email validation/failure/retry/actual recipient replacement,
+code/session expiry/resume and success clearing stored challenge. At320×280,
+keyboard tab/Cancel focus and real CDP touch opening the editor pass. Long-email
+reduced-motion digits stay visible/static, the desktop ambient video is paused,
+and navigating away has no runtime exception. Existing isolated CodeSlots
+control/service/spring evidence also passes (four groups/eight captures); it is
+labelled separately from routed layout evidence. Success-copy expectation in that
+runner now matches “Email đã được xác thực”.
+
+TypeScript, production Vite bundle (`configFile:false`, `envDir:false`, output
+`/tmp/humg-otp-design-build`), four registration-session tests, full lint (inherited
+warnings only), focused changed-source lint, whitespace and owner links pass.
+The inherited large-chunk warning remains. Initial harness failures were a frozen
+clock preventing GSAP startup completion, incomplete synthetic Enter dispatch,
+and a mock error missing ProblemDetail title; these were corrected in the runner,
+without changing app loading/error/security owners. Failed artifacts remain
+separate from successful evidence.
+
+Lead accepts the scoped composition and behavior after source/render/interaction
+inspection; exact final source hashes and protected-path checks are in
+`/tmp/humg-otp-refinement-20261015/manifest.json`. Limits: Chromium/CDP with synthetic
+responses and blocked external font traffic (system fallback), not live mail/auth,
+real mobile autofill/keyboards, AT speech, WebKit, provider/security race or
+production-performance/Lighthouse proof. No backend changes/tests, dependencies,
+new font, global token, logo/video or unrelated auth-screen changes. Confidential
+environment/operator content remains unread and excluded.
+
+
+## Auth-family assessment after OTP — 15/10/2026
+
+Assessment only outside OTP; no broader auth implementation is approved or
+performed. Resume inspection confirmed HEAD `2c8b313`, empty index and exact six
+path/hash match with accepted OTP candidate
+`1f1985632a75cf8e1dda73610fcd4fe7f03fda579f0d055be8a87ac32329a8b9`.
+Its implementation, routed proof/build/lint/session checks remain usable; no
+source change requires repeating them. This follow-up adds only this assessment
+record to the existing pending status path. No staging/commit/push/deployment.
+
+Taste's preserve-mode audit/typography/rhythm/cohesion principles remain fitting;
+marketing/cinematic form redesign is not. Actual guest routes `/login`,
+`/register` (form, OTP and `?resume=1`), `/forgot-password`, `/reset-password` and
+`/verify-email` use `GuestRoute → AuthCardLayout → WelcomeLayout`. Registration
+uses the right desktop rail; other guest routes the left. Shared logo/theme,
+mobile form-only behavior, original scenes and existing reduced-motion posters
+are sound and retained. The private `/profile` password-change dialog is a distinct
+task, not a missing auth-shell consumer.
+
+| Screen/state | Observed outcome | Smallest recommended change, not implemented |
+| --- | --- | --- |
+| Login | Compact readable fields/primary/recovery; unverified login reaches prefilled resume. No full layout defect. HTML credential autocomplete is `off`. | Keep composition; natural concise heading if revised and explicit `username`/`current-password` hints. Browser password managers may ignore `off`; no claim that autofill is impossible. |
+| Registration | 320/390 single-column fields and 1280 metadata grid fit. Field errors are readable. “Bắt đầu từ đây” adds little; email/name/password hints are `off`. | Keep grid, username derivation and verification lifecycle; concise next-step email-verification expectation plus proper field-specific autocomplete. |
+| Forgot password | Sparse one-field layout is appropriate; generic receipt preserves account privacy. After failure then success, old failure toast can remain stacked with success. Receipt uses different pill radius and repeats login navigation. | Form-owned persistent service error cleared on retry/success; concise neutral copy and consistent status/action treatment. Preserve generic enumeration-safe response. |
+| Reset password | Missing-token recovery and mismatch validation work. “Mật khẩu mới, sẵn sàng trở lại” is less direct than the task. Server-expired token only produces a transient email-code toast; filled form remains ready to submit that token. | Neutral “Đặt mật khẩu mới”, `new-password` hints and persistent token-failure explanation/appropriate next navigation. Preserve schema/token consumption and invite compatibility. |
+| Token email verification | Pending/error/expired/resume action work. Success “Sẵn sàng khám phá” puts actual completion in body; icon/button scale/pill styling differ from OTP. | Explicit “Email đã được xác thực” with existing standard status/action rhythm; reduce redundant navigation emphasis, retain token/resume semantics. |
+| Registration resume | Direct and unverified-login entries work, identifier is prefilled, mistyped-email help is useful; inline error and autocomplete already fit. | Keep composition and correction context; optional shorter supporting copy only. |
+| Private password change | Real profile security entry opens a fitting three-field dialog; Escape returns focus to its trigger. Current/new-password hints already exist. | Keep task dialog. Its 6–100 limit matches `ChangePasswordRequest`; reset/register use their own 8–128 contracts. Do not change policy for visual uniformity. |
+| Guest loading | Actual current-user query reset after startup release shows a three-provider skeleton group, absent from the settled login form. | Remove obsolete loading placeholders at GuestRoute; no fake providers, artificial delay or new universal loading engine. |
+| Anti-spam unavailable | Enabled fixture with failed script shows existing retry and blocks submission on login/register/forgot. | Keep current failure/retry/token lifecycle; no new widget or provider behavior. |
+
+Recommended direction is a bounded consistency pass in the five existing guest
+form/status owners plus the obsolete `GuestRoute` loading branch. Preserve shared
+shell/video/rail and both resume/private-password compositions. Prioritize the
+reset failure next step, recovery error lifecycle and accurate loading shape;
+copy/status styling/autocomplete are smaller follow-ups. Do not add OTP cards to
+every screen or enlarge simple recovery forms to fill blank space. This
+recommendation was initially deferred to the user's design decision. The user
+subsequently approved the targeted implementation recorded below; it remains
+bounded to those refinements rather than a wholesale auth redesign.
+
+One real contract boundary: `AuthServiceImpl.resetPassword` accepts both
+`PASSWORD_RESET` and `ADMIN_INVITE`, while `ResetPasswordForm` receives an opaque
+token only. A neutral heading suits both. Do not infer purpose, promise invite
+recovery through ordinary forgot-password, or invent invite-specific resend policy
+without an accepted contract/decision. Ordinary account-reset recovery should
+reuse its existing route; invite-specific handling remains outside this assessment.
+
+Evidence: `/tmp/humg-auth-family-review-20261015/index.html` (38 linked captures)
+and `review.json` provide route/source ownership, observations and limits. Completed
+bounded probes: `humg-auth-assessment-routed-EupF3f` (7 layouts), `-ynu3fd`
+(9 validation/recovery states), `-EkqoVa` (5 token/private states), `-slkHo3`
+(4 loading/settled states) and `humg-auth-assessment-challenge-failure-lHMuu2`
+(3 failure states), all under `/tmp` with results JSON and no runtime exceptions.
+The first broad run ended143 after six images; those remain individual visual
+observations, not a full-run pass. `humg-auth-assessment-routed-TxCN9d` captured
+reset states before an unrelated quoted-selector harness error; its failure is
+retained and the corrected token/private probe completed separately. No app owner
+was changed for either harness issue.
+
+These are actual routed React owners with synthetic intercepted APIs/identity,
+not isolated form screenshots or real auth/mail/password mutations. Representative
+320/390 mobile and1280 desktop light/dark were inspected; completed captures had
+no horizontal overflow. Ordinary probes explicitly disable Turnstile, separate
+failure probes enable it using a public fixture key, and operator configuration
+remains unread. External fonts are blocked/system fallback. Most completed desktop
+captures use existing reduced-motion posters; original playback/static logo are
+preserved and their accepted OTP evidence reused. No new tablet/all-state/all-theme,
+real widget, physical keyboard/autofill, AT speech, WebKit, backend security or
+production proof. Existing OTP sources/tests, all other auth implementation,
+dependencies, confidential environment and operator state remain unchanged.
+
+
+## Targeted auth-family refinement — 15/10/2026
+
+The user approved the preceding bounded assessment recommendations. Lead
+implemented them on HEAD `2c8b313`, retaining the completed OTP source/styles/tests
+byte-for-byte. Current integrated work is local/uncommitted; no stage, commit,
+push, deploy, provider/mail operation or environment/operator inspection.
+
+Taste's preserve-mode direction remains a clear, restrained university task UI:
+existing type/tokens/field grid and shared desktop scene/mobile shell; no new
+font, dependency, decorative motion, outer cards or configurable auth mega-form.
+Login now says “Đăng nhập” with concise Vietnamese supporting copy; registration
+explains email verification. Callers provide username/current-password,
+email/name/username and new-password autocomplete hints as appropriate, rather
+than changing FormField's default for the entire app. Username derivation/manual
+override, all form field names, payloads and schemas remain.
+
+Forgot-password errors are now form-owned, persistent and described by the form.
+A real retry clears the old error; busy disables email/submit; successful response
+replaces the form with the same account-enumeration-safe conditional receipt and
+focuses its heading. No stale failure or redundant success toast from this flow.
+Reset uses “Đặt mật khẩu mới”, new-password hints and inline retryable service
+errors that retain values. Only existing explicit `emailTokenExpired`,
+`emailTokenInvalid` or `emailTokenMissing` keys move the current token to a
+persistent link-failure state; arbitrary400/5xx are not treated as expired links.
+The supported next action is the existing `/forgot-password` path labelled
+“Khôi phục mật khẩu”, with conditional neutral explanation. No invite purpose is
+inferred and no invitation replacement/delivery is promised.
+
+Reset and token-email verification use small local keyed inner components so a
+changed query token owns a fresh form/status and older responses cannot navigate,
+toast or replace its state. Reset ignores completion after unmount; it does not
+claim to abort a server-side operation. Email verification retains the existing
+request-ref StrictMode deduplication within each token instance. Completion is
+explicit “Email đã được xác thực”; existing status classes and standard Button
+replace pill overrides. Error icons use one real shared status-color variant;
+`WelcomeLayout` geometry is unchanged. Focused terminal headings remain semantic
+focus targets without a control-like outline; input/link/button focus stays
+visible. GuestRoute only loses its retired three-provider skeleton group; query,
+50ms skeleton delay, authorization and redirect tail remain intact.
+
+Shared-form findings are recorded in
+[the existing control owner](../ui/owners/shared-controls.md#auth-forms-recovery-and-token-status-owners--15102026):
+actual shared FormField/native behavior, Button, RHF/Zod tooling, auth status CSS,
+Axios/error parser and Turnstile owners. Auth forms use direct RHF registration,
+not the similarly named Controller/context FormField in `ui/form.tsx`.
+Field lists, schemas, confirmation checks and submit/identity transitions remain
+flow-owned. Small repeated form/header/status markup is deliberate; a generic
+renderer would couple unrelated lifecycle/security contracts. Login/register
+server errors still use existing toasts; resume is inline; OTP retains its own
+feedback. This pass does not claim universal error or form-state ownership.
+
+Meaningful proof in `apps/web/tests/auth-family-browser-check.mjs` uses actual
+routes and intercepted synthetic APIs. `forms`:320/390/1280 plus768 login/register,
+shared shell/no horizontal overflow, autocomplete, keyboard password reveal,
+registration username auto-derivation stopping after manual edit, no auto-submit.
+`recovery`: invalid email makes no request; exact real service email payload,
+held busy input/submit, persistent described error beyond toast lifetime, retained
+email, clearing on retry, generic successful receipt without stale toasts,
+heading focus and320×280 touch return navigation. `reset`: min8/mismatch block
+requests, exact token/newPassword JSON, held busy, transient value retention and
+retry, known expired/invalid persistent state/no resubmit, heading focus,
+existing recovery navigation and success-only login transition. `lifecycle`:
+held reset responses cannot navigate/toast after token replacement or leaving;
+verification A late success cannot replace pending B; B alone completes and each
+token posts once under StrictMode. `loading`: actual query reset after startup
+shows the corrected skeleton then the real login controls. `status-visuals`:
+final receipt/expired/completion at320/390/1280 light-dark, long address wrapping,
+existing static scenes/mobile shell,44px actions and heading-to-action Tab.
+
+TypeScript, production bundle with `configFile:false`/`envDir:false`, full lint
+(inherited warnings only), focused final source/runner lint, seven auth-session/
+registration-session/Turnstile Node tests and whitespace/new owner links pass.
+The inherited large-chunk/plugin-timing warnings remain. Build output:
+`/tmp/humg-auth-family-refinement-20261015-dist`. Accepted OTP behavior proof is
+reused because its source/styles/runners are exact; no backend suite repeated.
+Current before/after gallery, per-section results, exact hashes and explicit
+preservation are in `/tmp/humg-auth-family-refinement-20261015/`.
+
+One full enabled Turnstile local probe ended143 without captures/results. A
+bounded warm-cache recovery-only probe completed, retaining real component
+script-error/retry and disabled submit with no auth mutation. The previous
+three-caller assessment proof plus unchanged Turnstile owners remains separately
+identified; the new recovery-only result is not three-caller proof even if its
+older descriptive label says so. Local browser/probe interruption is not a
+provider quota or production failure. No repeated live provider attempt occurred.
+
+Limits: synthetic Chromium/API/identity and explicit fixture anti-spam settings,
+not real mail/password changes, provider/race/authorization/persistence proof,
+physical devices/password-manager autofill/AT speech/WebKit or production
+performance/Lighthouse. External fonts are blocked/system fallback. Most new
+captures use existing reduced-motion posters; original video source/behavior and
+static logo are unchanged and their prior accepted proof is reused. Earlier
+retained before captures may have a different ambient frame; that is not a scene
+redesign. No new invitation-specific recovery policy, password constraint or
+other server contract. Lead accepts the scoped integrated candidate after actual
+source/render/result inspection; exact file list and remaining boundaries are
+in the artifact manifest.

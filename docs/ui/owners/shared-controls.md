@@ -310,3 +310,75 @@ acceptance and failed-driver/cleanup limits are recorded in the existing audit.
 [SwipeToast](../../../apps/web/src/components/react-bits/swipe-toast.tsx) adapts official free `SwipeToast-TS-CSS` at the [existing Toaster](../../../apps/web/src/components/ui/sonner.tsx). Existing callers still import `toast` from Sonner; the public Sonner store remains the only notification store. Its `useSonner` subscription feeds a single SwipeToast renderer/lifetime owner, replacing the previous Sonner renderer rather than stacking two systems. The upstream downward gesture, resisted upward pull, spring settle and lifetime fuse are retained with current semantic colors and44px dismiss/actions. Installed Framer Motion/lucide replace registry-only package aliases/icons; no dependencies are added. Native compressed-stack options are intentionally replaced by a readable scrollable stack; unused wrapper options `invert`, `theme`, `swipeDirections`, `gap`, `expand` and `visibleToasts` are not implemented by this adapter. Current product callers use the supported semantic colors/position/close behavior. Current ownership/verified semantics and remaining limits are recorded in the [integration status](../../reviews/ux-flow-audit.md#registry-home-auth-media-and-toast-integration--15102026).
 
 Both components were discovered/viewed/retrieved through the configured shared shadcn MCP using the official free registry URL. Official TypeScript/CSS variants correspond to the requested JavaScript/CSS patterns. Raw MCP sources and upstream copies: `/tmp/humg-registry-auth-media-toast-20261015/mcp/` and `upstream/`. They are adapted product controls using existing real actions, not library demonstration state. Auth policy and message callers stay with their feature owners.
+
+### Routed OTP composition — 15/10/2026
+
+The registration verification step stays inside `/register` → `AuthCardLayout` →
+`WelcomeLayout` → `RegisterForm` → `RegistrationVerification`. The separate
+`/verify-email` route handles token links, not six-digit OTP entry. Earlier
+CodeSlots fixture screenshots deliberately omitted the shared shell; they do not
+show an alternate product route.
+
+[RegistrationVerification](../../../apps/web/src/features/auth/components/registration-verification.tsx)
+and its [scoped stylesheet](../../../apps/web/src/features/auth/components/registration-verification.css)
+own the OTP hierarchy: registration context/title, actual recipient with an email
+correction action, full-width six-slot entry aligned with the primary action,
+quiet deadline, then separated resend/help and back navigation. No outer card,
+new font, dependency or shared auth-shell change. Slot outlines use a local border
+token override for contrast; active/invalid colors and CodeSlots motion remain.
+Email and code errors have separate IDs/associations; exact duplicate lock
+helper/error text is shown once. Cancel returns focus to code;
+resend/email success retains the existing reset/deadline/focus lifecycle. Expiry
+and lock feedback announces state changes without a live countdown announcement
+every second. Busy guards, explicit submit, policy and services remain unchanged.
+
+The [routed browser check](../../../apps/web/tests/registration-verification-browser-check.mjs)
+mounts the actual app and seeds a synthetic registration challenge. Run it from
+`apps/web`; `--before` loads the verification source from `2c8b313`, `--visual-only`
+captures the responsive matrix without repeating interaction cases. It intercepts
+all APIs/external requests and never registers a real account or sends mail.
+The [existing CodeSlots check](../../../apps/web/tests/code-slots-browser-check.mjs)
+remains isolated control/service/motion proof. See the
+[current disposition and evidence](../../reviews/ux-flow-audit.md#routed-otp-screen-refinement--15102026).
+
+### Auth forms, recovery and token status owners — 15/10/2026
+
+Auth shares more than its shell, but does not use one configurable form:
+
+| Layer | Actual reused owner | Flow-specific responsibility |
+| --- | --- | --- |
+| Fields | [FormField](../../../apps/web/src/components/ui/form-field.tsx), native input/ref, floating label, password reveal, helper/error ID association | Login/register/recovery/reset/resume and the private password dialog choose field names, autocomplete, disabled state and validation messages. OTP uses [CodeSlots](../../../apps/web/src/components/react-bits/code-slots.tsx) for its six-digit value; its email editor also uses FormField. |
+| Form/validation | `useForm` + `zodResolver` in credential forms; `.auth-form` and ordinary `<form noValidate>` in guest flows | Each schema and submit handler stays with the feature. Registration username derivation/confirmation and OTP transitions differ from reset, resume and login. Private password change retains its existing native/RHF composition and distinct API constraints. |
+| Actions | [Button](../../../apps/web/src/components/ui/button.tsx), loading/disabled/focus styling, native submit or `asChild` Link | Callers own submit/resend/back destinations and busy policy. Terminal auth actions use the standard44px Button rather than local pill overrides. |
+| Status | Existing `.auth-status`, `.auth-heading`, `.auth-description`, `.auth-status__icon` in [welcome-layout.css](../../../apps/web/src/layouts/welcome-layout.css) | Small icon/heading/message/action markup remains in each flow with its appropriate `status`/`alert` semantics. The real error-icon variant is `.auth-status__icon--error`; this does not alter shell geometry. No shared React status renderer or mega-form was introduced just to hide this small duplication. |
+| Transport/errors | [authService](../../../apps/web/src/features/auth/services/auth.service.ts), shared Axios and `parseApiError` | Login owns identity/navigation; registration owns stored challenge transitions; forgot/reset own persistent request feedback. Login/register retain existing server-error toasts, resume has inline errors, and OTP owns its existing code/email feedback. These are actual remaining feedback differences, not a claim of one universal error owner. |
+| Anti-spam | `TurnstileChallenge` + `useTurnstileChallenge` + loader/token helpers | Existing login/register/recovery action names, token expiry and retry gates are unchanged. |
+
+The similarly named [FormField in ui/form.tsx](../../../apps/web/src/components/ui/form.tsx)
+is an RHF Controller/context composition used elsewhere; these auth forms use the
+floating native field above and direct RHF registration. Do not treat the two
+implementations as the same imported component. Repeated new-password schema
+bounds stay local to their API contracts; reset/register8–128 and private change
+6–100 are not interchangeable policies.
+
+[ForgotPasswordForm](../../../apps/web/src/features/auth/components/forgot-password-form.tsx)
+owns a persistent, described service error, clears it on an actual retry and
+focuses its privacy-safe receipt heading on success. It does not add competing
+error/success toasts. [ResetPasswordForm](../../../apps/web/src/features/auth/components/reset-password-form.tsx)
+keeps transient failures retryable with values retained; recognized token errors
+show a persistent neutral link state with the existing password-recovery action.
+It neither infers invitation purpose nor promises a replacement invitation.
+Its token-keyed local flow ignores obsolete/unmounted responses; this is UI
+ownership, not cancellation of an accepted server operation.
+[VerifyEmailCard](../../../apps/web/src/features/auth/components/verify-email-card.tsx)
+uses a token-keyed local effect owner and retains one request per token/StrictMode
+instance. The existing shared shell, original scenes/static logo, OTP owner and
+guard redirect rules stay intact. [GuestRoute](../../../apps/web/src/router/guards/guest-route.tsx)
+only loses obsolete provider loading placeholders.
+
+[Auth family browser checks](../../../apps/web/tests/auth-family-browser-check.mjs)
+run the actual routes with synthetic intercepted APIs. Sections `forms`, `recovery`,
+`reset`, `lifecycle`, `status-visuals`, `loading` and `turnstile` bound the checks;
+`--forgot-only` narrows the enabled-widget failure probe. See the
+[implementation disposition](../../reviews/ux-flow-audit.md#targeted-auth-family-refinement--15102026)
+for evidence, preservation and limits.

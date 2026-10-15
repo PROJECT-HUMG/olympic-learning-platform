@@ -116,7 +116,7 @@ export function RegisterForm({ onStateChange, onClose }: { onStateChange?: (stat
     <div className="auth-form">
       {!onClose && <div>
         <h1 className="auth-heading">Tạo tài khoản</h1>
-        <p className="auth-description">Bắt đầu từ đây.</p>
+        <p className="auth-description">Xác thực email để hoàn tất đăng ký.</p>
       </div>}
 
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -124,6 +124,7 @@ export function RegisterForm({ onStateChange, onClose }: { onStateChange?: (stat
           id="register-email"
           type="email"
           label="Email"
+          autoComplete="email"
           required
           placeholder="user@example.com"
           error={errors.email?.message}
@@ -136,6 +137,7 @@ export function RegisterForm({ onStateChange, onClose }: { onStateChange?: (stat
             id="register-username"
             type="text"
             label="Tên đăng nhập"
+            autoComplete="username"
             required
             placeholder="user123"
             error={errors.username?.message}
@@ -147,6 +149,7 @@ export function RegisterForm({ onStateChange, onClose }: { onStateChange?: (stat
             id="register-fullName"
             type="text"
             label="Họ và tên"
+            autoComplete="name"
             required
             placeholder="Nguyễn Văn A"
             error={errors.fullName?.message}
@@ -158,6 +161,7 @@ export function RegisterForm({ onStateChange, onClose }: { onStateChange?: (stat
           id="register-password"
           type="password"
           label="Mật khẩu"
+          autoComplete="new-password"
           required
           placeholder="••••••••"
           error={errors.password?.message}
@@ -168,6 +172,7 @@ export function RegisterForm({ onStateChange, onClose }: { onStateChange?: (stat
           id="register-confirmPassword"
           type="password"
           label="Nhập lại mật khẩu"
+          autoComplete="new-password"
           required
           placeholder="••••••••"
           error={errors.confirmPassword?.message}
