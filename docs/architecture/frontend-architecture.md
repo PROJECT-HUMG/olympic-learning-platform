@@ -1,292 +1,34 @@
----
-last_updated: 2026-07-21
-owner: Olympic Engineering
-status: Draft
-title: Frontend Architecture
-version: 1
----
+# Frontend state, data and lifecycle ownership
 
-# Frontend Architecture
+Start with [named features](../README.md#feature-lookup), [web setup/checks](../../apps/web/README.md), [web instructions](../../apps/web/AGENTS.md) and [UI rules](web-ui.md). Runtime routes in [routes.tsx](../../apps/web/src/router/routes.tsx), not a draft diagram or unused route constant, establish the mounted experience.
 
-> This document defines the architecture, responsibilities, and
-> engineering principles for the Olympic Learning Platform frontend.
+## Shared ownership
 
-------------------------------------------------------------------------
+[Mounted routes](../../apps/web/src/router/routes.tsx), feature hooks/services, [QueryClient](../../apps/web/src/lib/query-client.ts) and [Axios](../../apps/web/src/lib/axios.ts) own actual route/server-state flow. RHF/local drafts own unsaved inputs; they are intentional editable authority, not a second server cache. [Auth](authentication.md#current-security-owners) owns refresh/identity/private-cache clearing. [List-search owner](../ui/owners/layout-and-discovery.md#list-search-and-url-state) owns debounce/IME/URL/POP. [Home/motion](../ui/owners/home-registry-and-motion.md) owns startup/media, without business-query or permission gates. The prior anonymous News startup-expiry query loss was repaired through public-read classification; intercepted proof does not establish deployed timing.
 
-# 1. Purpose
+## Daily drafts, sync and recovery
 
-The frontend architecture aims to provide:
+[Daily pages/hooks](../../apps/web/src/features/daily), [day/week API](../../apps/api/src/main/java/me/nghlong3004/olympic/daily/service/impl/DailyServiceImpl.java), [group](../../apps/api/src/main/java/me/nghlong3004/olympic/group/service/impl/GroupServiceImpl.java), [shared review](../../apps/api/src/main/java/me/nghlong3004/olympic/daily/sharing/service/impl/SharedDailyServiceImpl.java) and [feedback](../../apps/api/src/main/java/me/nghlong3004/olympic/daily/feedback/service/impl/DailyFeedbackServiceImpl.java) retain distinct owners.
 
--   Maintainability
--   Scalability
--   Consistent user experience
--   Predictable project structure
--   AI-friendly development
+- Use UTC+7 civil dates and the existing platform calendar. Entry date stays stable through edits/refetch/midnight; preserve explicit date/week/history links. Invalid explicit dates never silently become today. The 07:30 first-submission cutoff is not a reflection deadline; no reflection countdown target is accepted.
+- Visiting creates no empty plan. Confirming Add persists only that task through the versioned append endpoint; cancel writes nothing. Pending blocks dismissal; failure retains input and the stable retry UUID.
+- Other edits/reflections use [800ms serialized autosync](../../apps/web/src/features/daily/hooks/use-daily-auto-sync.ts). Add pauses batching. Inputs can remain editable in flight; rebase the acknowledgement so newer edits survive and the next batch uses the acknowledged version.
+- Invalid intermediate data remains local. Connection/unknown-outcome errors stop automatic retries and retain drafts for explicit recovery. A lost-success response may lead to version conflict on retry; do not guess success or overwrite another device. Conflict reload requires confirmation. Navigation/unload guards protect unsynchronized changes.
+- Submit alone records first submission, including supported empty Submit; later edits preserve that stamp. Sharing, consent/revocation and identified feedback publication remain explicit. Guard private day/week/group/evidence reads by current identity/membership/version/access; generic public profile visibility confers no access.
+- Reflection closes without discarding edits and uses the same sync/error/retry state. Date/sharing/navigation conflicts use Stay/discard choices. Task deletion warns that associated evidence is removed. Native tab-unload protection remains.
+- Evidence stays feature-owned: abort/revoke private raster URLs on scope change/unmount; honest nonimage/legacy file/link states; original authorized downloads. Upload does not submit or enable sharing. Native group creation and persistent room music retain separate modal lifecycles.
 
-------------------------------------------------------------------------
+## Uploads and cancellation
 
-# 2. Technology Stack
+Feature owners retain selected File objects, validation, dirty/busy guards and actual response confirmation. Kokonut Recognition selection never calls its upstream simulated-success fallback. [Evidence owner](../ui/owners/identity-and-recognition.md#selecting-and-submitting-recognition-evidence) documents metadata+file association and progress limits. Other flows retain their own cancellation contracts: [document download modal](../../apps/web/src/features/documents/components/document-download-modal.tsx) can cancel link/file acquisition, cleans old operations and never forwards account credentials to storage. Unknown byte totals remain indeterminate. A generic component does not add cancellation to an already accepted server operation.
 
-  Component         Decision
-  ----------------- ----------------------
-  Framework         React
-  Language          TypeScript
-  Build Tool        Vite
-  Package Manager   pnpm
-  Styling           Tailwind CSS v4
-  Forms             React Hook Form
-  Validation        Zod
-  Server State      TanStack Query
-  UI State          Zustand
-  HTTP Client       Axios
-  UI Library        shadcn/ui + Radix UI
-  Icons             Lucide
-  Notifications     Sonner
-  Animation         Framer Motion
+## Focused verification and safe harnesses
 
-------------------------------------------------------------------------
+[The feature lookup](../README.md#feature-lookup) links responsible Node/API/browser checks. From `apps/web`, use `rtk proxy node --test --test-isolation=none tests/<name>.test.ts`; build/lint commands live in its README. Browser runners differ in host/interception settings; inspect their source/usage before running.
 
-# 3. Architectural Style
+- Current Daily UI/sync: [daily-auto-sync-browser-check.mjs](../../apps/web/tests/daily-auto-sync-browser-check.mjs), [daily-ux-browser-check.mjs](../../apps/web/tests/daily-ux-browser-check.mjs) and [recovery check](../../apps/web/tests/daily-recovery-browser-check.mjs). `DAILY_CHECK_SCOPE=layout` or `interactions` bounds the UI runner; `DAILY_WEB_URL`/`DAILY_CHROME_PATH` select owned local inputs.
+- Real local persistence: explicitly start the opt-in disposable [AuthoringBrowserHarness](../../apps/api/src/test/java/me/nghlong3004/olympic/authoring/AuthoringBrowserHarness.java) on loopback8095, then `DAILY_HTTP_HARNESS=disposable rtk proxy node tests/daily-persistence-http-browser-check.mjs`. The runner refuses an existing plan; use a fresh `DAILY_HTTP_DATE` rather than clearing data. This uses fixture identities/disposable PostgreSQL, not production cookie/provider proof or authority to mutate a live API.
+- Older `daily-http-browser-check.mjs`, `daily-group-http-browser-check.mjs` and `daily-evidence-http-browser-check.mjs` contain pre-autosync/manual-save assumptions. Their existence is not current Daily acceptance; prefer current UI/persistence runners and actual API integration tests.
+- [Room listening](../../apps/web/tests/study-room-listening-browser-check.mjs) and [player](../../apps/web/tests/study-player-browser-check.mjs) use synthetic API/YouTube fixtures. Use sequential bounded room scopes on software-WebGL hosts; no physical GPU/audio/live-multiuser claim follows.
 
-The frontend follows:
-
--   Feature-first organization
--   Component composition
--   Route-level code splitting
--   Separation of concerns
--   Server/UI state separation
-
-------------------------------------------------------------------------
-
-# 4. High-Level Architecture
-
-``` mermaid
-flowchart LR
-
-Browser --> Router
-Router --> Page
-Page --> Feature
-Feature --> Service
-Service --> Axios
-Axios --> RESTAPI[(Spring Boot API)]
-```
-
-------------------------------------------------------------------------
-
-# 5. Folder Structure
-
-``` text
-src/
-├── app/
-├── assets/
-├── components/
-├── features/
-├── hooks/
-├── layouts/
-├── lib/
-├── pages/
-├── router/
-├── services/
-├── stores/
-├── types/
-├── utils/
-└── styles/
-```
-
-Business logic belongs inside **features**, not shared components.
-
-------------------------------------------------------------------------
-
-# 6. Layer Responsibilities
-
-  Layer       Responsibility
-  ----------- -------------------------
-  Router      Navigation
-  Page        Route composition
-  Feature     Business UI & use cases
-  Component   Reusable UI
-  Service     API communication
-  Store       UI state
-  Query       Server state
-
-------------------------------------------------------------------------
-
-# 7. Component Hierarchy
-
-``` mermaid
-flowchart TD
-
-Page --> Feature
-Feature --> SharedComponent
-SharedComponent --> PrimitiveUI
-```
-
-Each layer should only depend on the layer directly beneath it.
-
-------------------------------------------------------------------------
-
-# 8. Data Flow
-
-``` mermaid
-flowchart LR
-
-RESTAPI --> Axios
-Axios --> TanStackQuery
-TanStackQuery --> Feature
-Feature --> Component
-Component --> User
-```
-
-Components should consume data through hooks or feature logic, never
-call Axios directly.
-
-------------------------------------------------------------------------
-
-# 9. State Management
-
-State responsibilities:
-
-## TanStack Query
-
--   API cache
--   Synchronization
--   Background refetch
--   Pagination
--   Mutations
-
-## Zustand
-
--   Theme
--   Sidebar
--   Modal
--   Drawer
--   UI preferences
-
-Server data must never be duplicated into Zustand.
-
-------------------------------------------------------------------------
-
-# 10. API Layer
-
-All HTTP communication flows through:
-
-``` text
-Component
-    ↓
-Feature
-    ↓
-Service
-    ↓
-Axios Instance
-    ↓
-REST API
-```
-
-Benefits:
-
--   Centralized interceptors
--   Consistent error handling
--   Easier testing
-
-------------------------------------------------------------------------
-
-# 11. Routing
-
-Routing principles:
-
--   Lazy load routes
--   Protect authenticated routes
--   Separate public/private layouts
--   Keep route definitions centralized
-
-------------------------------------------------------------------------
-
-# 12. Forms & Validation
-
-Forms use:
-
--   React Hook Form
--   Zod
-
-Validation strategy:
-
--   Client validation for UX
--   Backend validation for security
-
-------------------------------------------------------------------------
-
-# 13. Error Handling
-
-Frontend should handle:
-
--   RFC7807 Problem Details
--   Authentication failures
--   Network failures
--   Validation errors
--   Unexpected errors
-
-Never expose raw backend exceptions to users.
-
-------------------------------------------------------------------------
-
-# 14. Performance Principles
-
--   Route-level lazy loading
--   Memoize only when justified
--   Avoid unnecessary re-renders
--   Use pagination
--   Virtualize large lists if necessary
--   Optimize bundle size
-
-------------------------------------------------------------------------
-
-# 15. Accessibility
-
-Every UI should support:
-
--   Keyboard navigation
--   Visible focus states
--   Semantic HTML
--   Screen readers
--   Sufficient color contrast
-
-Accessibility is part of the default implementation.
-
-------------------------------------------------------------------------
-
-# 16. Anti-patterns
-
-Avoid:
-
--   Axios inside components
--   Server state in Zustand
--   Business logic inside UI components
--   Massive page components
--   Hard-coded API URLs
--   Duplicate validation rules
-
-------------------------------------------------------------------------
-
-# 17. Frontend Review Checklist
-
--   [ ] Feature-first structure followed
--   [ ] Route is lazy loaded
--   [ ] API calls use service layer
--   [ ] Server state uses TanStack Query
--   [ ] UI state uses Zustand
--   [ ] Forms use RHF + Zod
--   [ ] Components are reusable
--   [ ] Accessibility considered
--   [ ] Dark mode supported
--   [ ] No architectural violations
-
-------------------------------------------------------------------------
-
-# Related Documents
-
--   state-management.md
--   api-communication.md
--   frontend-conventions.md
--   routing.md
--   design-system.md
--   backend-architecture.md
+Use [current status](../reviews/ux-flow-audit.md) for recorded validation/limits. Source/fixture coverage is distinct from all-role/all-state rendering, actual providers, device/AT behavior and production performance.

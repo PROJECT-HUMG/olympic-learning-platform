@@ -1,97 +1,33 @@
-# UI design and interaction guide
+# HUMG UI rules
 
-Start with [documentation tasks](../README.md) and [current UI owners](../ui/README.md). Historical records remain available below; temporary `/tmp` evidence may no longer exist.
+Use [named features](../README.md#feature-lookup) for a screen and [UI owners](../ui/README.md) for shared behavior. The mature HUMG language is restrained university/product UI: readable Vietnamese, clear hierarchy/alignment, compact rhythm and useful surfaces. Landing-page defaults do not govern admin tables, forms or readers.
 
-## Subject guides
+## Responsible foundations
 
-- [Shared language decisions and automatic list search](../ui/history/shared-language.md)
-- [Home and navigation decisions](../ui/history/home-and-navigation.md)
-- [Feature, identity and modal design decisions](../ui/history/features-and-modal.md)
+[Theme tokens](../../apps/web/src/index.css), [page layout CSS](../../apps/web/src/components/ui/page-layout.css), PageHeader/PublicPageHeader/PageSection and existing primitives own shared type, gutters, measure, spacing, borders, radii and semantic colors. Keep existing brand/font/system fallbacks. Do not introduce a parallel card kit, redundant wrapper or dependency to restyle a feature.
 
-## Retained section links
+- Align headings/actions and search/filter groups. Use quiet borders/surface contrast; avoid oversized rounded panels, double filter framing, decorative gloss and empty bands. Distinct Home/auth/readers/Daily/room/editor compositions are intentional.
+- Real anchors navigate; buttons act. Preserve discoverable touch/keyboard behavior without hover, 44px control targets, visible focus, labels/current/pressed states and honest loading/error/empty/retry feedback. Long names/titles wrap; density must not hide identity or actions.
+- List searching uses the existing 350ms feature hook where supported; discrete filters apply immediately. Keep field-specific matching, server pagination, URL/history, IME and stale-state behavior. Home navigation search and save/auth/OTP/publish forms remain explicit; no auto-submission or global SearchInput query ownership.
+- Public identities/summaries show only authorized real DTO data. Actual ranks/ties remain supplied ranks. No decorative podium, fabricated totals or guessed media previews.
+- Use responsive/light-dark tokens; test narrow/short geometry and relevant long/error/busy/dirty states. Native scrolling remains usable; forced-colors uses browser defaults.
 
-Existing external links to this path continue to land here; follow the matching section owner. These links preserve provenance without duplicating the records.
+## Motion and media
 
-<a id="bounded-shared-owner-consolidation-09102026-uncommitted"></a>
-[bounded-shared-owner-consolidation-09102026-uncommitted](../ui/history/shared-language.md#bounded-shared-owner-consolidation-09102026-uncommitted)
+Use scoped existing GSAP/@gsap/react, Framer Motion or CSS at their actual owners. Keep readable semantic/native fallback content and static reduced-motion output; revert observers/listeners/tweens on unmount/identity change. Avoid replay on refetch, rank/count animation or competing transforms on portal/modal positioning wrappers.
 
-<a id="current-navigation-shell-decision-05102026"></a>
-[current-navigation-shell-decision-05102026](../ui/history/shared-language.md#current-navigation-shell-decision-05102026)
+Home uses actual MaskedHeading plus one original theme-selected ambient scene; static logo remains. Auth retains original desktop scene/form rails and mobile no-video layout, with no visible motion toggle. Blocked autoplay/media failures retain posters. [Home/motion owners](../ui/owners/home-registry-and-motion.md) own details.
 
-<a id="bounded-header--daily-completion-polish-06102026"></a>
-[bounded-header--daily-completion-polish-06102026](../ui/history/shared-language.md#bounded-header--daily-completion-polish-06102026)
+Initial readiness releases real content as soon as task/query/font state permits, including readable error/reload recovery. The short opacity exit is nonblocking; no fake percentage, minimum wait, completion hold, scroll-trigger loading wrapper or extra gate.
 
-<a id="shared-search-filters-and-page-layout-09102026"></a>
-[shared-search-filters-and-page-layout-09102026](../ui/history/shared-language.md#shared-search-filters-and-page-layout-09102026)
+## Frames and task variants
 
-<a id="compact-mobile-page-headers-09102026"></a>
-[compact-mobile-page-headers-09102026](../ui/history/shared-language.md#compact-mobile-page-headers-09102026)
+Shared Radix/native owners provide focus/Escape/scroll behavior; features own permissions, dirty/busy dismissal and state retention. Keep fixed inset/zero-translation CreationDialog geometry, its one scrolling body and reachable Close beside toasts. Do not animate frame centering. [Dialog/media owners](../ui/owners/dialogs-and-media.md) describe nested controls and private viewers.
 
-<a id="modern-layout--rich-design-refresh-11102026"></a>
-[modern-layout--rich-design-refresh-11102026](../ui/history/shared-language.md#modern-layout--rich-design-refresh-11102026)
+Daily retains flat notebook/native group behavior, draft authority and serialized800ms sync. Room retains joined scene/player continuity and device-local playback. Scientific readers/editors keep notation overflow, private figures and frozen/release policies; do not force them into marketing/card layouts.
 
-<a id="màu-và-chữ"></a>
-[màu-và-chữ](../ui/history/shared-language.md#màu-và-chữ)
+The Documents card remains unchanged pending a compact balanced composition decision. “Chưa có ảnh” is valid wording; missing-preview space should be integrated, not automatically replaced with an icon. Use actual image/no-image/error/long-title states when that change is authorized.
 
-<a id="bố-cục"></a>
-[bố-cục](../ui/history/shared-language.md#bố-cục)
+## Verification
 
-<a id="nguyên-tắc-áp-dụng"></a>
-[nguyên-tắc-áp-dụng](../ui/history/shared-language.md#nguyên-tắc-áp-dụng)
-
-<a id="trang-chủ"></a>
-[trang-chủ](../ui/history/home-and-navigation.md#trang-chủ)
-
-<a id="nav-và-phân-vùng-trang-chủ"></a>
-[nav-và-phân-vùng-trang-chủ](../ui/history/home-and-navigation.md#nav-và-phân-vùng-trang-chủ)
-
-<a id="nền-chuyển-động-menu-mobile-và-thẻ-tin"></a>
-[nền-chuyển-động-menu-mobile-và-thẻ-tin](../ui/history/home-and-navigation.md#nền-chuyển-động-menu-mobile-và-thẻ-tin)
-
-<a id="khung-ảnh-đại-diện"></a>
-[khung-ảnh-đại-diện](../ui/history/home-and-navigation.md#khung-ảnh-đại-diện)
-
-<a id="mobile-auth-navigation-and-private-recognition-evidence-09102026"></a>
-[mobile-auth-navigation-and-private-recognition-evidence-09102026](../ui/history/features-and-modal.md#mobile-auth-navigation-and-private-recognition-evidence-09102026)
-
-<a id="visual-hierarchy-and-creation-entry-flows-10102026-local-candidate"></a>
-[visual-hierarchy-and-creation-entry-flows-10102026-local-candidate](../ui/history/features-and-modal.md#visual-hierarchy-and-creation-entry-flows-10102026-local-candidate)
-
-<a id="broader-page-family-hierarchy-follow-up-10102026"></a>
-[broader-page-family-hierarchy-follow-up-10102026](../ui/history/features-and-modal.md#broader-page-family-hierarchy-follow-up-10102026)
-
-<a id="learner-document-discovery-and-first-page-previews-10102026"></a>
-[learner-document-discovery-and-first-page-previews-10102026](../ui/history/features-and-modal.md#learner-document-discovery-and-first-page-previews-10102026)
-
-<a id="documents-and-news-catalogue--editorial-discovery-10102026"></a>
-[documents-and-news-catalogue--editorial-discovery-10102026](../ui/history/features-and-modal.md#documents-and-news-catalogue--editorial-discovery-10102026)
-
-<a id="admin-record-finding-and-recovery-refinements-10102026"></a>
-[admin-record-finding-and-recovery-refinements-10102026](../ui/history/features-and-modal.md#admin-record-finding-and-recovery-refinements-10102026)
-
-<a id="mobile-modal-audit-boundary-10102026"></a>
-[mobile-modal-audit-boundary-10102026](../ui/history/features-and-modal.md#mobile-modal-audit-boundary-10102026)
-
-<a id="creation-frame-geometry-and-floating-controls-10102026"></a>
-[creation-frame-geometry-and-floating-controls-10102026](../ui/history/features-and-modal.md#creation-frame-geometry-and-floating-controls-10102026)
-
-<a id="public-identity-and-profile-presentation--10102026"></a>
-[public-identity-and-profile-presentation--10102026](../ui/history/features-and-modal.md#public-identity-and-profile-presentation--10102026)
-
-<a id="public-recognition-and-news-refinement--11102026"></a>
-[public-recognition-and-news-refinement--11102026](../ui/history/features-and-modal.md#public-recognition-and-news-refinement--11102026)
-
-<a id="visual-depth-and-modern-aesthetic-refresh--11102026"></a>
-[visual-depth-and-modern-aesthetic-refresh--11102026](../ui/history/features-and-modal.md#visual-depth-and-modern-aesthetic-refresh--11102026)
-
-<a id="shared-foundation-adoption--13102026"></a>
-[shared-foundation-adoption--13102026](../ui/history/shared-language.md#shared-foundation-adoption--13102026)
-
-<a id="full-app-product-layout-and-automatic-list-search--13102026"></a>
-[full-app-product-layout-and-automatic-list-search--13102026](../ui/history/shared-language.md#full-app-product-layout-and-automatic-list-search--13102026)
-
-<a id="current-rankingmobile-and-source-coverage-disposition--14102026"></a>
-[current-rankingmobile-and-source-coverage-disposition--14102026](../ui/history/shared-language.md#current-rankingmobile-and-source-coverage-disposition--14102026)
-
-<a id="whole-page-composition--14102026"></a>
-[whole-page-composition--14102026](../ui/history/home-and-navigation.md#whole-page-composition--14102026)
+[Focused owner checks](../ui/README.md) and [current status/limits](../reviews/ux-flow-audit.md) identify usable evidence. Inspect actual rendered hierarchy as well as tests. Synthetic screenshots/layout viewports do not establish physical keyboards, AT speech, live authorization/provider behavior, media quality or production performance. Preserve and check relevant reduced-motion fallback behavior proportionately.

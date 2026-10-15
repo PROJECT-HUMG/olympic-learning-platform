@@ -1,95 +1,39 @@
-# Public identity, avatar delivery and Recognition owners
+# Identity, profiles and Recognition UI
 
-> Source lookup reorganized from checkpoint `7a70002`. Dated evidence and adoption counts below remain checkpoint-specific. Start with [current UI guide](../README.md); verify the responsible source before editing.
+[Recognition policy](../../architecture/recognition.md) owns points/consent/eligibility/evidence; [named features](../../README.md#profile) link actual routes and tests. No public UI may substitute a private account DTO or invent activity/award metrics.
 
-## Public identity and profile quick lookup — 10/10/2026
+## Individual member profile and own achievements
 
-| Interaction / screens | Responsible owner and contract |
-| --- | --- |
-| Avatar + name link, pointer/focus preview: Honors list/detail participants, ranking rows, document card/list/detail, News reader (legacy unmounted PostCard also migrated) | [UserIdentity](../../../apps/web/src/features/user/components/user-hover-card.tsx), existing [Radix HoverCard](../../../apps/web/src/components/ui/hover-card.tsx). Real Link opens `/users/:userId` on Enter/touch; hover is optional. Historical or unavailable Honors identities stay unlinked. |
-| Initials, failed image, persisted crop | [UserAvatar](../../../apps/web/src/features/user/components/user-avatar.tsx) → existing [AvatarImage](../../../apps/web/src/features/user/components/avatar-image.tsx); [identity helpers](../../../apps/web/src/features/user/lib/public-identity.ts). Decorative avatar avoids duplicate accessible names. |
-| Preview/page data, loading/retry/refetch | [usePublicProfile](../../../apps/web/src/features/user/hooks/use-public-profile.ts) → existing Recognition public service/endpoint, one public-only query key, zero stale time; hide cached summaries during refetch/error. Explicit `publicRead` queries survive anonymous expiry; all private queries keep the [expiry helper](../../../apps/web/src/lib/auth-session.ts) clearing rule. |
-| Full public profile and approved dated milestones | [AchievementProfilePage](../../../apps/web/src/features/recognition/public-pages.tsx), existing achievement labels/milestones; [profile styles](../../../apps/web/src/features/user/components/public-profile.css). Current individual presentation uses a compact identity header, genuine summary and dated records in one bounded column; see the individual-profile section below. `/profile` remains private account/security editing and links to the public page. |
-| Public payload / batch identity / old-record handling | [UserServiceImpl](../../../apps/api/src/main/java/me/nghlong3004/olympic/user/service/impl/UserServiceImpl.java), [RecognitionServiceImpl](../../../apps/api/src/main/java/me/nghlong3004/olympic/recognition/service/impl/RecognitionServiceImpl.java), [visibility policy and V24](../../architecture/recognition.md#duyệt-và-quyền-riêng-tư). Public authors and legacy authenticated by-ID lookup use minimal PublicUserIdentityResponse, never account UserResponse. |
+`/users/:userId` and legacy `/achievements/:userId` share [AchievementProfilePage](../../../apps/web/src/features/recognition/public-pages.tsx). [Individual CSS](../../../apps/web/src/features/recognition/individual-recognition.css) owns a bounded reading column: avatar/full name/username, “Có {n} thành tích”, “Tổng {n} điểm”, then dated “Thành tích và giải thưởng”. Actual allowed records/count and `publicPoints` come from [RecognitionServiceImpl.profile](../../../apps/api/src/main/java/me/nghlong3004/olympic/recognition/service/impl/RecognitionServiceImpl.java); they are neither ranking totals nor number of prizes. `award=NONE` remains “Chỉ tham gia”; [presentation model](../../../apps/web/src/features/recognition/achievement-presentation-model.ts) owns actual labels/breakdowns.
 
-Proof owner: [browser check](../../../apps/web/tests/public-profile-browser-check.mjs),
-[public identity tests](../../../apps/web/tests/public-identity.test.ts), existing Recognition
-controller/PostgreSQL integration tests. Exact runs/limits are in the existing
-[status](../../reviews/history/public-profiles-20261010.md#public-profiles-and-achievement-visibility--10102026).
-No fabricated activity/solved/streak totals, evidence galleries or public account fields.
+[UserIdentity](../../../apps/web/src/features/user/components/user-hover-card.tsx) keeps a real profile anchor with optional pointer/focus preview; keyboard Enter/touch work without hover. [Profile query](../../../apps/web/src/features/user/hooks/use-public-profile.ts) revalidates and masks cached summaries during refetch/error. [Return helper](../../../apps/web/src/features/user/lib/public-identity.ts) accepts only known same-origin entry paths and preserves query/hash, with deterministic fallback. Historical/unavailable identities remain honest unlinked attribution.
 
-### Avatar delivery lookup — verified against `2b94351`, 10/10/2026
+[MyAchievementsPage](../../../apps/web/src/features/recognition/private-pages.tsx) stays student management: actual history first, “Gửi thành tích”, “Xem hồ sơ của tôi”, optional visibility/ranking settings. The public page offers management only to its current student owner. `/profile` is separate private account/security editing. No private evidence, review notes, email or Daily data is added to a public profile.
 
-The identity image is already included in the owning response; mounting a list
-does not require one public-profile request per avatar. Payload locations:
+## Avatar delivery
 
-| Response | Avatar fields | Resolution owner |
-| --- | --- | --- |
-| Recognition Honors list/detail | `participants[].avatarUrl`, `avatarCrop` | `RecognitionServiceImpl.honorResponse` batches registered participant IDs through `UserService.publicIdentities`; unregistered or unavailable historical identities retain attribution with no avatar/profile link. |
-| Recognition rankings | `content[].avatarUrl`, `avatarCrop` | `RecognitionServiceImpl.rankings` batches IDs through the same public identity service; ranking consent and eligibility stay unchanged. |
-| Public profile / authenticated legacy user lookup | `avatarUrl`, `avatarCrop` | `RecognitionServiceImpl.profile` / `UserServiceImpl.findById` use the same active, nondeleted public identities. |
-| Document list/detail | `owner.avatarUrl`, `owner.avatarCrop` | Existing `DocumentServiceImpl.enrich` uses the storage resolver after `UserMapper.toPublicResponse`. |
-| News/Post summary/detail | `author.avatarUrl`, `author.avatarCrop` | Existing `PostServiceImpl.enrichSummary/enrichDetail` use the storage resolver after the same mapper. |
+[UserAvatar](../../../apps/web/src/features/user/components/user-avatar.tsx) / [AvatarImage](../../../apps/web/src/features/user/components/avatar-image.tsx) consume supplied `avatarUrl`/`avatarCrop`; initials handle missing/failed images. The crop/storage contract below applies to every supplied avatar.
 
-`User.avatar` references the stored File; `UserServiceImpl.updateAvatar` uploads
-through `StorageFolder.AVATAR`. All these paths reuse
-[`StorageService.getDownloadUri`](../../../apps/api/src/main/java/me/nghlong3004/olympic/storage/service/StorageService.java),
-whose current Cloudinary implementation generates HTTPS image delivery URLs
-without signing or expiry tokens. This is the existing avatar delivery contract,
-not the private Recognition evidence contract. No new raw/private URL generation
-or access policy is introduced. `UserMapper` deliberately leaves URL resolution
-to services; inspecting its intermediate DTO alone will show null.
+Recognition list/detail/rankings batch participant identities through UserService; Documents/News enrich public author projections through their service/mappers. Lists render supplied images without one profile fetch per avatar. Optional profile summary loads only when preview opens. Public image delivery is separate from private evidence access; unavailable identities suppress profile/avatar disclosure as required.
 
-No uploaded avatar yields null in batch Recognition identities (initials in
-`UserAvatar`); Document/News enrichment retains its configured default image.
-Unavailable identities suppress URLs even when a historical avatar exists.
-The optional public-profile request starts only when the hover/focus preview
-opens, for its approved-achievement summary. `UserIdentity` renders the row's
-image directly from its supplied identity, and `UserAvatar` retains initials on
-image failure. Frontend/backend both use `avatarUrl` and `avatarCrop`.
+### Avatar crop and storage contract
 
-No runtime omission was found in this bounded trace. Fresh offline checks:
-`PublicIdentityServiceTest`, `UserAvatarServiceTest`, `CloudinaryStorageServiceTest`
-passed 8/8; the accepted profile browser evidence already covers successful
-cropped images, failed-image initials and preview error/revalidation. These
-checks do not establish deployed payloads or live CDN asset availability.
+[UserServiceImpl](../../../apps/api/src/main/java/me/nghlong3004/olympic/user/service/impl/UserServiceImpl.java), [crop request](../../../apps/api/src/main/java/me/nghlong3004/olympic/user/request/UpdateAvatarCropRequest.java), [avatar-crop geometry](../../../apps/web/src/features/user/lib/avatar-crop.ts) and UserAvatar own the contract. `PUT /users/me/avatar` sends the original JPG/PNG/WebP (max5MB) plus optional JSON crop; `PATCH /users/me/avatar/crop` changes metadata only, without storage upload/delete; DELETE clears both. All act only on the current authenticated account.
 
+Finite crop x/y are fractional alignment of overflow (0–1), zoom1–3 above cover, not source pixel coordinates. Use object-position/transform-origin from x/y and scale(zoom); the editor's inverse conversion must reopen the same selected region. Null/missing crop means centered cover/zoom1. V12 adds nullable crop columns and constraints; no old-image recrop/backfill or new cropped asset. Keep the applied migration on rollback. Successful save invalidates current identity/consumer caches; cancel/failure preserves the saved image. [Crop unit](../../../apps/web/tests/avatar-crop.test.ts) and [API integration](../../../apps/api/src/test/java/me/nghlong3004/olympic/user/AvatarCropIntegrationTest.java) checks cover geometry/ownership; cross-origin originals need no canvas download for metadata-only edits.
 
-### Public Recognition/News control variants — 11/10/2026
+## Ranking interaction lookup
 
-- [UserIdentity](../../../apps/web/src/features/user/components/user-hover-card.tsx) and [profile CSS](../../../apps/web/src/features/user/components/public-profile.css) own the compact avatar/name surface with a decorative chevron, hover/active border/background and visible keyboard focus. Link/preview/touch behavior and supplied URL/crop/initials remain with the same owners; unavailable historical attribution stays unlinked. Recognition styles no longer override identities into blue underlined names.
-- [RankingsPage](../../../apps/web/src/features/recognition/public-pages.tsx) uses a bounded60rem public measure and a compact native timeframe field. [RankingList](../../../apps/web/src/features/recognition/ranking-presentation.tsx) / [ranking CSS](../../../apps/web/src/features/recognition/ranking-presentation.css) keep rank beside identity and group approved count/score beneath it. Ties and actual server ranks keep the existing quiet cue; no podium or derived awards.
-- Honors uses the same [public page owner](../../../apps/web/src/features/recognition/public-pages.tsx) and [Recognition CSS](../../../apps/web/src/features/recognition/recognition.css): public-only year/subject/submit grid,16:9 media, bounded24rem album cards, participant/award grouping and existing album Button link. [EditorialHonorLabel styles](../../../apps/web/src/features/recognition/achievement-presentation.css) render an informational bordered badge, not an underlined action. Detail navigation uses Button-as-Link; prose links remain prose.
-- [PublicNewsFeature](../../../apps/web/src/features/post/components/public-news-feature.tsx) / [News CSS](../../../apps/web/src/features/post/components/public-news-feature.css) own one search/type/reset region. Existing Button-as-Link variants provide selected `default` versus unselected `outline` controls with `aria-current`; narrow screens use two columns and omit the decorative category icon. Keyword context and result count each appear once. Editorial rows keep one semantic reading link and a quiet inset reading cue, without a new nested interactive control or repeated row shadows.
+[RankingsPage](../../../apps/web/src/features/recognition/public-pages.tsx), [RankingList/Row](../../../apps/web/src/features/recognition/ranking-presentation.tsx) and [CSS](../../../apps/web/src/features/recognition/ranking-presentation.css) align rank, full identity, quiet approved count and score in one bounded directory. Preserve server rank/ties/order/count/score and native all-time/year options; no keyword API, podium, derived awards or name clamp.
 
-The apparent second “Thông báo” was the selected-summary text, not another category. Canonical IDs remain `ALL`, `ANNOUNCEMENT`, `NEWS`, `BLOG`; no dynamic category source or API taxonomy change was needed. Query submission/page-reset/pinned/sort behavior is unchanged. The [bounded browser regression](../../../apps/web/tests/public-recognition-refinement-browser-check.mjs) covers actual routes with synthetic public APIs and geometric media only; existing [status](../../reviews/ux-flow-audit.md) holds exact final proof and limits.
+RankingRow's scoped useGSAP/contextSafe changes only its decorative chevron on hover/focus; touch navigates the semantic Link immediately. Revert listeners/context on unmount/user change; no refetch/rank/count entrance. Radix/floating-control placement and modal centering remain separate motion owners.
 
+## Selecting and submitting Recognition evidence
 
+[AchievementEditor](../../../apps/web/src/features/recognition/achievement-editor.tsx) uses controlled [Kokonut FileUploadSelection](../../../apps/web/src/components/kokonutui/file-upload.tsx). Actual File objects remain in the editor; [validation](../../../apps/web/src/features/recognition/validation.ts) owns MIME/count/size. Invalid additions retain selection. Native chooser keyboard/drop/add/remove, wrapped names and busy/dirty/focus contracts share this path. Selection never invokes the upstream simulated-upload fallback or reports persistence success.
 
-### Ranking interaction lookup — 14/10/2026
+[Recognition service](../../../apps/web/src/features/recognition/service.ts) posts metadata plus evidence parts together. Optional Axios progress measures transferred request bytes; unknown total is indeterminate,100% waits for response. Only confirmed success closes/invalidates. Errors retain text/files for explicit retry; resubmit still requires replacement evidence. Chooser cancellation preserves the draft; in-flight close remains busy-locked, with no new server-abort guarantee. [Private gallery/PDF capabilities](dialogs-and-media.md#recognition-depthcarousel-and-evidence-capability) remain separate from selection.
 
-- Screen/timeframe/result state: [RankingsPage](../../../apps/web/src/features/recognition/public-pages.tsx), [YearField/QueryFeedback/Pager](../../../apps/web/src/features/recognition/components.tsx). Compact inline native select, result/busy context, existing retry and page reset; current rankings API has no keyword field.
-- Directory columns/full-name density: [RankingList/RankingRow](../../../apps/web/src/features/recognition/ranking-presentation.tsx), [ranking-presentation.css](../../../apps/web/src/features/recognition/ranking-presentation.css). Supersedes stacked count/score, medal fills and two-line ranking clamps. Presentation model preserves supplied rank/ties/order/score/count; no derived standings.
-- Identity/avatar/preview/detail: existing [UserIdentity](../../../apps/web/src/features/user/components/user-hover-card.tsx), UserAvatar/public-profile query. No new profile/image fetch or DTO. Ranking CSS locally permits full wrapping; compact identities elsewhere retain their existing bounds.
-- GSAP: RankingRow useGSAP scoped ref and contextSafe event callbacks;140ms/3px chevron affordance only. Mouse/focus listeners removed and context reverted on unmount/user change; no data/refetch tween. @gsap/react2.1.2 uses installed gsap3.15.0. Native Select retains OS interaction; [floating-controls.css](../../../apps/web/src/components/ui/floating-controls.css) remains the separate Radix motion owner. Shared Dialog fixed-inset geometry is untouched.
-- Proof: existing [product-layout-browser-check.mjs](../../../apps/web/tests/product-layout-browser-check.mjs), PRODUCT_RANKING mode, plus current before/after/geometry/results in `/tmp/humg-ranking-20261014`. No new parallel component system or tracker. Source ledger now covers402 frontend sources and59 route definitions, including ADMIN/LECTURER exam templates; definition coverage is not every alias/role/state rendering.
+## Focused checks
 
-Home public navigation now remains sticky in normal flow with opaque token background; home-title/nav overlap and text showing through scrolling chrome were reproduced and repaired in public-header.css/public-layout.css. No backdrop/transform owner is introduced around portal dialogs.
-
-
-### Individual member profile and own achievements — 14/10/2026
-
-Product direction: clicking a member opens a familiar user profile, not an isolated recognition report. `/users/:userId` and legacy `/achievements/:userId` share [AchievementProfilePage](../../../apps/web/src/features/recognition/public-pages.tsx). Its avatar/name/username header leads with “Có {n} thành tích” and “Tổng {n} điểm”, followed by “Thành tích và giải thưởng”. [Individual styles](../../../apps/web/src/features/recognition/individual-recognition.css) own the bounded58rem reading column, full name/title wrapping and quiet chronological dividers. Existing shared type/tokens are retained; no new entrance animation or fabricated activity, bio or award count.
-
-[RecognitionServiceImpl.profile](../../../apps/api/src/main/java/me/nghlong3004/olympic/recognition/service/impl/RecognitionServiceImpl.java) remains the data authority: active/nondeleted identity, APPROVED+visible achievements and `publicPoints`, the sum of those records' award+participation points. This is not the ranking total, private-account DTO or count of prizes. `award=NONE` remains “Chỉ tham gia”; real award/category/date/participation breakdown comes from [presentation model](../../../apps/web/src/features/recognition/achievement-presentation-model.ts). Preview and page share the same query/copy; cached identity/summary stays hidden during refetch/error. No evidence, reviewer notes, account email or Daily data is added.
-
-[Return helper](../../../apps/web/src/features/user/lib/public-identity.ts) accepts only known same-origin public entry paths plus the student's own achievements route, preserving query/hash. Honors, ranking, News and document entries return to their source; direct links have a deterministic ranking fallback. Existing semantic identity anchors retain optional hover/focus preview and Enter/touch navigation.
-
-[MyAchievementsPage](../../../apps/web/src/features/recognition/private-pages.tsx) remains student-only management: actual submitted history first, primary “Gửi thành tích”, “Xem hồ sơ của tôi”, and optional native details for visibility/ranking consent. The public page offers management only to the current student owner. Pending/rejected/revoked scores are truthfully labelled, private evidence remains owner/admin gated, and existing CreationDialog preserves dirty/busy/file/error/focus lifecycle. Presentation copy does not change public defaults, approval or owner visibility controls. [Focused browser proof](../../../apps/web/tests/individual-recognition-browser-check.mjs), [safe return tests](../../../apps/web/tests/public-profile-return.test.ts), [status and limits](../../reviews/ux-flow-audit.md#individual-user-profile--14102026).
-
-
-### Selecting and submitting Recognition evidence — 15/10/2026
-
-[AchievementEditor](../../../apps/web/src/features/recognition/achievement-editor.tsx) uses the named controlled `FileUploadSelection` variant from [Kokonut's retrieved owner](../../../apps/web/src/components/kokonutui/file-upload.tsx). The editor retains actual File objects and the dirty/busy lifecycle. MIME/count/size policy stays in [validation.ts](../../../apps/web/src/features/recognition/validation.ts); invalid additions preserve the existing selection. Native chooser keyboard activation, drop, add/remove and wrapped filename/size rows share this path. File selection never invokes the upstream simulated upload or a provider endpoint.
-
-The existing [Recognition service](../../../apps/web/src/features/recognition/service.ts) sends `metadata` plus all `evidence` parts in the same POST/PUT. Its optional Axios progress feeds the control without declaring persistence at100%. Only the confirmed response triggers the existing success/invalidation/close behavior. Error/retry retains metadata and files; replacement evidence is still mandatory on resubmit. Existing owner/admin/active-account/evidence access and approval/points policies are unchanged. No live upload/provider or backend modification. [Actual-route browser check](../../../apps/web/tests/individual-recognition-browser-check.mjs) `--integrations-only` covers chooser/validation/multipart/failure/retry and verifies the cancelled logo effect is absent; the ordinary interaction mode covers dirty/busy/focus/private evidence after adoption.
+[Individual journey/upload](../../../apps/web/tests/individual-recognition-browser-check.mjs), [safe return](../../../apps/web/tests/public-profile-return.test.ts), [public identity](../../../apps/web/tests/public-identity.test.ts), [ranking presentation](../../../apps/web/tests/recognition-ranking-presentation.test.ts) and [media browser check](../../../apps/web/tests/recognition-media-browser-check.mjs) identify current UI proof; API policy/integration tests are linked from the contract. Synthetic browser evidence does not prove live persistence/providers, actual authorization or physical-device/AT behavior.

@@ -1,417 +1,50 @@
----
-last_updated: 2026-10-08
-owner: Olympic Engineering
-status: Draft
-title: Authentication Architecture
-version: 1
----
+# Authentication and authorization
 
-# Authentication
+[Named auth routes](../README.md#auth) and [routed/form owners](../ui/owners/shared-controls.md#auth-forms-recovery-and-token-status-owners) lead to the actual UI. This contract owns security/verification/delivery; presentation and shared fields remain in the UI guide.
+
+## Current security owners
+
+[SecurityFilterChainsConfig](../../apps/api/src/main/java/me/nghlong3004/olympic/common/security/SecurityFilterChainsConfig.java) / [SecurityEndpoints](../../apps/api/src/main/java/me/nghlong3004/olympic/common/security/SecurityEndpoints.java) enforce stateless Bearer security, explicit public methods, admin restrictions and method security; fallback denies unlisted routes. Domain services retain ownership/active-account checks. UI role guards/navigation never grant access.
+
+[AuthServiceImpl](../../apps/api/src/main/java/me/nghlong3004/olympic/auth/service/impl/AuthServiceImpl.java), [refresh service](../../apps/api/src/main/java/me/nghlong3004/olympic/auth/service/impl/RefreshTokenServiceImpl.java) and [JWT service](../../apps/api/src/main/java/me/nghlong3004/olympic/auth/service/impl/JwtTokenServiceImpl.java) own credentials, hashing, rotation and replay handling. Refresh uses HttpOnly cookies; Secure/SameSite/CORS follow runtime configuration. Current API CSRF is disabled; no different cookie/CSRF policy is introduced. Broader access-token revocation consistency remains unresolved.
+
+[Axios](../../apps/web/src/lib/axios.ts), [single-flight refresh](../../apps/web/src/lib/session-refresh.ts) and [auth-session expiry](../../apps/web/src/lib/auth-session.ts) retain identity revisions, late401 handling and private-cache clearing. Only explicitly public minimal DTO queries survive expiry; this metadata grants no data access. Never expose plaintext passwords, tokens or private evidence in public DTOs/logs.
+
+## Registration OTP
+
+[RegistrationVerificationServiceImpl](../../apps/api/src/main/java/me/nghlong3004/olympic/auth/service/impl/RegistrationVerificationServiceImpl.java), [rate-limit service](../../apps/api/src/main/java/me/nghlong3004/olympic/auth/service/impl/RegistrationRateLimitServiceImpl.java), [requests](../../apps/api/src/main/java/me/nghlong3004/olympic/auth/request) and [AuthController](../../apps/api/src/main/java/me/nghlong3004/olympic/auth/controller/AuthController.java) own the exact payloads/endpoints:
+
+- New registration stays PENDING until six-digit email OTP verification; registration/verification issue no login tokens. `register` returns nested `verification`; `/auth/registration/{verify,resend,email,resume}` return their existing message/challenge contracts. The challenge carries normalized email, deadlines and a64-character base64url session secret. Secret responses are `no-store`; never put session/OTP/password in URLs/logs.
+- Code lifetime10minutes, session1hour, resend/resume cooldown60seconds, max5 wrong attempts/code. Fixed service limits: sending10/user/hour and30/IP/hour; registration10/IP/hour; resume20/IP/hour and10/identifier/hour including bad passwords; verify60/IP/10minutes. Client countdowns are advisory; API Clock/rate gates decide.
+- Codes use SecureRandom, sessions48 random bytes. DB stores SHA-256(session) and SHA-256(session + ":" + code), not plaintext secrets. Atomic hashed-key rate buckets use REQUIRES_NEW and survive request rollback; old buckets are cleaned after their retention interval.
+- Operations lock user before challenge. Wrong-code attempts persist despite ApiException; DB failures roll back. Resend/resume/email correction replace the challenge and revoke old email tokens atomically; mail queues only after commit. A provider failure is not verification success. Repeated verification of an already-verified valid session retains existing idempotence.
+- Correcting a different email may bypass same-address cooldown but not sending limits; an existing email returns409 without replacing current challenge. Only that session's PENDING account may be edited; identity/password/username stay fixed. Resume requires email/username and password, replacing the old session/code.
+- [Routed OTP](../ui/owners/shared-controls.md#routed-otp-composition) uses one native CodeSlots input with leading zeros/paste/autofill and explicit submit. Only challenge state is stored in sessionStorage, never code/password; storage failure retains in-memory use. Success clears it. Lost/expired sessions resume by credentials, preserving the return destination.
+
+V13 must be applied by the API before the matching web calls; never rewrite an applied migration. Rolling back to link-only UI cannot serve users holding OTP challenges. Rate-limit remoteAddr relies on trusted ingress: current production [host Nginx](../../deploy/nginx.conf) proxies API directly and replaces forwarding headers; [web Nginx](../../apps/web/nginx.conf) does so for its own proxy route. Never trust arbitrary client X-Forwarded-For or expose the API outside that boundary; a new CDN needs an explicit trusted-proxy arrangement.
+
+## Token links and recovery
+
+`/verify-email` remains the separate legacy token-link path, not six-digit entry. Still-valid old links remain usable until consumed/expired/replaced. Password reset accepts PASSWORD_RESET or ADMIN_INVITE; the UI receives an opaque token and cannot infer purpose. Preserve generic recovery receipts, retryable failures with values retained, persistent recognized-token failure and the existing recovery action. Obsolete/unmounted token responses must not navigate or overwrite a newer flow. No invitation-specific recovery/resend policy exists.
 
 ## Turnstile — password login, registration and reset-email request
 
-`POST /auth/login`, `POST /auth/register` and `POST /auth/password/forgot` use
-`turnstileToken`. Actions are `login`, `register` and `password_reset`, respectively.
-When protection is enabled, the backend validates success, exact allowed
-hostname and action before login account lookup/password checking/session issuance,
-account creation or email side effects. OAuth, refresh/logout, token-based
-password reset and OTP verify/resend/resume remain unchanged; OTP rate limits
-and cooldowns remain in force. Turnstile is not a replacement for rate limiting.
-The shared `LoginRequest` token is optional for JSON/constructor compatibility,
-but required by the password-login service whenever enforcement is enabled.
-Registration resume still accepts credentials without a CAPTCHA token.
+When enabled, `/auth/login`, `/auth/register` and `/auth/password/forgot` require `turnstileToken` with exact actions `login`, `register`, `password_reset`. Validate success/exact hostname/action before credential lookup/session issuance, account creation or mail effects. Missing configuration fails startup; widget/provider failure blocks submission or fails closed/retryable. Resume/OTP/token-reset/refresh/logout retain existing gates, not a new CAPTCHA or login rate-limit policy. Each attempted protected submission resets its single-use challenge; no login refresh/replay loop.
 
-Backend runtime environment: `TURNSTILE_ENABLED`, `TURNSTILE_SECRET_KEY`,
-`TURNSTILE_ALLOWED_HOSTNAMES` (comma-separated frontend hostnames, no scheme,
-path or port), `TURNSTILE_TIMEOUT` (default `2s`, allowed `1s`–`10s`, connect/request
-timeouts each bounded). Frontend build environment: `VITE_TURNSTILE_ENABLED`,
-`VITE_TURNSTILE_SITE_KEY`. Both enable flags must agree. Defaults leave the
-feature disabled until explicitly configured; no dev/profile-based bypass.
-Enabled backend with missing required configuration must fail clearly;
-provider errors/timeouts fail closed with a retryable response. Missing public
-key or widget failure blocks the frontend form rather than bypassing it.
-All three forms use the same enable flags and key pair, not separate per-action
-configuration. Disabled mode loads no widget, omits the token and performs no
-Siteverify call. Every attempted login resets its single-use challenge in `finally`,
-including credential errors, provider failures and network uncertainty; inputs and
-email-not-verified guidance remain available. Automatic refresh/replay still excludes
-`/auth/login`. No login rate-limit/lockout policy is introduced by this extension.
+Backend runtime names: `TURNSTILE_ENABLED`, `TURNSTILE_SECRET_KEY`, `TURNSTILE_ALLOWED_HOSTNAMES` (exact hostnames, no scheme/path/port), `TURNSTILE_TIMEOUT` (2s default,1–10s bounds). Frontend build names: `VITE_TURNSTILE_ENABLED`, `VITE_TURNSTILE_SITE_KEY`. Flags must agree; disabled mode loads no widget/provider call. Public site-key changes require rebuilding web; the secret stays backend-only, never Vite/build args/Git. Dashboard hostname rules do not replace the backend exact allowlist; Cloudflare DNS/proxy is not required.
 
-Vite embeds the public site key at build time. Dockerfile/Compose pass the
-frontend build arguments; changing runtime variables on an already-built web
-container does not change that key: rebuild the frontend. The secret is ONLY
-a backend runtime secret, never a Docker build argument, Vite variable, Git
-file or chat message. Provision it through the deployment environment's secure
-secret mechanism. Real keys can be configured before deployment without calling
-Cloudflare; actually loading the enabled widget or submitting the protected form
-uses Cloudflare and requires separate authorization for this candidate.
+Ordinary offline checks disable/intercept the widget/provider. Test keys still call Cloudflare and are not production protection; actual activation/settings/provider calls need current authority. Use [operator setup](../deployment/README.md), not old release narratives, to configure/reconcile the real environment.
 
-Localhost: explicitly leave both flags false for ordinary offline development.
-Automated checks use fake widget/provider responses, not Cloudflare. To exercise
-Cloudflare's documented test-key configuration later, explicitly enable both
-flags and supply the official matching test site/secret keys plus permitted
-local hostnames; test keys are NOT production protection. Such widget/Siteverify
-calls have not been authorized or performed here. There is no shipped fake
-verifier mode that can accidentally bypass production.
+## Account email
 
-Owner setup before real activation: create a Turnstile widget in Cloudflare,
-authorize the frontend hostnames, provide its public site key for the web build
-and secret key securely for the backend, and configure the backend's exact
-hostname allowlist. Cloudflare dashboard hostname authorization includes
-subdomains, but the backend deliberately uses an exact allowlist. Cloudflare
-DNS/proxy is not required for Turnstile; edge/WAF is a separate configuration.
-Cloudflare recommends separate test/local configuration from production keys.
+[AuthMailTemplate](../../apps/api/src/main/java/me/nghlong3004/olympic/common/mail/AuthMailTemplate.java) / [HTML template](../../apps/api/src/main/resources/mail/auth-email.html) serve registration OTP (code only), password recovery, admin invitation and legacy verification (correct action/fallback URL). UTF-8 multipart/related includes plain-text/HTML alternatives and the classpath [transparent PNG](../../apps/api/src/main/resources/mail/olympic-logo.png) via CID `olympic-logo`,44×44CSS px. Web's static SVG is separate; do not recreate a public email-logo copy. Brand text survives image blocking.
 
-Official documentation read on 03/10/2026:
+Preserve the compact table/inline-CSS/system-font layout, no remote resources/JavaScript, escaped recipient/code/URL, absolute HTTP(S) action URLs without userinfo, and no OTP/token in preheaders. Mail-client dark CSS has light inline/plain-text fallback; it does not synchronize the website's stored theme or guarantee Gmail/Outlook rendering. Existing `MAIL_*`/mail-enabled settings remain; emitted messages/SMTP loopback do not prove actual delivery.
 
-- [Server validation](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/): mandatory server validation, single-use tokens valid 300 seconds, maximum 2048 characters.
-- [Client rendering](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/): explicit SPA rendering, expiry/error callbacks, removal/reset.
-- [Testing](https://developers.cloudflare.com/turnstile/troubleshooting/testing/): official dummy keys work on localhost and other domains; using them still involves provider calls.
-- [Hostnames](https://developers.cloudflare.com/turnstile/additional-configuration/hostname-management/): dashboard hostname rules, no scheme/port/path.
-- [Overview](https://developers.cloudflare.com/turnstile/): usable without routing traffic through Cloudflare/CDN.
+## Focused verification and limits
 
-Candidate verification checkpoint — 03/10/2026: Lead ACCEPTs the complete local
-Turnstile integration after source inspection and Grok Peer `52759927` independent
-read-only review (no concrete blocker). Lead focused offline Maven rerun:
-43 Turnstile unit/configuration checks plus 3 OTP controller checks pass, zero
-failures/errors/skips. Includes Spring binding failures for enabled protection
-with missing keys/hosts; existing OTP integration test dependency wiring fixed.
-Frontend build passes (existing
-large-chunk warning); lint passes (29 existing warnings); Node 50/50 pass.
-Isolated Chromium fake-widget/fake-API checks passed for both forms: token gating,
-expiry, action/payload, reset after submission, outage retaining form and error
-retry; no runtime exceptions. Every nonlocal browser request was intercepted;
-no widget/Siteverify network call occurred. Temporary reproduction harness:
-`/tmp/olympic-turnstile-D5ef24/check.mjs`. Live Cloudflare behavior, real keys and
-full production startup remain unverified. OTP DB cooldown tests were not rerun;
-the implementation/limits were not changed. Protection remains disabled until
-explicitly configured; acceptance is of the integration, not live deployment.
-Feature-scoped local commit is authorized. No push, deploy or provisioning.
+- [RegistrationOtpIntegrationTest](../../apps/api/src/test/java/me/nghlong3004/olympic/auth/RegistrationOtpIntegrationTest.java), OTP controller/Turnstile/JWT tests: backend rules and isolated DB behavior where Docker runs.
+- [Auth-family](../../apps/web/tests/auth-family-browser-check.mjs), [routed OTP](../../apps/web/tests/registration-verification-browser-check.mjs), [CodeSlots control](../../apps/web/tests/code-slots-browser-check.mjs): distinct intercepted scopes, not live enforcement/physical autofill/AT proof.
+- [AuthMailDeliveryTest](../../apps/api/src/test/java/me/nghlong3004/olympic/common/mail/AuthMailDeliveryTest.java): four SMTP-loopback strategies, MIME/CID/escaping/size/disabled-mail checks. Inspect emitted HTML/EML under JVM temp `olympic-auth-mail-preview` for narrow/light-dark/long-value/image-failure rendering; no real mailbox is needed.
 
-Password-login delivery — 08/10/2026: the above 03/10 checkpoint is historical.
-Current delivery is the ordinary main-branch checks -> strict SSH -> exact tested
-checkout -> sequential API/web Compose builds. The existing `/opt/olympic/.env`
-owns runtime Turnstile values and public frontend build arguments; GitHub Turnstile
-Variables are not forwarded. Public site-key changes require a web rebuild;
-API env changes require container recreation, not just restart. Neither filled
-env file enters the checkout/build contexts. Runtime RAM caps, backup/migration,
-named volumes, readiness/HTTPS and smoke gates are unchanged.
-
-This bounded release ships the login form/token/action and API enforcement
-together using the existing flags. An old tab/client without a login token gets
-400 once backend protection is enabled; reload to obtain the new login form.
-There is no missing-token grace period or automatic fail-open. Compose replacement
-is not atomic; briefly incompatible in-flight requests must be retried with the
-new page/fresh challenge. Provider failures return503 rather than issuing a
-session. The operator reports frontend activation deployed and backend=true
-prepared in the server dotenv; effective live flags/keys are not independently
-verified and are never read for this delivery.
-
-Lead ACCEPT — 08/10/2026: bounded password-login candidate based on
-`97626f7ef28de999e45dc57164b0fe3e870df883`, owned directly after source/contract
-inspection. Four API owners, four web owners, four existing API test files,
-`apps/web/tests/login-turnstile-browser-check.mjs` and this document are the only
-14 accepted paths. No dependency, schema, credential, auth-policy or resource
-configuration changes. Daily7 candidate hashes and pre-existing local deployment
-status remain preserved and excluded from this commit.
-
-Local checks: Java25 Maven focused suite53/53 and PostgreSQL Testcontainers OTP
-integration15/15, no failures/errors/skips; web Node169/169, production build
-passes with existing chunk warning, lint passes with40 existing warnings.
-Interception-only Chromium checks pass enabled/disabled login, action/payload,
-pending duplicate-click prevention, expired challenge focus/input continuity,
-credential/provider errors and fresh-token retries, pending-account guidance,
-script-load retry, identity cache/token and role redirect. The first harness
-geometry assertion incorrectly compared scrollWidth to innerWidth despite a
-vertical scrollbar; it was corrected to check horizontal overflow against
-clientWidth. Product source did not change for that harness failure.
-
-Evidence: `/tmp/olympic-login-turnstile-api-focused.log`,
-`/tmp/olympic-login-turnstile-otp.log`, and
-`/tmp/olympic-login-turnstile-Gm5pyT/results.json` with320px light/1440px dark
-screenshots. Browser processes/Vite ports3118/3119 and temporary profiles are
-cleaned. Synthetic widget geometry does not prove real Cloudflare widget layout;
-no live credentials, CAPTCHA/Siteverify success, cookie or OTP request was used.
-Dedicated reduced-motion validation is omitted/unverified. Normal CI/deploy and
-public smoke are authorized; record their actual outcome separately from
-interactive login/Cloudflare verification and sustained1GiB capacity.
-
-Completed delivery: commit `0f06fcbaf757d06f243b7385e3ca68fc0b0d3530`
-(`feat(auth): protect password login with Turnstile`),14 scoped paths, pushed
-nonforce to origin/main. [Delivery37808033993](https://github.com/PROJECT-HUMG/olympic-learning-platform/actions/runs/37808033993)
-attempt1 completed **success**: checks113417352612 and deploy113418228814 passed,
-including full API/Testcontainers gate, strict SSH/exact checkout/sequential
-builds/backup/readiness/image identity/host smoke and GitHub runner public smoke.
-Independent public smoke also passed the exact SHA on its first attempt;
-`/login` returned200 text/html with the SPA root. Evidence:
-`/tmp/olympic-login-turnstile-final-manifest-20261008.json`,
-`/tmp/olympic-login-turnstile-run.json`, `/tmp/olympic-login-turnstile-jobs.json`,
-`/tmp/olympic-login-turnstile-public-smoke.json` and
-`/tmp/olympic-login-turnstile-public-login.json`.
-
-No real credential/token/OTP request, key inspection or settings mutation was
-performed. Public smoke does not prove effective flags or real Siteverify/login;
-operator should refresh the login page, complete CAPTCHA and verify one normal
-own-account login plus Cloudflare successful token-validation analytics. Old
-tabs/clients must obtain/provide fresh action=login tokens when enforcement is
-enabled. No production bypass or rate-limit policy was added. Daily7 remains
-hash-identical and the pre-existing deployment status is uncommitted/preserved.
-This completed-outcome status stays local to avoid a redundant deploy-only commit.
-
-> This document specifies the authentication architecture used by the
-> Olympic Learning Platform.
-
-------------------------------------------------------------------------
-
-# 1. Purpose
-
-Authentication verifies user identity before any protected resource is
-accessed.
-
-Goals:
-
--   Secure authentication
--   Stateless access tokens
--   Revocable refresh sessions
--   Protection against token theft
--   Consistent authentication flow
-
-------------------------------------------------------------------------
-
-# 2. Authentication Components
-
-  Component                Responsibility
-  ------------------------ -------------------------------------------
-  Spring Security          Security framework
-  JWT Access Token         Short-lived API authentication
-  Refresh Token            Obtain new access tokens
-  Refresh Token Rotation   Replace refresh token after every refresh
-  Refresh Token Family     Detect token replay
-  HttpOnly Cookie          Secure refresh token storage
-  Email Verification       Activate account
-  Password Reset           Recover credentials
-
-------------------------------------------------------------------------
-
-# 3. High-Level Flow
-
-``` mermaid
-flowchart LR
-
-Browser --> LoginAPI
-LoginAPI --> JWT
-JWT --> ProtectedAPI
-ProtectedAPI --> Browser
-
-Browser --> RefreshAPI
-RefreshAPI --> NewJWT
-```
-
-------------------------------------------------------------------------
-
-# 4. Login Flow
-
-``` mermaid
-sequenceDiagram
-
-participant U as User
-participant C as Client
-participant S as Spring Boot
-participant DB as Database
-
-U->>C: Login
-C->>S: POST /auth/login
-S->>DB: Verify credentials
-DB-->>S
-S-->>C: Access Token + Refresh Cookie
-```
-
-On success:
-
--   JWT access token returned.
--   Refresh token stored in HttpOnly cookie.
--   Security context established for subsequent requests.
-
-------------------------------------------------------------------------
-
-# 5. Access Token
-
-Characteristics:
-
--   Short-lived
--   Signed JWT
--   Sent using Authorization header
-
-Example:
-
-``` text
-Authorization: Bearer <access_token>
-```
-
-Access tokens are never persisted by the backend.
-
-------------------------------------------------------------------------
-
-# 6. Refresh Token Rotation
-
-Every successful refresh operation:
-
-1.  Validates current refresh token.
-2.  Invalidates the previous token.
-3.  Creates a brand-new refresh token.
-4.  Returns a new access token.
-
-This reduces the impact of stolen refresh tokens.
-
-------------------------------------------------------------------------
-
-# 7. Refresh Token Family
-
-Refresh tokens belong to the same token family.
-
-``` mermaid
-flowchart LR
-
-RT1 --> RT2 --> RT3 --> RT4
-```
-
-If an old refresh token is reused:
-
--   Entire family is revoked.
--   User must authenticate again.
-
-This provides replay attack detection.
-
-------------------------------------------------------------------------
-
-# 8. Email Verification
-
-Before full account activation:
-
-1.  User registers.
-2.  Verification email is sent.
-3.  User opens verification link.
-4.  Account becomes verified.
-
-Unverified accounts have limited authentication capabilities according
-to business rules.
-
-------------------------------------------------------------------------
-
-# 9. Password Reset
-
-Flow:
-
-``` mermaid
-sequenceDiagram
-
-User->>Server: Request reset
-Server-->>User: Email link
-User->>Server: New password
-Server-->>User: Success
-```
-
-Requirements:
-
--   One-time token
--   Expiration time
--   Immediate invalidation after use
-
-------------------------------------------------------------------------
-
-# 10. Logout
-
-Logout performs:
-
--   Refresh token revocation
--   Cookie removal
--   Session invalidation (logical)
--   Client access token discard
-
-------------------------------------------------------------------------
-
-# 11. Failure Scenarios
-
-  Situation                 Response
-  ------------------------- -------------------------
-  Invalid credentials       401 Unauthorized
-  Expired access token      401 Unauthorized
-  Invalid refresh token     401 Unauthorized
-  Refresh replay detected   Revoke token family
-  Unverified account        Business error response
-
-Errors follow RFC7807 Problem Details.
-
-------------------------------------------------------------------------
-
-# 12. Security Principles
-
--   Never store JWT in LocalStorage.
--   Always use HTTPS in production.
--   Refresh tokens remain HttpOnly.
--   Rotate refresh tokens after every use.
--   Validate token expiration.
--   Record security-sensitive events.
-
-------------------------------------------------------------------------
-
-# 13. Responsibilities
-
-Client:
-
--   Send access token.
--   Retry once after refresh.
--   Logout when refresh fails.
-
-Backend:
-
--   Validate JWT.
--   Rotate refresh token.
--   Detect replay.
--   Enforce authentication rules.
-
-------------------------------------------------------------------------
-
-# 14. Future Enhancements
-
-Possible future additions:
-
--   OAuth2 Login
--   MFA / TOTP
--   Passkeys
--   Device management
--   Session dashboard
-
-------------------------------------------------------------------------
-
-# 15. Related Documents
-
--   authorization.md
--   backend-architecture.md
--   request-lifecycle.md
--   technology-decisions.md
-
-## Public profile boundary — 10/10/2026 decision
-
-The earlier pending default-public scope is resolved: public profiles and visibility
-for all existing achievements, plus a public default for new achievements. This does
-not enroll anyone in rankings or auto-approve claims. [Recognition policy/V24](recognition.md#duyệt-và-quyền-riêng-tư)
-describes affected old records, deployment and reversal limits. No live backfill occurred.
-
-`GET /api/v1/recognition/profiles/{userId}` remains explicitly anonymous-readable,
-returns the same minimal result for anonymous/other-user/owner/admin, and uses
-`Cache-Control: no-store`. Only active, nondeleted users qualify, regardless of role.
-The public payload contains name/username/avatar crop, approved public academic details
-and source-backed public counts/points; no email, credentials, security/login/role/status
-fields, internal review notes or evidence. News/document public attribution and the
-legacy authenticated `GET /users/{id}` now also use minimal public identity instead of
-the account DTO. `/users/me`, account editing/security and admin user management retain
-their existing private contracts. Daily/private media is unchanged.
-
-Anonymous refresh expiry previously cleared even public Recognition queries. Explicit
-`meta.publicRead` on the verified public profile/Honors/ranking reads now preserves those
-public-only caches while existing private caches are cancelled and cleared. This marker
-is not authorization: the server still enforces visibility/approval/active-account gates,
-and profile reads revalidate/mask stale data. Never mark private evidence, admin, Daily
-or account queries public. Owner/admin evidence remains authenticated, identity-checked
-and `no-store`; profile visibility does not expose original media or signed links.
+Run focused API classes from `apps/api` with `rtk proxy ./mvnw -Dtest=<Class> test`; runner source and [current status](../reviews/ux-flow-audit.md) identify remaining proof limits. Provider/mail/production/physical-device behavior needs separate appropriate observation.

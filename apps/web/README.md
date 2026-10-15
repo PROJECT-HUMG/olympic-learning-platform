@@ -1,195 +1,41 @@
 # Web
 
-[Documentation tasks](../../docs/README.md) · [Architecture map](../../docs/architecture/README.md) · [UI owners](../../docs/ui/README.md)
+React19/TypeScript/Vite8/Tailwind4 SPA. [Named features](../../docs/README.md#feature-lookup) → responsible routes/components/API owners/checks. [UI rules](../../docs/architecture/web-ui.md), [UI owner index](../../docs/ui/README.md), [state/Daily lifecycle](../../docs/architecture/frontend-architecture.md) and [current checkpoint](../../docs/reviews/ux-flow-audit.md) contain focused context. Read [AGENTS.md](AGENTS.md) before changes.
 
-Turnstile for registration/reset-email uses `VITE_TURNSTILE_ENABLED` and
-`VITE_TURNSTILE_SITE_KEY` at build time; backend verification is configured
-separately. See [authentication setup](../../docs/architecture/authentication.md#turnstile--password-login-registration-and-reset-email-request).
+## Local setup
 
-SPA React 19 + TypeScript + Vite 8 của Olympic Learning Platform. Tailwind CSS 4 và các UI primitive trong `src/components/ui` tạo giao diện; React Router quản lý route; TanStack Query giữ server state; Zustand giữ một số trạng thái client.
-
-For UI source discovery, start with the [interaction owner lookup](../../docs/architecture/web-ui-components.md#interaction-owner-lookup): Dialog/CreationDialog, protected evidence, native Daily and nested POST choosers, with feature adapters and styles. [Mobile repair proof](../../docs/architecture/web-ui-components.md#mobile-modal-repairs-10102026) distinguishes current local fixes from historical audits.
-
-## Chạy local
-
-Yêu cầu Node.js tương thích Vite 8 và pnpm. Từ `apps/web`:
+Use Node24 and pnpm; from `apps/web`:
 
 ```bash
-pnpm install --frozen-lockfile
-pnpm dev
+rtk pnpm install --frozen-lockfile
+rtk pnpm dev
 ```
 
-Mở `http://localhost:3000`. Vite proxy request `/api` tới `http://localhost:8080`; cần chạy API riêng nếu dùng các chức năng gọi server. `src/lib/axios.ts` dùng `VITE_API_BASE_URL` khi được khai báo, mặc định local là `http://localhost:8080/api/v1`. Bản Docker được build với `VITE_API_BASE_URL=/api/v1` và Nginx chuyển tiếp qua API. Biến Vite được nhúng lúc build; không đặt secret trong biến `VITE_*`.
+Open `http://localhost:3000`. Vite proxies `/api` to API8080; run the backend separately for real requests. Shared Axios uses `VITE_API_BASE_URL`, default `http://localhost:8080/api/v1`; Docker builds with `/api/v1` and Nginx proxying. Vite values are embedded at build time: never put secrets in `VITE_*`.
 
-## Cấu trúc và trạng thái nội dung
+Turnstile uses `VITE_TURNSTILE_ENABLED`/`VITE_TURNSTILE_SITE_KEY` at build time, with independent matching backend enforcement. See [setup and failure policy](../../docs/architecture/authentication.md#turnstile--password-login-registration-and-reset-email-request). Ordinary offline checks use disabled/intercepted widget settings, not live provider calls.
 
-| Vị trí | Vai trò |
+## Source ownership
+
+| Area | Owner |
 | --- | --- |
-| `src/router` | Route, constants, auth và role guards |
-| `src/pages`, `src/layouts` | Màn hình và khung public/auth/dashboard |
-| `src/features` | Component, hooks, services, types theo nghiệp vụ |
-| `src/components/ui` | Primitive và thành phần dùng chung |
-| `src/lib/axios.ts` | API client, access token và refresh flow |
-| `src/index.css` | Theme tokens toàn app |
-| `src/layouts/navigation.ts` | Menu nhóm, mục theo vai trò và nhận diện route đang chọn |
-| `src/app/startup-preloader.ts` | Initial readiness and nonblocking opacity exit (GSAP) |
-| `src/components/ui/cinematic-media.ts` | Tải và dùng lại video theo theme |
-| `src/lib/list-navigation.ts` | Kiểm tra số trang và giữ đường quay lại danh sách |
+| Mounted routes and guards | `src/router/routes.tsx`, route constants and guards |
+| Page/feature/layout composition | `src/pages`, `src/features`, `src/layouts`; role destinations in `src/layouts/navigation.ts` |
+| Server state/transport/session | Feature hooks/services/types, QueryClient, `src/lib/axios.ts`, session-refresh/auth-session |
+| Theme/frames/controls | `src/index.css`, `src/components/ui`, [owner guides](../../docs/ui/README.md) |
+| Real initial loading/media | `src/app/startup-preloader.ts`, RouteSuspense/PageLoading, cinematic-media/scene |
 
-Trang chủ chia ba vùng: tìm tài liệu/cảnh anime; Bàn học của bạn có nền, tiêu đề và các tab Tài liệu/Thông báo/Tiện ích riêng; Bảng tin mới nhất. Liên kết phòng học/GPA nằm trực tiếp dưới tìm kiếm. Bảng tin mới nhất ghép NEWS và BLOG theo ngày đăng, lấy tối đa ba bài; thông báo nằm riêng trong bàn học. Nội dung lấy từ API, trang chủ dùng ba thẻ trên desktop/một cột mobile, ảnh nhỏ tùy chọn; Blog/Tin tức/Thông báo dùng nhãn trung tính chung. Feed bảng tin có thẻ bấm mở được toàn bộ, giữ bộ lọc/đường quay lại; ảnh lỗi được bỏ để không để khung rỗng. Footer public mở đủ nhóm trên desktop, thu/mở từng nhóm trên mobile.
+Use existing owners; preserve data/privacy, dirty/busy/focus, URL state, mobile/dark/reduced-motion and static-logo/theme-video behavior. Guidance-only practice/history/competition pages and unmounted demo widgets are not live features. The feature lookup distinguishes them.
 
-Home motion now follows the OS/browser `prefers-reduced-motion` preference automatically, without a visible manual motion control. The former desktop HomeMotionToggle and compact-menu “Nền động” switch and unused local preference store are removed; theme settings remain. Existing hero assets/effects still pause out of view or in a hidden tab; reduced motion keeps the static scene. No new background effect or remote asset was added. Autoplay/asset failures retain the existing poster fallback.
-
-Các màn học tập công khai:
-
-- `/subjects` lấy danh mục từ `/documents/metadata`, tìm tên/mã môn và mở `/documents?subjectId=...`.
-- `/news` dùng API posts, gồm bài ghim, bộ lọc loại bài, tìm kiếm và phân trang qua URL; `/news/:slug` mở chi tiết. Liên kết quay lại giữ URL danh sách và dùng điều hướng SPA; chi tiết phân biệt 404 với lỗi kết nối/server có nút thử lại. Bài quá hạn được ghi rõ; hiệu ứng chi tiết tôn trọng giảm chuyển động.
-- `/toolkit?tool=rooms` là phòng học chung, yêu cầu đăng nhập để tạo hoặc tham gia. `/study-rooms/:roomId` mở phòng qua đường dẫn mời. API lưu lịch học/nghỉ, thành viên và hàng đợi nhạc; client đồng bộ mỗi 5 giây. Chủ phòng duyệt đề xuất YouTube và đặt quyền đề xuất theo thời gian học. Nhạc mặc định là livestream Lofi Girl; trình duyệt có thể yêu cầu bấm “Bật nhạc”. Xem [contract phòng học](../../docs/architecture/study-rooms.md).
-- `/toolkit?tool=gpa` tính trung bình theo tín chỉ trên hệ 4 hoặc 10 và lập kế hoạch GPA mục tiêu từ GPA hiện tại, tín chỉ đã tính, tín chỉ còn lại. Màn báo điểm trung bình tối thiểu cần đạt hoặc mục tiêu vượt khả năng. Không tự quy đổi thang điểm hay áp dụng quy chế/học lại của trường. Bản nháp phép tính và kế hoạch lưu riêng vào localStorage, chưa đồng bộ tài khoản.
-
-Phòng học cho chủ phòng chuyển quyền cho thành viên đang online qua hộp thoại xác nhận. Mạng trở lại hoặc tab hiện lại sẽ đồng bộ phòng; màn báo kết nối và thời gian server đã ghi nhận. Khoảng gián đoạn quá 30 giây không được cộng; lease hết hạn cần bấm tham gia lại.
-
-The room leads with its selected track and device-local listening controls, then an original Three.js observatory and compact study rhythm/accounting. Queue/People are adjacent on desktop and follow the stage on tablet/mobile. Approved/pending tracks are distinct; only the joined owner's explicit Next changes the selection, never a local ended event. The scoped Add dialog retains failed/cancelled inputs and stays open after success, with the existing one-outstanding-track limit including owners and approved tracks. No shared timestamp, artist/artwork, listening counters or chat is invented.
-
-The observatory uses rounded stone/oak geometry, seated identity-derived characters, an orbital window and theme-responsive daylight/evening lighting. Existing account identity/details remain keyboard/touch accessible; seats are presentation only and page at twelve desks. Music/TV open one persistent native modal with Escape/Close/opener focus return and parent-control Tab wrapping. The player initializes on first deliberate open; strip and modal controls use that same player and local audio preferences. Native seek/time stay inside YouTube. Add/settings use shadcn dialogs with explicit focus return. Rendering stops offscreen, in hidden tabs, behind room dialogs and under OS reduced motion; WebGL failure retains controls/People with retry. No new backend contract, reservation, customization, gesture system or group-room model is included. Software-WebGL/fixture checks do not prove physical-device performance, actual YouTube smoothness or live multiuser behavior.
-
-Chủ phòng bấm “Chỉnh giờ” để chọn phút học/nghỉ ngắn/nghỉ dài hoặc mẫu 25/5/15, 50/10/20, 90/15/30. “Bắt đầu nhịp mới” đặt lại đồng hồ chung, giữ thời gian đã ghi nhận và nhạc. Web cần API có Flyway V11. Mỗi người có “Bật chuông”, “Tắt chuông” và “Thử chuông” riêng; cần bấm bật âm thanh sau mỗi lần tải lại. Hết nhịp học/nghỉ hiện thông báo, tia màu và ánh sáng nhẹ, chỉ một lần mỗi ranh giới; không phát bù khi mất mạng/tab ẩn hoặc đặt lại nhịp. Giảm chuyển động giữ thông báo, bỏ hiệu ứng động. Chuông dùng Web Audio, không thêm tài nguyên hoặc thư viện.
-
-Các màn tài khoản dùng video trên desktop. Dưới 1024px, giao diện dùng tông giấy/vở sáng hoặc tối, không mount video hay tải ảnh nền anime.
-
-Tải tài liệu có thể hủy bằng nút Hủy tải, Escape hoặc đóng hộp thoại, kể cả khi đang lấy đường dẫn từ API. Request link dùng timeout API 15 giây; request file từ storage dùng timeout 2 phút và không gửi token/cookie. Lỗi có thử lại; hủy hoặc đổi tài liệu dọn request/timer cũ, không tự tải hay đóng tài liệu mở sau. Tiến độ chưa biết dung lượng không hiển thị phần trăm giả.
-
-Nhãn `FormField` dùng trạng thái giá trị native của input để tránh đè dữ liệu sẵn, giá trị đặt bằng code/reset hoặc tự điền. Hồ sơ cho email/username dài xuống dòng trên mobile; lưu thành công reset form theo tên server trả về và vô hiệu hóa nút Lưu cho tới lần chỉnh sửa tiếp theo. Lưu lỗi giữ nội dung để thử lại.
-
-Giao diện chức năng dùng chung `PageHeader`, `PageSection` và `.page-shell`: tiêu đề, chiều rộng, khoảng cách, màu, nút và input thống nhất giữa public và workspace. Hồ sơ có khối avatar/tên/vai trò, vùng thông tin và bảo mật; mobile thu gọn nhận diện và xếp một cột. Avatar lỗi dùng chữ cái tên. Chọn ảnh mới mở khung tròn có kéo vị trí, chỉnh độ phóng/đặt lại bằng chuột, cảm ứng hoặc bàn phím; chọn khung rồi xem trước/hủy hoặc lưu. File ảnh gốc giữ nguyên, chỉ gửi cùng avatarCrop (vị trí/độ phóng) khi bấm Lưu ảnh mới; có Chỉnh khung/Lưu khung ảnh để cập nhật metadata ở backend mà không upload lại. Các màn nhận avatarCrop để hiển thị nhất quán; avatar nav 44px lấp đầy vòng tròn. API cần migration V12. Xem [contract khung avatar](../../docs/architecture/avatar-framing.md). Đóng hộp thoại đổi mật khẩu xóa nội dung đã nhập và trả focus về nút mở. Dashboard hiển thị các lối vào theo vai trò. Bảng tin, môn học, toolkit, màn quản lý và trang chi tiết dùng cùng chuẩn chữ; trang chủ và cảnh phòng giữ phần hình ảnh riêng. Xem [quy chuẩn giao diện](../../docs/architecture/web-ui.md).
-
-Các route luyện tập, kỳ thi và lịch sử hiện hiển thị hướng dẫn đến những tính năng có sẵn; chưa có toàn bộ luồng làm bài, chấm điểm và lưu kết quả.
-
-## Vinh danh, thành tích và bảng xếp hạng
-
-Vinh danh là nội dung kỷ niệm do admin công bố, có ảnh và danh sách người tham gia liên kết tài khoản hoặc nhập tay; bản nháp chỉ hiện trong quản lý. Thành tích học thuật là hồ sơ riêng: người dùng gửi Olympic/NCKH kèm minh chứng, admin duyệt/từ chối/thu hồi. Chỉ hồ sơ được duyệt góp điểm. Có lựa chọn hiển thị cho từng hồ sơ và tự bật tham gia bảng xếp hạng theo năm hoặc mọi năm. Minh chứng chỉ chủ hồ sơ/admin được tải, kể cả khi chi tiết thành tích công khai. Tổng công khai trên hồ sơ chỉ tính hồ sơ đã duyệt và bật hiển thị; tổng xếp hạng gồm cả hồ sơ đã duyệt riêng tư khi tài khoản tự tham gia. Web cần API có migration V14. Xem [quy tắc và giới hạn](../../docs/architecture/recognition.md). Các nhóm ngoài học thuật và mức điểm quốc tế được để lại cho đợt sau.
-
-## Điều hướng và loading
-
-- Public navigation uses an aligned sticky header (fixed only over the home hero). At >=1200px all existing primary discovery links are direct; at 768–1199px Môn học/Tài liệu/Bảng tin remain direct with account/sign-in and Menu; below 768px use the compact brand/account-or-sign-in/Menu header. Every existing destination remains in the shared role-aware left drawer. Destination groups appear first; theme and guest auth actions occupy the bottom. Active routes include details, toolkit queries and study-room aliases. Login retains its return path.
-- Workspace navigation uses a readable, collapsible 264px task sidebar at >=1200px; an 88px labelled shortcut rail at 768–1199px; and a compact header/full drawer below 768px. Staff work comes before personal settings; public discovery is available via Khám phá rather than a permanently repeated directory. Account/theme actions stay top-right. The drawer traps focus, closes on Escape and returns to its actual opener; sidebar collapse hands focus to the corresponding expansion control. Existing Daily draft blockers and role guards are unchanged. User-triggered drawer/group/active/account/sidebar motion is expressive but immediately interactive; OS reduced motion disables it.
-- Bộ lọc, số trang và kiểu xem tài liệu được giữ trong URL; mở chi tiết rồi quay lại giữ đường về danh sách. Đăng nhập giữ đích quay lại qua các màn tài khoản. Lỗi kiểm tra phiên trên server có trạng thái thử lại tại route đang mở.
-- Refresh dùng chung một request có timeout 15 giây. Refresh trả 401/403 sẽ xóa token, cache dữ liệu và cập nhật người dùng về null để mở lại màn đăng nhập; lỗi mạng/timeout/server giữ phiên cho lần thử sau. Kết quả refresh cũ không ghi đè lần đăng nhập/đăng xuất mới hơn.
-- Startup shows a readable HUMG logo/status and immediately available reload link while registered initial tasks, pending queries and fonts resolve. It has no numeric progress, minimum display time or completion hold. A terminal initial-query error reveals the existing route/feature recovery immediately, including when another asset is still pending. Authorization remains with the route guards.
-- Readiness unlocks the page immediately; GSAP fades the noninteractive startup overlay out over180ms. Logo opacity briefly resolves on initial/route loading without moving text, replaying on refetch or waiting for animation before continuing. Reduced motion is static with immediate dismissal. Route loading remains PageLoading/RouteSuspense; query/filter changes retain the mounted page. Cleanup cancels animations/subscriptions and releases overlay/inert state, including StrictMode replacement and interrupted unmount.
-- Video theme đang dùng được tải một lần và dùng lại Blob URL trong vòng đời trang. Video lỗi hoặc autoplay bị chặn thì giữ poster; mobile auth không tải video; các cảnh ngoài trang chủ bỏ video khi giảm chuyển động. Logo loader dùng cùng nguồn `public/icons.svg`, căn bỏ khoảng trắng và không có nền sáng ở theme tối.
-
-Kết quả và các luồng còn cần sửa được ghi trong [rà soát UI/UX](../../docs/reviews/ux-flow-audit.md). Các kiểm tra trình duyệt được ghi ở đó có dùng API mock; không thay thế kiểm chứng backend, email, storage và YouTube thực tế.
-
-## Shared UI component reference
-
-Before adding search, filters, forms or page wrappers, consult the
-[current owner/API and screen adoption reference](../../docs/architecture/web-ui-components.md)
-alongside the [UI authority](../../docs/architecture/web-ui.md). It distinguishes
-shared compositions, primitive/CSS reuse and intentional feature layouts; the
-route table and remaining opportunities are source evidence, not all-screen
-browser validation.
-
-## Kiểm tra
-
-Room presentation and playback local evidence (start Vite separately):
+## Checks
 
 ```bash
-node tests/study-room-ux-browser-check.mjs
-node tests/study-player-browser-check.mjs
+rtk pnpm build
+rtk pnpm lint
+rtk proxy node --test --test-isolation=none tests/*.test.ts
+rtk pnpm preview
 ```
 
-Both use installed local Chromium, block external traffic, and create fresh `/tmp/study-room-after-*` or `/tmp/study-player-local-*` evidence with source hashes. The room runner renders actual Three.js through software WebGL (SwiftShader) with synthetic auth/API/YouTube. It covers lobby/preview/member/host, desktop/tablet/mobile/short, theme, canvas picking, participant/modal focus, persistent-player open/close, fallback/context loss, motion/render bounds and owner lifecycle/explicit Next. The player runner uses the actual component in StrictMode with two deterministic players, independent positions/audio controls, selection changes, initialization/retry and cleanup. Neither proves actual YouTube/audio, backend authorization, live multiuser or physical GPU performance. Timestamp-correction/automatic-ended criteria and `PLAYER_PHASE=before` are obsolete. `ROOM_WEB_URL`/`PLAYER_WEB_URL` and corresponding `*_CHROME_PATH` override local defaults; `ROOM_CHECK_SCOPE=layout` skips longer room-management flows. Daily has its own acceptance evidence in the existing audit; room acceptance does not establish Daily correctness.
+Build includes TypeScript and production bundling; report inherited warnings/skipped checks. Choose focused tests/browser runners from [the feature lookup](../../docs/README.md#feature-lookup), then inspect each runner's usage: some self-host with env loading disabled, others require an already-running owned local Vite/preview. URL/Chromium overrides and before/layout/interaction flags vary; old baseline modes are not acceptance proof.
 
-On constrained software-WebGL hosts, run the room matrix sequentially in smaller scopes: `ROOM_CHECK_SCOPE=discovery`, `interactions`, `lifecycle`, or `layout`. Layout can use `ROOM_VIEWPORTS='[[1440,900],[1024,900],[768,1024]]'`, then a second run with `[[800,600],[390,844],[320,568],[320,360]]`. Each run records its own frozen manifest; compare application hashes, not screenshot filenames alone. Screenshot timeouts/terminated sessions remain failed or incomplete evidence, not passes.
-
-Room music now shares only the room-selected track/video. Play/Pause, native seek and audio settings remain local; polling and `playback.startedAt` never force a position. Only the joined owner's explicit “Phát tiếp” advances the queue under the existing versioned API. A local ended event never changes the track for anyone else. Default-stream version-only updates still retain the iframe; selecting a new finite version/video loads it with each device's existing pause/mute/volume preferences. No backend/schema/API change is required.
-
-Navigation-shell rendered evidence uses **synthetic auth/API**, not backend authorization proof:
-
-```bash
-# Local Vite must already be running. No live API/external service is used.
-node tests/navigation-browser-check.mjs
-```
-
-Override `NAV_WEB_URL` or `NAV_CHROME_PATH` for a different local Vite/installed Chromium. The runner blocks external assets, writes screenshots/results and source manifests into a fresh `/tmp/navigation-after-*` directory, and exercises logged-out/authenticated public navigation, STUDENT/LECTURER/ADMIN workspaces, desktop/tablet/mobile/short viewports, light/dark, account/drawer focus, route visibility, Daily dirty navigation, breakpoints and OS reduced motion. `NAV_PHASE=before` is for capturing a pre-redesign baseline without candidate-only assertions; do not use it as acceptance evidence. Current disposition and visual limits are in the existing UI/UX audit.
-
-Daily UI hierarchy: `/daily` opens today's editor using the existing UTC+7 civil-date contract; the entry date stays fixed during edits/refetches, including across midnight. Explicit `?date=YYYY-MM-DD` and intentional selections are retained; invalid explicit dates never silently become today. Saved-week history is at `/daily?view=history` (existing `?week=` links still work). Day/week/group/shared screens use one click-open calendar with arrow/Home/End/Page Up/Down navigation, a date jump, Today and contextual day/week/history access. Dirty, busy or conflicting edits block date/navigation changes; sharing and feedback offer explicit Stay/discard choices, never implicit discard.
-
-Daily is a flat task-led work surface with no enclosing Home notebook frame, including after same-document Home navigation. Header/status/task headings share an edge; empty days omit zero/N/A progress while retaining Add, explicit empty Submit and reflection. Merely visiting creates no empty plan. The shell uses Góc học tập context instead of repeating the primary page title. Group invitations distinguish pending/loading/error/empty without a large second empty panel. Synchronization state, explicit Submit and first-submission status remain accessible; completion/title/priority stay direct and reorder/delete remain in the task menu.
-
-Confirming “Thêm và lưu việc” immediately persists just that task through the versioned append endpoint. Cancel does not persist. Pending disables dismissal and failure retains the input/stable retry UUID. Other task/title/priority/completion/order and day/week reflection edits auto-sync after an 800 ms pause; the Add dialog pauses that batching until closed. There is no manual draft Save. Fields stay editable during an automatic request; newer edits survive its response and use the acknowledged version for the next batch. Pending/saved/error/retry are visible. Invalid intermediate values stay local; connection errors stop automatic retries, and 409 conflicts require a confirmed reload rather than overwriting another device. Navigation/unload guards protect genuinely unsynchronized edits. Task deletion has an explicit confirmation warning that associated evidence records are removed. Submit alone records first submission; adding/editing an already-submitted plan preserves its original stamp. Each task has a unified completion/title/priority/menu/upload header and an associated evidence-card ribbon below, not a reserved right-hand column; evidence-free rows remain compact. Tablet/mobile wrap controls deliberately. File-only evidence uses a custom shadcn dialog, neutral GENERAL stage, two private raster previews plus +N and an all-items gallery. Other files have truthful file cards; legacy before/after records and links remain accessible, without offering new manual URL entry. Uploads do not submit or enable sharing. Private byte URLs are aborted/revoked on scope change/unmount; original authorized downloads remain available.
-
-“Nhìn lại ngày” opens a custom shadcn dialog with the existing three questions and completed/pending task context. Closing retains edits and auto-sync continues; the dialog shows the same synchronization/error/retry state as the page. Today's reflection countdown is **not implemented pending a product target**: existing rules specify only the 07:30 first-submission cutoff, not a reflection deadline. Past days have no misleading today countdown, and reflection remains open at any time. Changed Daily confirmations use shadcn AlertDialog; the browser-required tab-unload warning is retained. Group member summaries, on-demand calendar history, weekly reflection/statistics, identified feedback publication and explicit sharing consent/revocation remain. Publishing feedback/sharing is not silently automated. Motion follows OS preference. Technical acceptance is separate from product/design approval; see the current audit.
-
-Current rendered checks with **synthetic API responses**, not backend/auth/privacy persistence acceptance:
-
-```bash
-# Start the local Vite server separately; no real API is used by this check.
-node tests/daily-ux-browser-check.mjs
-
-# Optional focused composition/route-history checks; default also runs existing flows.
-DAILY_CHECK_SCOPE=layout node tests/daily-ux-browser-check.mjs
-```
-
-The runner uses installed Chromium (`DAILY_CHROME_PATH`, `DAILY_WEB_URL` override local defaults), writes screenshots/results and start/end source hashes to `/tmp/daily-ux-*`, intercepts API traffic and blocks external assets. It checks immediate Add pending/failure/retry/rebase, Save versus Submit, gallery/files/legacy links, reflection/custom confirmation/focus, compact date safety/history, and direct versus actual mounted-link Home→Daily composition. `DAILY_VIEWPORTS` can split the layout matrix. Synthetic responses do not prove persistence or backend authorization.
-
-For actual local persistence/private bytes, explicitly start the opt-in **disposable** `AuthoringBrowserHarness` on loopback 8095, then:
-
-```bash
-DAILY_HTTP_HARNESS=disposable node tests/daily-persistence-http-browser-check.mjs
-```
-
-This uses production Daily/evidence services and disposable PostgreSQL, checks immediate Add, automatic task/reflection/weekly persistence and full-reload reopen, original bytes and foreign-account denial. The harness uses fixture identities and adapts refresh requests to its fixture login endpoint; it does not prove production cookie/token/provider behavior. A fresh `DAILY_HTTP_DATE=YYYY-MM-DD` allows another run without clearing existing rows; the runner refuses an existing plan. No live API/account is authorized. Older HTTP screenshots do not validate the current layout.
-
-Automatic persistence regression runner (local built preview is supported):
-
-```bash
-DAILY_WEB_URL=http://127.0.0.1:3001 node tests/daily-auto-sync-browser-check.mjs
-```
-
-It blocks external traffic and uses deterministic versioned API fixtures to cover batching, in-flight edits, validation, failure/retry, lost-success response/409 protection, confirmed reload/deletion, day/week/reflection reopen, explicit empty Submit, desktop/tablet/narrow/short and light/dark screenshots. Results/source manifests are written under `/tmp/daily-auto-sync-*`; these fixtures are not SQL or production authorization proof. The older `daily-http-browser-check.mjs`, `daily-group-http-browser-check.mjs` and `daily-evidence-http-browser-check.mjs` retain pre-immediate-Add/manual-save assumptions and are historical, not current auto-sync acceptance runners. Use the current persistence and UI runners above.
-
-```bash
-pnpm build
-pnpm lint
-pnpm preview
-```
-
-### Native scrolling and application prompt checks
-
-Page/panel/dialog/gallery scrollers share token-based native scrollbar colors;
-forced-colors uses browser defaults. The mounted post editor's link entry uses a
-shadcn dialog with selection retention, validation and cancel/focus return. Native
-file pickers, permissions/security prompts and Daily tab-unload protection remain.
-
-```bash
-# Local Chromium + intercepted synthetic APIs, external traffic blocked.
-node tests/scroll-dialog-browser-check.mjs
-# Type-aware inventory, including aliases and indexed browser globals.
-node --test --test-isolation=none tests/native-prompts.test.ts
-# Focused Daily interaction regressions; works with dev or local built preview.
-DAILY_CHECK_SCOPE=interactions node tests/daily-ux-browser-check.mjs
-```
-
-The browser check writes source hashes, screenshots and results to
-`/tmp/scroll-dialog-*`. It exercises light/dark desktop/tablet/narrow/short dialogs,
-link confirm/cancel/validation and parent-form isolation, destructive confirmation,
-native wheel/keyboard and emulated touch scrolling, forced-colors and OS reduced
-motion. This is frontend evidence, not production auth/persistence or real-device
-proof. Existing Daily/navigation/player browser checks remain relevant regressions.
-
-`pnpm build` gồm kiểm tra TypeScript và bundle Vite. Xem [AGENTS.md](AGENTS.md) trước khi sửa web; giữ responsive, dark mode, keyboard focus và reduced motion khi chỉnh UI.
-
-Kiểm thử GPA/mục tiêu, refresh phiên, thời hạn bài viết, đường dẫn sau đăng nhập và điều hướng danh sách bằng Node.js 24, không cần dependency kiểm thử bổ sung:
-
-```bash
-node --test --test-isolation=none tests/*.test.ts
-```
-
-## OTP đăng ký
-
-Màn đăng ký nhập OTP 6 số, có sửa email/gửi lại/đếm ngược và phục hồi bằng email hoặc username cùng mật khẩu khi mất phiên. Challenge lưu trong sessionStorage để tải lại cùng tab; không lưu OTP/mật khẩu. Đăng nhập tài khoản PENDING dẫn tới bước tiếp tục xác thực. Cần API cùng phiên bản và migration V13. Xem [contract OTP](../../docs/architecture/registration-otp.md).
-
-
-Preloader proof: `tests/preloader-browser-check.mjs` creates/closes an ephemeral env-disabled host and uses the actual `index.html` and loading owners through it which replaces only the main entry on `/__preloader_proof__` with `tests/fixtures/preloader.tsx`. It controls synthetic Query/task/font resolution, errors, StrictMode and unmount. The default page still loads the actual application. See [current loading owners and evidence](../../docs/architecture/web-ui-components.md#loading-opacity-and-lifecycle--14102026);this is local browser evidence,not live auth/backend or physical-device proof.
+Current [Daily checks and disposable persistence harness](../../docs/architecture/frontend-architecture.md#focused-verification-and-safe-harnesses) supersede older manual-save HTTP runners. Browser interception/fixture identities establish frontend behavior, not live API authorization/persistence, real mail/YouTube/provider behavior, physical autofill/AT/GPU or production capacity. Do not run HTTP mutation probes against an operator/live API or read environment credentials merely to collect screenshots.

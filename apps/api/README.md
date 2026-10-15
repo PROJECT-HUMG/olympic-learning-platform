@@ -56,7 +56,7 @@ Focused local verification (Docker is required for disposable PostgreSQL; skippe
 
 ## Khung avatar và ảnh gốc
 
-Ảnh gốc giữ nguyên trong storage; vị trí/độ phóng lưu riêng ở user qua migration V12. Upload avatar nhận thêm part JSON crop tùy chọn; PATCH /api/v1/users/me/avatar/crop chỉnh lại khung mà không upload ảnh. API trả avatarCrop cùng avatarUrl cho frontend. Xem [contract khung avatar](../../docs/architecture/avatar-framing.md).
+Ảnh gốc giữ nguyên trong storage; vị trí/độ phóng lưu riêng ở user qua migration V12. Upload avatar nhận thêm part JSON crop tùy chọn; PATCH /api/v1/users/me/avatar/crop chỉnh lại khung mà không upload ảnh. API trả avatarCrop cùng avatarUrl cho frontend. Xem [contract khung avatar](../../docs/ui/owners/identity-and-recognition.md#avatar-crop-and-storage-contract).
 
 ## Vinh danh và thành tích học thuật
 
@@ -70,8 +70,8 @@ Integration test cần Docker/PostgreSQL Testcontainers; nếu bị bỏ qua th�
 
 ## OTP đăng ký
 
-Đăng ký mới dùng OTP 6 số, sống 10 phút; sửa email/resend/resume có phiên đăng ký riêng, cooldown và giới hạn theo user/IP. API cần Flyway V13 và cập nhật cùng đợt với web. Link xác thực cũ vẫn được hỗ trợ tới khi dùng/hết hạn/bị thay thế. Xem [contract và vận hành OTP](../../docs/architecture/registration-otp.md).
+Đăng ký mới dùng OTP 6 số, sống 10 phút; sửa email/resend/resume có phiên đăng ký riêng, cooldown và giới hạn theo user/IP. API cần Flyway V13 và cập nhật cùng đợt với web. Link xác thực cũ vẫn được hỗ trợ tới khi dùng/hết hạn/bị thay thế. Xem [contract và vận hành OTP](../../docs/architecture/authentication.md#registration-otp).
 
 ## Email tài khoản
 
-OTP, đặt lại mật khẩu, lời mời tài khoản và xác thực link cũ dùng chung mẫu HTML nhẹ, bản chữ thuần dự phòng và logo PNG nhúng inline lấy từ web. Cấu hình SMTP không đổi. Xem [định dạng và kiểm tra email](../../docs/architecture/account-email.md).
+OTP, đặt lại mật khẩu, lời mời tài khoản và xác thực link cũ dùng chung mẫu HTML nhẹ, bản chữ thuần dự phòng và logo PNG nhúng inline từ classpath. Cấu hình SMTP không đổi. Xem [định dạng và kiểm tra email](../../docs/architecture/authentication.md#account-email).

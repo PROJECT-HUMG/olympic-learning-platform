@@ -10,8 +10,8 @@ Use this map to find the right starting point. The root and app `AGENTS.md` file
 ## Start here
 
 1. Read the root `AGENTS.md`, inspect `git status`, and choose the affected app.
-2. Read that app's `AGENTS.md` and `README.md`. Use `docs/architecture` for design intent where relevant.
-3. Trace the actual route or request to its data owner and consumers before changing behavior.
+2. Read that app's `AGENTS.md` and relevant setup in its `README.md`. For a named product feature (Vietnamese UI name or code alias), search the **Feature lookup** in `docs/README.md`; open only its linked owner/contract and focused check. Use `docs/reviews/ux-flow-audit.md` for current checkpoint/pending state and material proof limits. Old execution history lives in Git; do not recreate a history tree or compatibility tracker.
+3. Follow the linked source/test directly. Use `docs/architecture/README.md` only for the relevant cross-feature contract (auth includes OTP/mail; the identity UI owner includes avatar storage/crop). Trace the actual route/request and consumers before changing behavior.
 
 ## Code map
 
@@ -24,4 +24,4 @@ Use this map to find the right starting point. The root and app `AGENTS.md` file
 | Web data flow | Feature hook/service/types, TanStack Query in `src/lib/query-client.ts`, shared Axios client in `src/lib/axios.ts` |
 | Web visual design | `apps/web/src/index.css`, `src/components/ui`, affected feature CSS/components |
 
-For home-page content, check `apps/web/src/features/home/data/home-mock-data.ts` before assuming displayed values come from the API. For Java edits, the API `AGENTS.md` points to the required backend style skill.
+For Home content, trace mounted `apps/web/src/pages/home-page.tsx` → HomeStudyNotebook/useHomeNews to document/post queries. `home-mock-data.ts` belongs to unmounted legacy widgets; do not treat it as the active Home data owner. The feature lookup marks guidance-only practice/history/competition pages explicitly; older draft module lists are not implemented capability. For Java edits, the API `AGENTS.md` points to the required backend style skill.
