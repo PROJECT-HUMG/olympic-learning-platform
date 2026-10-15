@@ -21,13 +21,13 @@ See [README.md](README.md) for environment setup.
 
 ## Coding Style & Naming Conventions
 
-Before any Java edit, read [the backend style guide](../../.agents/skills/backend/SKILL.md). Match existing two-space Java indentation. Use PascalCase types, camelCase members, and role suffixes such as `QuestionServiceImpl`, `QuestionRepository`, and `CreateQuestionRequest`.
+Before any Java edit, read [the backend style guide](../../.agents/skills/backend/SKILL.md). Use Google Java Style and Google Java Format (default Google mode, not AOSP), which takes precedence over inconsistent legacy formatting. Keep formatting within the owned change; avoid unrelated repository-wide churn. The verified formatter reference is 1.37.0; the skill gives explicit format/check commands. Use PascalCase types, camelCase members, and existing role suffixes such as `QuestionServiceImpl`, `QuestionRepository`, and `CreateQuestionRequest`.
 
-Keep controllers thin; place business rules/transactions in services. Use constructor injection, record payloads, MapStruct, and shared `ErrorCode` handling; never expose JPA entities. Include required author/date headers and OpenAPI annotations. No formatter/linter plugin is configured in Maven.
+Keep controllers thin; place business rules/transactions in the existing service/policy owners. Use constructor injection, record payloads, existing MapStruct patterns and shared `ErrorCode` handling; never expose JPA entities. Preserve author/date headers and document changed endpoints with OpenAPI annotations. Extend the module's contracts instead of generating an interface/implementation pair or every layer for each task. No formatter/linter plugin is configured in Maven; compilation does not prove formatting compliance.
 
 ## Testing Guidelines
 
-Use JUnit Jupiter, Spring testing, and AssertJ. Name classes `*Test.java` and methods after behavior. Run focused tests with `rtk proxy ./mvnw -Dtest=StudyRoomRulesTest test`. PostgreSQL Testcontainers tests require Docker; skipped tests do not prove persistence. No numeric coverage gate is configured. Cover authorization, validation, concurrency, and failure cases; report skipped checks.
+Use JUnit Jupiter, Spring testing, Mockito and AssertJ as appropriate. Name classes `*Test.java` and methods after behavior. Run focused tests with `rtk proxy ./mvnw -Dtest=StudyRoomRulesTest test`. PostgreSQL Testcontainers tests require Docker; the [baseline test's disposable-local-PostgreSQL option](README.md#flyway-baseline) is a separate supported path. Skipped tests do not prove persistence. No numeric coverage gate is configured. Cover changed authorization, validation, concurrency and failure behavior; distinguish real DB/Redis/provider evidence from mocks. Do not test generated accessors or framework CRUD merely to add test count; repository integration checks are useful when proving actual constraints, queries or locking.
 
 ## Commit & Pull Request Guidelines
 

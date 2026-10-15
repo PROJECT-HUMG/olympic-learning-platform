@@ -1,5 +1,11 @@
 # Repository Guidelines
 
+For a named feature, start with [the feature lookup](docs/README.md#feature-lookup),
+then its source/contract/check and the affected app's `AGENTS.md`. Root/app guides
+own scoped working rules; the two `.agents/skills` provide conditional discovery
+and Java guidance. Read [the local workspace guidance](docs/WORKSPACE_PROTOCOL.md)
+alongside the shared contract; it does not replace role or safety authority.
+
 ## Project Structure & Module Organization
 
 - `apps/api`: Spring Boot 4.0.7/Java 25 API. Business modules live under `src/main/java/me/nghlong3004/olympic`; tests in `src/test/java`; Flyway migrations in `src/main/resources/db/migration`.
@@ -16,7 +22,7 @@ Prefix shell commands with `rtk`; use `rtk proxy` for unsupported commands.
 
 ## Coding Style & Naming Conventions
 
-Read the affected app's `AGENTS.md` first; read `.agents/skills/backend/SKILL.md` before any Java edit. Match nearby indentation; web components generally use two spaces. Use PascalCase classes/components, camelCase methods/functions, and kebab-case web filenames.
+Read the affected app's `AGENTS.md` first; read `.agents/skills/backend/SKILL.md` before any Java edit. Java follows Google Java Style/Google Java Format as detailed there; web components generally use two spaces and nearby conventions. Use PascalCase classes/components, camelCase methods/functions, and kebab-case web filenames.
 
 Keep API business rules in services and expose request/response DTOs. Web server state belongs to TanStack Query; use the shared `src/lib/axios.ts` client. Reuse UI primitives and theme tokens; preserve accessibility, dark mode, and responsive layouts.
 
@@ -24,7 +30,7 @@ Keep API business rules in services and expose request/response DTOs. Web server
 
 API tests use JUnit Jupiter and Spring testing; name classes `*Test.java`. Testcontainers integration tests require Docker. Select tests with `rtk proxy ./mvnw -Dtest=StudyRoomRulesTest test`.
 
-Web tests use Node's test runner: `rtk proxy node --test --test-isolation=none tests/*.test.ts` from `apps/web`. No numeric coverage gate is configured. Cover changed behavior and authorization failures; run web build/lint and report skipped checks.
+Web tests use Node's test runner: `rtk proxy node --test --test-isolation=none tests/*.test.ts` from `apps/web`. No numeric coverage gate is configured. Select meaningful checks for the changed behavior/risk, including authorization failures when affected; run web build/lint for web implementation changes and report skipped checks. Guidance-only edits need path/link/structure checks, not an unrelated application-suite rerun. The broader delivery checks live in `.github/workflows/delivery.yml`.
 
 ## Commit & Pull Request Guidelines
 

@@ -11,7 +11,8 @@ This SPA uses React 19, TypeScript, Vite 8, and Tailwind CSS 4.
 
 ## Build, Test, and Development Commands
 
-Run from `apps/web` using Node.js 24 and pnpm; prefix commands with `rtk`.
+Run from `apps/web` using Node.js 24 and pnpm10.17.0 (matching the workflow/Docker build); prefix commands with `rtk`. `package.json`/the lockfile own the installed library versions; do not infer them from old generated rules.
+If PATH selects another pnpm, use `rtk proxy corepack pnpm@10.17.0 <command>` rather than changing project dependencies to match the local tool.
 
 - `rtk pnpm install --frozen-lockfile`: installs locked dependencies.
 - `rtk pnpm dev`: serves port 3000; proxies `/api` to port 8080.
@@ -25,11 +26,13 @@ See [README.md](README.md) for setup and browser checks.
 
 Match nearby two-space indentation, quoting, and semicolons. Use PascalCase components/types, camelCase functions, `use*` hooks, and kebab-case filenames. Use `@/` imports where appropriate.
 
-Trace route → page → feature hook/service → shared `src/lib/axios.ts`. TanStack Query owns server state; invalidate affected queries after mutations. Zustand holds client state. Preserve the existing token/refresh flow; never hardcode secrets or production URLs.
+Trace route → page → owning feature hook/service → shared `src/lib/axios.ts`; extend existing owners rather than creating each layer for every change. TanStack Query owns server state; invalidate affected queries after mutations. Local component state and existing Zustand stores have distinct scopes; do not require a global store for every drawer/form. Auth/session and Daily recovery/draft stores retain their explicit contracts, not a blanket ban on storing any server-derived value. Preserve the existing token/refresh flow; never hardcode secrets or production URLs.
+
+Reuse shared form/field/action owners and RHF/Zod where they fit the flow; native/specialized controls such as CodeSlots keep their semantics. Client validation provides useful feedback and supported type/size/count checks; it does not replace backend validation. Reuse current Radix Dialog/Sheet/CreationDialog owners and preserve existing native dialog/player lifecycles; [dialog/media guidance](../../docs/ui/owners/dialogs-and-media.md) identifies the responsible frame. There is no universal native-`dialog` replacement requirement. Feature CSS and scoped dynamic styles are supported alongside Tailwind; use existing tokens/owners instead of imposing a blanket styling rewrite.
 
 ## Testing Guidelines
 
-Use Node's test runner; name regressions `tests/*.test.ts`. Run `rtk proxy node --test --test-isolation=none tests/*.test.ts`. No numeric coverage gate is configured. Run build/lint for frontend changes; check light/dark modes, mobile/tablet layouts, keyboard focus, and reduced motion for UI edits. Report skipped checks; mocked browser APIs do not prove backend authorization/persistence.
+Use Node's test runner; name regressions `tests/*.test.ts`. Run `rtk proxy node --test --test-isolation=none tests/*.test.ts`, or a focused existing test for a bounded change. No numeric coverage gate is configured. Run build/lint for frontend implementation changes; inspect representative routed light/dark, responsive, keyboard/focus and relevant reduced-motion behavior for UI edits. A fixture component is not the actual routed page/shell. Report skipped checks; mocked browser APIs do not prove backend authorization/persistence.
 
 ## Commit & Pull Request Guidelines
 
