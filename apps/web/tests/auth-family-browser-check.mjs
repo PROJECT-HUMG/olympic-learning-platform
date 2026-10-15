@@ -1,38 +1,20 @@
 // Real routes + local original MP4s, intercepted synthetic API only. No .env or live auth.
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
-import { mkdtemp, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { createRequire } from 'node:module';
-const projectRoot=fileURLToPath(new URL('..',import.meta.url));
-const resolveDependency=createRequire(projectRoot+'/package.json').resolve;
-const {createServer}=await import(resolveDependency('vite'));
-const {default:react}=await import(resolveDependency('@vitejs/plugin-react'));
-const {default:tailwind}=await import(resolveDependency('@tailwindcss/vite'));
+import { browserOptions, evidenceDirectory, startBrowserCheck } from './browser/session.mjs';
 
-const section=process.argv.find(a=>a.startsWith('--section='))?.split('=')[1]??'forms';
+const options = browserOptions('auth');
+const section=options.section ?? 'forms';
 const turnstileFailure=section==='turnstile';
-const dir=await mkdtemp(join(tmpdir(),`humg-auth-refinement-${section}-`));
-const root=projectRoot;
-const host=await createServer({root,configFile:false,envDir:false,cacheDir:join(tmpdir(),'humg-auth-refinement-vite-cache-20261015-'+section),
-  define:{'import.meta.env.VITE_API_BASE_URL':JSON.stringify('/api/v1'),'import.meta.env.VITE_TURNSTILE_ENABLED':JSON.stringify(turnstileFailure?'true':'false'),'import.meta.env.VITE_TURNSTILE_SITE_KEY':JSON.stringify('assessment-public-placeholder')},
-  resolve:{alias:{'@':join(root,'src')}},
-  plugins:[react(),tailwind()],
-  server:{host:'127.0.0.1',port:0}});
-await host.listen();const web='http://127.0.0.1:'+host.httpServer.address().port;
-const chrome=spawn('/home/nghlong3004/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome',
-  ['--headless','--no-sandbox','--disable-background-timer-throttling','--remote-debugging-port=0',`--user-data-dir=${dir}/profile`,'about:blank']);
+const dir = await evidenceDirectory(options);
+let session, web;
 const screenshots=[],geometry=[],checks=[],errors=[],requests=[];
-let socket,call,js,apiMode='fail',heldRequest;
+let call,js,apiMode='fail',heldRequest;
 const heldRequests=[];
 try {
-  const endpoint=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Chrome timeout')),30000);chrome.stderr.on('data',b=>{const m=String(b).match(/DevTools listening on (ws:\/\/\S+)/);if(m){clearTimeout(timer);resolve(m[1]);}});chrome.on('error',reject);});
-  const target=await(await fetch(`http://127.0.0.1:${new URL(endpoint).port}/json/new?about:blank`,{method:'PUT'})).json();
-  socket=new WebSocket(target.webSocketDebuggerUrl);await new Promise(r=>socket.onopen=r);
-  let serial=0;const pending=new Map();
-  call=(method,params={})=>new Promise((resolve,reject)=>{const id=++serial;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
+  session = await startBrowserCheck({ dir, options, turnstile: turnstileFailure });
+  ({ web, call, js } = session);
   const reply=(e,status,body,type='application/json')=>call('Fetch.fulfillRequest',{requestId:e.requestId,responseCode:status,responseHeaders:[{name:'Content-Type',value:type},{name:'Cache-Control',value:'no-store'}],body:Buffer.from(type==='application/json'?JSON.stringify(body):body).toString('base64')});
   const respond=async e=>{
     const u=new URL(e.request.url),path=u.pathname;requests.push({path,method:e.request.method,body:e.request.postData});
@@ -54,8 +36,8 @@ try {
     if(path.startsWith('/api/'))return reply(e,200,{content:[],totalElements:0,totalPages:0,number:0,size:10});
     return reply(e,404,'','text/plain');
   };
-  socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);if(m.error)p?.reject(Error(m.error.message));else p?.resolve(m.result);}else if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.exception?.description??m.params.exceptionDetails.text);else if(m.method==='Fetch.requestPaused')void respond(m.params).catch(e=>errors.push(e.message));};
-  js=async expression=>{const r=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true,timeout:20000});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description??r.exceptionDetails.text);return r.result.value;};
+  session.onRequest(respond);
+  session.onEvent(m => {if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.exception?.description??m.params.exceptionDetails.text);});
   const delay=ms=>new Promise(r=>setTimeout(r,ms));
   const wait=async expression=>{for(let n=0;n<500;n++){if(await js(`Boolean(${expression})`))return;await delay(30);}throw Error('Timeout '+expression);};
   const resize=(width,height)=>call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});
@@ -165,15 +147,15 @@ try {
     }
     checks.push('Actual shared GuestRoute loading after startup release omits obsolete provider placeholders and settles to unchanged real login controls; anonymous guard semantics retained.');
   } else if(section==='turnstile') {
-    for(const [route,label] of (process.argv.includes('--forgot-only')?[['/forgot-password','forgot']]:[['/login','login'],['/register','register'],['/forgot-password','forgot']])) {
+    for(const [route,label] of (options['forgot-only']?[['/forgot-password','forgot']]:[['/login','login'],['/register','register'],['/forgot-password','forgot']])) {
       await resize(390,844);await nav(route,'dark');await wait('!!document.querySelector("[role=alert]")');assert.ok(await js('document.querySelector("button[type=submit]").disabled'));await capture(label+'-challenge-failure-390-dark');
     }
     assert.equal(requests.filter(r=>r.method==='POST'&&!r.path.endsWith('/auth/refresh')).length,0);
     checks.push('Enabled synthetic config with blocked real Turnstile script retains error/retry and disabled submit on selected caller forms; --forgot-only scopes this case to recovery. No live widget/token or auth mutation.');
   } else throw Error('Unknown section '+section);
   await assertFit();
-  assert.deepEqual(errors,[]);
-  await writeFile(join(dir,'results.json'),JSON.stringify({section,turnstileFailure,checks,screenshots,geometry,requests,errors,limits:['Actual routed owners with synthetic API/auth identity; all requests intercepted; no live account/mail/password actions.','Explicit fixture Turnstile disabled or script-failure mode; operator environment remains unread. External fonts blocked/system fallback; no physical device, live widget, AT speech, WebKit or deployed proof.']},null,2));
+  assert.deepEqual([...errors,...session.requestFailures],[]);
+  await writeFile(join(dir,'results.json'),JSON.stringify({section,turnstileFailure,checks,screenshots,geometry,requests,errors,requestFailures:session.requestFailures,cancelledRequests:session.cancelledRequests,limits:['Actual routed owners with synthetic API/auth identity; all requests intercepted; no live account/mail/password actions.','Explicit fixture Turnstile disabled or script-failure mode; operator environment remains unread. External fonts blocked/system fallback; no physical device, live widget, AT speech, WebKit or deployed proof.']},null,2));
   console.log(JSON.stringify({evidence:dir,checks:checks.length,screenshots:screenshots.length}));
-}catch(e){await writeFile(join(dir,'failure.json'),JSON.stringify({error:String(e),checks,geometry,errors,body:js?await js('document.body.innerText').catch(()=>null):null},null,2));throw e;}
-finally{socket?.close();chrome.kill('SIGTERM');setTimeout(()=>{if(chrome.exitCode===null)chrome.kill('SIGKILL')},1500).unref();await host.close();}
+}catch(e){await writeFile(join(dir,'failure.json'),JSON.stringify({error:String(e),checks,geometry,errors,requestFailures:session?.requestFailures,cancelledRequests:session?.cancelledRequests,body:js?await js('document.body.innerText').catch(()=>null):null,focus:js?await js('({tag:document.activeElement?.tagName,id:document.activeElement?.id,text:document.activeElement?.textContent?.slice(0,200)})').catch(()=>null):null},null,2));throw e;}
+finally { await session?.cleanup(); }

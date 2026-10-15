@@ -36,6 +36,37 @@ rtk proxy node --test --test-isolation=none tests/*.test.ts
 rtk pnpm preview
 ```
 
-Build includes TypeScript and production bundling; report inherited warnings/skipped checks. Choose focused tests/browser runners from [the feature lookup](../../docs/README.md#feature-lookup), then inspect each runner's usage: some self-host with env loading disabled, others require an already-running owned local Vite/preview. URL/Chromium overrides and before/layout/interaction flags vary; old baseline modes are not acceptance proof.
+Build includes TypeScript and production bundling; report inherited warnings/skipped checks. Choose focused checks from [the feature lookup](../../docs/README.md#feature-lookup). Use the [browser entry point below](#browser-checks) for the migrated routed checks; other runners retain their own setup.
 
 Current [Daily checks and disposable persistence harness](../../docs/architecture/frontend-architecture.md#focused-verification-and-safe-harnesses) supersede older manual-save HTTP runners. Browser interception/fixture identities establish frontend behavior, not live API authorization/persistence, real mail/YouTube/provider behavior, physical autofill/AT/GPU or production capacity. Do not run HTTP mutation probes against an operator/live API or read environment credentials merely to collect screenshots.
+
+## Browser checks
+
+From `apps/web`, Node24 and installed Chromium are sufficient; no Playwright package, browser download or running dev/API server is required. If PATH selects a different pnpm, use `rtk proxy corepack pnpm@10.17.0` in place of `rtk pnpm`.
+
+```bash
+rtk pnpm check:browser --list
+rtk pnpm check:browser otp --help
+rtk pnpm check:browser otp
+rtk pnpm check:browser auth --section=recovery
+rtk pnpm check:browser media --evidence-only
+rtk pnpm check:browser home --timeout-ms=120000
+rtk proxy node --test tests/browser/session.test.mjs
+```
+
+[The small check catalog](tests/browser/checks.mjs) owns names, options and discovery; [session.mjs](tests/browser/session.mjs) owns isolated Vite/Chromium/CDP lifecycle. Existing runner files also accept the same options when invoked directly. Fixtures, requests, route interactions, screenshots and assertions stay in their feature runner.
+
+| Check | Flow-specific options (default runs its full current scope) |
+| --- | --- |
+| `otp` | `--visual-only` or `--interactions-only`; `--before` reads the historical component for visual comparison |
+| `auth` | `--section=forms` (default), `recovery`, `reset`, `lifecycle`, `status-visuals`, `loading` or `turnstile`; `--forgot-only` bounds only the Turnstile section |
+| `home` | `--before` reads the historical hero; current scope includes frame samples, motion clips, search and local original MP4 playback |
+| `media` | `--evidence-only` omits album checks; `--before` is historical album comparison |
+
+All four support `--browser <executable>`, `--output <NEW directory>`, `--timeout-ms <100..300000>` (default30000 per Chromium startup/CDP call, not a whole-suite deadline), and `--no-sandbox`. Browser discovery reuses PATH Chromium/Chrome or an already installed Linux Playwright Chromium cache; an explicit executable overrides discovery. Sandbox remains enabled by default; use `--no-sandbox` only if the trusted local environment cannot support it. Nothing installs a browser. Unknown options, sections and conflicting scope flags fail rather than silently run the wrong check. Cold routed compilation and Home clip encoding can need the longer timeout on a busy host; clips replay measured frame timing.
+
+The host binds an owned ephemeral loopback port, including Vite WebSocket traffic. Each run has a new browser profile/cache and ignores `.env`, project Vite config and inherited `VITE_*` values; only explicit synthetic public flags are supplied. File watching is disabled so unrelated edits cannot reload the candidate mid-check. It never attaches to an existing browser/profile/server. Do not add a live-URL option to these intercepted checks. They render **actual product routes with synthetic APIs/session challenges**, not isolated component fixtures or live backend enforcement.
+
+Evidence defaults to a new `/tmp/humg-browser-<check>-*` directory; `--output` requires an existing parent and refuses any existing target. `results.json` or `failure.json`, screenshots/optional motion clips and `lifecycle.json` remain for diagnosis; startup failures retain a bounded Chromium stderr tail. Confirmed navigation/request cancellations are retained separately; unexpected fixture/CDP errors still fail the check. Startup failure, assertion failure, socket closure and SIGINT/SIGTERM cleanup stop/await only owned Chromium, close the host and remove the temporary profile/cache/config; lifecycle status records cleanup failure rather than claiming success. SIGKILL/host crashes cannot run JavaScript cleanup. The lifecycle test deliberately uses failure paths and an independent listener to check ownership.
+
+Other runners are intentionally **not migrated**: isolated CodeSlots/SwipeToast/primitive fixtures, Home/auth scene/preloader checks, Daily and authoring HTTP harnesses, room/YouTube and older UI runners retain their differing contracts. Inspect their source/options and relevant owner guide before running; this entry point is not a universal suite or proof of their equivalence. Historical `--before` output is never current acceptance proof.

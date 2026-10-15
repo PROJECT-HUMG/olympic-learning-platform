@@ -20,7 +20,7 @@ If PATH selects another pnpm, use `rtk proxy corepack pnpm@10.17.0 <command>` ra
 - `rtk pnpm lint`: runs Oxlint with `.oxlintrc.json`.
 - `rtk pnpm preview`: serves the production build locally.
 
-See [README.md](README.md) for setup and browser checks.
+See [README.md](README.md) for setup; [browser checks](README.md#browser-checks) owns supported routed check names, shared options, isolation/cleanup and legacy boundaries. Use `rtk pnpm check:browser --list` rather than guessing runner setup.
 
 ## Coding Style & Naming Conventions
 

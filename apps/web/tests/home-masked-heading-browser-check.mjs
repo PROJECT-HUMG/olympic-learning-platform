@@ -1,37 +1,24 @@
 // Real routes + local original MP4s, intercepted synthetic API only. No .env or live auth.
 import assert from 'node:assert/strict';
-import { spawn, execFileSync } from 'node:child_process';
-import { mkdtemp, writeFile, readFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { execFileSync } from 'node:child_process';
+import { writeFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { createServer } from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwind from '@tailwindcss/vite';
+import { browserOptions, evidenceDirectory, startBrowserCheck, webRoot } from './browser/session.mjs';
 
-const baseline=process.argv.includes('--before');
-const dir=await mkdtemp(join(tmpdir(),`humg-home-masked-heading-${baseline?'before':'after'}-`));
-const root=fileURLToPath(new URL('..',import.meta.url));
+const options = browserOptions('home');
+const baseline=Boolean(options.before);
+const dir = await evidenceDirectory(options);
+const root = webRoot;
 const old=new Map();
 if(baseline)for(const path of ['src/features/home/components/home-hero-section.tsx']) {
   old.set(join(root,path),execFileSync('git',['show',`97554cd:apps/web/${path}`],{cwd:root,encoding:'utf8'}));
 }
-const host=await createServer({root,configFile:false,envDir:false,cacheDir:join(dir,'vite-cache'),
-  define:{'import.meta.env.VITE_API_BASE_URL':JSON.stringify('/api/v1')},
-  resolve:{alias:{'@':join(root,'src')}},
-  plugins:[{name:'owned-before-snapshot',enforce:'pre',load(id){return old.get(id.split('?')[0]);}},react(),tailwind()],
-  server:{host:'127.0.0.1',port:0}});
-await host.listen();const web='http://127.0.0.1:'+host.httpServer.address().port;
-const chrome=spawn('/home/nghlong3004/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome',
-  ['--headless','--no-sandbox','--disable-background-timer-throttling','--remote-debugging-port=0',`--user-data-dir=${dir}/profile`,'about:blank']);
-const screenshots=[],geometry=[],checks=[],errors=[],requests=[],playback=[];
-let socket,call,js,mediaMode='normal',dataMode='normal';const held=[];
+let session, web;
+const screenshots=[],geometry=[],checks=[],errors=[],requests=[],playback=[],motion=[];
+let call,js,mediaMode='normal',dataMode='normal';const held=[];
 try {
-  const endpoint=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Chrome timeout')),30000);chrome.stderr.on('data',b=>{const m=String(b).match(/DevTools listening on (ws:\/\/\S+)/);if(m){clearTimeout(timer);resolve(m[1]);}});chrome.on('error',reject);});
-  const target=await(await fetch(`http://127.0.0.1:${new URL(endpoint).port}/json/new?about:blank`,{method:'PUT'})).json();
-  socket=new WebSocket(target.webSocketDebuggerUrl);await new Promise(r=>socket.onopen=r);
-  let serial=0;const pending=new Map();
-  call=(method,params={})=>new Promise((resolve,reject)=>{const id=++serial;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
+  session = await startBrowserCheck({ dir, options, snapshots: old });
+  ({ web, call, js } = session);
   const reply=(e,status,body,type='application/json')=>call('Fetch.fulfillRequest',{requestId:e.requestId,responseCode:status,responseHeaders:[{name:'Content-Type',value:type},{name:'Cache-Control',value:'no-store'}],body:Buffer.from(type==='application/json'?JSON.stringify(body):body).toString('base64')});
   const respond=async e=>{
     const u=new URL(e.request.url),path=u.pathname;requests.push({path,method:e.request.method,mode:mediaMode});
@@ -44,8 +31,8 @@ try {
     if(path.startsWith('/api/'))return reply(e,dataMode==='error'?503:200,dataMode==='error'?{title:'Synthetic content failure'}:{content:[],totalElements:0,totalPages:0,number:0,size:10});
     return reply(e,404,'','text/plain');
   };
-  socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);if(m.error)p?.reject(Error(m.error.message));else p?.resolve(m.result);}else if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.exception?.description??m.params.exceptionDetails.text);else if(m.method==='Fetch.requestPaused')void respond(m.params).catch(e=>errors.push(e.message));};
-  js=async expression=>{const r=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true,timeout:20000});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description??r.exceptionDetails.text);return r.result.value;};
+  session.onRequest(respond);
+  session.onEvent(m => {if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.exception?.description??m.params.exceptionDetails.text);});
   const delay=ms=>new Promise(r=>setTimeout(r,ms));
   const wait=async expression=>{for(let n=0;n<500;n++){if(await js(`Boolean(${expression})`))return;await delay(30);}throw Error('Timeout '+expression);};
   const resize=(width,height)=>call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});
@@ -60,7 +47,7 @@ try {
   const selected=`document.querySelector('.cinematic-scene [data-scene="'+(document.documentElement.classList.contains('dark')?'night':'day')+'"] video')`;
   const media=selector=>js(`(()=>{const v=${selector};return {src:v.currentSrc,time:v.currentTime,duration:v.duration,paused:v.paused,width:v.videoWidth,height:v.videoHeight,frames:v.getVideoPlaybackQuality().totalVideoFrames,loop:v.loop,controls:v.controls}})()`);
   await call('Runtime.enable');await call('Page.enable');await call('Network.enable');await call('Network.setCacheDisabled',{cacheDisabled:true});await call('Fetch.enable',{patterns:[{urlPattern:'*'}]});await call('Emulation.setFocusEmulationEnabled',{enabled:true});
-  const title='Tài nguyên học tập Olympic HUMG',motion=[];
+  const title='Tài nguyên học tập Olympic HUMG';
   const geometryOf=()=>js(`(()=>{const h=document.querySelector('#home-hero-title'),text=h.querySelector('.masked-heading__measure')||h.querySelector('.blur-text > [aria-hidden]')||h;return{width:innerWidth,theme:document.documentElement.classList.contains('dark')?'dark':'light',heading:h.getBoundingClientRect().toJSON(),font:getComputedStyle(h).fontSize,text:text.textContent.trim(),glyphs:[...h.querySelectorAll('text')].map(g=>({text:g.textContent,box:(()=>{const b=g.getBBox();return{x:b.x,y:b.y,width:b.width,height:b.height}})(),x:g.getAttribute('x'),y:g.getAttribute('y')}))}})()`);
   for(const [width,height] of [[320,568],[390,844],[768,900],[1280,900]])for(const theme of ['light','dark']){
     await resize(width,height);await nav('/',theme);
@@ -75,8 +62,8 @@ try {
   if(!baseline){
     for(const [width,height,theme] of [[390,844,'dark'],[1280,900,'light']]){
       await resize(width,height);await nav('/',theme);await wait('document.querySelector(".masked-heading").dataset.ready==="true"');
-      const before=await geometryOf(),frames=[],start=Date.now();
-      for(let i=0;i<16;i++){const path=join(dir,`motion-${width}-${theme}-${String(i).padStart(2,'0')}.png`);await writeFile(path,Buffer.from((await call('Page.captureScreenshot',{captureBeyondViewport:false})).data,'base64'));frames.push({path,ms:Date.now()-start});await delay(90);}
+      const before=await geometryOf(),frames=[],start=performance.now();
+      for(let i=0;i<16;i++){const path=join(dir,`motion-${width}-${theme}-${String(i).padStart(2,'0')}.png`);await writeFile(path,Buffer.from((await call('Page.captureScreenshot',{captureBeyondViewport:false})).data,'base64'));frames.push({path,ms:performance.now()-start});await delay(90);}
       const after=await geometryOf();assert.deepEqual(before.heading,after.heading);motion.push({name:`masked-heading-${width}-${theme}`,frames});
     }
     // Refetch updates data, not the masked heading owner or its entrance.
@@ -84,7 +71,10 @@ try {
     await js('import("/src/lib/query-client.ts").then(({queryClient})=>queryClient.invalidateQueries())');await delay(400);
     assert.ok(await js('window.maskOwner===document.querySelector(".masked-heading")&&window.maskWord===document.querySelector(".masked-heading text")&&getComputedStyle(window.maskWord).opacity==="1"'));
     checks.push('Actual word reveal and slow mesh drift recorded;heading bounds stable;query invalidation retains owner/glyphs without entrance replay.');
-    await wait(`!${selected}.paused&&${selected}.videoWidth>0`);const a=await media(selected);await delay(180);const b=await media(selected);assert.ok(b.time>a.time&&b.frames>a.frames);playback.push(b);
+    await wait(`!${selected}.paused&&${selected}.videoWidth>0`);const a=await media(selected);
+    // Decode scheduling can exceed180ms on a busy host; loop wrap may decrease currentTime.
+    await wait(`${selected}.currentTime!==${a.time}&&${selected}.getVideoPlaybackQuality().totalVideoFrames>${a.frames}`);
+    const b=await media(selected);assert.notEqual(b.time,a.time);assert.ok(b.frames>a.frames);playback.push(b);
     await js('window.outgoingHome='+selected+';[...document.querySelectorAll("button")].find(b=>b.getAttribute("aria-label")==="Đổi giao diện").click()');await wait('window.outgoingHome.paused&&document.documentElement.classList.contains("dark")');await wait(`!${selected}.paused&&${selected}.videoWidth>0`);await shot('home-theme-switch-1280-dark');await js('localStorage.removeItem("olympic-theme")');
     assert.ok(await js('!document.querySelector(".home-hero video[controls]")&&[...document.querySelectorAll(".home-hero video")].every(v=>v.muted&&v.loop&&v.playsInline&&v.tabIndex===-1)'));
     checks.push('Original local MP4 advances;theme change pauses outgoing source and plays correct scene;decorative video controls/keyboard stops remain absent;logo is unchanged.');
@@ -108,6 +98,6 @@ try {
       clip.video=join(dir,clip.name+'.webm');await writeFile(clip.video,Buffer.from(video,'base64'));
     }
   }
-  assert.deepEqual(errors,[]);await writeFile(join(dir,'results.json'),JSON.stringify({baseline,checks,screenshots,geometry,motion,playback,errors,limits:['Owned Chromium actual routes/StrictMode with intercepted synthetic API and real local MP4s.','Not physical-device/WebKit/AT speech or production-performance evidence;motion clips encode sampled real page frames.']},null,2));console.log(JSON.stringify({evidence:dir,checks:checks.length,screenshots:screenshots.length,motion:motion.length}));
-}catch(e){await writeFile(join(dir,'failure.json'),JSON.stringify({error:String(e),checks,geometry,errors,body:js?await js('document.body.innerText').catch(()=>null):null},null,2));throw e;}
-finally {socket?.close();chrome.kill('SIGTERM');setTimeout(()=>{if(chrome.exitCode===null)chrome.kill('SIGKILL')},1500).unref();await host.close();}
+  assert.deepEqual([...errors,...session.requestFailures],[]);await writeFile(join(dir,'results.json'),JSON.stringify({baseline,checks,screenshots,geometry,motion,playback,errors,requestFailures:session.requestFailures,cancelledRequests:session.cancelledRequests,limits:['Owned Chromium actual routes/StrictMode with intercepted synthetic API and real local MP4s.','Not physical-device/WebKit/AT speech or production-performance evidence;motion clips encode sampled real page frames.']},null,2));console.log(JSON.stringify({evidence:dir,checks:checks.length,screenshots:screenshots.length,motion:motion.length}));
+}catch(e){await writeFile(join(dir,'failure.json'),JSON.stringify({error:String(e),checks,screenshots,geometry,motion,playback,errors,requestFailures:session?.requestFailures,cancelledRequests:session?.cancelledRequests,body:js?await js('document.body.innerText').catch(()=>null):null,focus:js?await js('({tag:document.activeElement?.tagName,id:document.activeElement?.id,text:document.activeElement?.textContent?.slice(0,200)})').catch(()=>null):null},null,2));throw e;}
+finally { await session?.cleanup(); }

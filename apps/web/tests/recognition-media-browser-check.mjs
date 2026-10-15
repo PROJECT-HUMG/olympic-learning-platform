@@ -1,40 +1,34 @@
 // Actual individual profile and achievement routes; synthetic APIs, no live writes or .env.
 import assert from 'node:assert/strict';
-import {deflateSync} from 'node:zlib';
-import {spawn,execFileSync} from 'node:child_process';
-import {mkdtemp,writeFile} from 'node:fs/promises';
-import {tmpdir} from 'node:os';
-import {join} from 'node:path';
-import {fileURLToPath} from 'node:url';
-import {createServer} from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwind from '@tailwindcss/vite';
-const baseline=process.argv.includes('--before'), evidenceOnly=process.argv.includes('--evidence-only');
-const dir=await mkdtemp(join(tmpdir(),`humg-recognition-media-${baseline?'before':'after'}-`));
-const root=fileURLToPath(new URL('..',import.meta.url)),old=new Map();
-if(baseline)for(const path of ['src/features/recognition/public-pages.tsx','src/features/recognition/achievement-evidence.tsx','src/components/ui/evidence-gallery.tsx','src/features/recognition/components.tsx'])old.set(join(root,path),execFileSync('git',['show',`97554cd:apps/web/${path}`],{cwd:root,encoding:'utf8'}));
-const host=await createServer({root,configFile:false,envDir:false,cacheDir:join('/tmp/humg-individual-recognition-20261014','vite-cache'),define:{'import.meta.env.VITE_API_BASE_URL':JSON.stringify('/api/v1')},resolve:{alias:{'@':join(root,'src')}},plugins:[{name:'entry-owner-snapshot',enforce:'pre',load(id){return old.get(id.split('?')[0]);}},react(),tailwind()],server:{host:'127.0.0.1',port:0}});
-await host.listen();const web='http://127.0.0.1:'+host.httpServer.address().port;
-const chrome=spawn('/home/nghlong3004/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome',
-  ['--headless','--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--password-store=basic','--disable-background-timer-throttling','--remote-debugging-port=0',`--user-data-dir=${dir}/profile`,'about:blank'],{env:{...process.env,GSETTINGS_BACKEND:'memory',XDG_RUNTIME_DIR:dir}});
+import { deflateSync } from 'node:zlib';
+import { execFileSync } from 'node:child_process';
+import { writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { browserOptions, evidenceDirectory, startBrowserCheck, webRoot } from './browser/session.mjs';
 
+const options = browserOptions('media');
+const baseline=Boolean(options.before), evidenceOnly=Boolean(options['evidence-only']);
+const dir = await evidenceDirectory(options);
+const root = webRoot;
+const old = new Map();
+if(baseline)for(const path of ['src/features/recognition/public-pages.tsx','src/features/recognition/achievement-evidence.tsx','src/components/ui/evidence-gallery.tsx','src/features/recognition/components.tsx'])old.set(join(root,path),execFileSync('git',['show',`97554cd:apps/web/${path}`],{cwd:root,encoding:'utf8'}));
+let session, web;
 // Owned synthetic raster bands, not product photography.
 const crc=b=>{let c=-1;for(const v of b){c^=v;for(let n=0;n<8;n++)c=(c>>>1)^((c&1)?0xedb88320:0);}return(c^-1)>>>0;};
 const chunk=(t,b)=>{const a=Buffer.from(t),n=Buffer.alloc(4),c=Buffer.alloc(4);n.writeUInt32BE(b.length);c.writeUInt32BE(crc(Buffer.concat([a,b])));return Buffer.concat([n,a,b,c]);};
 const header=Buffer.alloc(13);header.writeUInt32BE(640);header.writeUInt32BE(400,4);header[8]=8;header[9]=2;
 const pixels=Buffer.alloc(400*(640*3+1));for(let y=0;y<400;y++)for(let x=0;x<640;x++){const i=y*(1921)+1+x*3;pixels[i]=x<320?31:58;pixels[i+1]=y<200?100:143;pixels[i+2]=x+y>500?153:205;}
 const png=Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(pixels)),chunk('IEND',Buffer.alloc(0))]);
-const checks=[],screenshots=[],geometry=[],errors=[],requests=[],cancelled=[],held=[],choosers=[];
+const checks=[],screenshots=[],geometry=[],errors=[],requests=[],held=[],choosers=[];
 const uid='00000000-0000-0000-0000-000000000101';
 let imageFailure=false,denyEvidence=false,albumCount=3;
-let socket,call,js,role='ANON',mode='normal',count=4,hold=false,mutationStatus=503,holdMutation=false,optIn=false,privateHidden=false;
+let call,js,role='ANON',mode='normal',count=4,hold=false,mutationStatus=503,holdMutation=false,optIn=false,privateHidden=false;
 const user=()=>({id:uid,username:'synthetic-learner',fullName:'Người học thử nghiệm Nguyễn Minh Anh',email:'fixture@example.invalid',role:role==='ANON'?'STUDENT':role,status:'ACTIVE',avatarUrl:null});
 const records=()=>Array.from({length:count},(_,i)=>({id:'record-'+i,userId:uid,fullName:user().fullName,title:i===1?'Đề tài kiểm thử về phương pháp học tập và ứng dụng với một tiêu đề dài cần đọc trọn vẹn':'Kỳ thi Olympic thử nghiệm '+(i+1),description:'Nội dung giả lập để kiểm tra hành trình thành tích, không phải hồ sơ thật.',category:i%2?'RESEARCH_SCHOOL':'OLYMPIC_SCHOOL',award:'FIRST',includeParticipation:true,achievedDate:i<2?'2026-09-01':'2025-06-12',publicVisible:i===0?!privateHidden:i!==2,status:['APPROVED','PENDING','REJECTED','REVOKED'][i%4],awardPoints:5,participationPoints:2,totalPoints:7,reviewNote:i===2?'Minh chứng chưa thể hiện đầy đủ kết quả. Vui lòng bổ sung.':null,evidence:[{id:'image-a',originalName:'Ảnh minh chứng dài kiểm thử.png',contentType:'image/png',size:12000},{id:'image-b',originalName:'Ảnh thứ hai.png',contentType:'image/png',size:12000},{id:'pdf-c',originalName:'Tệp PDF gốc.pdf',contentType:'application/pdf',size:12000}],version:0,createdAt:'2026-09-01T00:00:00Z',updatedAt:'2026-09-01T00:00:00Z'}));
 try {
- const endpoint=await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error('Chrome timeout')),30000);chrome.stderr.on('data',b=>{const m=String(b).match(/DevTools listening on (ws:\/\/\S+)/);if(m){clearTimeout(t);resolve(m[1]);}});chrome.on('error',reject);});
- const target=await(await fetch(`http://127.0.0.1:${new URL(endpoint).port}/json/new?about:blank`,{method:'PUT'})).json();socket=new WebSocket(target.webSocketDebuggerUrl);await new Promise(r=>socket.onopen=r);let serial=0;const pending=new Map();
- call=(method,params={})=>new Promise((resolve,reject)=>{const id=++serial;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
- const reply=(e,status,body,type='application/json')=>call('Fetch.fulfillRequest',{requestId:e.requestId,responseCode:status,responseHeaders:[{name:'Content-Type',value:type}],body:Buffer.from(type==='application/json'?JSON.stringify(body):body).toString('base64')});
+ session = await startBrowserCheck({ dir, options, snapshots: old });
+  ({ web, call, js } = session);
+  const reply=(e,status,body,type='application/json')=>call('Fetch.fulfillRequest',{requestId:e.requestId,responseCode:status,responseHeaders:[{name:'Content-Type',value:type}],body:Buffer.from(type==='application/json'?JSON.stringify(body):body).toString('base64')});
  const respond=async e=>{
   const u=new URL(e.request.url),path=u.pathname,method=e.request.method;
   if(u.origin===web&&!path.startsWith('/api/'))return call('Fetch.continueRequest',{requestId:e.requestId});
@@ -65,8 +59,8 @@ try {
   if(path.includes('/documents')||path.includes('/posts'))return reply(e,200,{content:[],totalElements:0,totalPages:0,number:0,size:10});
   return reply(e,200,[]);
  };
- socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);if(m.error)p?.reject(Error(m.error.message));else p?.resolve(m.result);}else if(m.method==='Page.fileChooserOpened')choosers.push(m.params);else if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.exception?.description??m.params.exceptionDetails.text);else if(m.method==='Fetch.requestPaused')void respond(m.params).catch(e=>/Invalid InterceptionId/.test(e.message)?cancelled.push(e.message):errors.push(e.message));};
- js=async expression=>{const r=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true,timeout:20000});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description??r.exceptionDetails.text);return r.result.value;};
+  session.onRequest(respond);
+  session.onEvent(m => {if(m.method==='Page.fileChooserOpened')choosers.push(m.params);else if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.exception?.description??m.params.exceptionDetails.text);});
  const delay=ms=>new Promise(r=>setTimeout(r,ms));
  const wait=async expression=>{for(let n=0;n<450;n++){if(await js(`Boolean(${expression})`))return;await delay(30);}throw Error('Timeout '+expression);};
  const resize=(width,height)=>call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});
@@ -109,6 +103,6 @@ try {
  if(!evidenceOnly){role='ANON';albumCount=0;await nav('/honors/synthetic-album');await wait('document.body.innerText.includes("Chưa có ảnh kỷ niệm.")');assert.equal(await js('!!document.querySelector(".depth-carousel")'),false);albumCount=1;await nav('/honors/synthetic-album');await wait('document.querySelector(".depth-carousel__card[aria-hidden=false] img")?.naturalWidth>0');assert.equal(await js('[...document.querySelectorAll(".depth-carousel__controls button")].every(b=>b.disabled)'),true);albumCount=3;await resize(320,280);await nav('/honors/synthetic-album');await clickText('Mở ảnh lớn');await wait('!!document.querySelector(".honor-gallery-dialog")');await js('document.querySelector(".honor-gallery-dialog").scrollTop=9999');await touch('.honor-gallery-dialog__header button');await wait('!document.querySelector("[role=dialog]")');checks.push('320x280: sticky44px Close remains touch reachable after dialog scroll.');await resize(390,844);await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await nav('/honors/synthetic-album');await wait('document.querySelector(".depth-carousel__card[aria-hidden=false] img")?.naturalWidth>0');await js('document.querySelector(".depth-carousel__stage").focus()');await key('ArrowRight',39);await wait('document.querySelector(".depth-carousel [role=status]").textContent==="2 / 3"');
  await shot('album-reduced-motion-390-dark');checks.push('Reduced-motion selection remains readable and changes without a transition tween.');}
  }
- assert.deepEqual(errors,[]);await writeFile(join(dir,'results.json'),JSON.stringify({checks,screenshots,geometry,requests,errors,limits:['Synthetic intercepted API and generated640x400 raster;not real media quality/physical phone/live authorization.','PDF first-page renderer not present in evidence contract;original-file download remains existing owner.']},null,2));console.log(JSON.stringify({evidence:dir,checks,screenshots:screenshots.length}));
-}catch(e){await writeFile(join(dir,'failure.json'),JSON.stringify({error:String(e),checks,screenshots,errors,requests,body:js?await js('document.body.innerText').catch(()=>null):null},null,2));throw e;}
-finally{socket?.close();chrome.kill('SIGTERM');setTimeout(()=>{if(chrome.exitCode===null)chrome.kill('SIGKILL')},1500).unref();await host.close();}
+ assert.deepEqual([...errors,...session.requestFailures],[]);await writeFile(join(dir,'results.json'),JSON.stringify({checks,screenshots,geometry,requests,errors,requestFailures:session.requestFailures,cancelledRequests:session.cancelledRequests,limits:['Synthetic intercepted API and generated640x400 raster;not real media quality/physical phone/live authorization.','PDF first-page renderer not present in evidence contract;original-file download remains existing owner.']},null,2));console.log(JSON.stringify({evidence:dir,checks,screenshots:screenshots.length}));
+}catch(e){await writeFile(join(dir,'failure.json'),JSON.stringify({error:String(e),checks,screenshots,errors,requests,requestFailures:session?.requestFailures,cancelledRequests:session?.cancelledRequests,body:js?await js('document.body.innerText').catch(()=>null):null,focus:js?await js('({tag:document.activeElement?.tagName,id:document.activeElement?.id,text:document.activeElement?.textContent?.slice(0,200)})').catch(()=>null):null},null,2));throw e;}
+finally { await session?.cleanup(); }

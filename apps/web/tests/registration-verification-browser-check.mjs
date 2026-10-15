@@ -1,45 +1,29 @@
 // Real routes + local original MP4s, intercepted synthetic API only. No .env or live auth.
 import assert from 'node:assert/strict';
-import { spawn, execFileSync } from 'node:child_process';
-import { mkdtemp, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { execFileSync } from 'node:child_process';
+import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { createRequire } from 'node:module';
-const projectRoot=fileURLToPath(new URL('..',import.meta.url));
-const resolveDependency=createRequire(projectRoot+'/package.json').resolve;
-const {createServer}=await import(resolveDependency('vite'));
-const {default:react}=await import(resolveDependency('@vitejs/plugin-react'));
-const {default:tailwind}=await import(resolveDependency('@tailwindcss/vite'));
+import { browserOptions, evidenceDirectory, startBrowserCheck, webRoot } from './browser/session.mjs';
 
-const baseline=process.argv.includes('--before');
-const visualOnly=process.argv.includes('--visual-only');
-const interactionsOnly=process.argv.includes('--interactions-only');
-const dir=await mkdtemp(join(tmpdir(),`humg-otp-design-${baseline?'before':'after'}-`));
-const root=projectRoot;
+const options = browserOptions('otp');
+const baseline=Boolean(options.before);
+const visualOnly=Boolean(options['visual-only']);
+const interactionsOnly=Boolean(options['interactions-only']);
+const dir = await evidenceDirectory(options);
+const root = webRoot;
 const old=new Map();
 if(baseline) {
   const path='src/features/auth/components/registration-verification.tsx';
   old.set(join(root,path),execFileSync('git',['show',`2c8b313:apps/web/${path}`],{cwd:root,encoding:'utf8'}));
 }
-const host=await createServer({root,configFile:false,envDir:false,cacheDir:join(dir,'vite-cache'),
-  define:{'import.meta.env.VITE_API_BASE_URL':JSON.stringify('/api/v1')},
-  resolve:{alias:{'@':join(root,'src')}},
-  plugins:[{name:'owned-before-snapshot',enforce:'pre',load(id){return old.get(id.split('?')[0]);}},react(),tailwind()],
-  server:{host:'127.0.0.1',port:0}});
-await host.listen();const web='http://127.0.0.1:'+host.httpServer.address().port;
-const chrome=spawn('/home/nghlong3004/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome',
-  ['--headless','--no-sandbox','--disable-background-timer-throttling','--remote-debugging-port=0',`--user-data-dir=${dir}/profile`,'about:blank']);
+let session, web;
 const screenshots=[],geometry=[],checks=[],errors=[],requests=[],playback=[],contrast=[];
-let socket,call,js,authMode='invalid',heldVerify,seed;
+let call,js,authMode='invalid',heldVerify,seed;
 const clock=Date.parse('2026-10-15T08:00:00Z');
 const makeChallenge=(mode='normal',email='student@example.invalid')=>({verificationSession:'s'.repeat(64),email,expiresAt:new Date(clock+(mode==='expired'?-1000:600000)).toISOString(),resendAvailableAt:new Date(clock+(mode==='normal'?60000:-1000)).toISOString(),sessionExpiresAt:new Date(clock+(mode==='session'?-1000:3600000)).toISOString()});
 try {
-  const endpoint=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Chrome timeout')),30000);chrome.stderr.on('data',b=>{const m=String(b).match(/DevTools listening on (ws:\/\/\S+)/);if(m){clearTimeout(timer);resolve(m[1]);}});chrome.on('error',reject);});
-  const target=await(await fetch(`http://127.0.0.1:${new URL(endpoint).port}/json/new?about:blank`,{method:'PUT'})).json();
-  socket=new WebSocket(target.webSocketDebuggerUrl);await new Promise(r=>socket.onopen=r);
-  let serial=0;const pending=new Map();
-  call=(method,params={})=>new Promise((resolve,reject)=>{const id=++serial;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
+  session = await startBrowserCheck({ dir, options, snapshots: old });
+  ({ web, call, js } = session);
   const reply=(e,status,body,type='application/json')=>call('Fetch.fulfillRequest',{requestId:e.requestId,responseCode:status,responseHeaders:[{name:'Content-Type',value:type},{name:'Cache-Control',value:'no-store'}],body:Buffer.from(type==='application/json'?JSON.stringify(body):body).toString('base64')});
   const respond=async e=>{
     const u=new URL(e.request.url),path=u.pathname;requests.push({path,method:e.request.method,body:e.request.postData});
@@ -57,8 +41,8 @@ try {
     if(path.startsWith('/api/'))return reply(e,200,{content:[],totalElements:0,totalPages:0,number:0,size:10});
     return reply(e,404,'','text/plain');
   };
-  socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);if(m.error)p?.reject(Error(m.error.message));else p?.resolve(m.result);}else if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.exception?.description??m.params.exceptionDetails.text);else if(m.method==='Fetch.requestPaused')void respond(m.params).catch(e=>errors.push(e.message));};
-  js=async expression=>{const r=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true,timeout:20000});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description??r.exceptionDetails.text);return r.result.value;};
+  session.onRequest(respond);
+  session.onEvent(m => {if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.exception?.description??m.params.exceptionDetails.text);});
   const delay=ms=>new Promise(r=>setTimeout(r,ms));
   const wait=async expression=>{for(let n=0;n<500;n++){if(await js(`Boolean(${expression})`))return;await delay(30);}throw Error('Timeout '+expression);};
   const resize=(width,height)=>call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});
@@ -162,9 +146,9 @@ try {
     await resize(320,280);await reset('ready','a.long.email.address.for.layout.review@example.invalid');
     await clickText('Sửa email');await wait('document.activeElement.id==="registration-new-email"');
     await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',windowsVirtualKeyCode:9});await call('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',windowsVirtualKeyCode:9});
-    assert.ok(await js(`document.activeElement.textContent.includes('Lưu và gửi mã')`));
+    await wait(`document.activeElement.textContent.includes('Lưu và gửi mã')`);
     await clickText('Hủy');await wait('document.activeElement.id==="registration-code"');
-    await key('Tab',9);assert.ok(await js('document.activeElement.classList.contains("registration-verification__submit")'));
+    await key('Tab',9);await wait('document.activeElement.classList.contains("registration-verification__submit")');
     const tap=async selector=>{await js(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'center'})`);const g=await js(`document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect().toJSON()`);await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:g.x+g.width/2,y:g.y+g.height/2}]});await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});};
     await tap('.registration-verification__recipient button');await wait('!!document.querySelector("#registration-new-email")');
     await shot('routed-short-email-editor-320-light');
@@ -180,9 +164,9 @@ try {
   }
   await nav('/verify-email');assert.ok(await js('!!document.querySelector(".welcome-layout")&&!document.querySelector("#registration-code")&&document.body.innerText.includes("Mã xác thực không tồn tại")'));await shot('legacy-token-link-no-token-1280-light');
   checks.push('/verify-email is the separate token-link VerifyEmailCard route inside same shared auth layout; it is not RegistrationVerification OTP.');
-  assert.deepEqual(errors,[]);
+  assert.deepEqual([...errors,...session.requestFailures],[]);
   await call('Page.removeScriptToEvaluateOnNewDocument',{identifier:seed.identifier});
-  await writeFile(join(dir,'results.json'),JSON.stringify({baseline,visualOnly,interactionsOnly,checks,screenshots,geometry,playback,contrast,requests,errors,limits:['Actual routed product owner with synthetic browser session challenges, advancing synthetic clock and intercepted API responses; no live mutations.','No live registration/OTP/mail,physical device,AT speech or deployed-state proof;previous CodeSlots fixture deliberately omits the shared layout.']},null,2));
+  await writeFile(join(dir,'results.json'),JSON.stringify({baseline,visualOnly,interactionsOnly,checks,screenshots,geometry,playback,contrast,requests,errors,requestFailures:session.requestFailures,cancelledRequests:session.cancelledRequests,limits:['Actual routed product owner with synthetic browser session challenges, advancing synthetic clock and intercepted API responses; no live mutations.','No live registration/OTP/mail,physical device,AT speech or deployed-state proof;previous CodeSlots fixture deliberately omits the shared layout.']},null,2));
   console.log(JSON.stringify({evidence:dir,checks:checks.length,screenshots:screenshots.length}));
-}catch(e){await writeFile(join(dir,'failure.json'),JSON.stringify({error:String(e),checks,geometry,errors,body:js?await js('document.body.innerText').catch(()=>null):null},null,2));throw e;}
-finally{socket?.close();chrome.kill('SIGTERM');setTimeout(()=>{if(chrome.exitCode===null)chrome.kill('SIGKILL')},1500).unref();await host.close();}
+}catch(e){await writeFile(join(dir,'failure.json'),JSON.stringify({error:String(e),checks,screenshots,geometry,playback,contrast,errors,requestFailures:session?.requestFailures,cancelledRequests:session?.cancelledRequests,body:js?await js('document.body.innerText').catch(()=>null):null,focus:js?await js('({tag:document.activeElement?.tagName,id:document.activeElement?.id,text:document.activeElement?.textContent?.slice(0,200)})').catch(()=>null):null},null,2));throw e;}
+finally { await session?.cleanup(); }
