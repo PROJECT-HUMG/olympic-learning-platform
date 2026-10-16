@@ -73,8 +73,8 @@ function FeedbackEditor(props:Scope&{initial:Contribution|null;latest:Contributi
       <p id="daily-feedback-length" className="study-note">{text.length}/4000 ký tự</p>
       <p className="study-note" role="status">{draft.busy ? "Đang xử lý góp ý…" : draft.dirty ? "Bản đang nhập chưa được lưu." : saved ? "Góp ý của bạn đã được lưu." : "Chưa gửi góp ý."}</p>
       <div className="study-actions">
-        <Button type="submit" disabled={draft.busy||!text.trim()||!draft.dirty}>Lưu góp ý</Button>
-        <Button type="button" variant="outline" disabled={draft.busy} onClick={async ()=>{if(draft.dirty&&!await confirm("Thay bản đang nhập bằng góp ý trên máy chủ?"))return;void run("reload");}}>Tải lại góp ý</Button>
+        <Button type="submit" disabled={draft.busy||!text.trim()||!draft.dirty}>{draft.busy ? "Đang gửi…" : saved ? "Cập nhật góp ý" : "Gửi góp ý"}</Button>
+        {draft.conflict || props.latest?.version!==saved?.version ? <Button type="button" variant="outline" disabled={draft.busy} onClick={async ()=>{if(draft.dirty&&!await confirm("Thay bản đang nhập bằng góp ý trên máy chủ?"))return;void run("reload");}}>Tải lại góp ý</Button> : null}
         {saved?<Button type="button" variant="outline" disabled={draft.busy} onClick={async ()=>{if(await confirm("Xóa góp ý của bạn?"))void run("save",true);}}>Xóa góp ý</Button>:null}
       </div>
     </form>

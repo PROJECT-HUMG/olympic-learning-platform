@@ -49,7 +49,7 @@ it("today entry and compact date controls retain day/week/history links and guar
   assert.match(entry, /StudyWeekList/);
   assert.doesNotMatch(week, /StudyDayList/);
   assert.match(calendar, /aria-label=\{`\$\{index === 6 \? "Chủ Nhật"/);
-  assert.match(week, /\$\{ROUTES.DAILY\}\?date=\$\{chosen\}/);
+  assert.match(week, /\$\{ROUTES.DAILY\}\?date=\$\{weekStart\}/);
   assert.doesNotMatch(week, />Tuần trước<|>Tuần sau<|>Tuần này</);
   assert.doesNotMatch(group, /StudyWeekList/);
   assert.doesNotMatch(group, /&view=week/); // Date consent cannot open private weekly material.
@@ -64,8 +64,8 @@ it("automatic persistence and explicit Submit status remain readily available", 
   assert.doesNotMatch(day, /type="submit" form="daily-plan-form"|Lưu kế hoạch và nhìn lại/);
   assert.match(day, /DailySyncStatus/);
   assert.match(day, /className="study-submit-status" role="status"/);
-  assert.match(day, /disabled=\{!canSubmit \|\| Boolean\(form.firstSubmittedAt\)\}/);
-  assert.match(day, /Nộp là thao tác riêng, không bật chia sẻ/);
+  assert.match(day, /!form.firstSubmittedAt \? <div/);
+  assert.match(day, /Nộp chỉ ghi mốc đầu, không bật chia sẻ/);
   assert.match(day, /study-day-workspace/);
   assert.match(day, /daily-journal-pane/);
   assert.match(day, /DropdownMenuItem disabled=\{index === 0\}/);
@@ -92,7 +92,7 @@ it("task entry is temporary until server-confirmed append, without saving unrela
   assert.match(day, /addTask.mutateAsync/);
   assert.match(day, /rebaseAddedTask/);
   assert.match(day, /draft.finish\("save", revision, "keep"\)/);
-  assert.match(day, /Thêm và lưu việc/);
+  assert.match(day, /"Đang thêm…" : addFailure \? "Thử lại" : "Thêm"/);
   assert.match(day, /DialogContent className="daily-dialog daily-add-dialog"/);
 });
 

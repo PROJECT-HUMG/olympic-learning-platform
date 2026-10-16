@@ -1,3 +1,5 @@
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { DailyReflectionField } from "../ui/daily-reflection-field";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -52,6 +54,8 @@ import type { EntryAudience } from "../groups/group-contract";
 import { openStudySection } from "../ui/study-section";
 import { EntrySharingDialog } from "../groups/entry-sharing-dialog";
 
+gsap.registerPlugin(useGSAP);
+
 const DATE_GUARD = "Thay đổi chưa đồng bộ. Chờ đồng bộ xong hoặc xử lý lỗi trước khi đổi ngày.";
 
 export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryAccount }: {
@@ -69,6 +73,7 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
   const blocker = useDailyDraftLeave(draft.session, draft.snapshot);
   const [form, setForm] = useState<PlanEditor>(() => emptyPlanEditor(date));
   const formRef = useRef(form);
+  const submitStatusRef = useRef<HTMLSpanElement>(null);
   function replaceForm(next: PlanEditor) { formRef.current = next; setForm(next); }
   const [notice, setNotice] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -85,7 +90,7 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
     replace: editorFromPlan, rebase: rebaseSyncedPlan,
   });
   const editingLocked = draft.busy && !sync.syncing;
-  const syncStatus = <DailySyncStatus dirty={draft.dirty} busy={draft.busy} syncing={sync.syncing} saved={Boolean(form.id)} issue={sync.issue} conflict={draft.conflict} onRetry={sync.retry} />;
+  const syncStatus = <DailySyncStatus dirty={draft.dirty} busy={draft.busy} syncing={sync.syncing} saved={Boolean(form.id)} issue={sync.issue} conflict={draft.conflict} onRetry={sync.retry} onReload={async () => { if (!draft.dirty || await confirm("Thay bản đang nhập bằng kế hoạch trên máy chủ? Các thay đổi chưa lưu sẽ bị bỏ.")) void fetchServer(true); }} />;
 
   function openAddTaskModal() {
     setActiveModalTask(blankTask());
@@ -221,6 +226,7 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
       replaceForm(editorFromPlan(saved));
       setReady(true);
       setNotice("Đã ghi nhận lần nộp.");
+      requestAnimationFrame(() => submitStatusRef.current?.focus({ preventScroll: true }));
     } catch (error) {
       draft.finish("submit", revision, "keep", isDailyConflict(error) ? true : undefined);
       setNotice(dailyErrorMessage(error));
@@ -243,7 +249,7 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
     <DailyAccountWarning show={accountWarning} onRetry={onRetryAccount} />
     <PageHeader
       title="Daily của tôi"
-      description={<span className="study-submit-status" role="status">
+      description={<span ref={submitStatusRef} id="daily-submit-status" tabIndex={-1} className="study-submit-status" role="status">
         <strong>{SUBMIT_TIMING_LABEL[timing]}</strong>
         <span>{form.firstSubmittedAt ? `Lần nộp đầu: ${new Date(form.firstSubmittedAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}` : "Nộp kế hoạch trước 07:30 để được ghi nhận đúng giờ"}</span>
       </span>}
@@ -337,7 +343,7 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
               disabled={!activeModalTask.title.trim() || draft.busy || draft.conflict || form.tasks.length >= 50}
               onClick={() => void persistTask()}
             >
-              {draft.busy ? "Đang lưu việc…" : addFailure ? "Thử lưu lại" : "Thêm và lưu việc"}
+              {draft.busy ? "Đang thêm…" : addFailure ? "Thử lại" : "Thêm"}
             </Button>
           </div>
         </div>
@@ -353,7 +359,6 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
       {failure === "inline" && !notice ? <p>{dailyErrorMessage(plan.error)} Bản đang nhập vẫn được giữ.</p> : null}
       {blocker.state === "blocked" ? <Button type="button" variant="outline" onClick={() => blocker.reset()}>Ở lại trang</Button> : null}
       {failure === "inline" ? <Button type="button" variant="outline" disabled={draft.busy} onClick={() => void fetchServer(false)}>Thử lại</Button> : null}
-      {(draft.dirty || draft.conflict) ? <Button type="button" variant="outline" disabled={draft.busy} onClick={async () => { if (!draft.dirty || await confirm("Thay bản đang nhập bằng kế hoạch trên máy chủ? Các thay đổi chưa lưu sẽ bị bỏ.")) void fetchServer(true); }}>Tải bản trên máy chủ</Button> : null}
     </div> : null}
     <form id="daily-plan-form" onSubmit={(event) => { event.preventDefault(); }}>
       <fieldset disabled={editingLocked} className="study-day-workspace m-0 min-w-0 border-0 p-0">
@@ -383,20 +388,20 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
         </section>
       </fieldset>
     </form>
-    {draft.dirty && !showNotice ? <Button type="button" variant="ghost" className="daily-reload" disabled={draft.busy} onClick={async () => { if (await confirm("Thay bản đang nhập bằng kế hoạch trên máy chủ? Các thay đổi chưa lưu sẽ bị bỏ.")) void fetchServer(true); }}>Tải bản trên máy chủ</Button> : null}
 
         <div className="study-savebar" aria-label="Đồng bộ và nộp kế hoạch">
-          <div>{syncStatus}<p className="study-note">Chỉnh sửa tự động lưu. Nộp là thao tác riêng, không bật chia sẻ.</p></div>
-          <div className="study-savebar__buttons">
+          <div>{syncStatus}<p className="study-note">Tự động lưu thay đổi. Nộp chỉ ghi mốc đầu, không bật chia sẻ.</p></div>
+          {!form.firstSubmittedAt ? <div className="study-savebar__buttons">
           <Button
             type="button"
-            disabled={!canSubmit || Boolean(form.firstSubmittedAt)}
+            variant="outline"
+            disabled={!canSubmit}
             onClick={() => void submit()}
             aria-describedby="daily-submit-help"
           >
-            <Send className="h-4 w-4" /> {form.firstSubmittedAt ? "Đã nộp kế hoạch" : "Nộp kế hoạch"}
+            <Send className="h-4 w-4" /> Nộp kế hoạch
           </Button>
-          </div>
+          </div> : null}
           <p id="daily-submit-help" className="sr-only">{draft.dirty ? "Chờ đồng bộ xong trước khi nộp." : !form.id ? "Nộp sẽ tạo và nộp kế hoạch trống cho ngày này." : "Nộp ghi nhận mốc nộp đầu, không bật chia sẻ."} Lần nộp đầu được giữ nguyên khi chỉnh sửa.</p>
         </div>
   </div>;
@@ -419,6 +424,29 @@ function moveTask(tasks: EditorTask[], index: number, delta: number): EditorTask
 function TaskRow({ task, index, last, disabled, onChange, onMove, onRemove, children }: { task: EditorTask; index: number; last: boolean; disabled: boolean; onChange: (update: (task: EditorTask) => EditorTask) => void; onMove: (delta: number) => void; onRemove: () => Promise<boolean>; children: (header: ReactNode) => ReactNode }) {
   const isComplete = task.status === "COMPLETED";
   const row = useRef<HTMLLIElement>(null);
+  const previousComplete = useRef(isComplete);
+  useGSAP((context) => {
+    const becameComplete = !previousComplete.current && isComplete;
+    previousComplete.current = isComplete;
+    if (!becameComplete) return;
+    // Completion cue adapted from @kokonutui/status-island, not its demo task queue.
+    // Existing Radix owns the checkbox; autosave and initial loading never replay this stroke.
+    const media = gsap.matchMedia();
+    let played = false;
+    // Radix Presence mounts its indicator after the controlled value commits.
+    const frame = requestAnimationFrame(() => context.add(() => media.add("(prefers-reduced-motion: no-preference)", () => {
+      if (played) return;
+      const path = row.current?.querySelector<SVGPathElement>('[data-slot="checkbox-indicator"] path');
+      if (!path) return;
+      played = true;
+      const length = path.getTotalLength();
+      gsap.fromTo(path, { strokeDasharray: length, strokeDashoffset: length }, {
+        strokeDashoffset: 0, duration: .18, ease: "power2.out",
+        clearProps: "strokeDasharray,strokeDashoffset",
+      });
+    })));
+    return () => { cancelAnimationFrame(frame); media.revert(); };
+  }, { scope: row, dependencies: [isComplete], revertOnUpdate: true });
   const titleError = taskTitleError(task.title);
   const titleErrorId = `daily-task-error-${task.key}`;
 

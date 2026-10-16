@@ -26,6 +26,8 @@ Shared Radix/native owners provide focus/Escape/scroll behavior; features own pe
 
 Daily uses a checklist/reflection workspace and a one-date audience picker; group journals, members and management have distinct tabs. Preserve draft authority, private-by-default dated sharing and serialized800ms sync. Room retains joined scene/player continuity and device-local playback. Scientific readers/editors keep notation overflow, private figures and frozen/release policies; do not force them into marketing/card layouts.
 
+Daily motion stays at its existing owners: SmoothTab's measured indicator and a180ms completion-check stroke in [TaskRow](../../apps/web/src/features/daily/components/daily-plan-editor.tsx). The latter adapts the inspected Kokonut Status Island check cue through installed GSAP/useGSAP; no task-queue demo, delayed success, initial content reveal or autosave replay. Scoped cleanup/media matching restores a static check for reduced motion. React Bits AnimatedList's listbox/scroll/reveal wrapper is unsuitable for editable task controls; keep their native semantics and document scrolling.
+
 The Documents card remains unchanged pending a compact balanced composition decision. “Chưa có ảnh” is valid wording; missing-preview space should be integrated, not automatically replaced with an icon. Use actual image/no-image/error/long-title states when that change is authorized.
 
 ## Verification

@@ -2,9 +2,9 @@ import { Check, CloudUpload, CircleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { DailySyncIssue } from "../hooks/use-daily-auto-sync";
 
-export function DailySyncStatus({ dirty, busy, syncing, saved, issue, conflict, onRetry }: {
+export function DailySyncStatus({ dirty, busy, syncing, saved, issue, conflict, onRetry, onReload }: {
   dirty: boolean; busy: boolean; syncing: boolean; saved: boolean;
-  issue: DailySyncIssue | null; conflict: boolean; onRetry: () => void;
+  issue: DailySyncIssue | null; conflict: boolean; onRetry: () => void; onReload: () => void;
 }) {
   const failed = Boolean(issue || conflict);
   return <div className="daily-sync-status" data-error={failed}>
@@ -14,6 +14,7 @@ export function DailySyncStatus({ dirty, busy, syncing, saved, issue, conflict, 
       {issue?.kind === "validation" ? <span className="sr-only">{issue.message} Chỉnh nội dung để tiếp tục tự đồng bộ. Nội dung trên máy vẫn được giữ.</span> : null}
     </p>
     {issue ? <p className="study-note">{issue.message} Nội dung trên máy vẫn được giữ.{conflict ? " Tải bản máy chủ cần xác nhận bỏ bản đang nhập." : issue.kind === "validation" ? " Chỉnh nội dung để tiếp tục tự đồng bộ." : " Thử lại khi kết nối ổn định."}</p> : null}
+    {failed ? <Button type="button" variant="ghost" disabled={busy} onClick={onReload}>Tải bản trên máy chủ</Button> : null}
     {issue?.kind === "error" && !conflict ? <Button type="button" variant="outline" disabled={busy} onClick={onRetry}>Thử đồng bộ lại</Button> : null}
   </div>;
 }

@@ -59,3 +59,12 @@ it("dated audiences reject cross-entry identity, duplicate groups/people and mal
   assert.deepEqual(readEntrySharing({ ...state, audiences: [] }, plan).audiences, []);
   for (const value of [null, { ...state, planId: person }, { ...state, version: -1 }, { ...state, audiences: [null] }, { ...state, audiences: [state.audiences[0], state.audiences[0]] }, { ...state, audiences: [{ groupId: group, viewerIds: [person, person] }] }]) assert.throws(() => readEntrySharing(value, plan));
 });
+
+it("audience edits compare grants independent of order, without broadening consent", async () => {
+  const { sameEntryAudience } = await import("../src/features/daily/groups/group-contract.ts");
+  const a = [{ groupId: group, viewerIds: [owner, viewer] }, { groupId: owner, viewerIds: [viewer] }];
+  assert.equal(sameEntryAudience(a, [...a].reverse().map(row => ({ ...row, viewerIds: [...row.viewerIds].reverse() }))), true);
+  assert.equal(sameEntryAudience(a, [{ groupId: group, viewerIds: [viewer] }]), false);
+  assert.equal(sameEntryAudience([{ groupId: group, viewerIds: [] }], []), true);
+  assert.deepEqual(a[0].viewerIds, [owner, viewer]);
+});

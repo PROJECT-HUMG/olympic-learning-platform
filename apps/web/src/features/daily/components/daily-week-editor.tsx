@@ -128,8 +128,7 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
       description="Nhận ra điều đã hiệu quả. Chọn điều chỉnh cho tuần tới."
       actions={
         <div className="study-toolbar">
-          <StudyDatePicker date={weekStart} onSelect={go} disabled={draft.busy} label="Chọn tuần" blockedMessage={DATE_GUARD}>{chosen => <>
-            <Link to={`${ROUTES.DAILY}?date=${chosen}`} onClick={guardNavigation}>Mở ngày trên lịch</Link>
+          <StudyDatePicker date={weekStart} onSelect={go} disabled={draft.busy} label="Chọn tuần" blockedMessage={DATE_GUARD}>{() => <>
             <Link to={`${ROUTES.DAILY}?view=history`} onClick={guardNavigation}>Các tuần đã lưu</Link>
           </>}</StudyDatePicker>
           <Button asChild variant="ghost"><Link to={`${ROUTES.DAILY}?date=${weekStart}`} aria-label={`Mở kế hoạch ngày ${weekStart}`} onClick={guardNavigation}>Mở ngày</Link></Button>
@@ -144,7 +143,6 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
       {failure === "inline" && !notice ? <p>{dailyErrorMessage(week.error)} Bản đang nhập vẫn được giữ.</p> : null}
       {blocker.state === "blocked" ? <Button type="button" variant="outline" onClick={() => blocker.reset()}>Ở lại trang</Button> : null}
       {failure === "inline" ? <Button type="button" variant="outline" disabled={draft.busy} onClick={() => void fetchServer(false)}>Thử lại</Button> : null}
-      {(draft.dirty || draft.conflict) ? <Button type="button" variant="outline" disabled={draft.busy} onClick={async () => { if (!draft.dirty || await confirm("Thay bản đang nhập bằng nhìn lại tuần trên máy chủ?")) void fetchServer(true); }}>Tải bản trên máy chủ</Button> : null}
     </div> : null}
     <div className="study-week-workspace">
     <form id="daily-week-form" className="study-work-surface" onSubmit={(event) => { event.preventDefault(); }}>
@@ -159,11 +157,10 @@ export function DailyWeekEditor({ userId, weekStart, onWeek, accountWarning, onR
     </form>
     <aside className="study-reflection-rail">
       {week.data ? <StudyWeekStats {...week.data} /> : null}
-      {draft.dirty && !showNotice ? <Button type="button" variant="ghost" disabled={draft.busy} onClick={async () => { if (await confirm("Thay bản đang nhập bằng nhìn lại tuần trên máy chủ?")) void fetchServer(true); }}>Tải bản trên máy chủ</Button> : null}
     </aside>
     </div>
     <div className="study-savebar" aria-label="Đồng bộ nhìn lại tuần">
-      <div><DailySyncStatus dirty={draft.dirty} busy={draft.busy} syncing={sync.syncing} saved={Boolean(form.id)} issue={sync.issue} conflict={draft.conflict} onRetry={sync.retry} /><p className="study-note">Nhận xét tự động lưu; không đổi số liệu ngày.</p></div>
+      <div><DailySyncStatus dirty={draft.dirty} busy={draft.busy} syncing={sync.syncing} saved={Boolean(form.id)} issue={sync.issue} conflict={draft.conflict} onRetry={sync.retry} onReload={async () => { if (!draft.dirty || await confirm("Thay bản đang nhập bằng nhìn lại tuần trên máy chủ?")) void fetchServer(true); }} /><p className="study-note">Nhận xét tự động lưu; không đổi số liệu ngày.</p></div>
     </div>
   </div>;
 }

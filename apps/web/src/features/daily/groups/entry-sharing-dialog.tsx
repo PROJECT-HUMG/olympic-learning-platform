@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { DailyDialogHeader } from "../ui/daily-dialog-header";
 import { useDailyConfirm } from "../ui/use-daily-confirm";
 import { groupService } from "./group.service";
-import { groupError, readEntrySharing, type EntryAudience } from "./group-contract";
+import { groupError, readEntrySharing, sameEntryAudience, type EntryAudience } from "./group-contract";
 
 export function EntrySharingDialog({ userId, planId, version, date, blocked, onSave }: {
   userId: string; planId: string | null; version: number | null; date: string; blocked: boolean;
@@ -33,9 +33,10 @@ export function EntrySharingDialog({ userId, planId, version, date, blocked, onS
     },
   });
   const selected = selection ?? data.data?.audiences ?? [];
+  const changed = selection !== null && !sameEntryAudience(selected, data.data?.audiences ?? []);
   async function changeOpen(next: boolean) {
     if (busy) return;
-    if (!next && selection && !await confirm("Bỏ thay đổi người xem chưa lưu?", { title: "Chia sẻ chưa lưu", action: "Bỏ thay đổi" })) return;
+    if (!next && changed && !await confirm("Bỏ thay đổi người xem chưa lưu?", { title: "Chia sẻ chưa lưu", action: "Bỏ thay đổi" })) return;
     setOpen(next); setSelection(null); setError(null);
   }
   function choose(group: string, people: string[]) {
@@ -64,14 +65,14 @@ export function EntrySharingDialog({ userId, planId, version, date, blocked, onS
               </fieldset>;
             })}
           </div>
-          <p className="study-note">Bỏ chọn tất cả rồi lưu để thu hồi chia sẻ. Người tham gia nhóm sau này không tự có quyền xem.</p>
+          <p className="study-note">Bỏ chọn tất cả rồi xác nhận để thu hồi chia sẻ. Người tham gia nhóm sau này không tự có quyền xem.</p>
           {error ? <p role="alert" className="study-notice">{error} Nếu ngày đã thay đổi, đóng hộp thoại và tải bản trên máy chủ trước khi thử lại.</p> : null}
-          <div className="daily-dialog-actions"><Button type="button" variant="outline" disabled={busy} onClick={() => void changeOpen(false)}>Hủy</Button><Button type="button" disabled={busy || blocked} onClick={async () => {
+          <div className="daily-dialog-actions"><Button type="button" variant="outline" disabled={busy} onClick={() => void changeOpen(false)}>{changed ? "Hủy" : "Đóng"}</Button><Button type="button" disabled={busy || blocked || !changed} onClick={async () => {
             setBusy(true); setError(null);
             try { await onSave(selected); await cache.invalidateQueries({ queryKey: ["daily-entry-sharing", userId, planId] }); setOpen(false); setSelection(null); }
             catch (e) { setError(groupError(e)); }
             finally { setBusy(false); }
-          }}>{busy ? "Đang lưu người xem…" : selected.length ? "Lưu chia sẻ" : "Giữ riêng tư"}</Button></div>
+          }}>{busy ? "Đang cập nhật…" : selected.length ? data.data.audiences.length ? "Cập nhật người xem" : "Chia sẻ" : data.data.audiences.length ? "Thu hồi chia sẻ" : "Chia sẻ"}</Button></div>
         </> : null}
       </DialogContent>
     </Dialog>

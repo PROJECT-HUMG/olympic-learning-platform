@@ -101,3 +101,11 @@ export function readEntrySharing(value: unknown, planId: string): EntrySharing {
   if (new Set(audiences.map(a => a.groupId)).size !== audiences.length) throw Error(GROUP_CONTRACT);
   return { planId, version: value.version, audiences };
 }
+
+/** Compare grants, not checkbox history or response ordering. Never carries consent to another date. */
+export function sameEntryAudience(left: EntryAudience[], right: EntryAudience[]): boolean {
+  const normalize = (rows: EntryAudience[]) => rows.filter(row => row.viewerIds.length)
+    .map(row => [row.groupId, [...row.viewerIds].sort()] as const)
+    .sort(([a], [b]) => a.localeCompare(b));
+  return JSON.stringify(normalize(left)) === JSON.stringify(normalize(right));
+}
