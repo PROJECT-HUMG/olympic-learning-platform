@@ -31,16 +31,15 @@ import me.nghlong3004.olympic.exam.request.PublishExamRequest;
 import me.nghlong3004.olympic.exam.response.StaffExamSolutionResponse;
 import me.nghlong3004.olympic.question.entity.Question;
 import me.nghlong3004.olympic.question.entity.QuestionFigure;
+import me.nghlong3004.olympic.question.repository.QuestionFigureRepository;
 import me.nghlong3004.olympic.question.repository.QuestionRepository;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Component;
 
 /**
- * Freezes the next paper inside the caller's transaction.
- * The caller already holds the exam row lock. Question rows use {@code findForUpdateById}
- * in id order, then each question's figure rows are locked with {@code FOR UPDATE}.
- * The exam row stays clean until the paper, items, and byte copies have been flushed.
+ * Freezes the next paper inside the caller's transaction. The caller already holds the exam row
+ * lock. Question rows use {@code findForUpdateById} in id order, then each question's figure rows
+ * are locked with {@code FOR UPDATE}. The exam row stays clean until the paper, items, and byte
+ * copies have been flushed.
  *
  * @author nghlong3004 (Long Nguyen Hoang)
  * @since 10/4/2026
@@ -62,24 +61,26 @@ public class ExamPublication {
   private final ExamPaperItemRepository examPaperItemRepository;
   private final ExamPaperFigureRepository examPaperFigureRepository;
   private final QuestionRepository questionRepository;
-  private final JdbcTemplate jdbcTemplate;
+  private final QuestionFigureRepository questionFigureRepository;
   private final Clock clock;
 
   public StaffExamSolutionResponse publish(Exam exam, PublishExamRequest request) {
     access.requireExpected(exam, request.expectedVersion());
     var snapshot = prepare(exam);
     var versionNumber = nextVersion(exam);
-    var paper = examPaperRepository.saveAndFlush(ExamPaper.builder()
-        .examId(exam.getId())
-        .versionNumber(versionNumber)
-        .title(snapshot.title())
-        .subjectId(exam.getSubjectId())
-        .instructions(snapshot.instructions())
-        .releaseAt(exam.getReleaseAt())
-        .publishedAt(OffsetDateTime.now(clock).truncatedTo(ChronoUnit.MICROS))
-        .totalPoints(snapshot.total())
-        .createdById(exam.getCreatedById())
-        .build());
+    var paper =
+        examPaperRepository.saveAndFlush(
+            ExamPaper.builder()
+                .examId(exam.getId())
+                .versionNumber(versionNumber)
+                .title(snapshot.title())
+                .subjectId(exam.getSubjectId())
+                .instructions(snapshot.instructions())
+                .releaseAt(exam.getReleaseAt())
+                .publishedAt(OffsetDateTime.now(clock).truncatedTo(ChronoUnit.MICROS))
+                .totalPoints(snapshot.total())
+                .createdById(exam.getCreatedById())
+                .build());
     // Child rows store the paper id directly, so the paper insert must flush first.
     saveItems(paper.getId(), snapshot.placements());
     saveFigures(paper.getId(), snapshot.figures());
@@ -88,7 +89,9 @@ public class ExamPublication {
     examRepository.saveAndFlush(exam);
     log.info(
         "Exam published: examId={}, paperId={}, versionNumber={}",
-        exam.getId(), paper.getId(), versionNumber);
+        exam.getId(),
+        paper.getId(),
+        versionNumber);
     return projections.solutionPaper(
         paper, examPaperItemRepository.findByPaperIdOrderByPositionAsc(paper.getId()));
   }
@@ -104,24 +107,27 @@ public class ExamPublication {
     var figures = new LinkedHashMap<UUID, FigureCopy>();
     var total = new BigDecimal("0.00");
     for (var item : items) {
-      var frozen = sourcePolicy.requirePublishablePlacement(
-          locked.get(item.getQuestionId()), exam.getSubjectId());
+      var frozen =
+          sourcePolicy.requirePublishablePlacement(
+              locked.get(item.getQuestionId()), exam.getSubjectId());
       var points = placementPolicy.requirePoints(item.getPoints());
-      var weights = placementPolicy.requireWeights(
-          frozen.content(), points, projections.weights(item.getPartPoints()));
+      var weights =
+          placementPolicy.requireWeights(
+              frozen.content(), points, projections.weights(item.getPartPoints()));
       var content = projections.copy(frozen.content());
       var answer = projections.copy(frozen.answer());
       var explanation = projections.copy(frozen.explanation());
       collect(frozen.figures(), content, explanation, figures);
-      placements.add(new FrozenPlacement(
-          frozen.questionId(),
-          item.getPosition(),
-          points,
-          projections.partPoints(weights),
-          placementPolicy.instructions(item.getInstructions()),
-          content,
-          answer,
-          explanation));
+      placements.add(
+          new FrozenPlacement(
+              frozen.questionId(),
+              item.getPosition(),
+              points,
+              projections.partPoints(weights),
+              placementPolicy.instructions(item.getInstructions()),
+              content,
+              answer,
+              explanation));
       total = total.add(points);
     }
     if (total.compareTo(MAX_TOTAL) > 0) {
@@ -143,22 +149,10 @@ public class ExamPublication {
       var question = questionRepository.findForUpdateById(id).orElse(null);
       locked.put(id, question);
       if (question != null) {
-        lockFigures(id);
+        questionFigureRepository.lockIdsByQuestionId(id);
       }
     }
     return locked;
-  }
-
-  private void lockFigures(UUID questionId) {
-    jdbcTemplate.query(
-        "select id from question_figures where question_id = ? order by id for update",
-        (ResultSetExtractor<Void>) result -> {
-          while (result.next()) {
-            result.getObject(1);
-          }
-          return null;
-        },
-        questionId);
   }
 
   private void collect(
@@ -186,17 +180,18 @@ public class ExamPublication {
   private void saveItems(UUID paperId, List<FrozenPlacement> placements) {
     var rows = new ArrayList<ExamPaperItem>(placements.size());
     for (var placement : placements) {
-      rows.add(ExamPaperItem.builder()
-          .paperId(paperId)
-          .position(placement.position())
-          .questionId(placement.questionId())
-          .points(placement.points())
-          .partPoints(placement.partPoints())
-          .instructions(placement.instructions())
-          .contentJson(placement.content())
-          .answerJson(placement.answer())
-          .explanationJson(placement.explanation())
-          .build());
+      rows.add(
+          ExamPaperItem.builder()
+              .paperId(paperId)
+              .position(placement.position())
+              .questionId(placement.questionId())
+              .points(placement.points())
+              .partPoints(placement.partPoints())
+              .instructions(placement.instructions())
+              .contentJson(placement.content())
+              .answerJson(placement.answer())
+              .explanationJson(placement.explanation())
+              .build());
     }
     examPaperItemRepository.saveAll(rows);
     examPaperItemRepository.flush();
@@ -209,16 +204,17 @@ public class ExamPublication {
     var rows = new ArrayList<ExamPaperFigure>(figures.size());
     for (var copy : figures.values()) {
       var bytes = requireCopy(copy.figure);
-      rows.add(ExamPaperFigure.builder()
-          .paperId(paperId)
-          .assetId(copy.figure.getId())
-          .questionId(copy.figure.getQuestionId())
-          .originalName(copy.figure.getOriginalName())
-          .contentType(copy.figure.getContentType())
-          .size(bytes.length)
-          .content(bytes)
-          .solutionOnly(copy.solutionOnly)
-          .build());
+      rows.add(
+          ExamPaperFigure.builder()
+              .paperId(paperId)
+              .assetId(copy.figure.getId())
+              .questionId(copy.figure.getQuestionId())
+              .originalName(copy.figure.getOriginalName())
+              .contentType(copy.figure.getContentType())
+              .size(bytes.length)
+              .content(bytes)
+              .solutionOnly(copy.solutionOnly)
+              .build());
     }
     examPaperFigureRepository.saveAll(rows);
     examPaperFigureRepository.flush();
@@ -232,7 +228,9 @@ public class ExamPublication {
     }
     var source = figure.getContent();
     var bytes = source == null ? new byte[0] : source.clone();
-    if (bytes.length == 0 || bytes.length > ExamLimits.MAX_FIGURE_BYTES || figure.getSize() != bytes.length) {
+    if (bytes.length == 0
+        || bytes.length > ExamLimits.MAX_FIGURE_BYTES
+        || figure.getSize() != bytes.length) {
       throw ErrorCode.FILE_TOO_LARGE.throwIt("Figure is empty, truncated, or too large");
     }
     return bytes;
@@ -270,8 +268,8 @@ public class ExamPublication {
       JsonNode explanation) {}
 
   /**
-   * One copied asset per paper. A duplicate placement that shows the asset in content
-   * clears solutionOnly; explanation-only references do not hide a visible copy.
+   * One copied asset per paper. A duplicate placement that shows the asset in content clears
+   * solutionOnly; explanation-only references do not hide a visible copy.
    */
   private static final class FigureCopy {
     private final QuestionFigure figure;
