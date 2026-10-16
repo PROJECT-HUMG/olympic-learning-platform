@@ -10,12 +10,12 @@ This API uses Spring Boot 4.0.7, Java 25, Maven, PostgreSQL/JPA, and Redis.
 
 ## Build, Test, and Development Commands
 
-Use `rtk`; run Maven commands from `apps/api` with Java 25.
+Run Maven commands from `apps/api` with Java 25. Run short commands directly; use `caveman tools shrink -- <command>` for verbose output and `caveman tools retrieve <handle>` for exact recovery. Do not stack compression; RTK is an optional fallback.
 
-- From repository root: `rtk proxy docker compose -f compose.dev.yml up -d` starts PostgreSQL, Redis, and Mailpit.
-- `rtk proxy ./mvnw spring-boot:run`: starts the API on port 8080.
-- `rtk proxy ./mvnw test`: runs tests.
-- `rtk proxy ./mvnw package`: tests and builds the executable JAR.
+- From repository root: `docker compose -f compose.dev.yml up -d` starts PostgreSQL, Redis, and Mailpit.
+- `./mvnw spring-boot:run`: starts the API on port 8080.
+- `./mvnw test`: runs tests.
+- `./mvnw package`: tests and builds the executable JAR.
 
 See [README.md](README.md) for environment setup.
 
@@ -27,7 +27,7 @@ Keep controllers thin; place business rules/transactions in the existing service
 
 ## Testing Guidelines
 
-Use JUnit Jupiter, Spring testing, Mockito and AssertJ as appropriate. Name classes `*Test.java` and methods after behavior. Run focused tests with `rtk proxy ./mvnw -Dtest=StudyRoomRulesTest test`. PostgreSQL Testcontainers tests require Docker; the [baseline test's disposable-local-PostgreSQL option](README.md#flyway-baseline) is a separate supported path. Skipped tests do not prove persistence. No numeric coverage gate is configured. Cover changed authorization, validation, concurrency and failure behavior; distinguish real DB/Redis/provider evidence from mocks. Do not test generated accessors or framework CRUD merely to add test count; repository integration checks are useful when proving actual constraints, queries or locking.
+Use JUnit Jupiter, Spring testing, Mockito and AssertJ as appropriate. Name classes `*Test.java` and methods after behavior. Run focused tests with `./mvnw -Dtest=StudyRoomRulesTest test`. PostgreSQL Testcontainers tests require Docker; the [baseline test's disposable-local-PostgreSQL option](README.md#flyway-baseline) is a separate supported path. Skipped tests do not prove persistence. No numeric coverage gate is configured. Cover changed authorization, validation, concurrency and failure behavior; distinguish real DB/Redis/provider evidence from mocks. Do not test generated accessors or framework CRUD merely to add test count; repository integration checks are useful when proving actual constraints, queries or locking.
 
 ## Commit & Pull Request Guidelines
 

@@ -14,11 +14,11 @@ alongside the shared contract; it does not replace role or safety authority.
 
 ## Build, Test, and Development Commands
 
-Prefix shell commands with `rtk`; use `rtk proxy` for unsupported commands.
+Run short commands directly. For verbose output use `caveman tools shrink -- <command>`; recover omitted output with `caveman tools retrieve <handle>` when exact verification is needed. Do not stack Caveman and RTK compression. RTK is an optional fallback; do not assume hooks compress commands automatically.
 
-- Root: `rtk proxy docker compose -f compose.dev.yml up -d` starts PostgreSQL, Redis, and Mailpit.
-- In `apps/api`: `rtk proxy ./mvnw spring-boot:run` starts the API; `rtk proxy ./mvnw test` runs tests; `rtk proxy ./mvnw package` tests and builds.
-- In `apps/web`: `rtk pnpm install --frozen-lockfile`, then `rtk pnpm dev` starts Vite. `rtk pnpm build` checks TypeScript and bundles; `rtk pnpm lint` runs Oxlint.
+- Root: `docker compose -f compose.dev.yml up -d` starts PostgreSQL, Redis, and Mailpit.
+- In `apps/api`: `./mvnw spring-boot:run` starts the API; `./mvnw test` runs tests; `./mvnw package` tests and builds.
+- In `apps/web`: `pnpm install --frozen-lockfile`, then `pnpm dev` starts Vite. `pnpm build` checks TypeScript and bundles; `pnpm lint` runs Oxlint.
 
 ## Coding Style & Naming Conventions
 
@@ -28,9 +28,9 @@ Keep API business rules in services and expose request/response DTOs. Web server
 
 ## Testing Guidelines
 
-API tests use JUnit Jupiter and Spring testing; name classes `*Test.java`. Testcontainers integration tests require Docker. Select tests with `rtk proxy ./mvnw -Dtest=StudyRoomRulesTest test`.
+API tests use JUnit Jupiter and Spring testing; name classes `*Test.java`. Testcontainers integration tests require Docker. Select tests with `./mvnw -Dtest=StudyRoomRulesTest test`.
 
-Web tests use Node's test runner: `rtk proxy node --test --test-isolation=none tests/*.test.ts` from `apps/web`. No numeric coverage gate is configured. Select meaningful checks for the changed behavior/risk, including authorization failures when affected; run web build/lint for web implementation changes and report skipped checks. Guidance-only edits need path/link/structure checks, not an unrelated application-suite rerun. The broader delivery checks live in `.github/workflows/delivery.yml`.
+Web tests use Node's test runner: `node --test --test-isolation=none tests/*.test.ts` from `apps/web`. No numeric coverage gate is configured. Select meaningful checks for the changed behavior/risk, including authorization failures when affected; run web build/lint for web implementation changes and report skipped checks. Guidance-only edits need path/link/structure checks, not an unrelated application-suite rerun. The broader delivery checks live in `.github/workflows/delivery.yml`.
 
 ## Commit & Pull Request Guidelines
 

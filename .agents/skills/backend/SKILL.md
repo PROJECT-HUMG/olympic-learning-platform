@@ -22,11 +22,11 @@ formatter reference is **1.37.0**; Maven currently has no formatter/checkstyle p
 so a successful Maven build does not establish formatting compliance.
 
 With JDK25 available and `GOOGLE_JAVA_FORMAT_JAR` pointing to a trusted local
-`google-java-format-1.37.0-all-deps.jar`, from the repository root:
+`google-java-format-1.37.0-all-deps.jar`, from the repository root (wrap verbose output with `caveman tools shrink --`; do not stack compression):
 
 ```bash
-rtk proxy java -jar "$GOOGLE_JAVA_FORMAT_JAR" --replace path/to/Changed.java
-rtk proxy java -jar "$GOOGLE_JAVA_FORMAT_JAR" --dry-run --set-exit-if-changed path/to/Changed.java
+java -jar "$GOOGLE_JAVA_FORMAT_JAR" --replace path/to/Changed.java
+java -jar "$GOOGLE_JAVA_FORMAT_JAR" --dry-run --set-exit-if-changed path/to/Changed.java
 ```
 
 For a legacy file, inspect the resulting diff and constrain formatting to the

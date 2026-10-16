@@ -11,16 +11,16 @@ This SPA uses React 19, TypeScript, Vite 8, and Tailwind CSS 4.
 
 ## Build, Test, and Development Commands
 
-Run from `apps/web` using Node.js 24 and pnpm10.17.0 (matching the workflow/Docker build); prefix commands with `rtk`. `package.json`/the lockfile own the installed library versions; do not infer them from old generated rules.
-If PATH selects another pnpm, use `rtk proxy corepack pnpm@10.17.0 <command>` rather than changing project dependencies to match the local tool.
+Run from `apps/web` using Node.js 24 and pnpm10.17.0 (matching the workflow/Docker build); run short commands directly and use `caveman tools shrink -- <command>` for verbose output. Recover omitted output with `caveman tools retrieve <handle>` for exact verification; do not stack compression. RTK is an optional fallback, and hooks do not imply automatic compression. `package.json`/the lockfile own the installed library versions; do not infer them from old generated rules.
+If PATH selects another pnpm, use `corepack pnpm@10.17.0 <command>` rather than changing project dependencies to match the local tool.
 
-- `rtk pnpm install --frozen-lockfile`: installs locked dependencies.
-- `rtk pnpm dev`: serves port 3000; proxies `/api` to port 8080.
-- `rtk pnpm build`: checks TypeScript and bundles production assets.
-- `rtk pnpm lint`: runs Oxlint with `.oxlintrc.json`.
-- `rtk pnpm preview`: serves the production build locally.
+- `pnpm install --frozen-lockfile`: installs locked dependencies.
+- `pnpm dev`: serves port 3000; proxies `/api` to port 8080.
+- `pnpm build`: checks TypeScript and bundles production assets.
+- `pnpm lint`: runs Oxlint with `.oxlintrc.json`.
+- `pnpm preview`: serves the production build locally.
 
-See [README.md](README.md) for setup; [browser checks](README.md#browser-checks) owns supported routed check names, shared options, isolation/cleanup and legacy boundaries. Use `rtk pnpm check:browser --list` rather than guessing runner setup.
+See [README.md](README.md) for setup; [browser checks](README.md#browser-checks) owns supported routed check names, shared options, isolation/cleanup and legacy boundaries. Use `pnpm check:browser --list` rather than guessing runner setup.
 
 ## Coding Style & Naming Conventions
 
@@ -32,7 +32,7 @@ Reuse shared form/field/action owners and RHF/Zod where they fit the flow; nativ
 
 ## Testing Guidelines
 
-Use Node's test runner; name regressions `tests/*.test.ts`. Run `rtk proxy node --test --test-isolation=none tests/*.test.ts`, or a focused existing test for a bounded change. No numeric coverage gate is configured. Run build/lint for frontend implementation changes; inspect representative routed light/dark, responsive, keyboard/focus and relevant reduced-motion behavior for UI edits. A fixture component is not the actual routed page/shell. Report skipped checks; mocked browser APIs do not prove backend authorization/persistence.
+Use Node's test runner; name regressions `tests/*.test.ts`. Run `node --test --test-isolation=none tests/*.test.ts`, or a focused existing test for a bounded change. No numeric coverage gate is configured. Run build/lint for frontend implementation changes; inspect representative routed light/dark, responsive, keyboard/focus and relevant reduced-motion behavior for UI edits. A fixture component is not the actual routed page/shell. Report skipped checks; mocked browser APIs do not prove backend authorization/persistence.
 
 ## Commit & Pull Request Guidelines
 
