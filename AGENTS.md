@@ -14,7 +14,7 @@ alongside the shared contract; it does not replace role or safety authority.
 
 ## Build, Test, and Development Commands
 
-Run short commands directly. For verbose output use `caveman tools shrink -- <command>`; recover omitted output with `caveman tools retrieve <handle>` when exact verification is needed. Do not stack Caveman and RTK compression. RTK is an optional fallback; do not assume hooks compress commands automatically.
+Use RTK’s fitting filters for supported shell commands and `caveman tools shrink -- <command>` for other verbose output. Run short commands directly. Never stack compression; recover omitted output using the respective tool’s recovery handle when exact verification is needed. `rtk proxy` is passthrough, not additional compression. Do not assume hooks compress commands automatically.
 
 - Root: `docker compose -f compose.dev.yml up -d` starts PostgreSQL, Redis, and Mailpit.
 - In `apps/api`: `./mvnw spring-boot:run` starts the API; `./mvnw test` runs tests; `./mvnw package` tests and builds.

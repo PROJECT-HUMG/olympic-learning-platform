@@ -26,7 +26,7 @@ docker compose -f compose.dev.yml up -d
 cd apps/api && ./mvnw spring-boot:run
 
 # Terminal 2
-cd apps/web && pnpm install --frozen-lockfile && pnpm dev
+cd apps/web && corepack install && corepack pnpm install --frozen-lockfile && corepack pnpm dev
 ```
 
 Web chạy tại `http://localhost:3000`, API tại `http://localhost:8080`. Vite proxy `/api` sang API. Cấu hình chạy riêng và các lệnh kiểm tra nằm trong [README API](apps/api/README.md) và [README web](apps/web/README.md).

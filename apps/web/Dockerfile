@@ -2,15 +2,15 @@
 
 FROM node:24-alpine AS build
 
-RUN corepack enable && \
-    corepack prepare pnpm@10.17.0 --activate
-
 WORKDIR /workspace
+
+RUN corepack enable
 
 COPY package.json pnpm-lock.yaml ./
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile
+    corepack install && \
+    pnpm install --frozen-lockfile --store-dir=/pnpm/store
 
 COPY . .
 

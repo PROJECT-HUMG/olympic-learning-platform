@@ -4,12 +4,15 @@ React19/TypeScript/Vite8/Tailwind4 SPA. [Named features](../../docs/README.md#fe
 
 ## Local setup
 
-Use Node24 and pnpm; from `apps/web`:
+Use Node24 and pnpm12.4.2, pinned by `package.json#packageManager` for local, CI and Docker builds. From `apps/web`:
 
 ```bash
+corepack install
 pnpm install --frozen-lockfile
 pnpm dev
 ```
+
+pnpm12 retains the v9 application lock payload and adds a separate document that locks the native package-manager binaries. Commit the complete lockfile; older pnpm versions are not the supported installer. The default strict dependency-build policy stays enabled: the current locked graph has no dependency install hooks. Review any future hook and approve only its responsible package; do not use `--ignore-scripts` or allow-all settings to hide an install failure. [pnpm installation](https://pnpm.io/installation) and [build security](https://pnpm.io/settings/build#strictdepbuilds) describe these behaviors.
 
 Open `http://localhost:3000`. Vite proxies `/api` to API8080; run the backend separately for real requests. Shared Axios uses `VITE_API_BASE_URL`, default `http://localhost:8080/api/v1`; Docker builds with `/api/v1` and Nginx proxying. Vite values are embedded at build time: never put secrets in `VITE_*`.
 
@@ -44,7 +47,7 @@ Current [Daily checks and disposable persistence harness](../../docs/architectur
 
 `pnpm check:browser daily --no-sandbox --timeout-ms=120000` checks the routed Daily journal, dated audience picker and group readers with synthetic APIs. It shares the options/cleanup below; no email/provider/live API is used. Older Daily UX runners retain pre-redesign modal/ongoing-sharing assumptions.
 
-From `apps/web`, Node24 and installed Chromium are sufficient; no Playwright package, browser download or running dev/API server is required. If PATH selects a different pnpm, use `corepack pnpm@10.17.0` in place of `rtk pnpm`.
+From `apps/web`, Node24 and installed Chromium are sufficient; no Playwright package, browser download or running dev/API server is required. If PATH selects a different pnpm, use `corepack pnpm <command>` from this directory; it reads the project pin without changing the global pnpm version.
 
 ```bash
 pnpm check:browser --list

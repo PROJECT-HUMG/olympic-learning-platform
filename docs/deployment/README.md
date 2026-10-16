@@ -295,7 +295,7 @@ These are operator inputs, not actions performed by this change.
 [Delivery](../../.github/workflows/delivery.yml) runs checks on pull requests and
 pushes to `main` or `deploy`. **Only `push` + `refs/heads/deploy` deploys**, after
 checks pass. There is no manual dispatch or alternate branch/ref input. Failed
-checks never SSH. Checks use Node24/pnpm10.17.0 lint/tests/build and Java25 Maven
+checks never SSH. Checks use Node24/pnpm12.4.2 lint/tests/build and Java25 Maven
 verify with PostgreSQL Testcontainers/report gate; skipped/missing API tests refuse
 delivery. Permissions remain contents:read, with production secrets only in the
 deploy job. Environment approval, if configured, remains enforced.
@@ -332,8 +332,7 @@ LTS through 2028-04-30 (maintenance begins 2026-10-20). Node26 is Current on thi
 review date, 2026-10-15, with LTS scheduled for 2026-10-28. Node24 is the supported
 LTS choice, without a needless build-major migration.
 [locked Vite8.1.5](https://registry.npmjs.org/vite/8.1.5) and plugin-react6.0.3 require
-`^20.19.0 || >=22.12.0`; [pnpm10.17.0](https://registry.npmjs.org/pnpm/10.17.0)
-requires `>=18.12`. Meeting an engine range does not make EOL Node20 maintained.
+`^20.19.0 || >=22.12.0`; [pnpm12.4.2](https://registry.npmjs.org/pnpm/12.4.2) is a native executable; its [installation guide](https://pnpm.io/installation) supports Node24 and Linux glibc/musl builds. npm-based installation needs Node22.13+, satisfied by Node24. Meeting an engine range does not make EOL Node20 maintained.
 
 The old action pins declared their **own** bundled `node20` runtime; that was
 separate from `setup-node: 24` and never the application runtime. The retained
@@ -341,10 +340,9 @@ SHA-pinned checkout5/setup-node5/setup-java5 and upload-artifact6 declare `node2
 in their upstream action metadata. Artifact5 still declared node20, hence6.
 Node24 actions require a runner at least2.327.1; ubuntu-24.04 GitHub-hosted runners
 supply it. Actual runner overrides of old action runtimes were not observed.
-The separate pnpm setup action is removed: Corepack prepares the same pinned
-pnpm10.17.0 as Docker, reducing an extra action/runtime owner. Its pnpm cache setup
+The separate pnpm setup action is removed: Corepack reads the same `apps/web/package.json#packageManager` pin (pnpm12.4.2) in CI and Docker, reducing an extra action/runtime owner. Its pnpm cache setup
 is removed too; this may make CI installs slower, without changing the lockfile
-or app dependencies. Maven cache/test report artifacts remain. No Node process is
+or app dependencies. Maven cache/test report artifacts remain. The complete multi-document pnpm lockfile includes native package-manager integrity metadata and unchanged application resolutions. Frozen installs retain pnpm12’s strict unreviewed-build policy; do not bypass it with ignore-scripts/allow-all flags. The Docker cache mount is the explicit pnpm store. No Node process is
 shipped in the Nginx final image and no host Node upgrade is prescribed.
 
 ### 7. First deployment, diagnostics and ongoing protection

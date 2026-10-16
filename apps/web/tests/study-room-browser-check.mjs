@@ -122,7 +122,7 @@ try {
  checks.push('Observed changing normal-motion rope path and immediate static reduced-motion fallback');
  for(const width of [320,768])for(const dark of [false,true]){await resize(width);await theme(dark);await shot(`narrow-${width}-${dark?'dark':'light'}`);if(width===320)assert.ok(await js('document.querySelector(".room-light-switch").getBoundingClientRect().bottom <= document.querySelector(".study-room-clock__time").getBoundingClientRect().top'),'Lamp controls do not overlap the narrow clock');}
  await resize(390);await theme(false);await shot('team-390-light','.room-team');await shot('music-and-queue-390-light','.room-music-card');
- 
+
  reset('member');await nav();await wait('document.querySelector(".room-team")');assert.equal(await hasLabel('Quản lý phòng'),false);assert.equal(await js('[...document.querySelectorAll("button")].some(b=>b.textContent.includes("Chỉnh giờ")||b.textContent.includes("Đổi bài tiếp"))'),false);
  await shot('member-1280-light');await click('Bật nhạc');await wait('window.roomPlayers.some(p=>!p.destroyed)');
  fail=true;await js('document.dispatchEvent(new Event("visibilitychange"))');await wait('document.querySelector(".study-room-feedback")');await shot('reconnect-failure-1280-light');fail=false;await click('Kết nối lại');await wait('!document.querySelector(".study-room-feedback")');
@@ -134,7 +134,7 @@ try {
  await click('Đóng phòng học');await wait('document.querySelector(".study-room-feedback")?.textContent.includes("Buổi học đã kết thúc")');await wait('window.roomPlayers.every(p=>p.destroyed)');await shot('closed-1280-light');
  const heartbeatCount=requests.filter(r=>r.path.endsWith('/heartbeat')).length;await delay(5500);assert.equal(requests.filter(r=>r.path.endsWith('/heartbeat')).length,heartbeatCount,'Closure stops polling');
  checks.push('Host close confirmation; closure tears down player and stops heartbeat polling');
- 
+
  }
  assert.deepEqual(errors,[]);await writeFile(join(dir,'results.json'),JSON.stringify({scope:'routed room behavior',checks,screenshots,requests,errors},null,2));console.log(JSON.stringify({dir,checks,screenshots:screenshots.length}));
 }catch(error){await writeFile(join(dir,'failure.json'),JSON.stringify({checks,requests,screenshots,error:error.stack},null,2));throw error;}finally{releaseJoin?.();await session?.cleanup();}

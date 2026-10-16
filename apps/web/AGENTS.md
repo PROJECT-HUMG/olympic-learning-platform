@@ -11,8 +11,8 @@ This SPA uses React 19, TypeScript, Vite 8, and Tailwind CSS 4.
 
 ## Build, Test, and Development Commands
 
-Run from `apps/web` using Node.js 24 and pnpm10.17.0 (matching the workflow/Docker build); run short commands directly and use `caveman tools shrink -- <command>` for verbose output. Recover omitted output with `caveman tools retrieve <handle>` for exact verification; do not stack compression. RTK is an optional fallback, and hooks do not imply automatic compression. `package.json`/the lockfile own the installed library versions; do not infer them from old generated rules.
-If PATH selects another pnpm, use `corepack pnpm@10.17.0 <command>` rather than changing project dependencies to match the local tool.
+Run from `apps/web` using Node.js 24 and pnpm12.4.2 (pinned by `package.json#packageManager`, matching CI/Docker); use RTK’s fitting filters for supported commands, Caveman (`caveman tools shrink -- <command>`) for other verbose output, and short commands directly. Never stack compression; recover omitted output using the respective tool’s handle. Hooks do not imply automatic compression. `package.json`/the lockfile own the installed library versions; do not infer them from old generated rules.
+If PATH selects another pnpm, use `corepack pnpm <command>` from `apps/web` rather than changing project dependencies to match the local tool.
 
 - `pnpm install --frozen-lockfile`: installs locked dependencies.
 - `pnpm dev`: serves port 3000; proxies `/api` to port 8080.

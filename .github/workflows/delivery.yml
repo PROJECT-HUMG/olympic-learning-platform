@@ -19,10 +19,11 @@ jobs:
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5, Node 24 action runtime
         with:
           node-version: "24"
-      - name: Use the same pnpm as the server Docker build
+      - name: Use the project-pinned pnpm (same as the server Docker build)
+        working-directory: apps/web
         run: |
           corepack enable
-          corepack prepare pnpm@10.17.0 --activate
+          corepack install
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5, Node 24 action runtime
         with:
           distribution: temurin
