@@ -43,7 +43,7 @@ source without copying `target`.
 [FlywayBaselineIntegrationTest](src/test/java/me/nghlong3004/olympic/common/FlywayBaselineIntegrationTest.java) migrates a disposable PostgreSQL schema, validates
 all JPA entities, checks final defaults/constraints/frozen exams, reopens without
 reapplying and refuses nonempty/legacy-history schemas. Default execution uses
-Testcontainers. For an explicitly disposable local PostgreSQL, pass
+Testcontainers; includes V2→V3 legacy-preservation/replay proof. For an explicitly disposable local PostgreSQL, pass
 `-DmigrationTest.jdbcUrl=jdbc:postgresql://127.0.0.1:PORT/postgres` and
 `-DmigrationTest.user=USER`; only its randomly named test schemas are created/dropped.
 
@@ -68,7 +68,7 @@ Phòng học chung dùng `/api/v1/study-rooms`, yêu cầu JWT và tài khoản 
 
 ## Dated Daily sharing
 
-V2 adds `daily_entry_viewers`; apply V1 + V2 on a fresh install. No old ongoing-sharing preference is backfilled. `GET/PUT /api/v1/daily/plans/{planId}/sharing` is owner-only. PUT accepts `{expectedVersion, audiences:[{groupId,viewerIds}]}`; an empty audience revokes. Members are selected explicitly, validated while group locks precede the plan lock, and persisted with the plan version in one JPA transaction. Saving/Submit grants no access. Day readers, evidence and feedback recheck the date, active accounts and membership; other dates and private weekly material remain unavailable. Leaving removes the relevant grants. The retired group-wide sharing endpoint rejects mutation.
+V2 adds `daily_entry_viewers`; fresh installs apply V1–V3 (V3 is Recognition score history). No old ongoing-sharing preference is backfilled. `GET/PUT /api/v1/daily/plans/{planId}/sharing` is owner-only. PUT accepts `{expectedVersion, audiences:[{groupId,viewerIds}]}`; an empty audience revokes. Members are selected explicitly, validated while group locks precede the plan lock, and persisted with the plan version in one JPA transaction. Saving/Submit grants no access. Day readers, evidence and feedback recheck the date, active accounts and membership; other dates and private weekly material remain unavailable. Leaving removes the relevant grants. The retired group-wide sharing endpoint rejects mutation.
 
 `DailyGroupMvpIntegrationTest` supports Docker by default or an explicitly disposable loopback PostgreSQL via `-DdailyTest.jdbcUrl=jdbc:postgresql://127.0.0.1:PORT/postgres`; it creates/drops only a random `daily_test_*` schema. This tests real persistence, date/audience/rejoin isolation, stale updates, feedback/evidence and concurrency, not deployed/provider behavior.
 
@@ -92,13 +92,15 @@ Focused local verification (Docker is required for disposable PostgreSQL; skippe
 
 ## Vinh danh và thành tích học thuật
 
+V3 appends `recognition_score_events` without backfilling unknown legacy timing. Ranking uses unique sequential ranks, latest attainment of the current total, known timing before unknown at equal points, then UUID as a technical fallback. Score-changing reviews lock student → achievement and append the event in the same transaction; approved records remain the source of totals. Drain old writers before enabling this ordering; see the [ordering/rollout contract](../../docs/architecture/recognition.md#ranking-order-and-score-change-history).
+
 Module recognition tách bài vinh danh công khai/bản nháp khỏi hồ sơ thành tích có minh chứng riêng tư. Điểm chỉ đến từ hồ sơ Olympic/NCKH đã được admin duyệt; tổng mọi năm/theo năm không áp dụng trần hoặc chỉ lấy giải cao nhất, và cộng điểm tham gia khi nhóm có quy tắc. Chủ tài khoản tự bật xếp hạng và chọn hiển thị từng hồ sơ. Baseline Flyway V1 tạo các bảng tương ứng; cập nhật cùng web, không cần biến môi trường mới. Minh chứng lưu trong PostgreSQL, tối đa 3 file × 5 MB; request cần cho phép đủ 15 MB dữ liệu cùng metadata. Xem [contract, quyền riêng tư và kiểm tra](../../docs/architecture/recognition.md).
 
 ```bash
 ./mvnw -Dtest=RecognitionPointsPolicyTest,RecognitionIntegrationTest,RecognitionControllerTest test
 ```
 
-Integration test cần Docker/PostgreSQL Testcontainers; nếu bị bỏ qua thì chưa xác nhận migration và xử lý đồng thời. Quốc tế chưa có mức điểm, nhóm ngoài học thuật chưa triển khai.
+Integration test mặc định dùng Docker/PostgreSQL Testcontainers; có thể truyền `-DrecognitionTest.jdbcUrl=jdbc:postgresql://127.0.0.1:PORT/postgres` cho PostgreSQL dùng riêng để kiểm tra (chỉ tạo/xóa schema ngẫu nhiên của test). Nếu test bị bỏ qua thì chưa xác nhận migration và xử lý đồng thời. Quốc tế chưa có mức điểm, nhóm ngoài học thuật chưa triển khai.
 
 ## OTP đăng ký
 

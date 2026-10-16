@@ -99,6 +99,9 @@
 @media (max-width: 399px) {
   .home-study-notebook .study-notebook__tabs [role="tab"] > svg { display: none; }
 }
+@media (max-width: 359px) {
+  .home-hero h1 { font-size: 1.4375rem; }
+}
 
 /* Decorative theme-selected scene; search stays the primary interaction. */
 .home-hero__window { position: relative; min-width: 0; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--surface-border); border-radius: var(--radius-lg); background: var(--muted); box-shadow: var(--surface-shadow); }

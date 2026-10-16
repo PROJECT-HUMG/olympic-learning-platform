@@ -7,8 +7,8 @@ React19/TypeScript/Vite8/Tailwind4 SPA. [Named features](../../docs/README.md#fe
 Use Node24 and pnpm; from `apps/web`:
 
 ```bash
-rtk pnpm install --frozen-lockfile
-rtk pnpm dev
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
 Open `http://localhost:3000`. Vite proxies `/api` to API8080; run the backend separately for real requests. Shared Axios uses `VITE_API_BASE_URL`, default `http://localhost:8080/api/v1`; Docker builds with `/api/v1` and Nginx proxying. Vite values are embedded at build time: never put secrets in `VITE_*`.
@@ -30,10 +30,10 @@ Use existing owners; preserve data/privacy, dirty/busy/focus, URL state, mobile/
 ## Checks
 
 ```bash
-rtk pnpm build
-rtk pnpm lint
-rtk proxy node --test --test-isolation=none tests/*.test.ts
-rtk pnpm preview
+pnpm build
+pnpm lint
+node --test --test-isolation=none tests/*.test.ts
+pnpm preview
 ```
 
 Build includes TypeScript and production bundling; report inherited warnings/skipped checks. Choose focused checks from [the feature lookup](../../docs/README.md#feature-lookup). Use the [browser entry point below](#browser-checks) for the migrated routed checks; other runners retain their own setup.
@@ -42,19 +42,20 @@ Current [Daily checks and disposable persistence harness](../../docs/architectur
 
 ## Browser checks
 
-`rtk pnpm check:browser daily --no-sandbox --timeout-ms=120000` checks the routed Daily journal, dated audience picker and group readers with synthetic APIs. It shares the options/cleanup below; no email/provider/live API is used. Older Daily UX runners retain pre-redesign modal/ongoing-sharing assumptions.
+`pnpm check:browser daily --no-sandbox --timeout-ms=120000` checks the routed Daily journal, dated audience picker and group readers with synthetic APIs. It shares the options/cleanup below; no email/provider/live API is used. Older Daily UX runners retain pre-redesign modal/ongoing-sharing assumptions.
 
-From `apps/web`, Node24 and installed Chromium are sufficient; no Playwright package, browser download or running dev/API server is required. If PATH selects a different pnpm, use `rtk proxy corepack pnpm@10.17.0` in place of `rtk pnpm`.
+From `apps/web`, Node24 and installed Chromium are sufficient; no Playwright package, browser download or running dev/API server is required. If PATH selects a different pnpm, use `corepack pnpm@10.17.0` in place of `rtk pnpm`.
 
 ```bash
-rtk pnpm check:browser --list
-rtk pnpm check:browser journeys
-rtk pnpm check:browser otp --help
-rtk pnpm check:browser otp
-rtk pnpm check:browser auth --section=recovery
-rtk pnpm check:browser media --evidence-only
-rtk pnpm check:browser home --timeout-ms=120000
-rtk proxy node --test tests/browser/session.test.mjs
+pnpm check:browser --list
+pnpm check:browser journeys
+pnpm check:browser otp --help
+pnpm check:browser otp
+pnpm check:browser auth --section=recovery
+pnpm check:browser media --evidence-only
+pnpm check:browser recognition
+pnpm check:browser home --timeout-ms=120000
+node --test tests/browser/session.test.mjs
 ```
 
 [The small check catalog](tests/browser/checks.mjs) owns names, options and discovery; [session.mjs](tests/browser/session.mjs) owns isolated Vite/Chromium/CDP lifecycle. Existing runner files also accept the same options when invoked directly. Fixtures, requests, route interactions, screenshots and assertions stay in their feature runner.
@@ -66,6 +67,7 @@ rtk proxy node --test tests/browser/session.test.mjs
 | `auth` | `--section=forms` (default), `recovery`, `reset`, `lifecycle`, `status-visuals`, `loading` or `turnstile`; `--forgot-only` bounds only the Turnstile section |
 | `home` | `--before` reads the historical hero; current scope includes frame samples, motion clips, search and local original MP4 playback |
 | `media` | `--evidence-only` omits album checks; `--before` is historical album comparison |
+| `recognition` | Public Honors/list/detail, Rankings, profile returns and failure/retry; `--visual-only` or `--interactions-only` bounds the scope; `--before` compares these layouts with the current Git HEAD |
 
 All supported checks accept `--browser <executable>`, `--output <NEW directory>`, `--timeout-ms <100..300000>` (default30000 per Chromium startup/CDP call, not a whole-suite deadline), and `--no-sandbox`. Browser discovery reuses PATH Chromium/Chrome or an already installed Linux Playwright Chromium cache; an explicit executable overrides discovery. Sandbox remains enabled by default; use `--no-sandbox` only if the trusted local environment cannot support it. Nothing installs a browser. Unknown options, sections and conflicting scope flags fail rather than silently run the wrong check. Cold routed compilation and Home clip encoding can need the longer timeout on a busy host; clips replay measured frame timing.
 

@@ -1,29 +1,20 @@
-/* A directory with aligned data, not a stack of promotional cards. */
+/* One square-cornered horizontal score card per person; names may wrap. */
 .ranking-presentation {
   min-width: 0;
   color: var(--foreground);
-  border-block: 1px solid var(--border);
-  background: var(--card);
 }
-.ranking-presentation__columns,
 .ranking-presentation__row {
   display: grid;
-  grid-template-columns: 2.5rem minmax(0, 1fr) minmax(3rem, max-content);
-  column-gap: 1rem;
+  grid-template-columns: 2rem minmax(0, 1fr) minmax(3rem, max-content);
+  column-gap: .75rem;
   align-items: center;
-  padding-inline: 1rem;
+  padding: 1rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--card);
 }
-.ranking-presentation__columns {
-  min-height: 2.5rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--muted);
-  color: var(--muted-foreground);
-  font-size: .75rem;
-}
-.ranking-presentation__columns > :last-child { text-align: right; }
-.ranking-presentation__list { margin: 0; padding: 0; list-style: none; }
-.ranking-presentation__row { min-width: 0; padding-block: .5rem; border-bottom: 1px solid var(--border); }
-.ranking-presentation__row:last-child { border-bottom: 0; }
+.ranking-presentation__list { display: grid; gap: .75rem; margin: 0; padding: 0; list-style: none; }
+.ranking-presentation__row { min-width: 0; }
 .ranking-presentation__rank {
   align-self: start;
   display: flex;
@@ -56,7 +47,7 @@
   overflow-wrap: anywhere;
 }
 .ranking-presentation .user-identity__affordance { margin-top: .25rem; width: .875rem; height: .875rem; opacity: .65; }
-.ranking-presentation__count { margin: 0 0 0 2.75rem; color: var(--muted-foreground); font-size: .75rem; line-height: 1.5; overflow-wrap: anywhere; }
+.ranking-presentation__count, .ranking-presentation__timing { margin: 0 0 0 2.75rem; color: var(--muted-foreground); font-size: .75rem; line-height: 1.5; overflow-wrap: anywhere; }
 .ranking-presentation__points {
   display: grid;
   align-self: start;
@@ -72,14 +63,27 @@
 .ranking-toolbar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: .75rem 1.5rem; }
 .ranking-toolbar .recognition-field { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: .75rem; width: min(100%, 24rem); }
 .ranking-toolbar__context { margin: 0; padding-bottom: .625rem; color: var(--muted-foreground); font-size: .8125rem; }
-.recognition-page--rankings > .recognition-hint { max-width: 70ch; font-size: .8125rem; line-height: 1.6; }
+.ranking-results { display: grid; gap: 1rem; }
+.ranking-privacy-note { margin: -.25rem 0 0; max-width: 65ch; color: var(--muted-foreground); font-size: .8125rem; line-height: 1.7; }
 @media (max-width: 600px) {
-  .ranking-presentation__columns,
-  .ranking-presentation__row { grid-template-columns: 2rem minmax(0, 1fr) minmax(2.5rem, max-content); gap: .5rem; padding-inline: .5rem; }
+  .ranking-presentation__row { grid-template-columns: 1.5rem minmax(0, 1fr) minmax(2.5rem, max-content); gap: .5rem; padding: .875rem 1rem; }
   .ranking-presentation .user-avatar { width: 1.75rem; height: 1.75rem; font-size: .6875rem; }
   .ranking-presentation a.user-identity .user-identity__name,
   .ranking-presentation .user-identity__name { font-size: .875rem; }
-  .ranking-presentation__count { margin-left: 2.5rem; }
+  .ranking-presentation__count, .ranking-presentation__timing { margin-left: 2.5rem; }
   .ranking-toolbar .recognition-field { width: 100%; }
   .ranking-toolbar__context { padding-bottom: 0; }
+}
+
+.ranking-presentation__row[data-score-tone="blue"] .user-identity__name { color: #1e40af; }
+.ranking-presentation__row[data-score-tone="teal"] .user-identity__name { color: #0f766e; }
+.dark .ranking-presentation__row[data-score-tone="blue"] .user-identity__name { color: #93c5fd; }
+.dark .ranking-presentation__row[data-score-tone="teal"] .user-identity__name { color: #5eead4; }
+.ranking-order-note, .ranking-order-details { color: var(--muted-foreground); font-size: .8125rem; line-height: 1.7; }
+.ranking-order-details summary { min-height: 44px; display: list-item; cursor: pointer; }
+.ranking-order-details p + p { margin-top: .75rem; }
+.ranking-order-details summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+@media (max-width: 359px) {
+  .ranking-presentation .user-avatar { display: none; }
+  .ranking-presentation__count, .ranking-presentation__timing { margin-left: .25rem; }
 }

@@ -10,8 +10,8 @@ import { publicProfilePath } from "../lib/public-identity";
 import type { PublicUserIdentity } from "../types/user.types";
 import "./public-profile.css";
 
-export function UserIdentity({ user, from }: {
-  user: PublicUserIdentity; from?: string;
+export function UserIdentity({ user, from, showAffordance = true }: {
+  user: PublicUserIdentity; from?: string; showAffordance?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
@@ -22,7 +22,7 @@ export function UserIdentity({ user, from }: {
   if (user.profileAvailable === false || !hasUuidFormat(user.id)) return <span className="user-identity">{content}</span>;
   return <HoverCard open={open} onOpenChange={setOpen} openDelay={250} closeDelay={150}>
     <HoverCardTrigger asChild><Link className="user-identity" to={publicProfilePath(user.id)}
-      onClick={event => event.stopPropagation()} state={{ from: from ?? location.pathname + location.search }} aria-label={`Xem hồ sơ ${name}`}>{content}<ChevronRight className="user-identity__affordance" aria-hidden="true" /></Link></HoverCardTrigger>
+      onClick={event => event.stopPropagation()} state={{ from: from ?? location.pathname + location.search }} aria-label={`Xem hồ sơ ${name}`}>{content}{showAffordance && <ChevronRight className="user-identity__affordance" aria-hidden="true" />}</Link></HoverCardTrigger>
     <HoverCardContent className="identity-preview" align="start" collisionPadding={12}>
       {profile.isPending || profile.isFetching ? <p role="status">Đang tải hồ sơ…</p>
         : profile.isError ? <div role="alert"><p>Chưa tải được hồ sơ. Vui lòng thử lại.</p><Button variant="outline" size="sm" loading={profile.isFetching} onClick={() => void profile.refetch()}>Thử lại</Button></div>

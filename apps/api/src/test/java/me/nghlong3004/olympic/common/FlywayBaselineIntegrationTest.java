@@ -61,7 +61,7 @@ class FlywayBaselineIntegrationTest {
     dataSource.setConnectionProperties(properties);
     jdbc = new JdbcTemplate(dataSource);
     flyway = Flyway.configure().dataSource(dataSource).defaultSchema(schema).load();
-    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(2);
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(3);
   }
 
   @AfterAll
@@ -72,6 +72,61 @@ class FlywayBaselineIntegrationTest {
     }
     if (postgres != null) {
       postgres.stop();
+    }
+  }
+
+  @Test
+  void scoreHistoryUpgradeDoesNotInventLegacyAttainmentOrChangePoints() {
+    var upgradeSchema = "score_upgrade_test_" + UUID.randomUUID().toString().replace("-", "");
+    admin.execute("CREATE SCHEMA " + upgradeSchema);
+    try {
+      var upgradeSource =
+          new DriverManagerDataSource(
+              dataSource.getUrl(), dataSource.getUsername(), dataSource.getPassword());
+      var properties = new Properties();
+      properties.setProperty("currentSchema", upgradeSchema);
+      upgradeSource.setConnectionProperties(properties);
+      Flyway.configure()
+          .dataSource(upgradeSource)
+          .defaultSchema(upgradeSchema)
+          .target("2")
+          .load()
+          .migrate();
+      var old = new JdbcTemplate(upgradeSource);
+      var userId = UUID.randomUUID();
+      var achievementId = UUID.randomUUID();
+      old.update(
+          "INSERT INTO users(id,email,username,full_name,role,status) VALUES"
+              + " (?,?,?,'Legacy','STUDENT','ACTIVE')",
+          userId,
+          userId + "@test.invalid",
+          userId.toString());
+      old.update(
+          """
+          INSERT INTO recognition_achievements(id,user_id,title,category,award,include_participation,
+            achieved_date,public_visible,status,award_points,participation_points,submitted_by,
+            reviewed_at,created_at,updated_at)
+          VALUES (?,?,'Legacy result','OLYMPIC_NATIONAL','FIRST',true,'2025-01-01',false,
+            'APPROVED',10,6,?,'2025-02-01T00:00:00Z',now(),now())
+          """,
+          achievementId,
+          userId,
+          userId);
+      var upgrade =
+          Flyway.configure().dataSource(upgradeSource).defaultSchema(upgradeSchema).load();
+      assertThat(upgrade.migrate().migrationsExecuted).isEqualTo(1);
+      assertThat(old.queryForObject("SELECT count(*) FROM recognition_score_events", Long.class))
+          .isZero();
+      assertThat(
+              old.queryForObject(
+                  "SELECT award_points + participation_points FROM recognition_achievements WHERE"
+                      + " id=? AND status='APPROVED' AND NOT public_visible",
+                  Integer.class,
+                  achievementId))
+          .isEqualTo(16);
+      assertThat(upgrade.migrate().migrationsExecuted).isZero();
+    } finally {
+      admin.execute("DROP SCHEMA " + upgradeSchema + " CASCADE");
     }
   }
 
@@ -90,11 +145,11 @@ class FlywayBaselineIntegrationTest {
     }
     flyway.validate();
     assertThat(flyway.migrate().migrationsExecuted).isZero();
-    assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("2");
+    assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("3");
     assertThat(
             jdbc.queryForObject(
                 "SELECT count(*) FROM flyway_schema_history WHERE success", Integer.class))
-        .isEqualTo(2);
+        .isEqualTo(3);
   }
 
   @Test

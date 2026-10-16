@@ -6,22 +6,8 @@
 .recognition-checkbox input:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }
 .recognition-hint,.recognition-field .recognition-hint { color:var(--muted-foreground); font-size:13px; line-height:1.7; overflow-wrap:anywhere; }
 .recognition-feedback { padding:32px 0; display:flex; flex-direction:column; align-items:start; gap:16px; color:var(--muted-foreground); }
-.recognition-gallery { display:grid; grid-template-columns:minmax(0,1fr); align-items:start; gap:1.25rem; }
-.recognition-memory { width:100%; max-width:42rem; min-width:0; overflow:hidden; display:grid; grid-template-columns:9rem minmax(0,1fr); align-items:start; gap:1rem; padding:1.25rem; }
-.recognition-memory__body { display:contents; }
-.recognition-memory__body > :not(.recognition-memory__heading) { grid-column:1 / -1; }
-.recognition-memory__footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem 1rem; min-width:0; }
-.recognition-memory__footer > p { flex:1 1 10rem; }
-@media(min-width:1100px) { .recognition-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); } .recognition-memory { max-width:none; } }
-.recognition-memory__body .recognition-participants { width:100%; border-top:1px solid var(--border); padding-top:12px; }
-.recognition-memory__body .recognition-participants li { gap:4px 12px; padding:6px 0; }
-.recognition-memory__body .recognition-participants a { font-weight:600; }
-.recognition-memory__action { margin-inline-start:auto; flex-shrink:0; }
-.recognition-memory__photo { display:block; aspect-ratio:16/10; overflow:hidden; background:var(--muted); }
-.recognition-memory__photo img,.recognition-photo img { width:100%; height:100%; object-fit:cover; }
+.recognition-photo img { width:100%; height:100%; object-fit:cover; }
 .recognition-image { width:100%; height:100%; }
-.recognition-memory h2 { font-size:17px; font-weight:600; line-height:1.5; margin:0 0 2px; overflow-wrap:anywhere; }
-.recognition-memory a:focus-visible { outline:2px solid var(--ring); outline-offset:4px; }
 .recognition-participants { display:flex; flex-direction:column; gap:8px; }
 .recognition-participants li { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; }
 .recognition-image-feedback { display:grid; place-items:center; width:100%; height:100%; min-height:140px; color:var(--muted-foreground); font-size:13px; }
@@ -67,7 +53,7 @@
 .recognition-participant-editor { display:flex; flex-direction:column; gap:12px; border-top:1px solid var(--border); padding-top:16px; }
 .recognition-review-dialog { width:min(600px,calc(100% - 32px)); max-width:600px; }
 
-@media(max-width:600px) { .recognition-gallery,.recognition-photo-grid,.recognition-form-row { grid-template-columns:1fr; } .recognition-editor-panel { padding:16px; } .recognition-ranking li { grid-template-columns:32px minmax(0,1fr) auto; gap:12px; } .recognition-rank { font-size:20px; } .recognition-ranking strong { font-size:16px; } .recognition-actions > button { max-width:100%; height:auto; min-height:44px; white-space:normal; overflow-wrap:anywhere; } }
+@media(max-width:600px) { .recognition-photo-grid,.recognition-form-row { grid-template-columns:1fr; } .recognition-editor-panel { padding:16px; } .recognition-ranking li { grid-template-columns:32px minmax(0,1fr) auto; gap:12px; } .recognition-rank { font-size:20px; } .recognition-ranking strong { font-size:16px; } .recognition-actions > button { max-width:100%; height:auto; min-height:44px; white-space:normal; overflow-wrap:anywhere; } }
 @media(prefers-reduced-motion:reduce) { .recognition-page *, .recognition-rules *, .recognition-review-dialog { animation:none!important; transition:none!important; } }
 
 @media(prefers-reduced-motion:reduce) { .recognition-rules__content { opacity:1!important; transform:none!important; } }
@@ -75,46 +61,67 @@
 .recognition-evidence-image { display: grid; place-items: center; width: 100%; height: 100%; min-width: 0; }
 .recognition-editor-panel form { scroll-margin-top: 88px; }
 
-@media(max-width:600px) { .recognition-gallery { gap:16px; } .recognition-filters { display:grid; grid-template-columns:minmax(0,1fr) auto; padding:12px; gap:8px; } .recognition-filters .recognition-field { min-width:0; max-width:none; gap:6px; } .recognition-filters .recognition-field:first-child { grid-column:1 / -1; } .recognition-filters > button { min-height:44px; } .recognition-record { padding:16px; } }
+@media(max-width:600px) { .recognition-filters { display:grid; grid-template-columns:minmax(0,1fr) auto; padding:12px; gap:8px; } .recognition-filters .recognition-field { min-width:0; max-width:none; gap:6px; } .recognition-filters .recognition-field:first-child { grid-column:1 / -1; } .recognition-filters > button { min-height:44px; } .recognition-record { padding:16px; } }
 
 .recognition-actions > button { min-height:44px; }
 
-/* Recognition catalogues retain real year navigation in a plain toolbar. */
-.recognition-page--rankings { max-width:54rem; }
-.recognition-timeframe { width:min(100%,18rem); }
-.recognition-page--honors .recognition-filters { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; max-width:none; }
-.recognition-page--honors .recognition-filters > .relative { flex:1 1 18rem; }
-.recognition-page--honors .recognition-filters .recognition-field { flex:0 1 auto; min-width:0; max-width:none; flex-direction:row; align-items:center; gap:.5rem; }
-.recognition-page--honors .recognition-filters select { width:10rem; }
-.recognition-memory__meta { display:flex; align-items:center; justify-content:space-between; gap:.75rem; width:100%; color:var(--muted-foreground); font-size:.8125rem; }
-.recognition-memory__body h2 a { color:var(--foreground); text-decoration:none; }
-.recognition-memory__body h2 a:hover { text-decoration:underline; text-underline-offset:4px; }
-.recognition-memory__body .recognition-participants li { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:.25rem .75rem; padding:0; }
-.recognition-memory__body .recognition-participants > li > span { min-width:0; }
-.recognition-memory__body .recognition-participants > li > .recognition-hint { max-width:12rem; text-align:right; }
-
-@media(max-width:600px) { .recognition-page--honors .recognition-filters { padding:0 0 1rem; } .recognition-page--honors .recognition-filters > .relative { flex-basis:100%; } }
-
-.recognition-memory__cover { grid-column:1; grid-row:1; min-width:0; }
-.recognition-memory__photo { border-radius:.25rem; }
-.recognition-memory__no-photo { display:grid; place-items:center; padding:1rem; text-align:center; color:var(--muted-foreground); font-size:.8125rem; }
-.recognition-memory__context { display:flex; flex-wrap:wrap; gap:.25rem .75rem; font-size:.8125rem; color:var(--muted-foreground); overflow-wrap:anywhere; }
-.recognition-memory__heading { grid-column:2; grid-row:1; display:grid; justify-items:start; gap:.5rem; min-width:0; }
-.recognition-memory__body .recognition-participants { gap:.25rem; padding-top:.5rem; }
-.recognition-memory__body .user-avatar { width:1.75rem; height:1.75rem; font-size:.6875rem; }
-.recognition-memory__body .user-identity .user-identity__name { display:block; -webkit-line-clamp:unset; overflow:visible; font-size:.875rem; font-weight:500; }
-.recognition-memory__body .user-identity { gap:.5rem; }
-.recognition-memory__photo .recognition-image-feedback { min-height:0; font-size:.75rem; }
-.recognition-memory__photo [data-slot="button"] { max-width:100%; white-space:normal; height:auto; min-height:44px; padding:.25rem; font-size:.75rem; }
-@media(max-width:700px) {
- .recognition-memory { grid-template-columns:6rem minmax(0,1fr); gap:.75rem; padding:1rem; }
- .recognition-memory__context { gap:.125rem .5rem; font-size:.75rem; }
- .recognition-memory__heading { grid-column:2; grid-row:1; align-content:start; }
- .recognition-memory__body .recognition-participants { border-top:1px solid var(--border); padding-top:.5rem; }
- .recognition-memory__body .recognition-participants li { grid-template-columns:minmax(0,1fr); gap:0; }
- .recognition-memory__body .recognition-participants > li > .recognition-hint { max-width:none; padding-inline-start:2.5rem; text-align:start; }
- .recognition-memory__no-photo { padding:.25rem; font-size:.75rem; }
- .recognition-memory__footer > p { flex-basis:100%; }
- .recognition-memory__action { margin-inline-start:0; }
+/* Albums lead with images; navigation and filters stay quiet, outside card frames. */
+.recognition-page--honors, .recognition-page--album { max-width: 72rem; }
+.recognition-page--rankings { max-width: 54rem; }
+.recognition-navigation { display: flex; gap: 1.5rem; border-bottom: 1px solid var(--border); }
+.recognition-navigation a { display: inline-flex; align-items: center; min-height: 44px; padding: .25rem 0 .75rem; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--muted-foreground); font-size: .9375rem; font-weight: 500; }
+.recognition-navigation a[aria-current="page"] { border-color: var(--primary); color: var(--foreground); }
+.recognition-navigation a:hover { color: var(--foreground); }
+.recognition-navigation a:focus-visible, .recognition-memory a:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; border-radius: .25rem; }
+.recognition-browse { display: grid; gap: .75rem; }
+.recognition-page--honors .recognition-filters { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding: 0; }
+.recognition-page--honors .recognition-filters > .relative { flex: 1 1 18rem; max-width: 32rem; }
+.recognition-page--honors .recognition-filters .recognition-field { flex: 0 1 auto; min-width: 0; max-width: none; flex-direction: row; align-items: center; }
+.recognition-page--honors .recognition-filters select { width: 10rem; }
+.recognition-browse .list-search-status { margin: 0; }
+.recognition-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; align-items: stretch; gap: 1.25rem; }
+.recognition-content-panel { display: grid; gap: 1.5rem; min-width: 0; padding: clamp(.75rem, 2.5vw, 1.5rem); border: 1px solid var(--border); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--muted) 70%, var(--card)); }
+.recognition-memory { display: grid; grid-template-rows: clamp(10rem, 22vw, 14rem) 1fr; min-width: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); overflow: hidden; }
+.recognition-memory__photo { min-height: 0; overflow: hidden; border-bottom: 1px solid var(--border); background: var(--muted); }
+.recognition-memory__photo img { width: 100%; height: 100%; object-fit: cover; }
+.recognition-memory__photo .recognition-image-feedback { min-height: 0; }
+.recognition-memory__body { display: grid; grid-template-rows: 7.5rem 6.75rem 2.75rem; gap: .75rem; padding: 1rem; min-width: 0; }
+.recognition-memory__heading { display: grid; grid-template-rows: 2.5rem 1fr; gap: .25rem; min-width: 0; }
+.recognition-memory h2 { margin: 0; font-family: var(--font-sans); font-size: 1.125rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.recognition-memory h2 a { display: block; min-height: 44px; color: var(--foreground); text-decoration: none; }
+.recognition-memory h2 a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.recognition-memory__context { display: flex; flex-wrap: wrap; gap: .25rem .75rem; margin: 0; font-size: .8125rem; color: var(--muted-foreground); line-height: 1.6; overflow-wrap: anywhere; }
+.recognition-memory__context > span + span { border-left: 1px solid var(--border); padding-left: .75rem; }
+.recognition-memory__title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.recognition-memory__heading .recognition-memory__context { display: block; max-height: 3em; overflow: hidden; }
+.recognition-memory__heading .recognition-memory__context > span { display: inline; }
+.recognition-memory__heading .recognition-memory__context > span + span { margin-left: .75rem; }
+.recognition-memory__no-photo { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .75rem; color: var(--muted-foreground); font-size: .8125rem; }
+.recognition-memory__attribution { display: grid; grid-template-rows: 5.5rem 1.25rem; min-width: 0; }
+.recognition-memory__attribution > p { margin: 0; }
+.recognition-participants--compact { display: grid; grid-template-rows: repeat(2, 44px); gap: 0; min-width: 0; }
+.recognition-participants--compact li { display: block; min-width: 0; max-width: 100%; }
+.recognition-participants--compact li > span { display: block; }
+.recognition-participants--compact .user-avatar { width: 1.5rem; height: 1.5rem; font-size: .625rem; }
+.recognition-participants--compact .user-identity { display: flex; height: 44px; width: fit-content; gap: .375rem; padding: 0 .25rem; }
+.recognition-participants--compact .user-identity .user-identity__name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .8125rem; font-weight: 400; }
+.recognition-participants--compact .user-identity__affordance { width: .75rem; height: .75rem; }
+.recognition-memory__footer { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1rem; }
+.recognition-memory__action { margin-left: auto; display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; color: var(--primary); font-size: .875rem; font-weight: 500; }
+.recognition-memory__action:hover { text-decoration: underline; text-underline-offset: 4px; }
+.recognition-album__header { display: grid; gap: .75rem; }
+.recognition-album__description { max-width: 65ch; color: var(--foreground); font-size: .9375rem; line-height: 1.8; white-space: pre-line; overflow-wrap: anywhere; }
+.recognition-album__story { display: grid; gap: .5rem; }
+.recognition-album__story .recognition-hint { margin: 0; }
+.recognition-page--album .page-section { border: 0; border-radius: 0; background: transparent; overflow: visible; }
+.recognition-page--album .page-section__heading { padding: 0 0 .75rem; border: 0; }
+.recognition-page--album .page-section__content { padding: 0; }
+.recognition-album__people { border-top: 1px solid var(--border); padding-top: 1.5rem; }
+.recognition-album__people .recognition-participants { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem 2rem; }
+.recognition-album__people .recognition-participants li { min-width: 0; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: .75rem; }
+.recognition-album__people .user-identity .user-identity__name { display: block; -webkit-line-clamp: unset; overflow: visible; }
+@media (max-width: 767px) {
+  .recognition-gallery { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+  .recognition-page--honors .recognition-filters > .relative { flex-basis: 100%; max-width: none; }
+  .recognition-album__people .recognition-participants { grid-template-columns: minmax(0, 1fr); }
 }
-@media(max-width:359px) { .recognition-memory { grid-template-columns:4.5rem minmax(0,1fr); } }

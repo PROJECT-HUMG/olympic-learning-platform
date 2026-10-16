@@ -1,5 +1,10 @@
 // Only migrated, self-hosted, intercepted-API checks belong in this entry point.
 export const checks = {
+  recognition: {
+    file: 'recognition-pages-browser-check.mjs',
+    description: 'Routed photo-led Honors, album detail, Rankings and profile return paths',
+    options: { before: 'boolean', 'interactions-only': 'boolean', 'visual-only': 'boolean' },
+  },
   daily: {
     file: 'daily-journal-browser-check.mjs',
     description: 'Routed personal Daily, reflection, group audience and reading (synthetic APIs)',

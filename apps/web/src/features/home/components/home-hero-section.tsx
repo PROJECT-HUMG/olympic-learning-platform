@@ -23,7 +23,7 @@ export function HomeHeroSection() {
       <div className="home-hero__intro">
         <div className="home-hero__content">
           <h1 id="home-hero-title">
-            <MaskedHeading text="Tài nguyên học tập Olympic HUMG" />
+            <MaskedHeading text={"Tài nguyên học tập\nOLYMPIC HUMG"} />
           </h1>
 
           <div className="home-hero__discovery">

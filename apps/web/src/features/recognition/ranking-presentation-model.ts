@@ -1,6 +1,6 @@
 import { publicProfilePath } from "../user/lib/public-identity.ts";
 
-export type RankTone = "gold" | "silver" | "bronze" | "neutral";
+export type ScoreNameTone = "neutral" | "blue" | "teal";
 
 export interface RankingSource {
   rank: number;
@@ -8,12 +8,14 @@ export interface RankingSource {
   fullName: string;
   totalPoints: number;
   approvedCount: number;
+  scoreTimingKnown?: boolean;
 }
 
 export interface RankingRowPresentation {
   userId: string;
   rank: number;
-  tone: RankTone;
+  tone: ScoreNameTone;
+  scoreTimingKnown: boolean | undefined;
   fullName: string;
   approvedCount: number;
   totalPoints: number;
@@ -29,10 +31,10 @@ export interface RankingListPresentation {
   rows: RankingRowPresentation[];
 }
 
-export function rankTone(rank: number): RankTone {
-  if (rank === 1) return "gold";
-  if (rank === 2) return "silver";
-  if (rank === 3) return "bronze";
+/** Visual bands only; never ranks, awards or additional points. */
+export function scoreNameTone(points: number): ScoreNameTone {
+  if (points >= 50) return "teal";
+  if (points >= 20) return "blue";
   return "neutral";
 }
 
@@ -49,7 +51,8 @@ export function presentRankingList(records: readonly RankingSource[], year: numb
     rows: records.map((record) => ({
       userId: record.userId,
       rank: record.rank,
-      tone: rankTone(record.rank),
+      tone: scoreNameTone(record.totalPoints),
+      scoreTimingKnown: record.scoreTimingKnown,
       fullName: record.fullName,
       approvedCount: record.approvedCount,
       totalPoints: record.totalPoints,

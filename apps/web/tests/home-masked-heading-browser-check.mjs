@@ -47,18 +47,32 @@ try {
   const selected=`document.querySelector('.cinematic-scene [data-scene="'+(document.documentElement.classList.contains('dark')?'night':'day')+'"] video')`;
   const media=selector=>js(`(()=>{const v=${selector};return {src:v.currentSrc,time:v.currentTime,duration:v.duration,paused:v.paused,width:v.videoWidth,height:v.videoHeight,frames:v.getVideoPlaybackQuality().totalVideoFrames,loop:v.loop,controls:v.controls}})()`);
   await call('Runtime.enable');await call('Page.enable');await call('Network.enable');await call('Network.setCacheDisabled',{cacheDisabled:true});await call('Fetch.enable',{patterns:[{urlPattern:'*'}]});await call('Emulation.setFocusEmulationEnabled',{enabled:true});
-  const title='Tài nguyên học tập Olympic HUMG';
+  const title=baseline?'Tài nguyên học tập Olympic HUMG':'Tài nguyên học tập OLYMPIC HUMG';
   const geometryOf=()=>js(`(()=>{const h=document.querySelector('#home-hero-title'),text=h.querySelector('.masked-heading__measure')||h.querySelector('.blur-text > [aria-hidden]')||h;return{width:innerWidth,theme:document.documentElement.classList.contains('dark')?'dark':'light',heading:h.getBoundingClientRect().toJSON(),font:getComputedStyle(h).fontSize,text:text.textContent.trim(),glyphs:[...h.querySelectorAll('text')].map(g=>({text:g.textContent,box:(()=>{const b=g.getBBox();return{x:b.x,y:b.y,width:b.width,height:b.height}})(),x:g.getAttribute('x'),y:g.getAttribute('y')}))}})()`);
   for(const [width,height] of [[320,568],[390,844],[768,900],[1280,900]])for(const theme of ['light','dark']){
     await resize(width,height);await nav('/',theme);
     if(!baseline)await wait('document.querySelector(".masked-heading").dataset.ready==="true"');
     await delay(900);const g=await geometryOf();geometry.push(g);assert.equal(g.text,title);
-    assert.ok(g.heading.x>=0&&g.heading.right<=width+1);assert.ok(parseFloat(g.font)>=26);
+    assert.ok(g.heading.x>=0&&g.heading.right<=width+1);assert.ok(parseFloat(g.font)>=(baseline?26:23));
     const ax=await call('Accessibility.getFullAXTree');assert.ok(ax.nodes.some(n=>n.role?.value==='heading'&&n.name?.value===title));
     if(!baseline){assert.equal(g.glyphs.map(g=>g.text).join(' '),title);assert.ok(g.glyphs.every(g=>g.box.width>0&&g.box.height>0&&g.box.y>=-1&&g.box.y+g.box.height<=geometry.at(-1).heading.height+1));assert.equal(await js('document.querySelectorAll(".tech-text,.home-hero .blur-text,canvas").length'),0);}
     await shot(`home-${width}x${height}-${theme}`);
+    if(!baseline){
+      const lines=await js('[...document.querySelectorAll(".masked-heading__line")].map(e=>({text:e.textContent,rect:e.getBoundingClientRect().toJSON(),words:[...e.querySelectorAll(".masked-heading__word")].map(w=>w.getBoundingClientRect().y)}))');
+      assert.deepEqual(lines.map(l=>l.text),['Tài nguyên học tập','OLYMPIC HUMG']);
+      assert.ok(lines.every(l=>new Set(l.words).size===1),'each intended heading line fits without an extra wrap');
+      assert.ok(lines[1].rect.top>=lines[0].rect.bottom-1,'brand is the second line');
+      if(width!==768){
+        await js('document.querySelector(".public-footer").scrollIntoView({block:"start"})');
+        assert.equal(await js('document.querySelectorAll(".public-footer details,.public-footer summary").length'),0);
+        assert.equal(await js('document.querySelectorAll(".public-footer__group").length'),3);
+        assert.ok(await js('[...document.querySelectorAll(".public-footer__group-content")].every(e=>e.getBoundingClientRect().height>0&&getComputedStyle(e).display!=="none")'));
+        await shot(`footer-${width}-${theme}`);
+      }
+    }
   }
   checks.push('Actual Home320/390/768/1280 light-dark:readable Vietnamese title,SVG words/diacritics contained,semantic h1 and no horizontal overflow;no TechText/BlurText stacking.');
+  if(!baseline)checks.push('Two intended heading lines with OLYMPIC HUMG uppercase on line two;320/390/1280 light-dark footer groups show content without expansion controls.');
   if(!baseline){
     for(const [width,height,theme] of [[390,844,'dark'],[1280,900,'light']]){
       await resize(width,height);await nav('/',theme);await wait('document.querySelector(".masked-heading").dataset.ready==="true"');

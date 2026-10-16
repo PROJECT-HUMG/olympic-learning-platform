@@ -12,17 +12,14 @@ import {
 } from "@/components/ui/tooltip";
 import { useThemeStore } from "@/stores/use-theme-store";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
-import { ChevronDown, Moon, Sun, MapPin, Mail, Phone } from "lucide-react";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { Moon, Sun, MapPin, Mail, Phone } from "lucide-react";
 import "./public-footer.css";
 
-function FooterGroup({ title, wide, children }: { title: string; wide: boolean; children: ReactNode }) {
-  return <details className="public-footer__group" open={wide}>
-    <summary onClick={(event) => { if (wide) event.preventDefault(); }}>
-      <h3>{title}</h3><ChevronDown aria-hidden="true" />
-    </summary>
+function FooterGroup({ title, children }: { title: string; children: ReactNode }) {
+  return <section className="public-footer__group" aria-label={title}>
+    <h3>{title}</h3>
     <div className="public-footer__group-content">{children}</div>
-  </details>;
+  </section>;
 }
 
 const FaviconIcon = ({ src, domain, className }: { src: string; domain: string; className?: string }) => (
@@ -50,7 +47,6 @@ const DISCOVERY_LINKS = [
 export function PublicFooter() {
   const setTheme = useThemeStore((state) => state.setTheme);
   const theme = useResolvedTheme();
-  const wide = useMediaQuery("(min-width: 768px)");
 
   const isDark = theme === "dark";
 
@@ -67,7 +63,7 @@ export function PublicFooter() {
           </div>
 
           {/* Cột 2: Khám phá */}
-          <FooterGroup title="Khám phá" wide={wide}>
+          <FooterGroup title="Khám phá">
             <nav className="space-y-2.5 text-sm">
               {DISCOVERY_LINKS.map((link) => (
                 <Link
@@ -82,7 +78,7 @@ export function PublicFooter() {
           </FooterGroup>
 
           {/* Cột 3: Liên hệ */}
-          <FooterGroup title="Liên hệ" wide={wide}>
+          <FooterGroup title="Liên hệ">
             <address className="space-y-2.5 text-sm not-italic text-muted-foreground">
               <p className="flex items-start gap-2">
                 <MapPin className="size-4 shrink-0 text-primary mt-0.5" />
@@ -102,7 +98,7 @@ export function PublicFooter() {
           </FooterGroup>
 
           {/* Cột 4: Theo dõi & Giao diện */}
-          <FooterGroup title="Theo dõi & giao diện" wide={wide}>
+          <FooterGroup title="Theo dõi & giao diện">
             <div>
               <div className="flex items-center space-x-3">
                 {SOCIAL_LINKS.map((social) => (

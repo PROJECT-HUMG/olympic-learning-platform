@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Recognition boundaries: only approved academic records score; honors never grant points.
+ *
  * @author nghlong3004 (Long Nguyen Hoang)
  * @since 10/02/2026
  */
@@ -32,6 +33,7 @@ public interface RecognitionService {
    * @return matching honors
    */
   Page<HonorResponse> listHonors(Integer year, String subject, int page, int size, boolean admin);
+
   /**
    * Reads a memory while preventing public access to draft details.
    *
@@ -40,6 +42,7 @@ public interface RecognitionService {
    * @return memory details
    */
   HonorResponse getHonor(UUID id, boolean admin);
+
   /**
    * Creates or updates a versioned memory as an active administrator; never grants points.
    *
@@ -48,12 +51,14 @@ public interface RecognitionService {
    * @return saved honor
    */
   HonorResponse saveHonor(UUID id, SaveHonorRequest request);
+
   /**
    * Deletes an authorized memory and its gallery transactionally.
    *
    * @param id memory to delete
    */
   void deleteHonor(UUID id);
+
   /**
    * Appends bounded photos under the memory lock and advances its edit version.
    *
@@ -62,6 +67,7 @@ public interface RecognitionService {
    * @return updated gallery and version
    */
   HonorResponse addPhotos(UUID id, List<MultipartFile> files);
+
   /**
    * Removes a photo only when it belongs to the authorized memory.
    *
@@ -70,6 +76,7 @@ public interface RecognitionService {
    * @return updated gallery and version
    */
   HonorResponse removePhoto(UUID id, UUID photoId);
+
   /**
    * Resolves image bytes after checking publication or live administrator access.
    *
@@ -79,22 +86,26 @@ public interface RecognitionService {
    * @return authorized image bytes
    */
   RecognitionDownload getPhoto(UUID id, UUID photoId, boolean admin);
+
   /**
    * Reads the active student's records and their private review history.
    *
    * @return owned records including review and evidence metadata
    */
   List<AchievementResponse> listMyAchievements();
+
   /**
-   * Submits an academic claim; live administrators may submit for another active student.
-   * The mandatory proof remains private and pending records do not contribute points.
+   * Submits an academic claim; live administrators may submit for another active student. The
+   * mandatory proof remains private and pending records do not contribute points.
    *
    * @param request academic claim
    * @param evidence mandatory bounded private proof
    * @param admin whether submitting on behalf of another student
    * @return pending achievement
    */
-  AchievementResponse submitAchievement(SubmitAchievementRequest request, List<MultipartFile> evidence, boolean admin);
+  AchievementResponse submitAchievement(
+      SubmitAchievementRequest request, List<MultipartFile> evidence, boolean admin);
+
   /**
    * Replaces an owned nonapproved claim and proof, invalidating any stale review version.
    *
@@ -103,7 +114,9 @@ public interface RecognitionService {
    * @param evidence replacement proof
    * @return record pending fresh review
    */
-  AchievementResponse updateAchievement(UUID id, SubmitAchievementRequest request, List<MultipartFile> evidence);
+  AchievementResponse updateAchievement(
+      UUID id, SubmitAchievementRequest request, List<MultipartFile> evidence);
+
   /**
    * Changes public details without removing an approved record from aggregate scores.
    *
@@ -112,6 +125,7 @@ public interface RecognitionService {
    * @return updated record
    */
   AchievementResponse setVisibility(UUID id, boolean publicVisible);
+
   /**
    * Authorizes the live owner or administrator before loading private binary proof.
    *
@@ -120,6 +134,7 @@ public interface RecognitionService {
    * @return authorized bytes, never an external storage URL
    */
   RecognitionDownload getEvidence(UUID id, UUID attachmentId);
+
   /**
    * Reads the private review queue and decision history as a live administrator.
    *
@@ -129,26 +144,31 @@ public interface RecognitionService {
    * @param size bounded page size
    * @return matching review records
    */
-  Page<AchievementResponse> adminListAchievements(AchievementStatus status, UUID userId, int page, int size);
+  Page<AchievementResponse> adminListAchievements(
+      AchievementStatus status, UUID userId, int page, int size);
+
   /**
-   * Reviews under a record lock and displayed version. Repeated current decisions are
-   * idempotent; rejection and revocation remove the record from fresh score aggregates.
+   * Reviews under student then record locks and the displayed version. Repeated decisions are
+   * idempotent; score-changing approval/revocation and their attainment event commit together.
    *
    * @param id achievement identifier
    * @param request versioned approval, rejection or revocation
    * @return reviewed record
    */
   AchievementResponse reviewAchievement(UUID id, ReviewAchievementRequest request);
+
   /**
-   * Ranks active opted-in students with approved achievements in the requested period.
-   * Ties use competition ranks and private approved records contribute to the total.
+   * Ranks active opted-in students with approved achievements in the requested period. Private
+   * approved records contribute to the total. Equal scores use latest attainment of the current
+   * total, known timing before unknown legacy timing, then UUID as a technical fallback.
    *
    * @param year achievement-date year, null for all time
    * @param page zero-based page
    * @param size bounded page size
-   * @return stable competition ranks
+   * @return unique sequential ranks and an explicit timing-known flag
    */
   Page<RankingResponse> rankings(Integer year, int page, int size);
+
   /**
    * Reads public approved academic details and their public-only point subtotal.
    *
@@ -156,12 +176,14 @@ public interface RecognitionService {
    * @return public profile, never evidence, review notes or private points
    */
   RecognitionProfileResponse profile(UUID userId);
+
   /**
    * Reads consent without creating a preference record.
    *
    * @return current student's preferences, defaulting to opt out
    */
   RecognitionPreferencesResponse preferences();
+
   /**
    * Serializes preference creation and updates under the current student's lock.
    *

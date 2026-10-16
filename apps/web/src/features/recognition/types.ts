@@ -11,7 +11,7 @@ export type HonorInput = Pick<Honor, "title" | "subject" | "year" | "scope" | "s
 export interface Evidence { id: string; originalName: string; contentType: string; size: number }
 export interface Achievement { id: string; userId: string; fullName: string; title: string; description: string | null; category: Category; award: Award; includeParticipation: boolean; achievedDate: string; publicVisible: boolean; status: AchievementStatus; awardPoints: number; participationPoints: number; totalPoints: number; reviewNote?: string | null; reviewedAt?: string | null; evidence?: Evidence[]; createdAt: string; updatedAt: string; version: number }
 export type AchievementInput = Pick<Achievement, "title" | "category" | "award" | "includeParticipation" | "achievedDate" | "publicVisible"> & { description: string };
-export interface Ranking { rank: number; userId: string; fullName: string; username: string; totalPoints: number; approvedCount: number; avatarUrl?: string | null; avatarCrop?: AvatarCrop | null }
+export interface Ranking { rank: number; userId: string; fullName: string; username: string; totalPoints: number; approvedCount: number; scoreTimingKnown?: boolean; avatarUrl?: string | null; avatarCrop?: AvatarCrop | null }
 export type PublicAchievement = Pick<Achievement, "id" | "title" | "description" | "category" | "award" | "includeParticipation" | "achievedDate" | "publicVisible" | "status" | "awardPoints" | "participationPoints" | "totalPoints">;
 export interface PublicProfile { userId: string; fullName: string; username: string; avatarUrl: string | null; avatarCrop?: AvatarCrop | null; rankingOptIn: boolean; publicPoints: number; achievements: PublicAchievement[] }
 export interface RecognitionSettings { rankingOptIn: boolean }

@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { getListReturnPath, getPageNumber, replaceListParam } from "@/lib/list-navigation";
@@ -8,11 +9,12 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PublicPageHeader } from "@/components/ui/public-page-header";
 import { PageSection } from "@/components/ui/page-section";
 import { HonorGallery } from "./honor-gallery";
+import { HonorAlbumCard } from "./honor-album-card";
 import { recognitionService as service } from "./service";
-import { HonorImage, Pager, Participants, QueryFeedback, ScoringRules, YearField } from "./components";
+import { Pager, Participants, QueryFeedback, ScoringRules, YearField } from "./components";
 import type { PublicAchievement } from "./types";
 import { RankingList } from "./ranking-presentation";
-import { EditorialHonorLabel, PublicAchievementMilestones } from "./achievement-presentation";
+import { PublicAchievementMilestones } from "./achievement-presentation";
 import { UserAvatar } from "@/features/user/components/user-avatar";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { publicProfileReturnTarget } from "@/features/user/lib/public-identity";
@@ -31,14 +33,13 @@ function useListFilters() {
   const change = (key: string, value: string) => setParams(previous => replaceListParam(previous, key, value));
   return { params, setParams, page, year, yearText: year ? String(year) : "", change };
 }
-function RecognitionNavigation() {
+function RecognitionNavigation({ year }: { year?: number }) {
   const location = useLocation();
-  return <nav className="page-local-nav" aria-label="Vinh danh và thành tích">
+  return <nav className="recognition-navigation" aria-label="Vinh danh và thành tích">
     {[{ href: "/honors", label: "Vinh danh" }, { href: "/rankings", label: "Xếp hạng" }].map(item => {
       const selected = location.pathname === item.href;
-      return <Button key={item.href} asChild variant={selected ? "secondary" : "ghost"}>
-        <Link to={selected ? location.pathname + location.search + location.hash : item.href} aria-current={selected ? "page" : undefined}>{item.label}</Link>
-      </Button>;
+      const target = selected ? location.pathname + location.search + location.hash : item.href + (year ? `?year=${year}` : "");
+      return <Link key={item.href} to={target} aria-current={selected ? "page" : undefined}>{item.label}</Link>;
     })}
   </nav>;
 }
@@ -54,27 +55,23 @@ export function HonorsPage() {
       breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Vinh danh" }]}
       title="Vinh danh"
       description="Những gương mặt, dấu mốc và kỷ niệm của Olympic HUMG."
-      actions={<RecognitionNavigation />}
     />
-    <div className="recognition-filters filter-panel" role="search" aria-label="Lọc vinh danh">
-      <SearchInput {...search.input} aria-label="Môn học hoặc lĩnh vực" placeholder="Tìm môn học hoặc lĩnh vực…" />
-      <YearField hideLabel value={filters.yearText} onChange={value => filters.change("year", value)} />
-      {(subject || filters.year || search.pending) && <Button variant="ghost" onClick={() => { search.resetDraft(); filters.setParams(previous => { const next = new URLSearchParams(previous); for (const key of ["subject", "year", "page"]) next.delete(key); return next; }); }}>Xóa bộ lọc</Button>}
+    <RecognitionNavigation year={filters.year} />
+    <div className="recognition-content-panel">
+      <div className="recognition-browse">
+        <div className="recognition-filters" role="search" aria-label="Lọc vinh danh">
+          <SearchInput {...search.input} aria-label="Môn học hoặc lĩnh vực" placeholder="Tìm môn học hoặc lĩnh vực…" />
+          <YearField hideLabel value={filters.yearText} onChange={value => filters.change("year", value)} />
+          {(subject || filters.year || search.pending) && <Button variant="ghost" onClick={() => { search.resetDraft(); filters.setParams(previous => { const next = new URLSearchParams(previous); for (const key of ["subject", "year", "page"]) next.delete(key); return next; }); }}>Xóa bộ lọc</Button>}
+        </div>
+        <p className="list-search-status" role="status">{search.pending || honors.isFetching ? "Đang cập nhật album…" : honors.isError ? "" : `${honors.data?.totalElements ?? 0} album`}</p>
+      </div>
+      <QueryFeedback pending={honors.isPending} error={honors.isError} empty={!honors.data?.content.length} retrying={honors.isFetching} retry={() => void honors.refetch()}
+        pendingText="Đang tải album…" emptyText={subject || filters.year ? "Chưa có album phù hợp. Bạn có thể chọn năm khác hoặc xóa bộ lọc." : "Chưa có album vinh danh."}>
+        <div className="recognition-gallery">{honors.data?.content.map(honor => <HonorAlbumCard key={honor.id} honor={honor} from={from} />)}</div>
+        <Pager page={filters.page} value={honors.data} onChange={page => filters.change("page", String(page + 1))} />
+      </QueryFeedback>
     </div>
-    <p className="list-search-status" role="status">{search.pending || honors.isFetching ? "Đang cập nhật album…" : honors.isError ? "" : `${honors.data?.totalElements ?? 0} album`}</p>
-    <QueryFeedback pending={honors.isPending} error={honors.isError} empty={!honors.data?.content.length} retrying={honors.isFetching} retry={() => void honors.refetch()}><div className="recognition-gallery">{honors.data?.content.map(honor => <article key={honor.id} className="recognition-memory content-card">
-      <div className="recognition-memory__cover">
-        {honor.photos[0] ? <div className="recognition-memory__photo"><HonorImage honor={honor} photoId={honor.photos[0].id} alt={`Kỷ niệm ${honor.title}`} /></div> : <div className="recognition-memory__photo recognition-memory__no-photo">Album chưa có ảnh</div>}
-      </div>
-      <div className="recognition-memory__body">
-        <header className="recognition-memory__heading"><EditorialHonorLabel /><h2><Link to={`/honors/${honor.id}`} state={{ from }}>{honor.title}</Link></h2><p className="recognition-memory__context"><span>{honor.year}</span>{honor.subject && <span>{honor.subject}</span>}</p></header>
-        <Participants items={honor.participants.slice(0, 3)} />
-        <footer className="recognition-memory__footer">
-          {honor.participants.length > 3 && <p className="recognition-hint">Còn {honor.participants.length - 3} gương mặt trong album.</p>}
-          <Button asChild variant="outline" className="recognition-memory__action"><Link to={`/honors/${honor.id}`} state={{ from }}>Xem album{honor.photos.length ? ` · ${honor.photos.length} ảnh` : ""}</Link></Button>
-        </footer>
-      </div>
-    </article>)}</div><Pager page={filters.page} value={honors.data} onChange={page => filters.change("page", String(page + 1))} /></QueryFeedback>
   </div>;
 }
 export function HonorDetailPage() {
@@ -82,13 +79,27 @@ export function HonorDetailPage() {
   const location = useLocation();
   const from = getListReturnPath(location.state?.from, "/honors");
   const honor = useQuery({ meta: { publicRead: true }, queryKey: ["recognition", "honor", id], queryFn: () => service.honor(id) });
-  return <div className="page-shell page-shell--public recognition-page"><nav className="recognition-links" aria-label="Điều hướng vinh danh"><Button asChild variant="outline"><Link to={from}>Về vinh danh</Link></Button><Button asChild variant="outline"><Link to="/rankings">Xếp hạng</Link></Button></nav><QueryFeedback pending={honor.isPending} error={honor.isError} retrying={honor.isFetching} retry={() => void honor.refetch()}>{honor.data && <>
-    <EditorialHonorLabel /><p className="recognition-hint">Kỷ niệm do ban quản trị biên tập; không phải hồ sơ thành tích đã duyệt và không cộng điểm.</p>
-    <PageHeader title={honor.data.title} description={`${honor.data.subject} · ${honor.data.year}`} />
-    {honor.data.description && <p>{honor.data.description}</p>}
-    <PageSection title={`Những gương mặt được vinh danh (${honor.data.participants.length})`}><Participants items={honor.data.participants} /></PageSection>
-    <PageSection title={`Album kỷ niệm (${honor.data.photos.length} ảnh)`}><HonorGallery key={`${honor.data.id}:${honor.data.version}`} honor={honor.data} /></PageSection>
-  </>}</QueryFeedback></div>;
+  return <div className="page-shell page-shell--public recognition-page recognition-page--album">
+    <nav className="recognition-links" aria-label="Điều hướng album"><Button asChild variant="ghost"><Link to={from}><ArrowLeft aria-hidden="true" size={18} />Quay lại</Link></Button></nav>
+    <div className="recognition-content-panel">
+      <QueryFeedback pending={honor.isPending} error={honor.isError} retrying={honor.isFetching} retry={() => void honor.refetch()} pendingText="Đang tải album…">
+        {honor.data && <>
+          <div className="recognition-album__header">
+            <p className="recognition-memory__context"><span>{honor.data.year}</span>{honor.data.subject && <span>{honor.data.subject}</span>}</p>
+            <PageHeader title={honor.data.title} />
+          </div>
+          <PageSection title={`Album kỷ niệm (${honor.data.photos.length} ảnh)`}><HonorGallery key={`${honor.data.id}:${honor.data.version}`} honor={honor.data} /></PageSection>
+          <div className="recognition-album__story">
+            {honor.data.description && <p className="recognition-album__description">{honor.data.description}</p>}
+            <p className="recognition-hint">Album kỷ niệm do ban quản trị biên tập, không cộng điểm thành tích.</p>
+          </div>
+          <div className="recognition-album__people"><PageSection title={`Những gương mặt được vinh danh (${honor.data.participants.length})`}>
+            {honor.data.participants.length ? <Participants items={honor.data.participants} /> : <p className="recognition-hint">Chưa có thông tin người tham gia.</p>}
+          </PageSection></div>
+        </>}
+      </QueryFeedback>
+    </div>
+  </div>;
 }
 export function RankingsPage() {
   const filters = useListFilters();
@@ -100,15 +111,22 @@ export function RankingsPage() {
       breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Bảng xếp hạng" }]}
       title="Xếp hạng thành tích"
       description="Thành tích đã duyệt của thành viên chọn tham gia xếp hạng."
-      actions={<RecognitionNavigation />}
     />
-    <div className="ranking-toolbar">
-      <YearField value={filters.yearText} allTime onChange={value => filters.change("year", value)} />
-      <p className="ranking-toolbar__context" role="status">{ranking.isFetching ? "Đang cập nhật xếp hạng…" : ranking.isError ? "" : `${ranking.data?.totalElements ?? 0} thành viên · ${filters.year ? `Năm ${filters.year}` : "Tất cả thời gian"}`}</p>
+    <RecognitionNavigation year={filters.year} />
+    <div className="recognition-content-panel ranking-results">
+      <div className="ranking-toolbar">
+        <YearField value={filters.yearText} allTime onChange={value => filters.change("year", value)} />
+        <p className="ranking-toolbar__context" role="status">{ranking.isFetching ? "Đang cập nhật xếp hạng…" : ranking.isError ? "" : `${ranking.data?.totalElements ?? 0} thành viên · ${filters.year ? `Năm ${filters.year}` : "Tất cả thời gian"}`}</p>
+      </div>
+      <p className="ranking-privacy-note">Điểm xếp hạng tính cả thành tích không hiển thị trong hồ sơ.</p>
+      <QueryFeedback pending={ranking.isPending} error={ranking.isError} empty={!ranking.data?.content.length} retrying={ranking.isFetching} retry={() => void ranking.refetch()} pendingText="Đang tải xếp hạng…" emptyText="Chưa có thành viên đủ điều kiện xếp hạng trong thời gian này."><RankingList records={ranking.data?.content ?? []} year={filters.year} from={from} /><Pager page={filters.page} value={ranking.data} onChange={page => filters.change("page", String(page + 1))} /></QueryFeedback>
+      <p className="ranking-order-note">Cùng điểm: người đạt tổng điểm hiện tại sớm hơn xếp trước. Mốc điểm được ghi nhận khi duyệt hoặc thu hồi thành tích.</p>
+      <details className="ranking-order-details"><summary>Thứ tự cũ và màu tên</summary>
+        <p>Hồ sơ chưa có lịch sử thay đổi điểm được xếp sau hồ sơ có mốc điểm trong cùng tổng điểm. Nếu cùng mốc hoặc đều chưa có mốc, mã tài khoản giữ thứ tự ổn định; đó không phải thời điểm đạt thành tích.</p>
+        <p>Màu tên theo tổng điểm: dưới 20 dùng màu chữ thường, từ 20 đến 49 dùng xanh dương, từ 50 dùng xanh ngọc. Màu không biểu thị thêm giải thưởng.</p>
+      </details>
+      <ScoringRules />
     </div>
-    <QueryFeedback pending={ranking.isPending} error={ranking.isError} empty={!ranking.data?.content.length} retrying={ranking.isFetching} retry={() => void ranking.refetch()}><RankingList records={ranking.data?.content ?? []} year={filters.year} from={from} /><Pager page={filters.page} value={ranking.data} onChange={page => filters.change("page", String(page + 1))} /></QueryFeedback>
-    <p className="recognition-hint">Điểm nền tảng không phải đánh giá học thuật chính thức. Tổng xếp hạng có thể gồm thành tích riêng tư; nhãn và chi tiết công khai chỉ có trên hồ sơ theo lựa chọn của chủ tài khoản.</p>
-    <ScoringRules />
   </div>;
 }
 export function PublicAchievementList({ records }: { records: PublicAchievement[] }) {

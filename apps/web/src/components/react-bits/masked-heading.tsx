@@ -13,7 +13,8 @@ export default function MaskedHeading({ text }: { text: string }) {
   const root = useRef<HTMLSpanElement>(null);
   const measure = useRef<HTMLSpanElement>(null);
   const media = useRef<HTMLSpanElement>(null);
-  const words = useMemo(() => text.split(/\s+/).filter(Boolean), [text]);
+  const lines = useMemo(() => text.split("\n").map(line => line.split(/\s+/).filter(Boolean)), [text]);
+  const words = useMemo(() => lines.flat(), [lines]);
   const clipId = `mh-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const reduced = useMediaQuery("(prefers-reduced-motion: reduce)");
   const revealed = useRef(false);
@@ -92,9 +93,12 @@ export default function MaskedHeading({ text }: { text: string }) {
 
   return <span ref={root} className="masked-heading" data-masked-heading>
     <span ref={measure} className="masked-heading__measure">
-      {words.map((word, index) => <Fragment key={`${word}-${index}`}>
-        <span className="masked-heading__word">{word}<i className="masked-heading__baseline" /></span>
-        {index < words.length - 1 && " "}
+      {lines.map((line, lineIndex) => <Fragment key={lineIndex}>
+        {lineIndex > 0 && " "}
+        <span className="masked-heading__line">{line.map((word, index) => <Fragment key={`${word}-${index}`}>
+          <span className="masked-heading__word">{word}<i className="masked-heading__baseline" /></span>
+          {index < line.length - 1 && " "}
+        </Fragment>)}</span>
       </Fragment>)}
     </span>
     {!reduced && <>
