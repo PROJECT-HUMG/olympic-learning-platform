@@ -279,7 +279,17 @@ it("keeps the service boundary typed and the screens inside Daily", () => {
   assert.equal(planEditor.includes("dailyDraftFailure"), true);
   assert.equal(planEditor.includes("useDailyDraftLeave"), true);
   assert.equal(planEditor.includes("Thay đổi chưa đồng bộ."), true);
-  assert.equal(planEditor.includes("Tải bản trên máy chủ"), true);
+  // Recovery UI is shared; both editors must still wire guarded replacement to their own fetch.
+  const syncStatus = source("../src/features/daily/ui/daily-sync-status.tsx");
+  assert.match(syncStatus, /\{failed \? <Button\b[^>]*disabled=\{busy\}[^>]*onClick=\{onReload\}>Tải bản trên máy chủ<\/Button>/);
+  for (const editor of [planEditor, weekEditor]) {
+    const status = editor.match(/<DailySyncStatus\b[\s\S]*?\/>/)?.[0];
+    assert.ok(status, "Daily editors must render the shared sync/recovery owner");
+    assert.match(status, /onRetry=\{sync\.retry\}/);
+    assert.match(status, /onReload=/);
+    assert.match(status, /!draft\.dirty \|\| await confirm\(/);
+    assert.match(status, /fetchServer\(true\)/);
+  }
   assert.equal(planEditor.includes("<fieldset disabled={editingLocked}"), true);
   assert.equal(/if \(plan\.isError\)/.test(planEditor), false);
   const autoSync = source("../src/features/daily/hooks/use-daily-auto-sync.ts");
