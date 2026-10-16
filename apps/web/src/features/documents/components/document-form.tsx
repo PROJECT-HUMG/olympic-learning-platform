@@ -1,3 +1,7 @@
+import { refreshSession } from "@/lib/axios";
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { canCreateDocument } from "../document-access";
+import { parseApiError } from "@/lib/api-error";
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,10 +41,7 @@ const formSchema = z.object({
   description: z.string().max(5000).optional(),
   categoryId: z.string().min(1, "Vui lòng chọn danh mục"),
   subjectId: z.string().min(1, "Vui lòng chọn môn học"),
-  // Note: Tag is optional in UI for simplicity, but backend requires at least 1? 
-  // Let's assume tagIds is an array of strings. We'll use a simple select for now (1 tag) or multi-select if available.
-  // Since standard Select is single, we'll just pick the first tag or empty array for now.
-  tagIds: z.array(z.string()).optional(), 
+  tagIds: z.array(z.string()).min(1, "Vui lòng chọn ít nhất một thẻ"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -51,6 +52,8 @@ interface DocumentFormProps {
   onCancel: () => void;
   isLoading?: boolean;
   onStateChange?: (state: CreationState) => void;
+  submitError?: string;
+  createAllowed?: boolean;
 }
 
 export function DocumentForm({
@@ -59,11 +62,16 @@ export function DocumentForm({
   onCancel,
   isLoading,
   onStateChange,
+  submitError,
+  createAllowed = true,
 }: DocumentFormProps) {
   const isEditMode = !!initialData;
   const metadataQuery = useDocumentMetadata();
   const metadata = metadataQuery.data;
   const uploadFile = useUploadFile();
+  const currentUser = useCurrentUser();
+  const [checkingPermission, setCheckingPermission] = useState(false);
+  const [permissionMessage, setPermissionMessage] = useState("");
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadedFileId, setUploadedFileId] = useState<string | null>(null);
@@ -82,7 +90,7 @@ export function DocumentForm({
   });
 
   const isDirty = form.formState.isDirty || !!selectedFile || !!uploadedFileId || !!uploadError;
-  const isBusy = !!isLoading || uploadFile.isPending;
+  const isBusy = !!isLoading || uploadFile.isPending || checkingPermission;
 
   const lastReportedState = useRef<CreationState | null>(null);
   useEffect(() => {
@@ -97,6 +105,8 @@ export function DocumentForm({
   }, [isDirty, isBusy, onStateChange]);
 
   const handleFileSelect = (file: File) => {
+    if (!createAllowed || isBusy) return;
+    if (!file.name.toLowerCase().endsWith(".pdf")) { setUploadError("Vui lòng chọn tệp PDF."); return; }
     setSelectedFile(file);
     setUploadError(null);
     setUploadedFileId(null);
@@ -121,7 +131,7 @@ export function DocumentForm({
         },
         onError: (err: any) => {
           setUploadError(
-            err.response?.data?.message || "Lỗi tải lên tệp",
+            parseApiError(err).status === 403 ? "Quyền tải lên chưa có hiệu lực trong phiên này hoặc đã bị thu hồi. Cập nhật quyền rồi thử chọn tệp lại." : "Chưa tải được tệp. Kiểm tra kết nối rồi chọn lại tệp để thử lại.",
           );
           setSelectedFile(null);
         },
@@ -137,14 +147,14 @@ export function DocumentForm({
   };
 
   const handleSubmit = (values: FormValues) => {
+    if (isBusy) return;
+    if (!isEditMode && !createAllowed) return;
     if (!isEditMode && !uploadedFileId) {
       setUploadError("Vui lòng tải lên tệp tài liệu");
       return;
     }
 
     const tagIds = values.tagIds || [];
-    // If backend requires @NotEmpty for tags but user didn't select, we might pass a default or handle it.
-    // For now, pass what we have.
 
     if (isEditMode) {
       onSubmit({
@@ -267,7 +277,7 @@ export function DocumentForm({
                 name="tagIds"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Thẻ phân loại</FormLabel>
+                    <FormLabel>Thẻ phân loại <span className="text-destructive">*</span></FormLabel>
                     <Select
                       disabled={metadataQuery.isPending || metadataQuery.isError}
                       value={field.value?.[0] || ""}
@@ -322,6 +332,7 @@ export function DocumentForm({
                 onClear={handleClearFile}
                 progress={uploadProgress}
                 isPending={uploadFile.isPending}
+                disabled={!createAllowed || isBusy}
                 selectedFile={selectedFile}
                 uploadedFileId={uploadedFileId}
                 error={uploadError}
@@ -332,6 +343,22 @@ export function DocumentForm({
           )}
         </div>
 
+        {!isEditMode && <div className="space-y-2 text-sm">
+          <Button type="button" variant="ghost" disabled={isBusy} loading={checkingPermission} onClick={async () => {
+            setCheckingPermission(true); setPermissionMessage("");
+            try {
+              await refreshSession();
+              const result = await currentUser.refetch();
+              if (result.isError) throw result.error;
+              setPermissionMessage(canCreateDocument(result.data?.role, result.data?.permissions)
+                ? "Đã cập nhật quyền. Bạn có thể chọn tệp hoặc thử lưu lại."
+                : "Tài khoản hiện chưa có quyền thêm tài liệu. Liên hệ quản trị viên để được cấp quyền.");
+            } catch { setPermissionMessage("Chưa cập nhật được quyền. Hãy kiểm tra kết nối và thử lại."); }
+            finally { setCheckingPermission(false); }
+          }}>Cập nhật quyền tải lên</Button>
+          {permissionMessage && <p role="status">{permissionMessage}</p>}
+        </div>}
+        {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
         <div className="sticky-form-actions">
           <Button
             type="button"
@@ -345,7 +372,7 @@ export function DocumentForm({
             type="submit"
             loading={isLoading}
             disabled={
-              uploadFile.isPending ||
+              isBusy || (!isEditMode && !createAllowed) ||
               (!isEditMode && !uploadedFileId)
             }
           >

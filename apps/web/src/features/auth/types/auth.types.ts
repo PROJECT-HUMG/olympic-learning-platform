@@ -12,6 +12,7 @@ export interface CurrentUser {
   role: Role;
   status: UserStatus;
   lastLoginAt?: string | null;
+  permissions?: string[];
 }
 
 export interface LoginRequest {

@@ -69,3 +69,12 @@ export function useAvailablePermissions() {
     staleTime: 24 * 60 * 60 * 1000, // 24 hours (rarely changes)
   });
 }
+
+export function useInviteUser() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: adminUsersService.invite,
+    retry: false,
+    onSuccess: () => { void client.invalidateQueries({ queryKey: QUERY_KEY_ADMIN_USERS }); },
+  });
+}

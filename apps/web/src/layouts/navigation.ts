@@ -44,7 +44,7 @@ export const PUBLIC_PRIMARY_NAVIGATION: NavigationItem[] = [
   },
 ];
 
-export function getNavigationGroups(role?: string): NavigationGroup[] {
+export function getNavigationGroups(role?: string, permissions: readonly string[] = []): NavigationGroup[] {
   const groups: NavigationGroup[] = [
     {
       label: "Học tập",
@@ -82,6 +82,7 @@ export function getNavigationGroups(role?: string): NavigationGroup[] {
       label: "Quản lý nội dung",
       items: [
         { label: "Tài liệu", href: `${base}/documents`, icon: FileText },
+        { label: "Đề thi", href: `${base}/exams`, icon: GraduationCap },
         {
           label: "Bài viết & thông báo",
           href: `${base}/posts`,
@@ -125,6 +126,8 @@ export function getNavigationGroups(role?: string): NavigationGroup[] {
         { label: "Hồ sơ & bảo mật", href: ROUTES.PROFILE, icon: User },
         { label: "Daily của tôi", href: ROUTES.DAILY, icon: CalendarCheck },
         { label: "Nhóm Daily", href: ROUTES.DAILY_GROUPS, icon: Users },
+        ...(role === "STUDENT" ? [{ label: "Đề đã phát hành", href: "/exams", icon: GraduationCap }] : []),
+        ...(role === "STUDENT" && permissions.includes("DOCUMENT_UPLOAD") ? [{ label: "Tài liệu của tôi", href: ROUTES.MY_DOCUMENTS, icon: FileUp }] : []),
         ...(role === "STUDENT" ? [{ label: "Thành tích của tôi", href: ROUTES.MY_ACHIEVEMENTS, icon: Award }] : []),
       ],
     });
@@ -154,9 +157,9 @@ export function getActiveNavigationItem(
 }
 
 /** Workspace tasks first; discovery stays available but has a separate hierarchy. */
-export function getWorkspaceNavigationGroups(role?: string): NavigationGroup[] {
+export function getWorkspaceNavigationGroups(role?: string, permissions: readonly string[] = []): NavigationGroup[] {
   const order = ["Cá nhân", "Quản lý nội dung", "Quản trị hệ thống"];
-  const groups = getNavigationGroups(role)
+  const groups = getNavigationGroups(role, permissions)
     .filter(group => order.includes(group.label))
     .sort((a, b) => order.indexOf(a.label) - order.indexOf(b.label))
     .map(group => group.label !== "Cá nhân" ? group : {
@@ -174,14 +177,14 @@ export function getWorkspaceNavigationGroups(role?: string): NavigationGroup[] {
   ];
 }
 
-export function getDrawerNavigationGroups(role?: string): NavigationGroup[] {
-  const groups = getNavigationGroups(role);
-  return [...getWorkspaceNavigationGroups(role), ...groups.filter(group => ["Học tập", "Thông tin"].includes(group.label))];
+export function getDrawerNavigationGroups(role?: string, permissions: readonly string[] = []): NavigationGroup[] {
+  const groups = getNavigationGroups(role, permissions);
+  return [...getWorkspaceNavigationGroups(role, permissions), ...groups.filter(group => ["Học tập", "Thông tin"].includes(group.label))];
 }
 
 /** Labelled tablet/collapsed rail: full destinations are one Menu action away. */
-export function getWorkspaceShortcuts(role?: string): (NavigationItem & { shortLabel: string })[] {
-  const groups = getWorkspaceNavigationGroups(role);
+export function getWorkspaceShortcuts(role?: string, permissions: readonly string[] = []): (NavigationItem & { shortLabel: string })[] {
+  const groups = getWorkspaceNavigationGroups(role, permissions);
   const items = groups.flatMap(group => group.items);
   const staff = role === "ADMIN" || role === "LECTURER";
   const targets = [getDashboardRoute(role), ...(staff ? [`/${role.toLowerCase()}/documents`, `/${role.toLowerCase()}/questions`] : []), ROUTES.DAILY, ROUTES.DAILY_GROUPS];

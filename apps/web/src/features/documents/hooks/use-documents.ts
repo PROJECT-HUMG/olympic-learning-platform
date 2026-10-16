@@ -15,9 +15,10 @@ export const documentKeys = {
   detail: (slug: string) => [...documentKeys.details(), slug] as const,
 };
 
-export const useSearchDocuments = (filters: DocumentSearchRequest) => {
+export const useSearchDocuments = (filters: DocumentSearchRequest, enabled = true) => {
   return useQuery({
     queryKey: documentKeys.list(filters),
+    enabled,
     meta: { publicRead: !filters.ownerId },
     queryFn: ({ signal }) => documentsService.search(filters, signal).then((res) => res.data),
   });

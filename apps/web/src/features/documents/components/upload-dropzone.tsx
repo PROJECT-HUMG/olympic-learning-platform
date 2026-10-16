@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, useAnimationControls } from "framer-motion";
+import { motion, useAnimationControls, useReducedMotion } from "framer-motion";
 import { Check, Upload as UpIcon, X } from "lucide-react";
 import "./upload-dropzone.css";
 
@@ -89,6 +89,7 @@ interface UploadDropzoneProps {
   progress: number;
   /** Whether the upload mutation is pending */
   isPending: boolean;
+  disabled?: boolean;
   /** The currently selected file */
   selectedFile: File | null;
   /** ID returned after successful upload */
@@ -110,6 +111,7 @@ export function UploadDropzone({
   onClear,
   progress,
   isPending,
+  disabled = false,
   selectedFile,
   uploadedFileId,
   error,
@@ -123,6 +125,7 @@ export function UploadDropzone({
   const [gulp, setGulp] = useState(false);
   const [showDone, setShowDone] = useState(false);
   const shake = useAnimationControls();
+  const reducedMotion = useReducedMotion();
   const zone = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const timers = useRef<number[]>([]);
@@ -166,7 +169,7 @@ export function UploadDropzone({
       setRefuse(
         msg ?? (n === 0 ? `Quá lớn — tối đa ${maxSizeMB} MB` : SNARK[Math.min(n - 1, SNARK.length - 1)]),
       );
-      shake.start({
+      if (!reducedMotion) shake.start({
         x: [0, -7, 6, -4, 2, 0],
         transition: { duration: 0.38 },
       });
@@ -176,11 +179,12 @@ export function UploadDropzone({
         tries.current = 0;
       }, 8000);
     },
-    [maxSizeMB, shake],
+    [maxSizeMB, shake, reducedMotion],
   );
 
   const processFile = useCallback(
     (file: File) => {
+      if (isPending || disabled) return;
       if (file.size > maxSizeMB * 1e6) {
         refuseIt();
         return;
@@ -189,14 +193,14 @@ export function UploadDropzone({
       later(() => setGulp(false), 460);
       onFileSelect(file);
     },
-    [maxSizeMB, onFileSelect, refuseIt],
+    [maxSizeMB, onFileSelect, refuseIt, isPending, disabled],
   );
 
   /* ── native drag & drop ──────────────────────────────── */
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isPending) setOver(true);
+    if (!isPending && !disabled) setOver(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
@@ -209,7 +213,7 @@ export function UploadDropzone({
     e.preventDefault();
     e.stopPropagation();
     setOver(false);
-    if (isPending) return;
+    if (isPending || disabled) return;
 
     const file = e.dataTransfer.files[0];
     if (!file) return;
@@ -217,7 +221,7 @@ export function UploadDropzone({
   };
 
   const handleClick = () => {
-    if (!isPending) fileInput.current?.click();
+    if (!isPending && !disabled) fileInput.current?.click();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -269,7 +273,7 @@ export function UploadDropzone({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <button type="button" className="upl-choose" disabled={isPending}
+          <button type="button" className="upl-choose" disabled={isPending || disabled}
             aria-label={selectedFile ? "Chọn tệp tài liệu khác" : "Chọn tệp tài liệu PDF"}
             onClick={handleClick} />
           {phase.kind === "idle" && !selectedFile ? (
@@ -329,7 +333,7 @@ export function UploadDropzone({
                   )}
                 </span>
               </span>
-              {!isPending && (
+              {!isPending && !disabled && (
                 <button
                   type="button"
                   className="upl-clear"
@@ -344,6 +348,7 @@ export function UploadDropzone({
 
           <input
             type="file"
+            disabled={isPending || disabled}
             ref={fileInput}
             className="hidden"
             accept={accept}
@@ -353,7 +358,7 @@ export function UploadDropzone({
       </motion.div>
 
       {error && (
-        <p className="text-sm text-destructive font-medium">{error}</p>
+        <p role="alert" className="text-sm text-destructive font-medium">{error}</p>
       )}
     </div>
   );

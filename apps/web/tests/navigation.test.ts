@@ -57,3 +57,19 @@ it("visible motion UI is removed, not OS accessibility or theme settings", () =>
   assert.equal(existsSync(new URL('../src/features/home/components/home-motion-toggle.tsx', import.meta.url)), false);
   assert.equal(existsSync(new URL('../src/stores/use-home-motion-store.ts', import.meta.url)), false);
 });
+
+it("exam entries reach existing role lists and contributor permission adds only own documents", () => {
+  for (const role of [undefined, "STUDENT", "LECTURER", "ADMIN"]) {
+    const groups = getNavigationGroups(role, ["DOCUMENT_UPLOAD"]);
+    const links = groups.flatMap(group => group.items).map(item => item.href);
+    assert.equal(links.includes("/exams"), role === "STUDENT");
+    assert.equal(links.includes("/admin/exams"), role === "ADMIN");
+    assert.equal(links.includes("/lecturer/exams"), role === "LECTURER");
+    assert.equal(links.includes("/my-documents"), role === "STUDENT");
+    assert.equal(new Set(links).size, links.length);
+    const drawer = getDrawerNavigationGroups(role, ["DOCUMENT_UPLOAD"]).flatMap(group => group.items).map(item => item.href);
+    assert.deepEqual(drawer.sort(), [...links].sort());
+  }
+  assert.equal(getNavigationGroups("STUDENT").flatMap(group => group.items).some(item => item.href === "/my-documents"), false);
+  assert.equal(getActiveNavigationItem(getDrawerNavigationGroups("ADMIN").flatMap(group => group.items), "/admin/exams/papers/id")?.href, "/admin/exams");
+});

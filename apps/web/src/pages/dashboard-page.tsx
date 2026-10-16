@@ -9,12 +9,16 @@ import { DashboardQuickActions } from "@/features/dashboard/components/dashboard
 export default function DashboardPage() {
   const { data: user } = useCurrentUser();
   const staff = user?.role === "ADMIN" || user?.role === "LECTURER";
-  const groups = getNavigationGroups(user?.role).filter((group) =>
-    staff
-      ? group.label === "Quản lý nội dung" ||
-        group.label === "Quản trị hệ thống"
-      : group.label === "Học tập",
-  );
+  const groups = getNavigationGroups(user?.role, user?.permissions)
+    .filter(group => staff
+      ? group.label === "Quản lý nội dung" || group.label === "Quản trị hệ thống"
+      : group.label === "Học tập" || group.label === "Cá nhân")
+    .map(group => group.label === "Cá nhân" ? {
+      ...group,
+      label: "Tài nguyên của tôi",
+      items: group.items.filter(item => item.href === "/exams" || item.href === "/my-documents"),
+    } : group)
+    .filter(group => group.items.length > 0);
 
   return (
     <div className="page-shell">

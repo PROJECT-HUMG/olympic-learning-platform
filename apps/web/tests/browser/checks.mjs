@@ -1,5 +1,10 @@
 // Only migrated, self-hosted, intercepted-API checks belong in this entry point.
 export const checks = {
+  journeys: {
+    file: 'project-journeys-browser-check.mjs',
+    description: 'Routed topics, invitations/acceptance, document contribution and exam entries',
+    options: {},
+  },
   otp: {
     file: 'registration-verification-browser-check.mjs',
     description: 'Routed /register verification, shared shell and OTP interactions',

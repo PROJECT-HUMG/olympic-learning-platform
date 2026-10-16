@@ -1,3 +1,5 @@
+import { useSearchParams } from "react-router-dom";
+import { TopicManagement } from "@/features/system-categories/components/topic-management";
 import { InlineRetryFeedback } from "@/components/ui/inline-retry-feedback";
 import { PageHeader } from "@/components/ui/page-header";
 import { useState } from "react";
@@ -43,7 +45,9 @@ export default function AdminCategoriesPage() {
     isFetching: isMetadataFetching,
   } = useDocumentMetadata();
 
-  const [activeTab, setActiveTab] = useState<"categories" | "subjects" | "tags">("categories");
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("tab");
+  const activeTab = tab === "subjects" || tab === "tags" || tab === "topics" ? tab : "categories";
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [itemToDelete, setItemToDelete] = useState<{ id: string, name: string } | null>(null);
@@ -194,46 +198,48 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="page-shell">
-      <PageHeader title="Danh mục hệ thống" description="Quản lý phân loại tài liệu, môn học và thẻ." />
+      <PageHeader title="Danh mục hệ thống" description="Quản lý môn học, chủ đề câu hỏi, phân loại tài liệu và thẻ." />
 
       <Tabs 
         value={activeTab} 
-        onValueChange={(v) => setActiveTab(v as any)} 
+        onValueChange={value => setParams(previous => { const next = new URLSearchParams(previous); next.set("tab", value); return next; })}
         className="space-y-4"
       >
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="scrollbar-hide overflow-x-auto overflow-y-hidden pb-2 sm:pb-0 w-full sm:w-auto">
-            <TabsList className="inline-flex h-auto min-h-13 items-stretch justify-start rounded-none bg-transparent border-b border-border p-0 text-muted-foreground shadow-none">
+          <div className="w-full sm:w-auto">
+            <TabsList className="grid w-full grid-cols-2 sm:inline-flex group-data-[orientation=horizontal]/tabs:h-auto min-h-13 items-stretch justify-start rounded-none bg-transparent border-b border-border p-0 text-muted-foreground shadow-none">
               <TabsTrigger 
                 value="categories" 
-                className="min-h-11 gap-2 border-none px-4 rounded-lg data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all font-medium"
+                className="h-auto min-h-11 min-w-0 whitespace-normal gap-2 border-none px-4 rounded-lg data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all font-medium"
               >
                 <FolderTree className="h-4 w-4" />
                 Phân loại tài liệu
               </TabsTrigger>
               <TabsTrigger 
                 value="subjects" 
-                className="min-h-11 gap-2 border-none px-4 rounded-lg data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all font-medium"
+                className="h-auto min-h-11 min-w-0 whitespace-normal gap-2 border-none px-4 rounded-lg data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all font-medium"
               >
                 <Book className="h-4 w-4" />
                 Môn học
               </TabsTrigger>
               <TabsTrigger 
                 value="tags" 
-                className="min-h-11 gap-2 border-none px-4 rounded-lg data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all font-medium"
+                className="h-auto min-h-11 min-w-0 whitespace-normal gap-2 border-none px-4 rounded-lg data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all font-medium"
               >
                 <Tags className="h-4 w-4" />
                 Thẻ phân loại
               </TabsTrigger>
+            <TabsTrigger value="topics" className="h-auto min-h-11 min-w-0 whitespace-normal px-4">Chủ đề câu hỏi</TabsTrigger>
             </TabsList>
           </div>
-          <Button onClick={() => handleOpenModal()}>
+          {activeTab !== "topics" && <Button onClick={() => handleOpenModal()}>
             <Plus className="mr-2 h-4 w-4" />
             {activeTab === "categories" ? "Thêm phân loại" : activeTab === "subjects" ? "Thêm môn học" : "Thêm thẻ"}
-          </Button>
+          </Button>}
         </div>
 
-        {isMetadataError && !metadata ? (
+        <TabsContent value="topics" className="m-0"><TopicManagement /></TabsContent>
+        {activeTab === "topics" ? null : isMetadataError && !metadata ? (
           <div
             role="alert"
             className="space-y-3 rounded-lg border border-border p-8 text-center"

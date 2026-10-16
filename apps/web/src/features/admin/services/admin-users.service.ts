@@ -1,7 +1,11 @@
 import { apiClient } from "@/lib/axios";
-import type { AdminUserResponse, AdminUsersSearchRequest, Page, PermissionInfo } from "../types/admin.types";
+import type { AdminUserResponse, AdminUsersSearchRequest, Page, PermissionInfo, InviteUserRequest, InviteUserResponse } from "../types/admin.types";
 
 export const adminUsersService = {
+  invite(data: InviteUserRequest) {
+    return apiClient.post<InviteUserResponse>("/admin/users", data).then(response => response.data);
+  },
+
   search(params: AdminUsersSearchRequest, signal?: AbortSignal) {
     return apiClient.get<Page<AdminUserResponse>>("/admin/users", { params, signal });
   },

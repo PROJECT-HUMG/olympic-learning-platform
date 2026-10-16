@@ -29,7 +29,7 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-const refreshSession = createSessionRefresh({
+export const refreshSession = createSessionRefresh({
   getSession: () => useAuthStore.getState(),
   requestToken: async () => {
     const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {

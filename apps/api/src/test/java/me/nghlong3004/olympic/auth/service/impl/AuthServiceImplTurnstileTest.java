@@ -18,11 +18,13 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import me.nghlong3004.olympic.auth.dto.AuthEmailTokenConsumption;
 import me.nghlong3004.olympic.auth.dto.RefreshTokenIssue;
 import me.nghlong3004.olympic.auth.enums.AuthEmailTokenPurpose;
 import me.nghlong3004.olympic.auth.enums.TurnstileAction;
+import me.nghlong3004.olympic.auth.mapper.AuthMapper;
 import me.nghlong3004.olympic.auth.request.ForgotPasswordRequest;
 import me.nghlong3004.olympic.auth.request.LoginRequest;
 import me.nghlong3004.olympic.auth.request.RegisterRequest;
@@ -39,12 +41,12 @@ import me.nghlong3004.olympic.common.properties.AuthProperties;
 import me.nghlong3004.olympic.common.properties.UserProperties;
 import me.nghlong3004.olympic.common.security.CurrentUserProvider;
 import me.nghlong3004.olympic.common.util.AuthLinkBuilder;
-import me.nghlong3004.olympic.auth.mapper.AuthMapper;
 import me.nghlong3004.olympic.storage.service.StorageService;
 import me.nghlong3004.olympic.user.entity.User;
+import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
-import me.nghlong3004.olympic.user.exception.UserPendingException;
 import me.nghlong3004.olympic.user.exception.UserDisabledException;
+import me.nghlong3004.olympic.user.exception.UserPendingException;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -105,19 +107,26 @@ class AuthServiceImplTurnstileTest {
   void loginRejectionAndOutageDoNotTouchCredentialsOrSession() {
     doThrow(ErrorCode.TURNSTILE_REJECTED.throwIt())
         .doThrow(ErrorCode.TURNSTILE_UNAVAILABLE.throwIt())
-        .when(turnstileVerificationService).verify(TOKEN, TurnstileAction.LOGIN);
+        .when(turnstileVerificationService)
+        .verify(TOKEN, TurnstileAction.LOGIN);
     var request = new LoginRequest("student", "synthetic-password", TOKEN);
-    assertError(ErrorCode.TURNSTILE_REJECTED, () -> authService.login(request, "127.0.0.1", "test"));
-    assertError(ErrorCode.TURNSTILE_UNAVAILABLE, () -> authService.login(request, "127.0.0.1", "test"));
-    verifyNoInteractions(userRepository, passwordEncoder, refreshTokenService, jwtTokenService, authMapper);
+    assertError(
+        ErrorCode.TURNSTILE_REJECTED, () -> authService.login(request, "127.0.0.1", "test"));
+    assertError(
+        ErrorCode.TURNSTILE_UNAVAILABLE, () -> authService.login(request, "127.0.0.1", "test"));
+    verifyNoInteractions(
+        userRepository, passwordEncoder, refreshTokenService, jwtTokenService, authMapper);
   }
 
   @Test
   void loginKeepsCredentialAndAccountStatusErrorsAfterVerification() {
-    var user = User.builder().id(UUID.randomUUID()).passwordHash("hash").status(Status.ACTIVE).build();
-    when(userRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull("student")).thenReturn(Optional.of(user));
+    var user =
+        User.builder().id(UUID.randomUUID()).passwordHash("hash").status(Status.ACTIVE).build();
+    when(userRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull("student"))
+        .thenReturn(Optional.of(user));
     var request = new LoginRequest("student", "synthetic-password", TOKEN);
-    assertError(ErrorCode.INVALID_CREDENTIALS, () -> authService.login(request, "127.0.0.1", "test"));
+    assertError(
+        ErrorCode.INVALID_CREDENTIALS, () -> authService.login(request, "127.0.0.1", "test"));
     when(passwordEncoder.matches("synthetic-password", "hash")).thenReturn(true);
     user.setStatus(Status.PENDING);
     assertThatThrownBy(() -> authService.login(request, "127.0.0.1", "test"))
@@ -131,24 +140,47 @@ class AuthServiceImplTurnstileTest {
 
   @Test
   void verifiedLoginPreservesSessionIssuanceAndAcceptsEmailOrUsername() {
-    var user = User.builder().id(UUID.randomUUID()).email("user@example.com").username("student")
-        .passwordHash("hash").status(Status.ACTIVE).build();
-    when(userRepository.findByEmailIgnoreCaseAndDeletedAtIsNull("user@example.com")).thenReturn(Optional.of(user));
-    when(userRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull("student")).thenReturn(Optional.of(user));
+    var user =
+        User.builder()
+            .id(UUID.randomUUID())
+            .email("user@example.com")
+            .username("student")
+            .passwordHash("hash")
+            .status(Status.ACTIVE)
+            .build();
+    when(userRepository.findByEmailIgnoreCaseAndDeletedAtIsNull("user@example.com"))
+        .thenReturn(Optional.of(user));
+    when(userRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull("student"))
+        .thenReturn(Optional.of(user));
     when(passwordEncoder.matches("synthetic-password", "hash")).thenReturn(true);
-    when(refreshTokenService.issue(user, "127.0.0.1", "test")).thenReturn(new RefreshTokenIssue("synthetic-refresh", 3600));
+    when(refreshTokenService.issue(user, "127.0.0.1", "test"))
+        .thenReturn(new RefreshTokenIssue("synthetic-refresh", 3600));
     when(jwtTokenService.issueAccessToken(user)).thenReturn("synthetic-access");
     when(jwtTokenService.accessExpiresInSeconds()).thenReturn(900L);
-    when(authMapper.toResponse(user)).thenReturn(new CurrentUserResponse(user.getId(), user.getEmail(),
-        user.getUsername(), "Student", null, null, user.getRole(), user.getStatus(), null));
+    when(authMapper.toResponse(user))
+        .thenReturn(
+            new CurrentUserResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getUsername(),
+                "Student",
+                null,
+                null,
+                user.getRole(),
+                user.getStatus(),
+                null,
+                Set.of()));
     for (var identifier : List.of("User@Example.com", " student ")) {
-      var result = authService.login(new LoginRequest(identifier, "synthetic-password", TOKEN), "127.0.0.1", "test");
+      var result =
+          authService.login(
+              new LoginRequest(identifier, "synthetic-password", TOKEN), "127.0.0.1", "test");
       assertThat(result.response().accessToken()).isEqualTo("synthetic-access");
       assertThat(result.refreshToken().token()).isEqualTo("synthetic-refresh");
       assertThat(result.response().user().id()).isEqualTo(user.getId());
     }
     assertThat(user.getLastLoginAt()).isEqualTo(OffsetDateTime.parse("2026-10-03T00:00:00Z"));
-    var order = inOrder(turnstileVerificationService, userRepository, passwordEncoder, refreshTokenService);
+    var order =
+        inOrder(turnstileVerificationService, userRepository, passwordEncoder, refreshTokenService);
     order.verify(turnstileVerificationService).verify(TOKEN, TurnstileAction.LOGIN);
     order.verify(userRepository).findByEmailIgnoreCaseAndDeletedAtIsNull("user@example.com");
     order.verify(passwordEncoder).matches("synthetic-password", "hash");
@@ -167,7 +199,8 @@ class AuthServiceImplTurnstileTest {
         .when(turnstileVerificationService)
         .verify(TOKEN, TurnstileAction.REGISTER);
 
-    assertError(ErrorCode.TURNSTILE_REJECTED, () -> authService.register(request, "127.0.0.1", "test"));
+    assertError(
+        ErrorCode.TURNSTILE_REJECTED, () -> authService.register(request, "127.0.0.1", "test"));
     assertError(
         ErrorCode.TURNSTILE_UNAVAILABLE, () -> authService.register(request, "127.0.0.1", "test"));
 
@@ -200,7 +233,8 @@ class AuthServiceImplTurnstileTest {
   @Test
   void registerChecksTurnstileBeforeAnyAccountLookup() {
     allowRegistration();
-    when(userRepository.existsByEmailIgnoreCaseAndDeletedAtIsNull("user@example.com")).thenReturn(true);
+    when(userRepository.existsByEmailIgnoreCaseAndDeletedAtIsNull("user@example.com"))
+        .thenReturn(true);
 
     assertError(
         ErrorCode.DUPLICATE_RESOURCE,
@@ -261,10 +295,43 @@ class AuthServiceImplTurnstileTest {
         .thenReturn(new AuthEmailTokenConsumption(user, AuthEmailTokenPurpose.PASSWORD_RESET));
     when(passwordEncoder.encode("ChangeMe@123")).thenReturn("hashed");
 
-    var response = authService.resetPassword(new ResetPasswordRequest("reset-token", "ChangeMe@123"));
+    var response =
+        authService.resetPassword(new ResetPasswordRequest("reset-token", "ChangeMe@123"));
 
     assertThat(response.messageKey()).isEqualTo(PASSWORD_RESET_SUCCESS_MESSAGE_KEY);
     verifyNoInteractions(turnstileVerificationService, eventPublisher);
+  }
+
+  @Test
+  void invitationAcceptanceActivatesEstablishedRoleAndRevokesCredentials() {
+    var user =
+        User.builder().id(UUID.randomUUID()).role(Role.LECTURER).status(Status.PENDING).build();
+    when(authEmailTokenService.consumeWithPurpose(eq("invite-token"), any()))
+        .thenReturn(new AuthEmailTokenConsumption(user, AuthEmailTokenPurpose.ADMIN_INVITE));
+    when(passwordEncoder.encode("New-password-123")).thenReturn("hashed");
+    authService.resetPassword(new ResetPasswordRequest("invite-token", "New-password-123"));
+    assertThat(user.getStatus()).isEqualTo(Status.ACTIVE);
+    assertThat(user.getRole()).isEqualTo(Role.LECTURER);
+    assertThat(user.getPasswordHash()).isEqualTo("hashed");
+    verify(authEmailTokenService)
+        .consumeWithPurpose(
+            "invite-token",
+            Set.of(AuthEmailTokenPurpose.PASSWORD_RESET, AuthEmailTokenPurpose.ADMIN_INVITE));
+    verify(authEmailTokenService).revokeActiveForUser(user.getId());
+    verify(refreshTokenService).revokeActiveForUser(user.getId());
+    verifyNoInteractions(turnstileVerificationService, eventPublisher);
+  }
+
+  @Test
+  void expiredInvitationCannotActivateAnAccountOrWritePassword() {
+    when(authEmailTokenService.consumeWithPurpose(eq("expired-invite"), any()))
+        .thenThrow(ErrorCode.EMAIL_TOKEN_EXPIRED.throwIt());
+    assertThatThrownBy(
+            () ->
+                authService.resetPassword(
+                    new ResetPasswordRequest("expired-invite", "New-password-123")))
+        .isInstanceOf(ApiException.class);
+    verifyNoInteractions(passwordEncoder, refreshTokenService, eventPublisher);
   }
 
   @Test

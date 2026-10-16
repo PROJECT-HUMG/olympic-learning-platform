@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { documentKeys } from "@/features/documents/hooks/use-documents";
 import {
+  createTopic,
+  disableTopic,
   createCategory,
   updateCategory,
   deleteCategory,
@@ -127,3 +129,21 @@ export const useDeleteTag = () => {
     },
   });
 };
+
+function useTopicInvalidation() {
+  const client = useQueryClient();
+  return () => Promise.all([
+    client.invalidateQueries({ queryKey: ["topics"] }),
+    client.invalidateQueries({ queryKey: ["assessment-topics"] }),
+  ]);
+}
+
+export function useCreateTopic() {
+  const invalidate = useTopicInvalidation();
+  return useMutation({ mutationFn: createTopic, onSuccess: invalidate });
+}
+
+export function useDisableTopic() {
+  const invalidate = useTopicInvalidation();
+  return useMutation({ mutationFn: disableTopic, onSuccess: invalidate });
+}

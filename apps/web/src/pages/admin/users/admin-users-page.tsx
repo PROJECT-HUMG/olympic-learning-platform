@@ -1,3 +1,4 @@
+import { InviteUserDialog } from "@/features/admin/components/invite-user-dialog";
 import { SearchInput } from "@/components/ui/search-input";
 import { AvatarImage } from "@/features/user/components/avatar-image";
 import { PageHeader } from "@/components/ui/page-header";
@@ -48,6 +49,8 @@ export default function AdminUsersPage() {
     size: 10,
   });
 
+  const [inviting, setInviting] = useState(false);
+  const [inviteNotice, setInviteNotice] = useState("");
   const permissionTrigger = useRef<HTMLButtonElement | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const selectedUser =
@@ -55,7 +58,13 @@ export default function AdminUsersPage() {
 
   return (
     <div className="page-shell">
-      <PageHeader title="Quản lý người dùng" description="Quản lý tài khoản và phân quyền hệ thống." />
+      <PageHeader title="Quản lý người dùng" description="Quản lý tài khoản và phân quyền hệ thống." actions={<Button onClick={() => setInviting(true)}>Mời tài khoản</Button>} />
+      {inviteNotice && <p role="status" className="content-card p-4 text-sm">{inviteNotice}</p>}
+      {inviting && <InviteUserDialog onClose={() => setInviting(false)} onCreated={result => {
+        setInviting(false);
+        setInviteNotice(`Đã tạo lời mời cho ${result.user.email}. Tài khoản đang chờ kích hoạt; người nhận cần mở email mời và đặt mật khẩu.`);
+        setParams(previous => { const next = new URLSearchParams(previous); next.set("search", result.user.email); next.delete("page"); return next; });
+      }} />}
 
       <div className="page-toolbar filter-panel">
         <div className="relative flex-1 max-w-md">
@@ -72,7 +81,7 @@ export default function AdminUsersPage() {
           <ul className="divide-y divide-border md:hidden">
             {data.content.map(user => <li key={user.id} className="space-y-3 p-4">
               <UserIdentity user={user} />
-              <div className="flex flex-wrap items-center gap-2"><Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>{user.role}</Badge><span className="text-xs text-muted-foreground">Tham gia {format(new Date(user.createdAt), "dd/MM/yyyy", { locale: vi })}</span></div>
+              <div className="flex flex-wrap items-center gap-2"><Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>{user.role}</Badge><span className="text-xs text-muted-foreground">{user.status === "PENDING" ? "Chờ kích hoạt" : user.status === "ACTIVE" ? "Đang hoạt động" : "Đã vô hiệu hóa"}</span><span className="text-xs text-muted-foreground">Tham gia {format(new Date(user.createdAt), "dd/MM/yyyy", { locale: vi })}</span></div>
               <UserPermissions user={user} />
               <Button variant="outline" className="min-h-11" disabled={isFetching} aria-label={`Sửa quyền cho ${user.fullName || user.username} (${user.email})`} onClick={event => { permissionTrigger.current = event.currentTarget; setSelectedUserId(user.id); }}>Sửa quyền</Button>
             </li>)}
@@ -141,6 +150,7 @@ export default function AdminUsersPage() {
                     >
                       {user.role}
                     </Badge>
+                    <p className="mt-1 text-xs text-muted-foreground">{user.status === "PENDING" ? "Chờ kích hoạt" : user.status === "ACTIVE" ? "Đang hoạt động" : "Đã vô hiệu hóa"}</p>
                   </TableCell>
                   <TableCell>
                     <UserPermissions user={user} />

@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/axios";
+import type { TopicSummary } from "@/features/questions/types/question.types";
 import type {
   CategorySummaryResponse,
   CreateCategoryRequest,
@@ -106,3 +107,9 @@ export const updateTag = async ({
 export const deleteTag = async (id: string): Promise<void> => {
   await apiClient.delete(`/admin/tags/${id}`);
 };
+
+// Question topics use the existing subject-scoped API; disabling retains referenced questions.
+export const createTopic = (data: { subjectId: string; name: string }) =>
+  apiClient.post<TopicSummary>("/topics", data).then(response => response.data);
+
+export const disableTopic = (id: string) => apiClient.delete<void>(`/topics/${id}`);

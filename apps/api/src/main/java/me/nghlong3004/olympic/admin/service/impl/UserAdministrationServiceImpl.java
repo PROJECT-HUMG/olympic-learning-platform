@@ -6,12 +6,16 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.nghlong3004.olympic.admin.mapper.AdminUserMapper;
+import me.nghlong3004.olympic.admin.request.AdminCreateUserRequest;
+import me.nghlong3004.olympic.admin.response.AdminCreateUserResponse;
+import me.nghlong3004.olympic.admin.response.AdminUserResponse;
+import me.nghlong3004.olympic.admin.service.UserAdministrationService;
 import me.nghlong3004.olympic.auth.enums.AuthEmailTokenPurpose;
 import me.nghlong3004.olympic.auth.service.AuthEmailTokenService;
 import me.nghlong3004.olympic.common.error.ErrorCode;
 import me.nghlong3004.olympic.common.mail.event.MailSendEvent;
 import me.nghlong3004.olympic.common.mail.model.AdminInviteMailModel;
-import me.nghlong3004.olympic.common.properties.AuthProperties;
 import me.nghlong3004.olympic.common.properties.AuthProperties;
 import me.nghlong3004.olympic.common.properties.UserProperties;
 import me.nghlong3004.olympic.common.util.AuthLinkBuilder;
@@ -20,15 +24,10 @@ import me.nghlong3004.olympic.user.enums.Permission;
 import me.nghlong3004.olympic.user.enums.Status;
 import me.nghlong3004.olympic.user.mapper.UserMapper;
 import me.nghlong3004.olympic.user.repository.UserRepository;
-import me.nghlong3004.olympic.admin.mapper.AdminUserMapper;
-import me.nghlong3004.olympic.admin.request.AdminCreateUserRequest;
-import me.nghlong3004.olympic.admin.response.AdminCreateUserResponse;
-import me.nghlong3004.olympic.admin.response.AdminUserResponse;
-import me.nghlong3004.olympic.admin.service.UserAdministrationService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +41,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserAdministrationServiceImpl implements UserAdministrationService {
 
   private final UserRepository userRepository;
-  private final PasswordEncoder passwordEncoder;
   private final AuthEmailTokenService authEmailTokenService;
   private final ApplicationEventPublisher eventPublisher;
   private final AuthProperties authProperties;
@@ -54,18 +52,26 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
 
   @Transactional
   @Override
+  @PreAuthorize("hasRole('ADMIN')")
   public AdminCreateUserResponse createUser(
       AdminCreateUserRequest request, String ip, String userAgent) {
     var email = AuthLinkBuilder.normalizeEmail(request.email());
     if (userRepository.existsByEmailIgnoreCaseAndDeletedAtIsNull(email)) {
       throw ErrorCode.DUPLICATE_RESOURCE.throwIt("Email already exists");
     }
+    var username = request.username().trim();
+    if (username.length() < 3 || username.length() > 100) {
+      throw ErrorCode.VALIDATION_ERROR.throwIt("Username must be between 3 and 100 characters");
+    }
+    if (userRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull(username).isPresent()) {
+      throw ErrorCode.DUPLICATE_RESOURCE.throwIt("Username already exists");
+    }
     var now = OffsetDateTime.now(clock);
     var user =
         userRepository.save(
             User.builder()
                 .email(email)
-                .username(request.username())
+                .username(username)
                 .fullName(request.fullName().trim())
                 .role(request.role())
                 .status(Status.PENDING)
@@ -86,7 +92,7 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
     log.info("Admin created user invite: userId={}", user.getId());
     return new AdminCreateUserResponse(
         userMapper.toResponse(user).withAvatarUrl(resolveAvatarUrl(user)),
-        "User created. Invite email sent.");
+        "Account created. Invitation queued for email delivery.");
   }
 
   private String resolveAvatarUrl(User user) {
@@ -96,8 +102,10 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
   @Override
   @Transactional
   public void grantPermission(UUID userId, Permission permission) {
-    User user = userRepository.findByIdAndDeletedAtIsNull(userId)
-        .orElseThrow(() -> ErrorCode.RESOURCE_NOT_FOUND.throwIt("User not found"));
+    User user =
+        userRepository
+            .findByIdAndDeletedAtIsNull(userId)
+            .orElseThrow(() -> ErrorCode.RESOURCE_NOT_FOUND.throwIt("User not found"));
     user.getPermissions().add(permission);
     log.info("Admin granted permission {} to user {}", permission, userId);
   }
@@ -105,8 +113,10 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
   @Override
   @Transactional
   public void revokePermission(UUID userId, Permission permission) {
-    User user = userRepository.findByIdAndDeletedAtIsNull(userId)
-        .orElseThrow(() -> ErrorCode.RESOURCE_NOT_FOUND.throwIt("User not found"));
+    User user =
+        userRepository
+            .findByIdAndDeletedAtIsNull(userId)
+            .orElseThrow(() -> ErrorCode.RESOURCE_NOT_FOUND.throwIt("User not found"));
     user.getPermissions().remove(permission);
     log.info("Admin revoked permission {} from user {}", permission, userId);
   }
@@ -115,7 +125,8 @@ public class UserAdministrationServiceImpl implements UserAdministrationService 
   @Transactional(readOnly = true)
   public Page<AdminUserResponse> searchUsers(String search, Pageable pageable) {
     String keyword = search != null ? search : "";
-    return userRepository.searchUsers(keyword, pageable)
+    return userRepository
+        .searchUsers(keyword, pageable)
         .map(user -> adminUserMapper.toResponse(user, resolveAvatarUrl(user)));
   }
 }

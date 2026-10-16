@@ -259,6 +259,7 @@ export const router = createBrowserRouter([
               </RouteSuspense>
             ),
           },
+          { path: ROUTES.MY_DOCUMENTS, element: <RouteSuspense><DocumentsManagementPage own /></RouteSuspense> },
           { path: ROUTES.MY_ACHIEVEMENTS, element: <RouteSuspense><MyAchievementsPage /></RouteSuspense> },
         ],
       },

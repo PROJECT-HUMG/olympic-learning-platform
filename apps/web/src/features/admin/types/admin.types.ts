@@ -33,3 +33,15 @@ export interface PermissionInfo {
   id: string;
   description: string;
 }
+
+export interface InviteUserRequest {
+  email: string;
+  username: string;
+  fullName: string;
+  role: Role;
+}
+
+export interface InviteUserResponse {
+  user: { id: string; email: string; username: string; fullName: string; role: Role; status: UserStatus };
+  message: string;
+}

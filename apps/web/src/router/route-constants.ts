@@ -22,6 +22,7 @@ export const ROUTES = {
   // Private pages (Authenticated dashboard area)
   DASHBOARD: "/dashboard",
   PROFILE: "/profile",
+  MY_DOCUMENTS: "/my-documents",
   DAILY: "/daily",
   DAILY_WEEK: "/daily/week",
   DAILY_GROUPS: "/daily/groups",

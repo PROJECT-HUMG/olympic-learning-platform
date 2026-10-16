@@ -11,6 +11,7 @@ import me.nghlong3004.olympic.user.exception.UserPendingException;
 import org.slf4j.MDC;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -57,6 +58,15 @@ public class GlobalExceptionHandler {
         exception.getBindingResult().getFieldErrors().stream().map(this::fieldViolation).toList();
     problem.setProperty(FieldViolation.PROPERTY, fields);
     return problem;
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ProblemDetail handleUnreadableBody(
+      HttpMessageNotReadableException exception, HttpServletRequest request) {
+    return problem(
+        ErrorCode.VALIDATION_ERROR,
+        "The request body contains an invalid value",
+        request.getRequestURI());
   }
 
   @ExceptionHandler(ConstraintViolationException.class)

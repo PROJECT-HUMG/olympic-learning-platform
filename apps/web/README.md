@@ -46,6 +46,7 @@ From `apps/web`, Node24 and installed Chromium are sufficient; no Playwright pac
 
 ```bash
 rtk pnpm check:browser --list
+rtk pnpm check:browser journeys
 rtk pnpm check:browser otp --help
 rtk pnpm check:browser otp
 rtk pnpm check:browser auth --section=recovery
@@ -58,12 +59,13 @@ rtk proxy node --test tests/browser/session.test.mjs
 
 | Check | Flow-specific options (default runs its full current scope) |
 | --- | --- |
+| `journeys` | Taxonomy topics, administrative invitations/acceptance, student document contribution and role-specific exam entries; no flow flags |
 | `otp` | `--visual-only` or `--interactions-only`; `--before` reads the historical component for visual comparison |
 | `auth` | `--section=forms` (default), `recovery`, `reset`, `lifecycle`, `status-visuals`, `loading` or `turnstile`; `--forgot-only` bounds only the Turnstile section |
 | `home` | `--before` reads the historical hero; current scope includes frame samples, motion clips, search and local original MP4 playback |
 | `media` | `--evidence-only` omits album checks; `--before` is historical album comparison |
 
-All four support `--browser <executable>`, `--output <NEW directory>`, `--timeout-ms <100..300000>` (default30000 per Chromium startup/CDP call, not a whole-suite deadline), and `--no-sandbox`. Browser discovery reuses PATH Chromium/Chrome or an already installed Linux Playwright Chromium cache; an explicit executable overrides discovery. Sandbox remains enabled by default; use `--no-sandbox` only if the trusted local environment cannot support it. Nothing installs a browser. Unknown options, sections and conflicting scope flags fail rather than silently run the wrong check. Cold routed compilation and Home clip encoding can need the longer timeout on a busy host; clips replay measured frame timing.
+All supported checks accept `--browser <executable>`, `--output <NEW directory>`, `--timeout-ms <100..300000>` (default30000 per Chromium startup/CDP call, not a whole-suite deadline), and `--no-sandbox`. Browser discovery reuses PATH Chromium/Chrome or an already installed Linux Playwright Chromium cache; an explicit executable overrides discovery. Sandbox remains enabled by default; use `--no-sandbox` only if the trusted local environment cannot support it. Nothing installs a browser. Unknown options, sections and conflicting scope flags fail rather than silently run the wrong check. Cold routed compilation and Home clip encoding can need the longer timeout on a busy host; clips replay measured frame timing.
 
 The host binds an owned ephemeral loopback port, including Vite WebSocket traffic. Each run has a new browser profile/cache and ignores `.env`, project Vite config and inherited `VITE_*` values; only explicit synthetic public flags are supplied. File watching is disabled so unrelated edits cannot reload the candidate mid-check. It never attaches to an existing browser/profile/server. Do not add a live-URL option to these intercepted checks. They render **actual product routes with synthetic APIs/session challenges**, not isolated component fixtures or live backend enforcement.
 

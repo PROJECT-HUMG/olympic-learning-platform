@@ -1,3 +1,5 @@
+import { canCreateDocument } from "@/features/documents/document-access";
+import { parseApiError } from "@/lib/api-error";
 import { OptionQueryFeedback } from "@/components/ui/option-query-feedback";
 import { useDocumentMetadata } from "@/features/documents/hooks/use-documents";
 import { useSearchParams } from "react-router-dom";
@@ -35,13 +37,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { DocumentResponse } from "@/features/documents/types/documents.types";
 
-export default function DocumentsManagementPage() {
+export default function DocumentsManagementPage({ own = false }: { own?: boolean }) {
   const [params, setParams] = useSearchParams();
   const keyword = params.get("keyword") ?? "";
   const search = useUrlListSearch(keyword, value => setParams(previous => replaceListParam(previous, "keyword", value), { replace: true }));
   const currentPage = getPageNumber(params.get("page"));
   const setCurrentPage = (page: number) => setParams(previous => replaceListParam(previous, "page", String(page)), { replace: true });
-  const { data: user } = useCurrentUser();
+  const { data: user, isError: userError } = useCurrentUser();
+  const canCreate = !userError && canCreateDocument(user?.role, user?.permissions);
   const metadata = useDocumentMetadata();
 
   // Convert 1-based visible page to 0-based offset for the API in exactly one place
@@ -59,8 +62,8 @@ export default function DocumentsManagementPage() {
     categoryId: params.get("categoryId") || undefined,
     page: apiPageOffset,
     size: 10,
-    ownerId: user?.role === "LECTURER" ? user.id : undefined,
-  });
+    ownerId: own || user?.role === "LECTURER" ? user?.id : undefined,
+  }, !!user?.id);
 
   const totalPages = pageData?.totalPages;
 
@@ -86,10 +89,12 @@ export default function DocumentsManagementPage() {
     busy: false,
   });
 
+  const [saveError, setSaveError] = useState("");
   const createDocument = useCreateDocument();
   const updateDocument = useUpdateDocument();
 
   const handleFormSubmit = (data: any) => {
+    setSaveError("");
     if (documentToEdit) {
       updateDocument.mutate(
         { id: documentToEdit.id, data },
@@ -99,17 +104,18 @@ export default function DocumentsManagementPage() {
             setDocumentToEdit(null);
             setFormState({ dirty: false, busy: false });
           },
-          onError: () => toast.error("Có lỗi xảy ra khi cập nhật tài liệu"),
+          onError: () => setSaveError("Chưa lưu được tài liệu. Nội dung đang sửa được giữ lại; hãy thử lại."),
         },
       );
     } else {
+      if (!canCreate) { setSaveError("Chưa xác nhận được quyền thêm tài liệu. Hãy kiểm tra lại tài khoản."); return; }
       createDocument.mutate(data, {
         onSuccess: () => {
           toast.success("Tạo tài liệu mới thành công");
           setIsCreateModalOpen(false);
           setFormState({ dirty: false, busy: false });
         },
-        onError: () => toast.error("Có lỗi xảy ra khi tạo tài liệu"),
+        onError: error => setSaveError(parseApiError(error).status === 403 ? "Bạn không còn quyền thêm tài liệu. Bấm Cập nhật quyền tải lên rồi thử lại; thông tin đang nhập được giữ khi biểu mẫu còn mở." : "Chưa xác nhận được tài liệu đã được tạo. Kiểm tra danh sách nếu kết nối bị ngắt; tệp và thông tin vẫn được giữ để thử lại."),
       });
     }
   };
@@ -128,8 +134,10 @@ export default function DocumentsManagementPage() {
 
   return (
     <div className="page-shell">
-      <PageHeader title="Quản lý tài liệu" description="Thêm và cập nhật tài liệu trong kho học tập."
-        actions={<Button onClick={() => { setFormState({ dirty: false, busy: false }); setIsCreateModalOpen(true); }}><Plus aria-hidden="true" className="size-4" />Thêm tài liệu mới</Button>} />
+      <PageHeader title={own ? "Tài liệu của tôi" : "Quản lý tài liệu"} description={own ? "Các tài liệu bạn đã đóng góp vào kho học tập." : "Thêm và cập nhật tài liệu trong kho học tập."}
+        actions={canCreate && <Button data-document-create onClick={() => { setSaveError(""); setFormState({ dirty: false, busy: false }); setIsCreateModalOpen(true); }}><Plus aria-hidden="true" className="size-4" />Thêm tài liệu mới</Button>} />
+
+      {own && !canCreate && <p role="status" className="text-sm text-muted-foreground">Bạn vẫn có thể quản lý tài liệu đã đăng. Để thêm tài liệu mới, tài khoản cần quyền tải lên do quản trị viên cấp.</p>}
 
       {/* Toolbar */}
       <div className="page-toolbar filter-panel !items-end">
@@ -183,6 +191,7 @@ export default function DocumentsManagementPage() {
           data={pageData?.content || []}
           onDeleteClick={item => { deleteDocument.reset(); setDocumentToDelete(item); }}
           onEditClick={(doc) => {
+            setSaveError("");
             setFormState({ dirty: false, busy: false });
             setDocumentToEdit(doc);
           }}
@@ -237,6 +246,7 @@ export default function DocumentsManagementPage() {
 
       {/* Create/Edit Modal */}
       <CreationDialog
+        returnFocusSelector="[data-document-create], main h1"
         open={isCreateModalOpen || !!documentToEdit}
         onOpenChange={(open) => {
           if (!open) {
@@ -262,6 +272,8 @@ export default function DocumentsManagementPage() {
             onCancel={close}
             onStateChange={setFormState}
             isLoading={createDocument.isPending || updateDocument.isPending}
+            submitError={saveError}
+            createAllowed={canCreate}
           />
         )}
       </CreationDialog>

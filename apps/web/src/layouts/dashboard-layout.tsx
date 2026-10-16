@@ -32,11 +32,11 @@ export function DashboardLayout() {
   const isDesktop = useMediaQuery("(min-width: 1200px)");
   const hasRail = useMediaQuery("(min-width: 768px)");
   const expanded = isDesktop && sidebarOpen;
-  const groups = getNavigationGroups(user?.role);
+  const groups = getNavigationGroups(user?.role, user?.permissions);
   const active = getActiveNavigationItem(groups.flatMap(group => group.items), location.pathname, location.search);
   const dailyArea = location.pathname === ROUTES.DAILY || location.pathname.startsWith(`${ROUTES.DAILY}/`);
   const pageContext = dailyArea ? "Góc học tập" : active?.label ?? "Không gian cá nhân";
-  const shortcuts = getWorkspaceShortcuts(user?.role);
+  const shortcuts = getWorkspaceShortcuts(user?.role, user?.permissions);
   const roleLabel = user?.role === "ADMIN" ? "Quản trị viên" : user?.role === "LECTURER" ? "Giảng viên" : "Sinh viên";
   useEffect(() => setMenuOpen(false), [location.key, isDesktop, hasRail]);
   useEffect(() => {
@@ -63,7 +63,7 @@ export function DashboardLayout() {
         </div>
         {expanded ? <>
           <div className="workspace-sidebar__context"><span>{roleLabel}</span><Button variant="ghost" size="icon" aria-label="Thu gọn menu" aria-expanded="true" onClick={toggleSidebar}><PanelLeftClose aria-hidden="true" /></Button></div>
-          <div className="workspace-sidebar__body"><NavigationGroups groups={getWorkspaceNavigationGroups(user?.role)} /></div>
+          <div className="workspace-sidebar__body"><NavigationGroups groups={getWorkspaceNavigationGroups(user?.role, user?.permissions)} /></div>
         </> : <>
           <div className="workspace-rail__controls">
             {isDesktop && <Button variant="ghost" size="icon" aria-label="Mở rộng menu" aria-expanded="false" onClick={toggleSidebar}><PanelLeftOpen aria-hidden="true" /></Button>}
@@ -112,7 +112,7 @@ export function DashboardLayout() {
         <div className="workspace-content" id="workspace-content" tabIndex={-1}><Outlet /></div>
       </main>
     </div>
-    <NavigationDrawer workspace groups={getDrawerNavigationGroups(user?.role)} onNavigate={() => setMenuOpen(false)} onCloseAutoFocus={event => {
+    <NavigationDrawer workspace groups={getDrawerNavigationGroups(user?.role, user?.permissions)} onNavigate={() => setMenuOpen(false)} onCloseAutoFocus={event => {
       // Several triggers share this drawer; return to the one actually used, not
       // Radix's last registered trigger. On breakpoint unmount use the new entry.
       event.preventDefault();

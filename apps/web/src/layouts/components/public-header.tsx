@@ -54,7 +54,7 @@ export function PublicHeader({ cinematic = false }: { cinematic?: boolean }) {
         </div>
       </div>}
     </header>
-    <NavigationDrawer groups={getDrawerNavigationGroups(user?.role)} onNavigate={() => setMenuOpen(false)} footer={!user &&
+    <NavigationDrawer groups={getDrawerNavigationGroups(user?.role, user?.permissions)} onNavigate={() => setMenuOpen(false)} footer={!user &&
       <div className="navigation-drawer__auth">
         <Button asChild variant="outline"><Link to={ROUTES.LOGIN} state={loginState} onClick={() => setMenuOpen(false)}>Đăng nhập</Link></Button>
         <Button asChild><Link to={ROUTES.REGISTER} state={loginState} onClick={() => setMenuOpen(false)}>Tạo tài khoản</Link></Button>
