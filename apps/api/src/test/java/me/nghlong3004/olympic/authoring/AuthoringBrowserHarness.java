@@ -39,25 +39,18 @@ import me.nghlong3004.olympic.common.util.DefaultSlugGenerator;
 import me.nghlong3004.olympic.daily.controller.DailyController;
 import me.nghlong3004.olympic.daily.evidence.controller.EvidenceController;
 import me.nghlong3004.olympic.daily.evidence.controller.EvidencePrivacyFilter;
-import me.nghlong3004.olympic.daily.evidence.service.impl.EvidenceServiceImpl;
-import me.nghlong3004.olympic.daily.service.impl.DailyServiceImpl;
-import me.nghlong3004.olympic.daily.mapper.DailyMapperImpl;
 import me.nghlong3004.olympic.daily.evidence.mapper.EvidenceMapperImpl;
+import me.nghlong3004.olympic.daily.evidence.service.impl.EvidenceServiceImpl;
+import me.nghlong3004.olympic.daily.feedback.controller.DailyFeedbackController;
 import me.nghlong3004.olympic.daily.feedback.mapper.DailyFeedbackMapperImpl;
-import me.nghlong3004.olympic.daily.sharing.mapper.SharedDailyMapperImpl;
-import me.nghlong3004.olympic.group.mapper.GroupMapperImpl;
-import me.nghlong3004.olympic.group.service.impl.GroupDailyAccessImpl;
-import me.nghlong3004.olympic.group.controller.GroupController;
-import me.nghlong3004.olympic.group.controller.GroupAvatarController;
-import me.nghlong3004.olympic.group.service.impl.GroupAvatarServiceImpl;
-import me.nghlong3004.olympic.group.controller.GroupPrivacyFilter;
-import me.nghlong3004.olympic.group.service.impl.GroupServiceImpl;
-import me.nghlong3004.olympic.group.service.impl.GroupMembershipServiceImpl;
+import me.nghlong3004.olympic.daily.feedback.service.impl.DailyFeedbackServiceImpl;
+import me.nghlong3004.olympic.daily.mapper.DailyMapperImpl;
+import me.nghlong3004.olympic.daily.service.impl.DailyServiceImpl;
 import me.nghlong3004.olympic.daily.sharing.controller.SharedDailyController;
+import me.nghlong3004.olympic.daily.sharing.mapper.SharedDailyMapperImpl;
+import me.nghlong3004.olympic.daily.sharing.service.DailyEntrySharingService;
 import me.nghlong3004.olympic.daily.sharing.service.impl.SharedDailyAccessImpl;
 import me.nghlong3004.olympic.daily.sharing.service.impl.SharedDailyServiceImpl;
-import me.nghlong3004.olympic.daily.feedback.controller.DailyFeedbackController;
-import me.nghlong3004.olympic.daily.feedback.service.impl.DailyFeedbackServiceImpl;
 import me.nghlong3004.olympic.document.controller.DocumentMetadataController;
 import me.nghlong3004.olympic.document.mapper.CategoryMapperImpl;
 import me.nghlong3004.olympic.document.mapper.SubjectMapperImpl;
@@ -74,6 +67,13 @@ import me.nghlong3004.olympic.exam.service.impl.ExamProjections;
 import me.nghlong3004.olympic.exam.service.impl.ExamPublication;
 import me.nghlong3004.olympic.exam.service.impl.ExamQuestionSourcePolicy;
 import me.nghlong3004.olympic.exam.service.impl.ExamServiceImpl;
+import me.nghlong3004.olympic.group.controller.GroupAvatarController;
+import me.nghlong3004.olympic.group.controller.GroupController;
+import me.nghlong3004.olympic.group.controller.GroupPrivacyFilter;
+import me.nghlong3004.olympic.group.mapper.GroupMapperImpl;
+import me.nghlong3004.olympic.group.service.impl.GroupAvatarServiceImpl;
+import me.nghlong3004.olympic.group.service.impl.GroupMembershipServiceImpl;
+import me.nghlong3004.olympic.group.service.impl.GroupServiceImpl;
 import me.nghlong3004.olympic.question.controller.QuestionController;
 import me.nghlong3004.olympic.question.mapper.QuestionMapperImpl;
 import me.nghlong3004.olympic.question.service.impl.QuestionFigurePolicy;
@@ -144,9 +144,9 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
  * Opt-in loopback HTTP fixture for question and exam browser checks. Question, exam, current-user,
- * document-metadata, topic, and owner Daily controllers use the disposable PostgreSQL database,
- * the production security chain, and {@link JwtCurrentUserAuthenticationConverter}. Bearer strings are decoded
- * only by the fixture {@link JwtDecoder}. This does not prove {@code AuthService} login or
+ * document-metadata, topic, and owner Daily controllers use the disposable PostgreSQL database, the
+ * production security chain, and {@link JwtCurrentUserAuthenticationConverter}. Bearer strings are
+ * decoded only by the fixture {@link JwtDecoder}. This does not prove {@code AuthService} login or
  * cryptographic JWT issuance. {@code @SpringBootApplication} stays unused so Redis, mail, OAuth,
  * Cloudinary, and {@code JwtConfig} are not started.
  *
@@ -181,35 +181,35 @@ class AuthoringBrowserHarness {
   private static final UUID SUBJECT_ID = UUID.fromString("00000000-0000-0000-0000-000000000a11");
   private static final UUID TOPIC_ID = UUID.fromString("00000000-0000-0000-0000-000000000a12");
   private static final String DAILY_DATE = "2026-10-05";
-  private static final List<FixtureUser> USERS = List.of(
-      new FixtureUser(
-          UUID.fromString("00000000-0000-0000-0000-000000000a01"),
-          "authoring-lecturer@example.com",
-          "authoring-lecturer",
-          "Authoring Lecturer",
-          Role.LECTURER,
-          "authoring-lecturer"),
-      new FixtureUser(
-          UUID.fromString("00000000-0000-0000-0000-000000000a02"),
-          "authoring-admin@example.com",
-          "authoring-admin",
-          "Authoring Admin",
-          Role.ADMIN,
-          "authoring-admin"),
-      new FixtureUser(
-          UUID.fromString("00000000-0000-0000-0000-000000000a03"),
-          "authoring-student@example.com",
-          "authoring-student",
-          "Authoring Student",
-          Role.STUDENT,
-          "authoring-student"));
-  private static final Map<String, FixtureUser> BY_TOKEN = USERS.stream()
-      .collect(Collectors.toUnmodifiableMap(FixtureUser::token, Function.identity()));
-  private static final Map<UUID, FixtureUser> BY_ID = USERS.stream()
-      .collect(Collectors.toUnmodifiableMap(FixtureUser::id, Function.identity()));
+  private static final List<FixtureUser> USERS =
+      List.of(
+          new FixtureUser(
+              UUID.fromString("00000000-0000-0000-0000-000000000a01"),
+              "authoring-lecturer@example.com",
+              "authoring-lecturer",
+              "Authoring Lecturer",
+              Role.LECTURER,
+              "authoring-lecturer"),
+          new FixtureUser(
+              UUID.fromString("00000000-0000-0000-0000-000000000a02"),
+              "authoring-admin@example.com",
+              "authoring-admin",
+              "Authoring Admin",
+              Role.ADMIN,
+              "authoring-admin"),
+          new FixtureUser(
+              UUID.fromString("00000000-0000-0000-0000-000000000a03"),
+              "authoring-student@example.com",
+              "authoring-student",
+              "Authoring Student",
+              Role.STUDENT,
+              "authoring-student"));
+  private static final Map<String, FixtureUser> BY_TOKEN =
+      USERS.stream().collect(Collectors.toUnmodifiableMap(FixtureUser::token, Function.identity()));
+  private static final Map<UUID, FixtureUser> BY_ID =
+      USERS.stream().collect(Collectors.toUnmodifiableMap(FixtureUser::id, Function.identity()));
 
-  @Container
-  @ServiceConnection
+  @Container @ServiceConnection
   static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
 
   @DynamicPropertySource
@@ -255,39 +255,42 @@ class AuthoringBrowserHarness {
           INSERT INTO users (id, email, username, full_name, role, status)
           VALUES (?, ?, ?, ?, ?::user_role, 'ACTIVE')
           """,
-          user.id(), user.email(), user.username(), user.fullName(), user.role().name());
+          user.id(),
+          user.email(),
+          user.username(),
+          user.fullName(),
+          user.role().name());
     }
     jdbc.update(
-        "INSERT INTO subjects (id, code, name, slug) VALUES (?, 'AUB', 'Authoring', 'authoring-browser')",
+        "INSERT INTO subjects (id, code, name, slug) VALUES (?, 'AUB', 'Authoring',"
+            + " 'authoring-browser')",
         SUBJECT_ID);
     jdbc.update(
         "INSERT INTO topics (id, subject_id, name, slug) VALUES (?, ?, 'Drafts', 'drafts')",
-        TOPIC_ID, SUBJECT_ID);
+        TOPIC_ID,
+        SUBJECT_ID);
   }
 
   private static void probe(String root) {
-    HttpClient client = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(5))
-        .followRedirects(HttpClient.Redirect.NEVER)
-        .build();
+    HttpClient client =
+        HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .followRedirects(HttpClient.Redirect.NEVER)
+            .build();
     FixtureUser lecturer = user(Role.LECTURER);
     status(client, root + "/questions", null, 401);
     status(client, root + "/questions", lecturer, 200);
     bodyHas(client, root + "/users/me", lecturer, 200, lecturer.id().toString());
     bodyHas(client, root + "/documents/metadata", null, 200, SUBJECT_ID.toString());
-    bodyHas(
-        client,
-        root + "/topics?subjectId=" + SUBJECT_ID,
-        lecturer,
-        200,
-        TOPIC_ID.toString());
+    bodyHas(client, root + "/topics?subjectId=" + SUBJECT_ID, lecturer, 200, TOPIC_ID.toString());
     status(client, root + "/exams", lecturer, 200);
     status(client, root + "/questions", user(Role.STUDENT), 403);
     status(client, root + "/daily/plans?date=" + DAILY_DATE, null, 401);
     status(client, root + "/daily/weeks?weekStart=" + DAILY_DATE, null, 401);
     for (FixtureUser fixture : USERS) {
       status(client, root + "/daily/plans?date=" + DAILY_DATE, fixture, 404);
-      bodyHas(client, root + "/daily/weeks?weekStart=" + DAILY_DATE, fixture, 200, "\"plannedDays\":0");
+      bodyHas(
+          client, root + "/daily/weeks?weekStart=" + DAILY_DATE, fixture, 200, "\"plannedDays\":0");
     }
   }
 
@@ -307,7 +310,8 @@ class AuthoringBrowserHarness {
   }
 
   private static HttpRequest request(String url, FixtureUser user) {
-    HttpRequest.Builder builder = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(5)).GET();
+    HttpRequest.Builder builder =
+        HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(5)).GET();
     if (user != null) {
       builder.header("Authorization", "Bearer " + user.token());
     }
@@ -333,7 +337,8 @@ class AuthoringBrowserHarness {
       }
     }
     String error = last == null ? "unknown" : last.getClass().getSimpleName();
-    throw new IllegalStateException("Authoring browser probe failed: path=" + path + " error=" + error);
+    throw new IllegalStateException(
+        "Authoring browser probe failed: path=" + path + " error=" + error);
   }
 
   private static IllegalStateException failed(String url, int status) {
@@ -343,12 +348,15 @@ class AuthoringBrowserHarness {
 
   private static String path(String url) {
     URI uri = URI.create(url);
-    return uri.getRawQuery() == null ? uri.getRawPath() : uri.getRawPath() + "?" + uri.getRawQuery();
+    return uri.getRawQuery() == null
+        ? uri.getRawPath()
+        : uri.getRawPath() + "?" + uri.getRawQuery();
   }
 
   private static boolean passwordMatches(String password) {
     return MessageDigest.isEqual(
-        FIXTURE_PASSWORD.getBytes(StandardCharsets.UTF_8), password.getBytes(StandardCharsets.UTF_8));
+        FIXTURE_PASSWORD.getBytes(StandardCharsets.UTF_8),
+        password.getBytes(StandardCharsets.UTF_8));
   }
 
   /**
@@ -357,24 +365,25 @@ class AuthoringBrowserHarness {
    */
   @Configuration(proxyBeanMethods = false)
   @TestComponent
-  @EnableAutoConfiguration(exclude = {
-    DataRedisAutoConfiguration.class,
-    DataRedisReactiveAutoConfiguration.class,
-    DataRedisRepositoriesAutoConfiguration.class,
-    DataRedisHealthContributorAutoConfiguration.class,
-    DataRedisReactiveHealthContributorAutoConfiguration.class,
-    LettuceObservationAutoConfiguration.class,
-    MailSenderAutoConfiguration.class,
-    MailSenderValidatorAutoConfiguration.class,
-    MailHealthContributorAutoConfiguration.class,
-    OAuth2ClientAutoConfiguration.class,
-    ReactiveOAuth2ClientAutoConfiguration.class,
-    ReactiveOAuth2ClientWebSecurityAutoConfiguration.class,
-    OAuth2ClientWebSecurityAutoConfiguration.class,
-    OAuth2ResourceServerAutoConfiguration.class,
-    UserDetailsServiceAutoConfiguration.class,
-    DeepSeekChatAutoConfiguration.class
-  })
+  @EnableAutoConfiguration(
+      exclude = {
+        DataRedisAutoConfiguration.class,
+        DataRedisReactiveAutoConfiguration.class,
+        DataRedisRepositoriesAutoConfiguration.class,
+        DataRedisHealthContributorAutoConfiguration.class,
+        DataRedisReactiveHealthContributorAutoConfiguration.class,
+        LettuceObservationAutoConfiguration.class,
+        MailSenderAutoConfiguration.class,
+        MailSenderValidatorAutoConfiguration.class,
+        MailHealthContributorAutoConfiguration.class,
+        OAuth2ClientAutoConfiguration.class,
+        ReactiveOAuth2ClientAutoConfiguration.class,
+        ReactiveOAuth2ClientWebSecurityAutoConfiguration.class,
+        OAuth2ClientWebSecurityAutoConfiguration.class,
+        OAuth2ResourceServerAutoConfiguration.class,
+        UserDetailsServiceAutoConfiguration.class,
+        DeepSeekChatAutoConfiguration.class
+      })
   @EnableConfigurationProperties({ClientProperties.class, UserProperties.class})
   @EntityScan(basePackages = "me.nghlong3004.olympic")
   @EnableJpaRepositories(basePackages = "me.nghlong3004.olympic")
@@ -385,7 +394,6 @@ class AuthoringBrowserHarness {
     EvidenceController.class,
     EvidencePrivacyFilter.class,
     EvidenceServiceImpl.class,
-    GroupDailyAccessImpl.class,
     GroupController.class,
     GroupAvatarController.class,
     GroupAvatarServiceImpl.class,
@@ -395,6 +403,7 @@ class AuthoringBrowserHarness {
     SharedDailyController.class,
     SharedDailyAccessImpl.class,
     SharedDailyServiceImpl.class,
+    DailyEntrySharingService.class,
     DailyFeedbackController.class,
     DailyFeedbackServiceImpl.class,
     UserController.class,
@@ -415,6 +424,7 @@ class AuthoringBrowserHarness {
     ExamPlacementPolicy.class,
     ExamQuestionSourcePolicy.class,
     DailyServiceImpl.class,
+    DailyEntrySharingService.class,
     DailyMapperImpl.class,
     EvidenceMapperImpl.class,
     DailyFeedbackMapperImpl.class,
@@ -482,7 +492,8 @@ class AuthoringBrowserHarness {
         String root = "http://127.0.0.1:" + port + "/api/v1";
         probe(root);
         log.info(
-            "Authoring browser fixture ready: url={} clock={} lecturerId={} adminId={} studentId={} subjectId={} topicId={} dailyDate={} seconds={}",
+            "Authoring browser fixture ready: url={} clock={} lecturerId={} adminId={} studentId={}"
+                + " subjectId={} topicId={} dailyDate={} seconds={}",
             root,
             clock.instant(),
             user(Role.LECTURER).id(),
@@ -518,16 +529,18 @@ class AuthoringBrowserHarness {
         throw ErrorCode.INVALID_CREDENTIALS.throwIt();
       }
       String identifier = request.identifier().trim();
-      User user = users.findByUsernameIgnoreCaseAndDeletedAtIsNull(identifier)
-          .or(() -> users.findByEmailIgnoreCaseAndDeletedAtIsNull(identifier))
-          .filter(found -> found.getStatus() == Status.ACTIVE)
-          .orElseThrow(ErrorCode.INVALID_CREDENTIALS::throwIt);
+      User user =
+          users
+              .findByUsernameIgnoreCaseAndDeletedAtIsNull(identifier)
+              .or(() -> users.findByEmailIgnoreCaseAndDeletedAtIsNull(identifier))
+              .filter(found -> found.getStatus() == Status.ACTIVE)
+              .orElseThrow(ErrorCode.INVALID_CREDENTIALS::throwIt);
       FixtureUser fixture = BY_ID.get(user.getId());
       if (fixture == null) {
         throw ErrorCode.INVALID_CREDENTIALS.throwIt();
       }
-      CurrentUserResponse profile = userMapper.toCurrentUserResponse(user)
-          .withAvatarUrl(userProperties.defaultAvatarUrl());
+      CurrentUserResponse profile =
+          userMapper.toCurrentUserResponse(user).withAvatarUrl(userProperties.defaultAvatarUrl());
       log.info("Authoring browser fixture login accepted: userId={}", user.getId());
       return new LoginResponse(fixture.token(), "Bearer", 3600, profile);
     }

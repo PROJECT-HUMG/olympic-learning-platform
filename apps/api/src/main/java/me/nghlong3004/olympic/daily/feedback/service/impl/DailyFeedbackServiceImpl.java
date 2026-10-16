@@ -1,6 +1,7 @@
 package me.nghlong3004.olympic.daily.feedback.service.impl;
 
 import java.time.Clock;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -43,14 +44,14 @@ public class DailyFeedbackServiceImpl implements DailyFeedbackService {
   @Transactional(readOnly = true)
   @Override
   public DailyFeedbackResponse list(UUID groupId, UUID ownerId, String kind, UUID reviewId) {
-    access.requireSharedReader(groupId, ownerId);
-    requireReview(ownerId, kind, reviewId);
+    var date = requireReview(ownerId, kind, reviewId);
+    access.requireSharedReader(groupId, ownerId, date);
     var rows =
         rows(groupId, kind, reviewId).stream()
             .filter(
                 r ->
                     ownerId.equals(r.getOwnerId())
-                        && access.visibleTo(groupId, ownerId, r.getAuthorId()))
+                        && access.visibleTo(groupId, ownerId, r.getAuthorId(), date))
             .map(this::response)
             .toList();
     return mapper.toResponse(rows, rows.size());
@@ -62,9 +63,9 @@ public class DailyFeedbackServiceImpl implements DailyFeedbackService {
       UUID groupId, UUID ownerId, String kind, UUID reviewId, SaveDailyFeedbackRequest request) {
     // Group lock makes audience/leave changes and concurrent own create/update mutually ordered.
     groups.findForUpdateById(groupId).orElseThrow(ErrorCode.RESOURCE_NOT_FOUND::throwIt);
-    var actor = access.requireSharedReader(groupId, ownerId);
+    var date = requireReview(ownerId, kind, reviewId);
+    var actor = access.requireSharedReader(groupId, ownerId, date);
     if (actor.getId().equals(ownerId)) throw ErrorCode.ACCESS_DENIED.throwIt();
-    requireReview(ownerId, kind, reviewId);
     var text = request == null || request.text() == null ? "" : request.text().trim();
     if (text.isEmpty()
         || text.length() > 4000
@@ -105,9 +106,9 @@ public class DailyFeedbackServiceImpl implements DailyFeedbackService {
   @Override
   public void remove(UUID groupId, UUID ownerId, String kind, UUID reviewId, Long expectedVersion) {
     groups.findForUpdateById(groupId).orElseThrow(ErrorCode.RESOURCE_NOT_FOUND::throwIt);
-    var actor = access.requireSharedReader(groupId, ownerId);
+    var date = requireReview(ownerId, kind, reviewId);
+    var actor = access.requireSharedReader(groupId, ownerId, date);
     if (actor.getId().equals(ownerId)) throw ErrorCode.ACCESS_DENIED.throwIt();
-    requireReview(ownerId, kind, reviewId);
     var own =
         rows(groupId, kind, reviewId).stream()
             .filter(r -> actor.getId().equals(r.getAuthorId()))
@@ -119,14 +120,18 @@ public class DailyFeedbackServiceImpl implements DailyFeedbackService {
     log.info("Daily feedback removed: contributionId={}", own.getId());
   }
 
-  private void requireReview(UUID ownerId, String kind, UUID id) {
-    UUID actual;
-    if ("plans".equals(kind))
-      actual = plans.findById(id).orElseThrow(ErrorCode.RESOURCE_NOT_FOUND::throwIt).getOwnerId();
-    else if ("weeks".equals(kind))
-      actual = weeks.findById(id).orElseThrow(ErrorCode.RESOURCE_NOT_FOUND::throwIt).getOwnerId();
-    else throw ErrorCode.RESOURCE_NOT_FOUND.throwIt();
-    if (!ownerId.equals(actual)) throw ErrorCode.RESOURCE_NOT_FOUND.throwIt();
+  private LocalDate requireReview(UUID ownerId, String kind, UUID id) {
+    if ("plans".equals(kind)) {
+      var plan = plans.findById(id).orElseThrow(ErrorCode.RESOURCE_NOT_FOUND::throwIt);
+      if (!ownerId.equals(plan.getOwnerId())) throw ErrorCode.RESOURCE_NOT_FOUND.throwIt();
+      return plan.getPlanDate();
+    }
+    if ("weeks".equals(kind)) {
+      var week = weeks.findById(id).orElseThrow(ErrorCode.RESOURCE_NOT_FOUND::throwIt);
+      if (!ownerId.equals(week.getOwnerId())) throw ErrorCode.RESOURCE_NOT_FOUND.throwIt();
+      return null;
+    }
+    throw ErrorCode.RESOURCE_NOT_FOUND.throwIt();
   }
 
   private List<DailyFeedback> rows(UUID groupId, String kind, UUID id) {

@@ -42,6 +42,8 @@ Current [Daily checks and disposable persistence harness](../../docs/architectur
 
 ## Browser checks
 
+`rtk pnpm check:browser daily --no-sandbox --timeout-ms=120000` checks the routed Daily journal, dated audience picker and group readers with synthetic APIs. It shares the options/cleanup below; no email/provider/live API is used. Older Daily UX runners retain pre-redesign modal/ongoing-sharing assumptions.
+
 From `apps/web`, Node24 and installed Chromium are sufficient; no Playwright package, browser download or running dev/API server is required. If PATH selects a different pnpm, use `rtk proxy corepack pnpm@10.17.0` in place of `rtk pnpm`.
 
 ```bash

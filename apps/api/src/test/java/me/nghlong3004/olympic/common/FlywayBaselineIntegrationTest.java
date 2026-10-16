@@ -61,7 +61,7 @@ class FlywayBaselineIntegrationTest {
     dataSource.setConnectionProperties(properties);
     jdbc = new JdbcTemplate(dataSource);
     flyway = Flyway.configure().dataSource(dataSource).defaultSchema(schema).load();
-    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(1);
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(2);
   }
 
   @AfterAll
@@ -90,11 +90,11 @@ class FlywayBaselineIntegrationTest {
     }
     flyway.validate();
     assertThat(flyway.migrate().migrationsExecuted).isZero();
-    assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("1");
+    assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("2");
     assertThat(
             jdbc.queryForObject(
                 "SELECT count(*) FROM flyway_schema_history WHERE success", Integer.class))
-        .isEqualTo(1);
+        .isEqualTo(2);
   }
 
   @Test

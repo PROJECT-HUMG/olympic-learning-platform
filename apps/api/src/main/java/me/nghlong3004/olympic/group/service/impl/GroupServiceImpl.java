@@ -3,16 +3,15 @@ package me.nghlong3004.olympic.group.service.impl;
 import jakarta.persistence.EntityManager;
 import java.time.Clock;
 import java.time.OffsetDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.nghlong3004.olympic.common.error.ErrorCode;
 import me.nghlong3004.olympic.common.security.CurrentUserProvider;
+import me.nghlong3004.olympic.daily.sharing.repository.DailyEntrySharingRepository;
 import me.nghlong3004.olympic.group.entity.AccountabilityGroup;
 import me.nghlong3004.olympic.group.entity.AccountabilityGroupMembership;
-import me.nghlong3004.olympic.group.entity.AccountabilityGroupShareViewer;
 import me.nghlong3004.olympic.group.entity.GroupInvitation;
 import me.nghlong3004.olympic.group.enums.MembershipStatus;
 import me.nghlong3004.olympic.group.enums.SharingMode;
@@ -21,8 +20,13 @@ import me.nghlong3004.olympic.group.repository.AccountabilityGroupMembershipRepo
 import me.nghlong3004.olympic.group.repository.AccountabilityGroupRepository;
 import me.nghlong3004.olympic.group.repository.AccountabilityGroupShareViewerRepository;
 import me.nghlong3004.olympic.group.repository.GroupInvitationRepository;
-import me.nghlong3004.olympic.group.request.*;
-import me.nghlong3004.olympic.group.response.*;
+import me.nghlong3004.olympic.group.request.CreateGroupInvitationRequest;
+import me.nghlong3004.olympic.group.request.CreateGroupRequest;
+import me.nghlong3004.olympic.group.request.ReplaceGroupSharingRequest;
+import me.nghlong3004.olympic.group.response.GroupDetailResponse;
+import me.nghlong3004.olympic.group.response.GroupInvitationResponse;
+import me.nghlong3004.olympic.group.response.GroupSharingResponse;
+import me.nghlong3004.olympic.group.response.GroupSummaryResponse;
 import me.nghlong3004.olympic.group.service.GroupMembershipService;
 import me.nghlong3004.olympic.group.service.GroupService;
 import me.nghlong3004.olympic.user.entity.User;
@@ -50,6 +54,7 @@ public class GroupServiceImpl implements GroupService {
   private final GroupMembershipService foundation;
   private final GroupMapper mapper;
   private final Clock clock;
+  private final DailyEntrySharingRepository entryShares;
   private final EntityManager entityManager;
 
   @Transactional(readOnly = true)
@@ -88,47 +93,9 @@ public class GroupServiceImpl implements GroupService {
   @Transactional
   @Override
   public GroupSharingResponse replaceSharing(UUID groupId, ReplaceGroupSharingRequest request) {
-    var actor = actor();
-    lock(groupId);
-    var own = member(groupId, actor.getId());
-    if (request == null
-        || request.shareDaily() == null
-        || request.sharingMode() == null
-        || request.selectedViewerIds() == null
-        || request.selectedViewerIds().size() > 500) throw invalid();
-    var ids = new HashSet<UUID>();
-    for (var id : request.selectedViewerIds()) {
-      if (id == null || id.equals(actor.getId()) || !ids.add(id)) throw invalid();
-      member(groupId, id); // Validate before touching any rows, even while OFF.
-    }
-    var stamp = OffsetDateTime.now(clock);
-    var existing = selections.findByOwner_IdAndGroup_IdAndActiveTrue(actor.getId(), groupId);
-    for (var selection : existing) {
-      selection.setActive(false);
-      selection.setUpdatedAt(stamp);
-    }
-    for (var id : ids) {
-      var row =
-          selections
-              .findByOwner_IdAndGroup_IdAndViewer_Id(actor.getId(), groupId, id)
-              .orElseGet(
-                  () ->
-                      AccountabilityGroupShareViewer.builder()
-                          .owner(actor)
-                          .group(own.getGroup())
-                          .viewer(member(groupId, id).getUser())
-                          .createdAt(stamp)
-                          .build());
-      row.setActive(true);
-      row.setUpdatedAt(stamp);
-      selections.save(row);
-    }
-    own.setShareDaily(request.shareDaily());
-    own.setSharingMode(request.sharingMode());
-    own.setUpdatedAt(stamp);
-    members.saveAndFlush(own);
-    log.info("Group own audience replaced: groupId={} actorId={}", groupId, actor.getId());
-    return settings(own);
+    actor();
+    throw ErrorCode.RESOURCE_STATE_CONFLICT.throwIt(
+        "Share a dated Daily entry instead of granting ongoing access");
   }
 
   @Transactional
@@ -142,6 +109,7 @@ public class GroupServiceImpl implements GroupService {
     own.setSharingMode(SharingMode.GROUP);
     own.setUpdatedAt(OffsetDateTime.now(clock));
     clearSelections(groupId, actor.getId());
+    entryShares.deleteAll(entryShares.findMembershipGrants(groupId, actor.getId()));
     log.info("Group member left: groupId={} actorId={}", groupId, actor.getId());
   }
 

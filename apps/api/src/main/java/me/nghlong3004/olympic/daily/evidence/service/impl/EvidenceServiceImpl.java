@@ -22,9 +22,9 @@ import me.nghlong3004.olympic.daily.evidence.request.CreateEvidenceLinkRequest;
 import me.nghlong3004.olympic.daily.evidence.response.EvidenceMetadataResponse;
 import me.nghlong3004.olympic.daily.evidence.service.EvidenceService;
 import me.nghlong3004.olympic.daily.repository.DailyPlanRepository;
+import me.nghlong3004.olympic.daily.sharing.service.DailyEntrySharingService;
 import me.nghlong3004.olympic.group.enums.MembershipStatus;
 import me.nghlong3004.olympic.group.repository.AccountabilityGroupMembershipRepository;
-import me.nghlong3004.olympic.group.service.GroupDailyAccess;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +46,7 @@ public class EvidenceServiceImpl implements EvidenceService {
   private final UserRepository users;
   private final CurrentUserProvider currentUser;
   private final AccountabilityGroupMembershipRepository memberships;
-  private final GroupDailyAccess groupAccess;
+  private final DailyEntrySharingService groupAccess;
   private final Clock clock;
 
   @Transactional
@@ -151,7 +151,8 @@ public class EvidenceServiceImpl implements EvidenceService {
       if (owner == null || !owner.active()) throw denied();
       requireActiveMembership(groupId, plan.getOwnerId());
       requireActiveMembership(groupId, actorId);
-      groupAccess.requireViewer(groupId, plan.getOwnerId(), actorId);
+      if (!groupAccess.canRead(groupId, plan.getOwnerId(), actorId, plan.getPlanDate()))
+        throw denied();
     }
     return plan.getTasks().stream()
         .filter(task -> taskId.equals(task.getId()))

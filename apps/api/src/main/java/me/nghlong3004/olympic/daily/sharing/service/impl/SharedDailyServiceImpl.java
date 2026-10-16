@@ -20,7 +20,8 @@ import me.nghlong3004.olympic.daily.response.DailyWeekResponse;
 import me.nghlong3004.olympic.daily.service.DailyCalendar;
 import me.nghlong3004.olympic.daily.sharing.enums.DailyShareAccess;
 import me.nghlong3004.olympic.daily.sharing.mapper.SharedDailyMapper;
-import me.nghlong3004.olympic.daily.sharing.response.*;
+import me.nghlong3004.olympic.daily.sharing.response.SharedDailyDashboardResponse;
+import me.nghlong3004.olympic.daily.sharing.response.SharedDailyMemberResponse;
 import me.nghlong3004.olympic.daily.sharing.service.SharedDailyAccess;
 import me.nghlong3004.olympic.daily.sharing.service.SharedDailyService;
 import me.nghlong3004.olympic.group.enums.MembershipStatus;
@@ -53,7 +54,7 @@ public class SharedDailyServiceImpl implements SharedDailyService {
             .map(
                 m -> {
                   var user = m.getUser();
-                  var visible = access.visibleTo(groupId, user.getId(), actor.getId());
+                  var visible = access.visibleTo(groupId, user.getId(), actor.getId(), date);
                   // Do not read private plan existence/counts for a NOT_SHARED row.
                   var plan =
                       visible
@@ -64,7 +65,9 @@ public class SharedDailyServiceImpl implements SharedDailyService {
                           : null;
                   var summary = plan == null ? null : sharingMapper.toSummary(plan);
                   return sharingMapper.toMember(
-                      user, visible ? DailyShareAccess.SHARED : DailyShareAccess.NOT_SHARED, summary);
+                      user,
+                      visible ? DailyShareAccess.SHARED : DailyShareAccess.NOT_SHARED,
+                      summary);
                 })
             .sorted(Comparator.comparing(SharedDailyMemberResponse::displayName))
             .toList();
@@ -74,7 +77,7 @@ public class SharedDailyServiceImpl implements SharedDailyService {
   @Transactional(readOnly = true)
   @Override
   public DailyPlanResponse readPlan(UUID groupId, UUID ownerId, LocalDate date) {
-    access.requireSharedReader(groupId, ownerId);
+    access.requireSharedReader(groupId, ownerId, date);
     return plans
         .findByOwnerIdAndPlanDate(ownerId, requireDate(date))
         .map(this::project)
@@ -84,7 +87,7 @@ public class SharedDailyServiceImpl implements SharedDailyService {
   @Transactional(readOnly = true)
   @Override
   public DailyWeekResponse readWeek(UUID groupId, UUID ownerId, LocalDate date) {
-    access.requireSharedReader(groupId, ownerId);
+    access.requireSharedReader(groupId, ownerId, null);
     var start = DailyCalendar.weekStart(requireDate(date));
     var review = weeks.findByOwnerIdAndWeekStart(ownerId, start).orElse(null);
     var unique = new LinkedHashMap<UUID, DailyPlan>();
@@ -125,8 +128,16 @@ public class SharedDailyServiceImpl implements SharedDailyService {
             .filter(p -> DailyCalendar.onTime(p.getPlanDate(), p.getFirstSubmittedAt()))
             .count();
     return mapper.toWeek(
-        start, review, rows.size(), 7, nonempty.size(), completion, mustDone, mustTotal,
-        mustRate, onTime);
+        start,
+        review,
+        rows.size(),
+        7,
+        nonempty.size(),
+        completion,
+        mustDone,
+        mustTotal,
+        mustRate,
+        onTime);
   }
 
   private DailyPlanResponse project(DailyPlan plan) {
@@ -152,8 +163,13 @@ public class SharedDailyServiceImpl implements SharedDailyService {
                             && t.getStatus() == DailyTaskStatus.COMPLETED)
                 .count();
     return mapper.toPlan(
-        plan, tasks, DailyCalendar.onTime(plan.getPlanDate(), plan.getFirstSubmittedAt()),
-        completed, tasks.size(), mustDone, mustTotal);
+        plan,
+        tasks,
+        DailyCalendar.onTime(plan.getPlanDate(), plan.getFirstSubmittedAt()),
+        completed,
+        tasks.size(),
+        mustDone,
+        mustTotal);
   }
 
   private LocalDate requireDate(LocalDate date) {

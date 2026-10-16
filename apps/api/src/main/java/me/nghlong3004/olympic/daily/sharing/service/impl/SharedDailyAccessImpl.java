@@ -1,13 +1,14 @@
 package me.nghlong3004.olympic.daily.sharing.service.impl;
 
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import me.nghlong3004.olympic.common.error.ErrorCode;
 import me.nghlong3004.olympic.common.security.CurrentUserProvider;
+import me.nghlong3004.olympic.daily.sharing.service.DailyEntrySharingService;
 import me.nghlong3004.olympic.daily.sharing.service.SharedDailyAccess;
 import me.nghlong3004.olympic.group.enums.MembershipStatus;
 import me.nghlong3004.olympic.group.repository.AccountabilityGroupMembershipRepository;
-import me.nghlong3004.olympic.group.service.GroupDailyAccess;
 import me.nghlong3004.olympic.user.entity.User;
 import me.nghlong3004.olympic.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ public class SharedDailyAccessImpl implements SharedDailyAccess {
   private final CurrentUserProvider current;
   private final UserRepository users;
   private final AccountabilityGroupMembershipRepository members;
-  private final GroupDailyAccess access;
+  private final DailyEntrySharingService access;
 
   @Transactional(readOnly = true)
   @Override
@@ -46,18 +47,18 @@ public class SharedDailyAccessImpl implements SharedDailyAccess {
 
   @Transactional(readOnly = true)
   @Override
-  public User requireSharedReader(UUID groupId, UUID ownerId) {
+  public User requireSharedReader(UUID groupId, UUID ownerId, LocalDate date) {
     var actor = requireDashboardViewer(groupId);
-    if (!visibleTo(groupId, ownerId, actor.getId())) throw ErrorCode.ACCESS_DENIED.throwIt();
+    if (!visibleTo(groupId, ownerId, actor.getId(), date)) throw ErrorCode.ACCESS_DENIED.throwIt();
     return actor;
   }
 
   @Transactional(readOnly = true)
   @Override
-  public boolean visibleTo(UUID groupId, UUID ownerId, UUID viewerId) {
+  public boolean visibleTo(UUID groupId, UUID ownerId, UUID viewerId, LocalDate date) {
     if (!member(groupId, ownerId) || !member(groupId, viewerId)) return false;
     // A denied row is normal dashboard/filter data, not a caught transactional exception.
-    return access.authorizedViewerIds(groupId, ownerId).contains(viewerId);
+    return access.canRead(groupId, ownerId, viewerId, date);
   }
 
   private boolean member(UUID groupId, UUID userId) {

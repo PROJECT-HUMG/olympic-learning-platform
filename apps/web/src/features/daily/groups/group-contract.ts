@@ -89,3 +89,15 @@ export function groupError(error: unknown) {
   if (status === 400) return "Kiểm tra nội dung, tên đăng nhập và danh sách người xem rồi thử lại.";
   return "Không thực hiện được. Hãy thử lại.";
 }
+
+export interface EntryAudience { groupId: string; viewerIds: string[] }
+export interface EntrySharing { planId: string; version: number; audiences: EntryAudience[] }
+export function readEntrySharing(value: unknown, planId: string): EntrySharing {
+  if (!object(value) || value.planId !== planId || !groupId(planId) || !count(value.version) || !Array.isArray(value.audiences)) throw Error(GROUP_CONTRACT);
+  const audiences = value.audiences.map(a => {
+    if (!object(a) || !groupId(a.groupId) || !Array.isArray(a.viewerIds) || !a.viewerIds.every(groupId) || new Set(a.viewerIds).size !== a.viewerIds.length) throw Error(GROUP_CONTRACT);
+    return { groupId: a.groupId, viewerIds: a.viewerIds as string[] };
+  });
+  if (new Set(audiences.map(a => a.groupId)).size !== audiences.length) throw Error(GROUP_CONTRACT);
+  return { planId, version: value.version, audiences };
+}

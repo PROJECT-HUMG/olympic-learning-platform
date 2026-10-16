@@ -8,12 +8,17 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import me.nghlong3004.olympic.daily.request.SaveDailyPlanRequest;
 import me.nghlong3004.olympic.daily.request.AddDailyTaskRequest;
+import me.nghlong3004.olympic.daily.request.SaveDailyPlanRequest;
 import me.nghlong3004.olympic.daily.request.SaveDailyWeekRequest;
 import me.nghlong3004.olympic.daily.response.DailyPlanResponse;
 import me.nghlong3004.olympic.daily.response.DailyWeekResponse;
 import me.nghlong3004.olympic.daily.service.DailyService;
+import me.nghlong3004.olympic.daily.sharing.request.SaveDailySharingRequest;
+import me.nghlong3004.olympic.daily.sharing.response.DailySharingResponse;
+import me.nghlong3004.olympic.daily.sharing.service.DailyEntrySharingService;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,11 +41,30 @@ import org.springframework.web.bind.annotation.RestController;
 public class DailyController {
 
   private final DailyService service;
+  private final DailyEntrySharingService sharing;
+
+  @GetMapping("/plans/{planId}/sharing")
+  @Operation(summary = "Read the current audience of one owned dated entry")
+  public ResponseEntity<DailySharingResponse> sharing(@PathVariable UUID planId) {
+    return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(sharing.read(planId));
+  }
+
+  @PutMapping("/plans/{planId}/sharing")
+  @Operation(summary = "Explicitly replace the selected date audience; empty means private")
+  @ApiResponse(responseCode = "409", description = "Entry changed; reload before sharing")
+  public ResponseEntity<DailySharingResponse> share(
+      @PathVariable UUID planId, @Valid @RequestBody SaveDailySharingRequest request) {
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(sharing.replace(planId, request));
+  }
 
   @PostMapping("/plans/tasks")
   @Operation(summary = "Append one owned task without saving other edits or submitting the plan")
   @ApiResponse(responseCode = "200", description = "Saved plan including the appended task")
-  @ApiResponse(responseCode = "409", description = "Stale plan, changed retry or task identity collision")
+  @ApiResponse(
+      responseCode = "409",
+      description = "Stale plan, changed retry or task identity collision")
   public DailyPlanResponse addTask(
       @RequestParam LocalDate date, @Valid @RequestBody AddDailyTaskRequest request) {
     return service.addTask(date, request);

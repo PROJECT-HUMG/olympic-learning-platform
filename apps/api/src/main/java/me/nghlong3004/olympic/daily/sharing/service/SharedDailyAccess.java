@@ -1,5 +1,6 @@
 package me.nghlong3004.olympic.daily.sharing.service;
 
+import java.time.LocalDate;
 import java.util.UUID;
 import me.nghlong3004.olympic.user.entity.User;
 
@@ -35,9 +36,10 @@ public interface SharedDailyAccess {
    *
    * @param groupId accountability group in the path
    * @param ownerId user who owns the plan or weekly review
+   * @param date exact shared date; null permits only the owner, never a shared week
    * @return current reader
    */
-  User requireSharedReader(UUID groupId, UUID ownerId);
+  User requireSharedReader(UUID groupId, UUID ownerId, LocalDate date);
 
   /**
    * Reports whether the viewer may currently see this owner's Daily material. False does not say
@@ -46,7 +48,8 @@ public interface SharedDailyAccess {
    * @param groupId accountability group
    * @param ownerId user who owns the material
    * @param viewerId user requesting the material
+   * @param date exact entry date; null never grants access to another owner
    * @return true when the current rows allow that read
    */
-  boolean visibleTo(UUID groupId, UUID ownerId, UUID viewerId);
+  boolean visibleTo(UUID groupId, UUID ownerId, UUID viewerId, LocalDate date);
 }

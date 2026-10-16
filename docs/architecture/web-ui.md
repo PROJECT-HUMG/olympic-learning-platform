@@ -24,7 +24,7 @@ Initial readiness releases real content as soon as task/query/font state permits
 
 Shared Radix/native owners provide focus/Escape/scroll behavior; features own permissions, dirty/busy dismissal and state retention. Keep fixed inset/zero-translation CreationDialog geometry, its one scrolling body and reachable Close beside toasts. Do not animate frame centering. [Dialog/media owners](../ui/owners/dialogs-and-media.md) describe nested controls and private viewers.
 
-Daily retains flat notebook/native group behavior, draft authority and serialized800ms sync. Room retains joined scene/player continuity and device-local playback. Scientific readers/editors keep notation overflow, private figures and frozen/release policies; do not force them into marketing/card layouts.
+Daily uses a checklist/reflection workspace and a one-date audience picker; group journals, members and management have distinct tabs. Preserve draft authority, private-by-default dated sharing and serialized800ms sync. Room retains joined scene/player continuity and device-local playback. Scientific readers/editors keep notation overflow, private figures and frozen/release policies; do not force them into marketing/card layouts.
 
 The Documents card remains unchanged pending a compact balanced composition decision. “Chưa có ảnh” is valid wording; missing-preview space should be integrated, not automatically replaced with an icon. Use actual image/no-image/error/long-title states when that change is authorized.
 

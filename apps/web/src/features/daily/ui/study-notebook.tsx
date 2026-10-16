@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { BookOpen, CalendarCheck, Users } from "lucide-react";
 import { ROUTES } from "@/router/route-constants";
 import "./study-notebook.css";
+import "./daily-journal.css";
 
 /** Presentation only: callers retain draft navigation guards and access decisions. */
 export function StudyAreaNav({ area, dailyHref = ROUTES.DAILY, groupHref = ROUTES.DAILY_GROUPS, onNavigate }: {

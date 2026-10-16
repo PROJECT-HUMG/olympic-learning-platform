@@ -1,0 +1,59 @@
+/* Daily task + reflection composition. Existing tokens, real state and native scrolling. */
+.study-day-editor .study-day-workspace { grid-template-columns: minmax(0, 1.45fr) minmax(280px, 1fr); gap: 1.5rem; }
+.daily-planning-pane, .daily-journal-pane { min-width: 0; background: var(--card); border: 1px solid var(--border); border-radius: var(--panel-radius); padding: 1.25rem; }
+.daily-planning-pane { box-shadow: 0 2px 5px rgb(0 0 0 / .025); }
+.daily-journal-pane { background: color-mix(in srgb, var(--card) 94%, var(--primary)); border-top: 3px solid color-mix(in srgb, var(--primary) 65%, var(--border)); }
+.daily-journal-pane > header { display: flex; align-items: flex-start; gap: .75rem; margin-bottom: 1.5rem; }
+.daily-journal-pane h2 { font-size: 1.0625rem; font-weight: 650; }
+.daily-journal-pane header p { margin-top: .25rem; }
+.daily-section-icon { display: grid; place-items: center; flex: 0 0 2.25rem; height: 2.25rem; border-radius: .5rem; color: var(--primary); background: var(--accent); }
+.daily-journal-pane textarea { min-height: 100px; background: var(--background); resize: vertical; }
+.daily-journal-pane > p:last-child { margin-top: 1.25rem; }
+.study-day-editor .study-task--editable:first-child { border-top: 0; }
+.study-day-editor .daily-task-heading { grid-template-columns: minmax(0, 1fr) auto; }
+.study-day-editor .daily-task-heading .study-task__main { grid-column: 1 / -1; }
+.study-day-editor .daily-task-heading .study-task__controls { padding-inline-start: 52px; }
+.study-day-editor .study-savebar { border-radius: var(--panel-radius); border-bottom: 1px solid var(--border); box-shadow: 0 -4px 20px rgb(0 0 0 / .025); }
+.daily-journal-pane:focus-within { border-color: var(--ring); }
+.daily-audience-list { display: grid; gap: 1rem; }
+.daily-sharing-control { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.daily-audience-group { min-width: 0; border: 1px solid var(--border); border-radius: .75rem; padding: .75rem; }
+.daily-audience-group legend { padding-inline: .375rem; font-weight: 600; overflow-wrap: anywhere; }
+.daily-group-context { display: flex; gap: .75rem; align-items: center; margin-bottom: 1.5rem; font-size: .875rem; }
+.daily-group-workspace > .study-group-back { align-self: flex-start; justify-self: start; padding-inline: 0; }
+.daily-group-workspace > .study-group-back > span { display: inline; }
+.daily-group-context p span { color: var(--muted-foreground); }
+.daily-group-tabs > [role="tablist"] { width: 100%; max-width: 32rem; min-height: 48px; margin-bottom: 1.25rem; }
+.daily-group-tabs [role="tab"] { min-height: 44px; padding-inline: .75rem; }
+.daily-group-reading { padding: 1.25rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--panel-radius); min-width: 0; }
+.daily-group-reading h2 { font-size: 1.0625rem; font-weight: 600; }
+.daily-group-reading > header { margin-bottom: 1rem; }
+.daily-group-reading > header p { margin-top: .375rem; }
+.daily-shared-entries { display: grid; gap: .75rem; padding: 0; margin: 0; list-style: none; }
+.daily-shared-entry { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: .75rem; text-decoration: none; background: var(--background); }
+.daily-shared-entry:hover { border-color: var(--primary); background: var(--accent); }
+.daily-shared-entry__action { flex-shrink: 0; color: var(--primary); font-size: .8125rem; font-weight: 600; }
+.study-shared-review .study-review-main, .study-shared-review .study-review-rail { min-width: 0; padding: 1.25rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--panel-radius); }
+.study-shared-review .study-review-rail { background: color-mix(in srgb, var(--card) 95%, var(--primary)); }
+@media (max-width: 1100px) {
+  .study-day-editor .study-day-workspace { grid-template-columns: minmax(0, 1fr); }
+  .daily-journal-pane { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .daily-journal-pane > header, .daily-journal-pane > p:last-child { grid-column: 1 / -1; margin: 0; }
+  .daily-journal-pane .study-review-field + .study-review-field { margin: 0; }
+}
+@media (max-width: 640px) {
+  .daily-planning-pane, .daily-journal-pane, .study-shared-review .study-review-main, .study-shared-review .study-review-rail { padding: 1rem; }
+  .daily-journal-pane { grid-template-columns: minmax(0, 1fr); }
+  .daily-group-reading { padding: 1rem; }
+  .daily-shared-entry { align-items: flex-start; flex-direction: column; gap: .5rem; }
+  .daily-shared-entry__action { margin-inline-start: 52px; }
+  .daily-group-tabs [role="tab"] { gap: .25rem; padding-inline: .375rem; font-size: .8125rem; }
+  .daily-group-tabs [role="tab"] svg { width: 14px; height: 14px; }
+  .daily-journal-pane textarea { min-height: 96px; }
+  .study-day-editor .daily-task-heading .study-task__controls { padding-inline-start: 0; }
+  .study-day-editor .page-heading__actions { width: 100%; }
+  .study-day-editor .study-toolbar { justify-content: space-between; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .daily-journal-pane { scroll-behavior: auto; }
+}

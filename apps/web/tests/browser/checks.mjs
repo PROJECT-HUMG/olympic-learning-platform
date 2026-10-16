@@ -1,5 +1,10 @@
 // Only migrated, self-hosted, intercepted-API checks belong in this entry point.
 export const checks = {
+  daily: {
+    file: 'daily-journal-browser-check.mjs',
+    description: 'Routed personal Daily, reflection, group audience and reading (synthetic APIs)',
+    options: { before: 'boolean', 'visual-only': 'boolean' },
+  },
   journeys: {
     file: 'project-journeys-browser-check.mjs',
     description: 'Routed topics, invitations/acceptance, document contribution and exam entries',

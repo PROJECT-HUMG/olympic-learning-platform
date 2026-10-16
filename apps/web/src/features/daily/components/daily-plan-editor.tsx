@@ -3,6 +3,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
+  BookOpen,
   ArrowDown,
   ArrowUp,
   MoreHorizontal,
@@ -17,7 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageSection } from "@/components/ui/page-section";
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { DailyDialogHeader } from "../ui/daily-dialog-header";
 import { ROUTES } from "@/router/route-constants";
 import { DailyAccountWarning } from "./daily-account-gate";
@@ -46,6 +47,10 @@ import { PRIORITY_LABEL, SUBMIT_TIMING_LABEL } from "../lib/review-display";
 import { StudyAreaNav, StudyEmpty, StudyProgress } from "../ui/study-notebook";
 import { useDailyConfirm } from "../ui/use-daily-confirm";
 import { StudyDatePicker } from "../ui/study-date-picker";
+import { saveEntrySharing } from "../services/daily.service";
+import type { EntryAudience } from "../groups/group-contract";
+import { openStudySection } from "../ui/study-section";
+import { EntrySharingDialog } from "../groups/entry-sharing-dialog";
 
 const DATE_GUARD = "Thay đổi chưa đồng bộ. Chờ đồng bộ xong hoặc xử lý lỗi trước khi đổi ngày.";
 
@@ -68,7 +73,6 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
   const [notice, setNotice] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const [reflectionOpen, setReflectionOpen] = useState(false);
   const [addFailure, setAddFailure] = useState<string | null>(null);
   const { confirm, confirmation } = useDailyConfirm();
   const [activeModalTask, setActiveModalTask] = useState<EditorTask | null>(null);
@@ -103,7 +107,7 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
       setReady(true);
       setAddOpen(false);
       setActiveModalTask(null);
-      setNotice("Đã lưu việc lên máy chủ. Các chỉnh sửa khác sẽ tự đồng bộ; kế hoạch chưa được nộp bởi thao tác này.");
+      setNotice("Đã thêm việc. Kế hoạch chưa được nộp.");
     } catch (error) {
       draft.finish("save", revision, "keep", isDailyConflict(error) ? true : undefined);
       const message = `${dailyErrorMessage(error)} Chưa xác nhận lưu việc. Nội dung được giữ để thử lại; kiểm tra bản trên máy chủ nếu đã mất kết nối.`;
@@ -180,6 +184,22 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
     setNotice(null);
   }
 
+  async function share(audiences: EntryAudience[]) {
+    if (!formRef.current.id || draft.session.current.dirty) throw new Error("Chờ lưu xong trước khi chia sẻ.");
+    const revision = draft.begin("save");
+    if (revision === null) throw new Error("Chờ thao tác hiện tại hoàn tất.");
+    try {
+      const saved = await saveEntrySharing(formRef.current.id, formRef.current.version!, audiences);
+      replaceForm({ ...formRef.current, version: saved.version });
+      draft.finish("save", revision, "apply");
+      setNotice(saved.audiences.length ? `Đã chia sẻ riêng ngày ${date} với người được chọn.` : `Ngày ${date} hiện chỉ mình bạn xem.`);
+      await plan.refetch();
+    } catch (error) {
+      draft.finish("save", revision, "keep", isDailyConflict(error));
+      throw error;
+    }
+  }
+
   async function submit() {
     const current = draft.session.current;
     if (current.conflict || !submitAllowed({ dirty: current.dirty, planId: formRef.current.id, busy: current.gate.operation !== "idle", allowEmpty: true })) return;
@@ -225,7 +245,7 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
       title="Daily của tôi"
       description={<span className="study-submit-status" role="status">
         <strong>{SUBMIT_TIMING_LABEL[timing]}</strong>
-        <span>{form.firstSubmittedAt ? `Lần nộp đầu: ${new Date(form.firstSubmittedAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}` : "Hạn nộp đầu 07:30, giờ Việt Nam"}</span>
+        <span>{form.firstSubmittedAt ? `Lần nộp đầu: ${new Date(form.firstSubmittedAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}` : "Nộp kế hoạch trước 07:30 để được ghi nhận đúng giờ"}</span>
       </span>}
       actions={
         <div className="study-toolbar">
@@ -233,25 +253,8 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
             <Link to={`${ROUTES.DAILY_WEEK}?weekStart=${weekStart}`} onClick={guardNavigation}>Nhìn lại tuần</Link>
             <Link to={`${ROUTES.DAILY}?view=history`} onClick={guardNavigation}>Các tuần đã lưu</Link>
           </StudyDatePicker>
-          <Dialog open={reflectionOpen} onOpenChange={setReflectionOpen}>
-            <DialogTrigger asChild><Button type="button" variant="outline" className="study-reflection-jump">Nhìn lại ngày</Button></DialogTrigger>
-            <DialogContent className="daily-dialog daily-reflection-dialog" showCloseButton={false}>
-              <DailyDialogHeader><DialogTitle>Nhìn lại ngày</DialogTitle><DialogDescription>{date} · Ghi nhận điều đã học và chuẩn bị cho ngày mai.</DialogDescription></DailyDialogHeader>
-              <div className="daily-reflection-layout">
-                <aside className="daily-reflection-context">
-                  <h3>Công việc trong ngày</h3>
-                  <p className="study-note">Theo bản đang nhập{draft.dirty ? " · Chờ đồng bộ" : ""}.</p>
-                  {form.tasks.length ? <ul tabIndex={0} aria-label="Công việc trong bản đang nhập">{form.tasks.map(task => <li key={task.key}><span className="daily-reflection-context__status" data-complete={task.status === "COMPLETED"}>{task.status === "COMPLETED" ? "Đã xong" : "Chưa làm"}</span><span>{task.title || "Việc chưa đặt tên"}</span></li>)}</ul> : <p className="study-note">Ngày này chưa có việc. Bạn vẫn có thể ghi lại điều đã học.</p>}
-                </aside>
-                <fieldset disabled={editingLocked} className="daily-reflection-fields">
-                  <DailyReflectionField id="daily-reasons" label="Vì sao chưa xong" value={form.reviewReasons} onChange={(value) => edit((current) => ({ ...current, reviewReasons: value }))} />
-                  <DailyReflectionField id="daily-well" label="Việc đã ổn" value={form.reviewWentWell} onChange={(value) => edit((current) => ({ ...current, reviewWentWell: value }))} />
-                  <DailyReflectionField id="daily-tomorrow" label="Ngày mai" value={form.reviewTomorrow} onChange={(value) => edit((current) => ({ ...current, reviewTomorrow: value }))} />
-                </fieldset>
-              </div>
-              <div className="daily-dialog-actions">{syncStatus}<p className="study-note">Tự động lưu công việc và nhìn lại, không nộp hay bật chia sẻ. Đóng vẫn tiếp tục đồng bộ.</p></div>
-            </DialogContent>
-          </Dialog>
+          <EntrySharingDialog userId={userId} planId={form.id} version={form.version} date={date} blocked={draft.busy || draft.dirty || draft.conflict} onSave={share} />
+          <Button type="button" variant="outline" className="study-reflection-jump" onClick={() => openStudySection("daily-reflection")}>Nhìn lại ngày</Button>
         </div>
       }
     />
@@ -261,7 +264,7 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
     <DialogContent className="daily-dialog daily-add-dialog" showCloseButton={false} onCloseAutoFocus={event => { event.preventDefault(); document.getElementById("daily-add-task")?.focus(); }} onEscapeKeyDown={event => { if (draft.busy) event.preventDefault(); }} onInteractOutside={event => { if (draft.busy) event.preventDefault(); }}>
       {activeModalTask ? (
         <div className="space-y-4">
-          <DailyDialogHeader busy={draft.busy}><DialogTitle>Thêm việc</DialogTitle><DialogDescription>Xác nhận để lưu ngay việc này. Không nộp kế hoạch hay bật chia sẻ. Các chỉnh sửa khác tiếp tục tự đồng bộ sau khi đóng.</DialogDescription></DailyDialogHeader>
+          <DailyDialogHeader busy={draft.busy}><DialogTitle>Thêm việc</DialogTitle><DialogDescription>Thêm một việc cụ thể. Xác nhận sẽ lưu việc này, chưa nộp kế hoạch.</DialogDescription></DailyDialogHeader>
 
           <div className="space-y-3">
             <div className="space-y-1.5">
@@ -354,6 +357,7 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
     </div> : null}
     <form id="daily-plan-form" onSubmit={(event) => { event.preventDefault(); }}>
       <fieldset disabled={editingLocked} className="study-day-workspace m-0 min-w-0 border-0 p-0">
+        <div className="daily-planning-pane">
         <PageSection className="study-work-surface" title="Công việc" actions={<Button id="daily-add-task" type="button" disabled={draft.busy || form.tasks.length >= 50} onClick={openAddTaskModal}><Plus size={16} aria-hidden="true" />Thêm việc</Button>}>
           {form.tasks.length === 0 ? <StudyEmpty title="Chưa có việc.">Thêm việc để bắt đầu. Bạn vẫn có thể nộp ngày không có việc hoặc ghi nhìn lại.</StudyEmpty> : null}
           {form.tasks.length > 0 ? <div className="study-progress-grid study-progress-grid--plain" aria-label="Tiến độ trong bản đang nhập">
@@ -369,23 +373,31 @@ export function DailyPlanEditor({ userId, date, onDate, accountWarning, onRetryA
             </TaskRow>)}
           </ol>
         </PageSection>
+        </div>
+        <section id="daily-reflection" className="daily-journal-pane" aria-labelledby="daily-reflection-heading">
+          <header><span className="daily-section-icon" aria-hidden="true"><BookOpen size={20} /></span><div><h2 id="daily-reflection-heading">Nhìn lại ngày</h2><p className="study-note">Ghi lại điều đã học, dành một bước nhỏ cho ngày mai.</p></div></header>
+          <DailyReflectionField id="daily-well" label="Hôm nay có gì tốt?" value={form.reviewWentWell} onChange={(value) => edit((current) => ({ ...current, reviewWentWell: value }))} />
+          <DailyReflectionField id="daily-reasons" label="Điều gì còn vướng?" value={form.reviewReasons} onChange={(value) => edit((current) => ({ ...current, reviewReasons: value }))} />
+          <DailyReflectionField id="daily-tomorrow" label="Ngày mai, tôi sẽ…" value={form.reviewTomorrow} onChange={(value) => edit((current) => ({ ...current, reviewTomorrow: value }))} />
+          <p className="study-note">Tự động lưu cùng công việc. Bạn có thể bổ sung bất cứ lúc nào.</p>
+        </section>
       </fieldset>
     </form>
     {draft.dirty && !showNotice ? <Button type="button" variant="ghost" className="daily-reload" disabled={draft.busy} onClick={async () => { if (await confirm("Thay bản đang nhập bằng kế hoạch trên máy chủ? Các thay đổi chưa lưu sẽ bị bỏ.")) void fetchServer(true); }}>Tải bản trên máy chủ</Button> : null}
-    <p className="study-note daily-reflection-status">{plan.data && [plan.data.reviewReasons, plan.data.reviewWentWell, plan.data.reviewTomorrow].some(value => value?.trim()) ? "Đã có nhìn lại được lưu. Mở Nhìn lại ngày để xem hoặc chỉnh sửa." : "Chưa có nhìn lại được lưu. Bạn có thể mở Nhìn lại ngày bất cứ lúc nào."}</p>
+
         <div className="study-savebar" aria-label="Đồng bộ và nộp kế hoạch">
           <div>{syncStatus}<p className="study-note">Chỉnh sửa tự động lưu. Nộp là thao tác riêng, không bật chia sẻ.</p></div>
           <div className="study-savebar__buttons">
           <Button
             type="button"
-            disabled={!canSubmit}
+            disabled={!canSubmit || Boolean(form.firstSubmittedAt)}
             onClick={() => void submit()}
             aria-describedby="daily-submit-help"
           >
-            <Send className="h-4 w-4" /> {form.firstSubmittedAt ? "Nộp lại" : "Nộp kế hoạch"}
+            <Send className="h-4 w-4" /> {form.firstSubmittedAt ? "Đã nộp kế hoạch" : "Nộp kế hoạch"}
           </Button>
           </div>
-          <p id="daily-submit-help" className="sr-only">{draft.dirty ? "Chờ đồng bộ xong trước khi nộp." : !form.id ? "Nộp sẽ tạo và nộp kế hoạch trống cho ngày này." : "Nộp ghi nhận mốc nộp đầu, không bật chia sẻ."} Nộp lại giữ nguyên mốc nộp đầu.</p>
+          <p id="daily-submit-help" className="sr-only">{draft.dirty ? "Chờ đồng bộ xong trước khi nộp." : !form.id ? "Nộp sẽ tạo và nộp kế hoạch trống cho ngày này." : "Nộp ghi nhận mốc nộp đầu, không bật chia sẻ."} Lần nộp đầu được giữ nguyên khi chỉnh sửa.</p>
         </div>
   </div>;
 }

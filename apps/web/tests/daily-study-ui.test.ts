@@ -52,10 +52,10 @@ it("today entry and compact date controls retain day/week/history links and guar
   assert.match(week, /\$\{ROUTES.DAILY\}\?date=\$\{chosen\}/);
   assert.doesNotMatch(week, />Tuần trước<|>Tuần sau<|>Tuần này</);
   assert.doesNotMatch(group, /StudyWeekList/);
-  assert.match(group, /reviews\/\$\{m.userId\}\?date=\$\{date\}&view=week/);
+  assert.doesNotMatch(group, /&view=week/); // Date consent cannot open private weekly material.
   assert.doesNotMatch(review, /StudyDayList/);
   for (const screen of [day, week, group, review]) assert.match(screen, /StudyDatePicker/);
-  assert.match(day, /DialogTitle>Nhìn lại ngày/);
+  assert.match(day, /id="daily-reflection-heading">Nhìn lại ngày/);
   assert.match(week, /DailySyncStatus/);
 });
 
@@ -64,10 +64,10 @@ it("automatic persistence and explicit Submit status remain readily available", 
   assert.doesNotMatch(day, /type="submit" form="daily-plan-form"|Lưu kế hoạch và nhìn lại/);
   assert.match(day, /DailySyncStatus/);
   assert.match(day, /className="study-submit-status" role="status"/);
-  assert.match(day, /disabled=\{!canSubmit\}/);
+  assert.match(day, /disabled=\{!canSubmit \|\| Boolean\(form.firstSubmittedAt\)\}/);
   assert.match(day, /Nộp là thao tác riêng, không bật chia sẻ/);
   assert.match(day, /study-day-workspace/);
-  assert.match(day, /daily-reflection-layout/);
+  assert.match(day, /daily-journal-pane/);
   assert.match(day, /DropdownMenuItem disabled=\{index === 0\}/);
   assert.match(day, /DropdownMenuItem disabled=\{last\}/);
   assert.match(day, /variant="destructive" onSelect=/);
@@ -96,14 +96,14 @@ it("task entry is temporary until server-confirmed append, without saving unrela
   assert.match(day, /DialogContent className="daily-dialog daily-add-dialog"/);
 });
 
-it("history has distinct loading/error/success and on-demand sharing preserves selections", () => {
+it("history keeps feedback states while per-day sharing replaces ongoing consent", () => {
   assert.match(entry, /planDatesQuery.isPending/);
   assert.match(entry, /planDatesQuery.isError/);
   assert.match(entry, /planDatesQuery.isSuccess \? <StudyWeekList/);
   const consent = source("features/daily/groups/group-controls.tsx");
-  assert.match(consent, /hidden=\{settings.sharingMode !== "SELECTED_MEMBERS"\}/);
-  assert.match(consent, /id="group-sharing"/);
-  assert.match(group, /openStudySection\("group-sharing"\)/);
+  assert.doesNotMatch(consent, /groupService.sharing|Cho phép xem Daily của tôi/);
+  assert.match(day, /EntrySharingDialog/);
+  assert.match(group, /SmoothTab/);
 });
 
 it("nested calendars fit their container and motion has a reduced-motion override", () => {

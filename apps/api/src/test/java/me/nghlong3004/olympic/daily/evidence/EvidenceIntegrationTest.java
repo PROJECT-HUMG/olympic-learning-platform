@@ -20,21 +20,22 @@ import me.nghlong3004.olympic.common.security.CurrentUserProvider;
 import me.nghlong3004.olympic.daily.enums.DailyTaskPriority;
 import me.nghlong3004.olympic.daily.enums.DailyTaskStatus;
 import me.nghlong3004.olympic.daily.evidence.enums.EvidenceStage;
+import me.nghlong3004.olympic.daily.evidence.mapper.EvidenceMapperImpl;
 import me.nghlong3004.olympic.daily.evidence.request.CreateEvidenceLinkRequest;
 import me.nghlong3004.olympic.daily.evidence.response.EvidenceMetadataResponse;
 import me.nghlong3004.olympic.daily.evidence.service.EvidenceService;
 import me.nghlong3004.olympic.daily.evidence.service.impl.EvidenceServiceImpl;
+import me.nghlong3004.olympic.daily.mapper.DailyMapperImpl;
 import me.nghlong3004.olympic.daily.request.DailyTaskRequest;
 import me.nghlong3004.olympic.daily.request.SaveDailyPlanRequest;
 import me.nghlong3004.olympic.daily.response.DailyPlanResponse;
 import me.nghlong3004.olympic.daily.service.DailyService;
 import me.nghlong3004.olympic.daily.service.impl.DailyServiceImpl;
-import me.nghlong3004.olympic.daily.mapper.DailyMapperImpl;
-import me.nghlong3004.olympic.daily.evidence.mapper.EvidenceMapperImpl;
+import me.nghlong3004.olympic.daily.sharing.request.SaveDailySharingRequest;
+import me.nghlong3004.olympic.daily.sharing.request.SaveDailySharingRequest.Audience;
+import me.nghlong3004.olympic.daily.sharing.service.DailyEntrySharingService;
 import me.nghlong3004.olympic.group.enums.MembershipStatus;
-import me.nghlong3004.olympic.group.enums.SharingMode;
 import me.nghlong3004.olympic.group.service.GroupMembershipService;
-import me.nghlong3004.olympic.group.service.impl.GroupDailyAccessImpl;
 import me.nghlong3004.olympic.group.service.impl.GroupMembershipServiceImpl;
 import me.nghlong3004.olympic.user.enums.Role;
 import me.nghlong3004.olympic.user.enums.Status;
@@ -62,26 +63,39 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
  * @author nghlong3004 (Long Nguyen Hoang)
  * @since 10/4/2026
  */
-@DataJpaTest(properties = {"spring.jpa.hibernate.ddl-auto=validate", "spring.flyway.enabled=true",
-    "spring.jpa.open-in-view=false"}, showSql = false)
+@DataJpaTest(
+    properties = {
+      "spring.jpa.hibernate.ddl-auto=validate",
+      "spring.flyway.enabled=true",
+      "spring.jpa.open-in-view=false"
+    },
+    showSql = false)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({EvidenceServiceImpl.class, DailyServiceImpl.class, GroupDailyAccessImpl.class,
-    GroupMembershipServiceImpl.class, DailyMapperImpl.class, EvidenceMapperImpl.class,
-    EvidenceIntegrationTest.Dependencies.class})
+@Import({
+  EvidenceServiceImpl.class,
+  DailyServiceImpl.class,
+  DailyEntrySharingService.class,
+  GroupMembershipServiceImpl.class,
+  DailyMapperImpl.class,
+  EvidenceMapperImpl.class,
+  EvidenceIntegrationTest.Dependencies.class
+})
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @Testcontainers(disabledWithoutDocker = true)
 class EvidenceIntegrationTest {
   @Container @ServiceConnection
   static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
+
   private static final UUID OWNER = UUID.fromString("00000000-0000-0000-0000-00000000e201");
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-00000000e202");
   private static final UUID ADMIN = UUID.fromString("00000000-0000-0000-0000-00000000e203");
   private static final LocalDate DATE = LocalDate.of(2026, 10, 5);
-  private static final byte[] BYTES = new byte[]{1, 2, 3, 4};
+  private static final byte[] BYTES = new byte[] {1, 2, 3, 4};
   @Autowired private EvidenceService evidence;
   @Autowired private DailyService daily;
   @Autowired private GroupMembershipService groups;
   @Autowired private JdbcTemplate jdbc;
+  @Autowired private DailyEntrySharingService entrySharing;
   @Autowired private Actors actors;
   private UUID planId;
   private UUID taskId;
@@ -98,8 +112,14 @@ class EvidenceIntegrationTest {
     jdbc.update("DELETE FROM accountability_groups");
     jdbc.update("DELETE FROM users WHERE id IN (?,?,?)", OWNER, VIEWER, ADMIN);
     for (var id : List.of(OWNER, VIEWER, ADMIN)) {
-      jdbc.update("INSERT INTO users(id,email,username,full_name,role,status) VALUES (?,?,?,?,?::user_role,'ACTIVE')",
-          id, id + "@test.invalid", id.toString(), "Evidence user", id.equals(ADMIN) ? "ADMIN" : "STUDENT");
+      jdbc.update(
+          "INSERT INTO users(id,email,username,full_name,role,status) VALUES"
+              + " (?,?,?,?,?::user_role,'ACTIVE')",
+          id,
+          id + "@test.invalid",
+          id.toString(),
+          "Evidence user",
+          id.equals(ADMIN) ? "ADMIN" : "STUDENT");
     }
     var plan = newPlan(DATE);
     planId = plan.id();
@@ -114,8 +134,12 @@ class EvidenceIntegrationTest {
     var before = daily.submitPlan(planId);
     var first = file();
     var second = file();
-    var link = evidence.createLink(planId, taskId, new CreateEvidenceLinkRequest(
-        EvidenceStage.START, "https://example.org/work", " Work notes "));
+    var link =
+        evidence.createLink(
+            planId,
+            taskId,
+            new CreateEvidenceLinkRequest(
+                EvidenceStage.START, "https://example.org/work", " Work notes "));
     assertThat(first.id()).isNotEqualTo(second.id());
     assertThat(first.originalName()).isEqualTo("notes.svg");
     assertThat(first.url()).isNull();
@@ -124,7 +148,8 @@ class EvidenceIntegrationTest {
     assertThat(link.originalName()).isNull();
     assertThat(link.label()).isEqualTo("Work notes");
     assertThat(evidence.list(planId, taskId, null)).hasSize(3);
-    assertThat(evidence.download(planId, taskId, first.id(), null).content()).containsExactly(BYTES);
+    assertThat(evidence.download(planId, taskId, first.id(), null).content())
+        .containsExactly(BYTES);
     assertThat(daily.getPlan(DATE)).isEqualTo(before);
     evidence.remove(planId, taskId, second.id());
     assertThat(evidence.list(planId, taskId, null)).hasSize(2);
@@ -137,7 +162,10 @@ class EvidenceIntegrationTest {
     var item = file();
     var plan = daily.getPlan(DATE);
     daily.savePlan(DATE, new SaveDailyPlanRequest(plan.version(), null, null, null, List.of()));
-    assertThat(jdbc.queryForObject("SELECT count(*) FROM daily_evidence WHERE id = ?", Long.class, item.id())).isZero();
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT count(*) FROM daily_evidence WHERE id = ?", Long.class, item.id()))
+        .isZero();
     expect(ErrorCode.RESOURCE_NOT_FOUND, () -> evidence.download(planId, taskId, item.id(), null));
   }
 
@@ -145,13 +173,20 @@ class EvidenceIntegrationTest {
   void neutralFilesCoexistWithLegacyEvidenceAndPreserveOriginalBytes() {
     var before = daily.getPlan(DATE);
     var legacy = file();
-    var neutral = evidence.createFile(planId, taskId, EvidenceStage.GENERAL,
-        new MockMultipartFile("file", "work.txt", "text/plain", BYTES));
+    var neutral =
+        evidence.createFile(
+            planId,
+            taskId,
+            EvidenceStage.GENERAL,
+            new MockMultipartFile("file", "work.txt", "text/plain", BYTES));
     assertThat(neutral.stage()).isEqualTo(EvidenceStage.GENERAL);
-    assertThat(evidence.list(planId, taskId, null)).extracting(item -> item.stage())
+    assertThat(evidence.list(planId, taskId, null))
+        .extracting(item -> item.stage())
         .contains(EvidenceStage.START, EvidenceStage.GENERAL);
-    assertThat(evidence.download(planId, taskId, legacy.id(), null).content()).containsExactly(BYTES);
-    assertThat(evidence.download(planId, taskId, neutral.id(), null).content()).containsExactly(BYTES);
+    assertThat(evidence.download(planId, taskId, legacy.id(), null).content())
+        .containsExactly(BYTES);
+    assertThat(evidence.download(planId, taskId, neutral.id(), null).content())
+        .containsExactly(BYTES);
     assertThat(daily.getPlan(DATE)).isEqualTo(before);
     actors.id.set(ADMIN);
     expect(ErrorCode.ACCESS_DENIED, () -> evidence.download(planId, taskId, neutral.id(), null));
@@ -162,18 +197,13 @@ class EvidenceIntegrationTest {
     var item = file();
     actors.id.set(VIEWER);
     denyBoth(item);
-    groups.updateOwnShare(groupId, OWNER, true, SharingMode.GROUP);
+    share(true);
     assertThat(evidence.list(planId, taskId, groupId)).hasSize(1);
-    assertThat(evidence.download(planId, taskId, item.id(), groupId).content()).containsExactly(BYTES);
-    groups.updateOwnShare(groupId, OWNER, false, SharingMode.GROUP);
+    assertThat(evidence.download(planId, taskId, item.id(), groupId).content())
+        .containsExactly(BYTES);
+    share(false);
     denyBoth(item);
-    groups.updateOwnShare(groupId, OWNER, true, SharingMode.SELECTED_MEMBERS);
-    denyBoth(item);
-    groups.setSelectedViewer(groupId, OWNER, VIEWER, true);
-    assertThat(evidence.list(planId, taskId, groupId)).hasSize(1);
-    groups.setSelectedViewer(groupId, OWNER, VIEWER, false);
-    denyBoth(item);
-    groups.updateOwnShare(groupId, OWNER, true, SharingMode.GROUP);
+    share(true);
     groups.changeOwnStatus(groupId, VIEWER, MembershipStatus.INACTIVE);
     denyBoth(item);
     groups.changeOwnStatus(groupId, VIEWER, MembershipStatus.ACTIVE);
@@ -184,7 +214,7 @@ class EvidenceIntegrationTest {
   @Test
   void activeAccountChecksRejectDisabledDeletedOwnerAndViewerDespiteActiveClaims() {
     var item = file();
-    groups.updateOwnShare(groupId, OWNER, true, SharingMode.GROUP);
+    share(true);
     actors.id.set(VIEWER);
     jdbc.update("UPDATE users SET status='DISABLED' WHERE id=?", OWNER);
     denyBoth(item);
@@ -192,7 +222,8 @@ class EvidenceIntegrationTest {
     denyBoth(item);
     jdbc.update("UPDATE users SET deleted_at=NULL WHERE id=?", OWNER);
     jdbc.update("UPDATE users SET status='DISABLED' WHERE id=?", VIEWER);
-    assertThatThrownBy(() -> evidence.list(planId, taskId, groupId)).isInstanceOf(UserDisabledException.class);
+    assertThatThrownBy(() -> evidence.list(planId, taskId, groupId))
+        .isInstanceOf(UserDisabledException.class);
     jdbc.update("UPDATE users SET status='ACTIVE', deleted_at=now() WHERE id=?", VIEWER);
     expect(ErrorCode.USER_NOT_FOUND, () -> evidence.list(planId, taskId, groupId));
   }
@@ -202,7 +233,9 @@ class EvidenceIntegrationTest {
     var item = file();
     var other = newPlan(DATE.plusDays(1));
     expect(ErrorCode.RESOURCE_NOT_FOUND, () -> evidence.list(other.id(), taskId, null));
-    expect(ErrorCode.RESOURCE_NOT_FOUND, () -> evidence.download(other.id(), other.tasks().getFirst().id(), item.id(), null));
+    expect(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        () -> evidence.download(other.id(), other.tasks().getFirst().id(), item.id(), null));
     var foreignGroup = groups.createGroup(VIEWER, "Unrelated").getId();
     expect(ErrorCode.ACCESS_DENIED, () -> evidence.list(planId, taskId, foreignGroup));
     actors.id.set(ADMIN);
@@ -217,18 +250,52 @@ class EvidenceIntegrationTest {
 
   @Test
   void validationRejectsEmptyOversizedAndUnsafeLinksWithoutPersistence() {
-    expect(ErrorCode.VALIDATION_ERROR, () -> evidence.createFile(planId, taskId, EvidenceStage.START,
-        new MockMultipartFile("file", "empty", "text/plain", new byte[0])));
-    expect(ErrorCode.VALIDATION_ERROR, () -> evidence.createFile(planId, taskId, EvidenceStage.START,
-        new MockMultipartFile("file", "large", "text/plain", new byte[5 * 1024 * 1024 + 1])));
-    for (var url : List.of("javascript:alert(1)", "data:text/html,x", "https://name:secret@example.org/work", "/relative", "https://example.org/a b")) {
-      expect(ErrorCode.VALIDATION_ERROR, () -> evidence.createLink(planId, taskId,
-          new CreateEvidenceLinkRequest(EvidenceStage.FINISH, url, "notes")));
+    expect(
+        ErrorCode.VALIDATION_ERROR,
+        () ->
+            evidence.createFile(
+                planId,
+                taskId,
+                EvidenceStage.START,
+                new MockMultipartFile("file", "empty", "text/plain", new byte[0])));
+    expect(
+        ErrorCode.VALIDATION_ERROR,
+        () ->
+            evidence.createFile(
+                planId,
+                taskId,
+                EvidenceStage.START,
+                new MockMultipartFile(
+                    "file", "large", "text/plain", new byte[5 * 1024 * 1024 + 1])));
+    for (var url :
+        List.of(
+            "javascript:alert(1)",
+            "data:text/html,x",
+            "https://name:secret@example.org/work",
+            "/relative",
+            "https://example.org/a b")) {
+      expect(
+          ErrorCode.VALIDATION_ERROR,
+          () ->
+              evidence.createLink(
+                  planId,
+                  taskId,
+                  new CreateEvidenceLinkRequest(EvidenceStage.FINISH, url, "notes")));
     }
-    expect(ErrorCode.VALIDATION_ERROR, () -> evidence.createLink(planId, taskId,
-        new CreateEvidenceLinkRequest(null, "https://example.org/", "notes")));
-    expect(ErrorCode.VALIDATION_ERROR, () -> evidence.createLink(planId, taskId,
-        new CreateEvidenceLinkRequest(EvidenceStage.START, "https://example.org/", " ")));
+    expect(
+        ErrorCode.VALIDATION_ERROR,
+        () ->
+            evidence.createLink(
+                planId,
+                taskId,
+                new CreateEvidenceLinkRequest(null, "https://example.org/", "notes")));
+    expect(
+        ErrorCode.VALIDATION_ERROR,
+        () ->
+            evidence.createLink(
+                planId,
+                taskId,
+                new CreateEvidenceLinkRequest(EvidenceStage.START, "https://example.org/", " ")));
     assertThat(evidence.list(planId, taskId, null)).isEmpty();
   }
 
@@ -240,11 +307,18 @@ class EvidenceIntegrationTest {
     var start = new CountDownLatch(1);
     var failures = new CopyOnWriteArrayList<Throwable>();
     try (var pool = Executors.newFixedThreadPool(2)) {
-      for (int index = 0; index < 2; index++) pool.submit(() -> {
-        actors.id.set(OWNER);
-        ready.countDown();
-        try { start.await(); file(); } catch (Throwable failure) { failures.add(failure); }
-      });
+      for (int index = 0; index < 2; index++)
+        pool.submit(
+            () -> {
+              actors.id.set(OWNER);
+              ready.countDown();
+              try {
+                start.await();
+                file();
+              } catch (Throwable failure) {
+                failures.add(failure);
+              }
+            });
       assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
       start.countDown();
       pool.shutdown();
@@ -252,37 +326,81 @@ class EvidenceIntegrationTest {
     }
     assertThat(failures).hasSize(1);
     assertThat(failures.getFirst()).isInstanceOf(ApiException.class);
-    assertThat(((ApiException) failures.getFirst()).getErrorCode()).isEqualTo(ErrorCode.RESOURCE_STATE_CONFLICT);
+    assertThat(((ApiException) failures.getFirst()).getErrorCode())
+        .isEqualTo(ErrorCode.RESOURCE_STATE_CONFLICT);
     assertThat(evidence.list(planId, taskId, null)).hasSize(10);
     assertThat(daily.getPlan(DATE)).isEqualTo(before);
   }
 
   private DailyPlanResponse newPlan(LocalDate date) {
-    return daily.savePlan(date, new SaveDailyPlanRequest(null, null, null, null,
-        List.of(new DailyTaskRequest(null, "Work", DailyTaskPriority.MUST, DailyTaskStatus.TODO))));
+    return daily.savePlan(
+        date,
+        new SaveDailyPlanRequest(
+            null,
+            null,
+            null,
+            null,
+            List.of(
+                new DailyTaskRequest(null, "Work", DailyTaskPriority.MUST, DailyTaskStatus.TODO))));
   }
+
   private EvidenceMetadataResponse file() {
-    return evidence.createFile(planId, taskId, EvidenceStage.START,
+    return evidence.createFile(
+        planId,
+        taskId,
+        EvidenceStage.START,
         new MockMultipartFile("file", "../notes.svg", "image/svg+xml", BYTES));
   }
+
+  private void share(boolean on) {
+    var previous = actors.id.get();
+    actors.id.set(OWNER);
+    entrySharing.replace(
+        planId,
+        new SaveDailySharingRequest(
+            daily.getPlan(DATE).version(),
+            on ? List.of(new Audience(groupId, List.of(VIEWER))) : List.of()));
+    actors.id.set(previous);
+  }
+
   private void denyBoth(EvidenceMetadataResponse item) {
     expect(ErrorCode.ACCESS_DENIED, () -> evidence.list(planId, taskId, groupId));
     expect(ErrorCode.ACCESS_DENIED, () -> evidence.download(planId, taskId, item.id(), groupId));
   }
+
   private static void expect(ErrorCode code, Runnable action) {
-    assertThatThrownBy(action::run).isInstanceOf(ApiException.class).extracting("errorCode").isEqualTo(code);
+    assertThatThrownBy(action::run)
+        .isInstanceOf(ApiException.class)
+        .extracting("errorCode")
+        .isEqualTo(code);
   }
 
   @TestConfiguration
   static class Dependencies {
-    @Bean Clock clock() { return Clock.fixed(Instant.parse("2026-10-05T00:00:00Z"), ZoneOffset.UTC); }
-    @Bean Actors actors() { return new Actors(); }
+    @Bean
+    Clock clock() {
+      return Clock.fixed(Instant.parse("2026-10-05T00:00:00Z"), ZoneOffset.UTC);
+    }
+
+    @Bean
+    Actors actors() {
+      return new Actors();
+    }
   }
+
   static class Actors implements CurrentUserProvider {
     final ThreadLocal<UUID> id = ThreadLocal.withInitial(() -> OWNER);
-    @Override public CurrentUser getCurrentUser() {
-      return new CurrentUser(id.get(), "fixture@test.invalid", "fixture", "Fixture",
-          id.get().equals(ADMIN) ? Role.ADMIN : Role.STUDENT, Status.ACTIVE, List.of());
+
+    @Override
+    public CurrentUser getCurrentUser() {
+      return new CurrentUser(
+          id.get(),
+          "fixture@test.invalid",
+          "fixture",
+          "Fixture",
+          id.get().equals(ADMIN) ? Role.ADMIN : Role.STUDENT,
+          Status.ACTIVE,
+          List.of());
     }
   }
 }

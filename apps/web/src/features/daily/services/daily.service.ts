@@ -1,3 +1,4 @@
+import { readEntrySharing, type EntryAudience } from "../groups/group-contract";
 import { apiClient } from "@/lib/axios";
 import { parsePlatformDate } from "../lib/platform-calendar";
 import type { AddDailyTaskBody } from "../lib/plan-editor";
@@ -81,3 +82,7 @@ export const dailyService = {
     return response.data as string[];
   },
 };
+
+export async function saveEntrySharing(planId: string, version: number, audiences: EntryAudience[]) {
+  return readEntrySharing((await apiClient.put(`/daily/plans/${planId}/sharing`, { expectedVersion: version, audiences })).data, planId);
+}

@@ -47,3 +47,15 @@ it("permission loss is separate from transient failure",()=>{
   assert.equal(groupAccessLost({response:{status:403,data:{}}}),true);
   assert.equal(groupAccessLost({response:{status:503,data:{}}}),false);
 });
+
+// A sharing response is scoped to one saved entry, not an account-wide switch.
+it("dated audiences reject cross-entry identity, duplicate groups/people and malformed state", async () => {
+  const { readEntrySharing } = await import("../src/features/daily/groups/group-contract.ts");
+  const plan = "00000000-0000-0000-0000-000000000001";
+  const group = "00000000-0000-0000-0000-000000000002";
+  const person = "00000000-0000-0000-0000-000000000003";
+  const state = { planId: plan, version: 1, audiences: [{ groupId: group, viewerIds: [person] }] };
+  assert.deepEqual(readEntrySharing(state, plan), state);
+  assert.deepEqual(readEntrySharing({ ...state, audiences: [] }, plan).audiences, []);
+  for (const value of [null, { ...state, planId: person }, { ...state, version: -1 }, { ...state, audiences: [null] }, { ...state, audiences: [state.audiences[0], state.audiences[0]] }, { ...state, audiences: [{ groupId: group, viewerIds: [person, person] }] }]) assert.throws(() => readEntrySharing(value, plan));
+});

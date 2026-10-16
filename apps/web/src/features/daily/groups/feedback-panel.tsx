@@ -20,13 +20,13 @@ export function FeedbackPanel(props:Scope) {
   const rows=query.isSuccess&&!query.isFetching?query.data.contributions:[];
   const revoked=query.isError&&groupAccessLost(query.error);
   const own=query.data?.contributions.find(c=>c.authorId===props.userId)??null;
-  return <StudyDisclosure id="shared-feedback" title="Góp ý trong nhóm" defaultOpen description="Góp ý có tên người viết, chỉ hiện với người còn quyền xem. Mỗi người có một bản có thể sửa.">
+  return <StudyDisclosure id="shared-feedback" title="Góp ý trong nhóm" defaultOpen description="Ghi nhận một điều đã làm tốt hoặc gợi ý một bước tiếp theo. Bạn có thể sửa góp ý đã gửi.">
     {query.isFetching?<p role="status">Đang kiểm tra người góp ý…</p>:null}
     {query.isError?<Retry error={query.error} retry={()=>void query.refetch()}/>:null}
-    {query.isSuccess&&!query.isFetching?<p className="study-note" data-contributor-count={rows.length}>{rows.length ? `Người góp ý hiện được phép: ${rows.length}` : "Chưa có góp ý đang hiển thị."}</p>:null}
+    {query.isSuccess&&!query.isFetching?<p className="study-note" data-contributor-count={rows.length}>{rows.length ? `${rows.length} người góp ý` : "Chưa có góp ý."}</p>:null}
     <ul>{rows.map(c=><li key={c.id} className="study-feedback"><StudyIdentity name={c.authorDisplayName}/><p className="study-feedback__text">{c.text}</p></li>)}</ul>
     {!revoked&&query.data&&props.userId!==props.ownerId?<div hidden={query.isFetching||query.isError}><FeedbackEditor {...props} initial={own} latest={own} refresh={()=>query.refetch()}/></div>:null}
-    {props.userId===props.ownerId?<p className="text-sm text-muted-foreground">Bạn đọc góp ý trong nhóm ở đây. Chỉnh nhận xét của mình tại Daily cá nhân.</p>:null}
+    {props.userId===props.ownerId?<p className="text-sm text-muted-foreground">Bạn đọc góp ý trong nhóm ở đây. Chỉnh nhìn lại ngày tại Daily cá nhân.</p>:null}
   </StudyDisclosure>;
 }
 function FeedbackEditor(props:Scope&{initial:Contribution|null;latest:Contribution|null;refresh:()=>Promise<unknown>}) {
