@@ -54,6 +54,7 @@ pnpm check:browser otp
 pnpm check:browser auth --section=recovery
 pnpm check:browser media --evidence-only
 pnpm check:browser recognition
+pnpm check:browser uploads
 pnpm check:browser home --timeout-ms=120000
 node --test tests/browser/session.test.mjs
 ```
@@ -67,6 +68,7 @@ node --test tests/browser/session.test.mjs
 | `auth` | `--section=forms` (default), `recovery`, `reset`, `lifecycle`, `status-visuals`, `loading` or `turnstile`; `--forgot-only` bounds only the Turnstile section |
 | `home` | `--before` reads the historical hero; current scope includes frame samples, motion clips, search and local original MP4 playback |
 | `media` | `--evidence-only` omits album checks; `--before` is historical album comparison |
+| `uploads` | Routed Recognition evidence selection/atomic submission and room clipboard feedback; isolated callback fixture separately checks real progress/retry/cancel, never live persistence |
 | `recognition` | Public Honors/list/detail, Rankings, profile returns and failure/retry; `--visual-only` or `--interactions-only` bounds the scope; `--before` compares these layouts with the current Git HEAD |
 
 All supported checks accept `--browser <executable>`, `--output <NEW directory>`, `--timeout-ms <100..300000>` (default30000 per Chromium startup/CDP call, not a whole-suite deadline), and `--no-sandbox`. Browser discovery reuses PATH Chromium/Chrome or an already installed Linux Playwright Chromium cache; an explicit executable overrides discovery. Sandbox remains enabled by default; use `--no-sandbox` only if the trusted local environment cannot support it. Nothing installs a browser. Unknown options, sections and conflicting scope flags fail rather than silently run the wrong check. Cold routed compilation and Home clip encoding can need the longer timeout on a busy host; clips replay measured frame timing.

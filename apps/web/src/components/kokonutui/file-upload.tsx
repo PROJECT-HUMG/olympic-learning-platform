@@ -3,60 +3,42 @@
 /**
  * @author: @dorianbaffier
  * @description: File Upload
- * @version: 1.0.0
- * @date: 2025-06-26
+ * @version: 2.0.0
+ * @date: 2026-10-16
  * @license: MIT
  * @website: https://kokonutui.com
  * @github: https://github.com/kokonut-labs/kokonutui
  */
 
-// Registry source: @kokonutui/file-upload via shadcn MCP.
-// Reuse installed Framer Motion. Selection mode lets atomic multipart forms own persistence.
-import { UploadCloud } from "lucide-react";
+// Adapted from https://kokonutui.com/r/file-upload.json (2.0.0).
+// Share its drop-zone/list/thumbnail pattern across atomic selection and real callback uploads.
+// Reuse installed Framer Motion; simulated uploads and synthetic failures are excluded.
+import { RotateCw, Upload, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import {
-  type DragEvent,
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react";
+import { type DragEvent, useCallback, useEffect, useId, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-type FileStatus = "idle" | "dragging" | "uploading" | "error";
-
-interface FileError {
-  message: string;
-  code: string;
-}
-
-interface UploadHelpers {
-  /** Report upload progress from 0 to 100. */
+export interface FileError { message: string; code: string }
+export interface UploadHelpers {
   onProgress: (percent: number) => void;
-  /** Aborted when the user cancels or the component unmounts. */
+  /** A real adapter must honor this signal to cancel its request. */
   signal: AbortSignal;
 }
-
-interface FileUploadProps {
-  /**
-   * Performs the real upload. Resolve to report success, reject to report an
-   * error. When omitted, the upload is simulated over `uploadDelay`.
-   */
-  onUpload?: (file: File, helpers: UploadHelpers) => Promise<void>;
+export interface FileUploadProps {
+  /** Required real adapter; resolve only after persistence is confirmed. No demo fallback. */
+  onUpload: (file: File, helpers: UploadHelpers) => Promise<void>;
   onUploadSuccess?: (file: File) => void;
-  onUploadError?: (error: FileError) => void;
+  onUploadError?: (error: FileError, file: File) => void;
+  onComplete?: (files: File[]) => void;
+  onFileRemove?: (file: File) => void;
   acceptedFileTypes?: string[];
   maxFileSize?: number;
-  currentFile?: File | null;
-  onFileRemove?: () => void;
-  /** Duration in milliseconds of the simulated upload used without `onUpload`. Defaults to 2000ms; 0 completes immediately. */
-  uploadDelay?: number;
+  multiple?: boolean;
+  maxFiles?: number;
   validateFile?: (file: File) => FileError | null;
   className?: string;
 }
-
 interface FileSelectionProps {
   id: string;
   files: File[];
@@ -66,749 +48,193 @@ interface FileSelectionProps {
   disabled?: boolean;
   progress?: number;
 }
+type ItemStatus = "selected" | "queued" | "uploading" | "done" | "error";
+interface QueueItem {
+  id: string;
+  file: File;
+  status: ItemStatus;
+  progress?: number;
+  error?: FileError;
+}
+const NO_ACCEPTED_TYPES: string[] = [];
+const DEFAULT_MAX_FILE_SIZE = 5 * 1024 * 1024;
+const CONCURRENCY = 3;
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+const formatBytes = (bytes: number) => {
+  if (!bytes) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / 1024 ** i;
+  return `${value >= 10 || i === 0 ? Math.round(value) : Number(value.toFixed(1))} ${units[i]}`;
+};
+const extensionOf = (name: string) => {
+  const dot = name.lastIndexOf(".");
+  return dot > 0 && dot < name.length - 1 ? name.slice(dot + 1, dot + 5).toUpperCase() : "TỆP";
+};
+const matchesAcceptedType = (file: File, type: string) => {
+  const accepted = type.trim().toLowerCase();
+  if (accepted.startsWith(".")) return file.name.toLowerCase().endsWith(accepted);
+  return accepted.endsWith("/*") ? file.type.toLowerCase().startsWith(accepted.slice(0, -1)) : file.type.toLowerCase() === accepted;
+};
+const isFileDrag = (event: DragEvent) => event.dataTransfer.types.includes("Files");
+const clampProgress = (value: number) => Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : undefined;
 
-/** Select a batch for the parent form; selecting never starts or simulates an upload. */
-export function FileUploadSelection({ id, files, onFilesChange, validateFiles, acceptedFileTypes, disabled = false, progress }: FileSelectionProps) {
+/** Local raster preview only. PDF/nonimages stay file badges; URLs never leave this component. */
+function FileThumb({ file }: { file: File }) {
+  const [url, setUrl] = useState<string>();
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    setFailed(false);
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) { setUrl(undefined); return; }
+    const preview = URL.createObjectURL(file);
+    setUrl(preview);
+    return () => URL.revokeObjectURL(preview);
+  }, [file]);
+  return url && !failed
+    ? <img src={url} alt="" aria-hidden="true" onError={() => setFailed(true)} className="size-9 shrink-0 rounded-md border bg-muted object-cover" />
+    : <span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted font-mono text-[10px] text-muted-foreground">{extensionOf(file.name)}</span>;
+}
+function statusLine(item: QueueItem) {
+  switch (item.status) {
+    case "selected": return "Đã chọn";
+    case "queued": return "Đang chờ gửi";
+    case "uploading": return item.progress === undefined ? "Đang gửi…" : item.progress >= 100 ? "Đang chờ xác nhận…" : `Đang gửi ${Math.round(item.progress)}%`;
+    case "done": return "Đã tải lên";
+    case "error": return item.error?.message || "Chưa tải lên được. Hãy thử lại.";
+  }
+}
+function FileRow({ item, disabled, onRemove, onRetry }: { item: QueueItem; disabled?: boolean; onRemove: () => void; onRetry?: () => void }) {
+  const reduce = useReducedMotion();
+  return <motion.li initial={false} animate={{ height: "auto", opacity: 1 }} exit={reduce ? undefined : { height: 0, opacity: 0 }} transition={{ duration: reduce ? 0 : .18, ease: EASE_OUT }} className="min-w-0">
+    <div className="relative flex min-w-0 items-center gap-3 border-b px-1 py-2">
+      <FileThumb file={item.file} />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium [overflow-wrap:anywhere]">{item.file.name}</p>
+        <p className={cn("text-xs leading-relaxed tabular-nums [overflow-wrap:anywhere]", item.status === "error" ? "text-destructive" : "text-muted-foreground")}>
+          {formatBytes(item.file.size)}<span aria-hidden="true"> · </span>{statusLine(item)}
+        </p>
+      </div>
+      {item.status === "error" && onRetry && <Button type="button" variant="ghost" size="icon" disabled={disabled} aria-label={`Thử gửi lại ${item.file.name}`} onClick={onRetry}><RotateCw aria-hidden="true" /></Button>}
+      <Button type="button" variant="ghost" size="icon" disabled={disabled} aria-label={`${item.status === "uploading" || item.status === "queued" ? "Hủy gửi" : "Bỏ tệp"} ${item.file.name}`} onClick={onRemove}><X aria-hidden="true" /></Button>
+      {item.status === "uploading" && (!reduce || item.progress !== undefined) && <progress className="absolute inset-x-1 bottom-0 h-0.5 w-[calc(100%-0.5rem)] accent-primary" aria-label={`Tiến độ gửi ${item.file.name}`} max={100} value={item.progress} />}
+    </div>
+  </motion.li>;
+}
+
+/** Native chooser/drop/paste surface from v2; no scheduler or persistence belongs in this view. */
+function UploadFrame({ id, items, acceptedFileTypes, disabled = false, notice, onSelect, onRemove, onRetry, hint, progress, className, multiple = true }: {
+  id: string; items: QueueItem[]; acceptedFileTypes: string[]; disabled?: boolean; notice?: string | null;
+  onSelect: (files: File[]) => void; onRemove: (id: string) => void; onRetry?: (id: string) => void;
+  hint: string; progress?: number; className?: string; multiple?: boolean;
+}) {
   const input = useRef<HTMLInputElement>(null);
   const choose = useRef<HTMLButtonElement>(null);
   const [dragging, setDragging] = useState(false);
-  const [error, setError] = useState("");
-  const hintId = useId();
-  const errorId = useId();
-  function select(picked: File[]) {
-    if (disabled || !picked.length) return;
-    const next = [...files, ...picked];
-    const issue = validateFiles(next);
-    setError(issue ?? "");
-    if (!issue) onFilesChange(next);
-  }
+  const hintId = useId(), errorId = useId();
+  const reduce = useReducedMotion();
+  // Guard against accidental file navigation outside the picker while this surface is mounted.
+  useEffect(() => {
+    const preventFileNavigation = (event: globalThis.DragEvent) => { if (event.dataTransfer?.types.includes("Files")) event.preventDefault(); };
+    window.addEventListener("dragover", preventFileNavigation);
+    window.addEventListener("drop", preventFileNavigation);
+    return () => { window.removeEventListener("dragover", preventFileNavigation); window.removeEventListener("drop", preventFileNavigation); };
+  }, []);
+  function select(files: File[]) { if (!disabled && files.length) onSelect(files); }
   function drag(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault();
-    event.stopPropagation();
+    if (!isFileDrag(event)) return;
+    event.preventDefault(); event.stopPropagation();
     event.dataTransfer.dropEffect = disabled ? "none" : "copy";
     if (!disabled) setDragging(true);
   }
-  return <div className="min-w-0 space-y-3" data-file-selection aria-busy={disabled}>
-    <div className={cn("flex min-w-0 flex-wrap items-center gap-3 rounded-md border border-dashed bg-muted/30 p-4", dragging && !disabled && "border-primary bg-accent")}
-      onDragEnter={drag} onDragOver={drag} onDragLeave={event => {
-        event.preventDefault(); event.stopPropagation();
-        if (!(event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget))) setDragging(false);
-      }} onDrop={event => { event.preventDefault(); event.stopPropagation(); setDragging(false); select(Array.from(event.dataTransfer.files)); }}>
-      <UploadIllustration animate={dragging && !disabled} />
-      <div className="min-w-0 flex-1 basis-40"><p className="text-sm font-medium">Kéo tệp vào đây hoặc chọn tệp</p><p id={hintId} className="mt-1 text-xs leading-relaxed text-muted-foreground">Tệp được gửi cùng thông tin thành tích khi bạn chọn Gửi để duyệt.</p></div>
-      <Button ref={choose} type="button" variant="outline" disabled={disabled} aria-controls={id} aria-describedby={`${hintId}${error ? ` ${errorId}` : ""}`} onClick={() => input.current?.click()}>{files.length ? "Thêm tệp minh chứng" : "Chọn tệp minh chứng"}</Button>
-      <input id={id} ref={input} type="file" className="hidden" multiple accept={acceptedFileTypes.join(",")} disabled={disabled} aria-describedby={hintId}
-        onChange={event => { select(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
+  return <div className={cn("min-w-0 space-y-3 rounded-xl border bg-card p-2", className)} aria-busy={disabled}>
+    <div onDragEnter={drag} onDragOver={drag} onDragLeave={event => {
+      if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return;
+      setDragging(false);
+    }} onDrop={event => {
+      event.preventDefault(); event.stopPropagation(); setDragging(false); select(Array.from(event.dataTransfer.files));
+    }} onPaste={event => { if (event.clipboardData.files.length && !disabled) { event.preventDefault(); select(Array.from(event.clipboardData.files)); } }}>
+      <button ref={choose} type="button" disabled={disabled} aria-controls={id} aria-describedby={`${hintId}${notice ? ` ${errorId}` : ""}`} onClick={() => input.current?.click()}
+        className={cn("flex min-h-36 w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed bg-muted/30 px-4 py-5 text-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none", dragging && !disabled && "border-primary bg-accent")}>
+        <span aria-hidden="true" className="flex size-9 items-center justify-center rounded-lg border bg-card text-muted-foreground"><Upload className="size-4" /></span>
+        <span className="text-sm leading-relaxed">{dragging && !disabled ? "Thả tệp vào đây" : <>Kéo tệp vào đây hoặc <span className="font-medium text-primary underline underline-offset-4">{items.length ? "thêm tệp minh chứng" : "chọn tệp minh chứng"}</span></>}</span>
+        <span id={hintId} className="text-xs leading-relaxed text-muted-foreground">{hint}</span>
+      </button>
+      <input id={id} ref={input} type="file" className="hidden" multiple={multiple} disabled={disabled} accept={acceptedFileTypes.join(",")} aria-describedby={hintId} onChange={event => { select(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
     </div>
-    {error && <p id={errorId} role="alert" className="text-sm text-destructive">{error}</p>}
-    <p className="sr-only" role="status">Đã chọn {files.length} tệp minh chứng.</p>
-    {!!files.length && <ul className="grid min-w-0 gap-2" aria-label="Minh chứng đã chọn">{files.map((file, index) => <li key={`${file.name}-${index}`} className="flex min-w-0 items-center gap-3 rounded-md border bg-card py-2 pl-3 pr-2">
-      <div className="min-w-0 flex-1"><p className="text-sm [overflow-wrap:anywhere]">{file.name}</p><p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p></div>
-      <Button type="button" variant="ghost" disabled={disabled} aria-label={`Bỏ tệp ${file.name}`} onClick={() => { onFilesChange(files.filter((_, i) => i !== index)); setError(""); choose.current?.focus(); }}>Bỏ tệp</Button>
-    </li>)}</ul>}
-    {disabled && <div role="status" className="space-y-2 text-sm">
+    {notice && <p id={errorId} role="alert" className="px-1 text-sm text-destructive [overflow-wrap:anywhere]">{notice}</p>}
+    <p role="status" className="sr-only">{items.length} tệp trong danh sách.</p>
+    {!!items.length && <ul aria-label="Minh chứng đã chọn" className="grid min-w-0 gap-1"><AnimatePresence initial={false}>{items.map(item => <FileRow key={item.id} item={item} disabled={disabled} onRemove={() => { onRemove(item.id); choose.current?.focus(); }} onRetry={onRetry ? () => onRetry(item.id) : undefined} />)}</AnimatePresence></ul>}
+    {disabled && <div role="status" className="space-y-2 px-1 text-sm">
       <p>{progress === undefined ? "Đang gửi thành tích và minh chứng…" : progress < 100 ? `Đang gửi dữ liệu: ${progress}%` : "Đã gửi dữ liệu, đang chờ xác nhận…"}</p>
-      <progress className="h-2 w-full accent-primary" aria-label="Tiến độ gửi dữ liệu minh chứng" max={100} value={progress} />
+      {(!reduce || progress !== undefined) && <progress className="h-2 w-full accent-primary" aria-label="Tiến độ gửi dữ liệu minh chứng" max={100} value={progress} />}
     </div>}
   </div>;
 }
 
-const DEFAULT_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const UPLOAD_STEP_SIZE = 5;
-const ERROR_RESET_DELAY = 3000;
-const PROGRESS_MASK_RADIUS = 60;
-const PROGRESS_MASK_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_MASK_RADIUS;
-const FILE_SIZES = [
-  "Bytes",
-  "KB",
-  "MB",
-  "GB",
-  "TB",
-  "PB",
-  "EB",
-  "ZB",
-  "YB",
-] as const;
+/** Controlled batch for an atomic multipart form; selecting never starts an upload. */
+export function FileUploadSelection({ id, files, onFilesChange, validateFiles, acceptedFileTypes, disabled = false, progress }: FileSelectionProps) {
+  const [error, setError] = useState("");
+  const items: QueueItem[] = files.map((file, index) => ({ id: String(index), file, status: "selected" }));
+  return <div data-file-selection><UploadFrame id={id} items={items} acceptedFileTypes={acceptedFileTypes} disabled={disabled} progress={progress} notice={error}
+    hint="Tệp được gửi cùng thông tin thành tích khi bạn chọn Gửi để duyệt."
+    onSelect={picked => { const next = [...files, ...picked]; const issue = validateFiles(next); setError(issue ?? ""); if (!issue) onFilesChange(next); }}
+    onRemove={id => { onFilesChange(files.filter((_, index) => String(index) !== id)); setError(""); }} /></div>;
+}
 
-// Accepts exact MIME types ("image/png"), wildcards ("image/*") and
-// extensions (".pdf"), like the input's `accept` attribute.
-const matchesAcceptedType = (file: File, acceptedType: string): boolean => {
-  const accepted = acceptedType.trim().toLowerCase();
-  if (!accepted) {
-    return false;
-  }
-  if (accepted.startsWith(".")) {
-    return file.name.toLowerCase().endsWith(accepted);
-  }
-  const fileType = file.type.toLowerCase();
-  if (accepted.endsWith("/*")) {
-    return fileType.startsWith(accepted.slice(0, -1));
-  }
-  return fileType === accepted;
-};
-
-// Labels for the hint line: ".pdf" -> "PDF", "image/svg+xml" -> "SVG",
-// "image/*" -> "any image".
-const describeAcceptedType = (acceptedType: string): string => {
-  const accepted = acceptedType.trim();
-  if (accepted.startsWith(".")) {
-    return accepted.slice(1).toUpperCase();
-  }
-  const [kind = "", subtype = ""] = accepted.split("/");
-  if (subtype === "*") {
-    return `any ${kind.toLowerCase()}`;
-  }
-  return subtype.split("+")[0].toUpperCase();
-};
-
-const describeAcceptedTypes = (acceptedTypes: string[]): string => {
-  const labels = acceptedTypes.map(describeAcceptedType).filter(Boolean);
-  const text = labels.length ? labels.join(", ") : "any file";
-  return text.charAt(0).toUpperCase() + text.slice(1);
-};
-
-const clampProgress = (value: number) => Math.min(Math.max(value, 0), 100);
-
-// Module constant, so the default does not change identity every render.
-const NO_ACCEPTED_TYPES: string[] = [];
-
-const formatBytes = (bytes: number, decimals = 2): string => {
-  if (!+bytes) {
-    return "0 Bytes";
-  }
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  const unit = FILE_SIZES[i] || FILE_SIZES.at(-1);
-  return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${unit}`;
-};
-
-const EASE_OUT = [0.23, 1, 0.32, 1] as const;
-
-// The illustration rests on its first frame and only bobs while a file is
-// dragged over the card. SMIL ignores prefers-reduced-motion, so that is
-// checked here too. Pausing happens in an effect, so markup is unaffected.
-const UploadIllustration = ({ animate }: { animate: boolean }) => {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const shouldReduceMotion = useReducedMotion();
-
+/** Optional immediate-upload owner, with genuine per-file progress/retry/cancel only. */
+export default function FileUpload({ onUpload, onUploadSuccess, onUploadError, onComplete, onFileRemove, acceptedFileTypes = NO_ACCEPTED_TYPES,
+  maxFileSize = DEFAULT_MAX_FILE_SIZE, multiple = true, maxFiles = 5, validateFile, className }: FileUploadProps) {
+  const [items, setItems] = useState<QueueItem[]>([]);
+  const [notice, setNotice] = useState("");
+  const base = useId(), counter = useRef(0);
+  const controllers = useRef(new Map<string, AbortController>());
+  const latest = useRef({ onUpload, onUploadSuccess, onUploadError, onComplete });
+  const wasBusy = useRef(false);
+  useEffect(() => { latest.current = { onUpload, onUploadSuccess, onUploadError, onComplete }; });
+  const update = useCallback((id: string, patch: Partial<QueueItem>) => setItems(previous => previous.map(item => item.id === id ? { ...item, ...patch } : item)), []);
   useEffect(() => {
-    const svg = svgRef.current;
-    if (!svg) {
-      return;
-    }
-    if (animate && !shouldReduceMotion) {
-      svg.unpauseAnimations();
-    } else {
-      svg.pauseAnimations();
-      svg.setCurrentTime(0);
-    }
-  }, [animate, shouldReduceMotion]);
-
-  return (
-    <div className="relative h-16 w-16">
-      <svg
-        aria-hidden="true"
-        className="h-full w-full"
-        fill="none"
-        ref={svgRef}
-        viewBox="0 0 100 100"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <circle
-          className="stroke-gray-200 dark:stroke-gray-700"
-          cx="50"
-          cy="50"
-          r="45"
-          strokeDasharray="4 4"
-          strokeWidth="2"
-        >
-          <animateTransform
-            attributeName="transform"
-            dur="60s"
-            from="0 50 50"
-            repeatCount="indefinite"
-            to="360 50 50"
-            type="rotate"
-          />
-        </circle>
-
-        <path
-          className="fill-blue-100 stroke-blue-500 dark:fill-blue-900/30 dark:stroke-blue-400"
-          d="M30 35H70C75 35 75 40 75 40V65C75 70 70 70 70 70H30C25 70 25 65 25 65V40C25 35 30 35 30 35Z"
-          strokeWidth="2"
-        >
-          <animate
-            attributeName="d"
-            dur="2s"
-            repeatCount="indefinite"
-            values="
-                        M30 35H70C75 35 75 40 75 40V65C75 70 70 70 70 70H30C25 70 25 65 25 65V40C25 35 30 35 30 35Z;
-                        M30 38H70C75 38 75 43 75 43V68C75 73 70 73 70 73H30C25 73 25 68 25 68V43C25 38 30 38 30 38Z;
-                        M30 35H70C75 35 75 40 75 40V65C75 70 70 70 70 70H30C25 70 25 65 25 65V40C25 35 30 35 30 35Z"
-          />
-        </path>
-
-        <path
-          className="stroke-blue-500 dark:stroke-blue-400"
-          d="M30 35C30 35 35 35 40 35C45 35 45 30 50 30C55 30 55 35 60 35C65 35 70 35 70 35"
-          fill="none"
-          strokeWidth="2"
-        />
-
-        <g className="translate-y-2">
-          <line
-            className="stroke-blue-500 dark:stroke-blue-400"
-            strokeLinecap="round"
-            strokeWidth="2"
-            x1="50"
-            x2="50"
-            y1="45"
-            y2="60"
-          >
-            <animate
-              attributeName="y2"
-              dur="2s"
-              repeatCount="indefinite"
-              values="60;55;60"
-            />
-          </line>
-          <polyline
-            className="stroke-blue-500 dark:stroke-blue-400"
-            fill="none"
-            points="42,52 50,45 58,52"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-          >
-            <animate
-              attributeName="points"
-              dur="2s"
-              repeatCount="indefinite"
-              values="42,52 50,45 58,52;42,47 50,40 58,47;42,52 50,45 58,52"
-            />
-          </polyline>
-        </g>
-      </svg>
-    </div>
-  );
-};
-
-// Concentric rings that spin in alternating directions, phase-shifted by a
-// short delay. The progress mask reveals them as the upload advances.
-const PROGRESS_RINGS = [
-  { r: 120, stroke: "#FF3D71", delay: 0 },
-  { r: 110, stroke: "#4ADE80", delay: 0.2 },
-  { r: 100, stroke: "#2196F3", delay: 0.3 },
-  { r: 90, stroke: "#FFA726", delay: 0.2 },
-  { r: 80, stroke: "#FF1493", delay: 0.5 },
-  { r: 70, stroke: "#FFEB3B", delay: 0.3 },
-  { r: 60, stroke: "#00BCD4", delay: 0.7 },
-  { r: 50, stroke: "#FF4081", delay: 0.2 },
-  { r: 40, stroke: "#76FF03", delay: 0.3 },
-  { r: 30, stroke: "#448AFF", delay: 0.5 },
-  { r: 20, stroke: "#FF3D00", delay: 0 },
-] as const;
-
-const UploadingAnimation = ({
-  progress,
-  maskId,
-}: {
-  progress: number;
-  maskId: string;
-}) => (
-  <div
-    aria-label="Upload progress"
-    aria-valuemax={100}
-    aria-valuemin={0}
-    aria-valuenow={Math.round(progress)}
-    className="relative h-16 w-16"
-    role="progressbar"
-  >
-    <svg
-      aria-hidden="true"
-      className="h-full w-full"
-      fill="none"
-      viewBox="0 0 240 240"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <mask id={maskId}>
-          <rect fill="black" height="240" width="240" />
-          {/* Dim track so the rings stay visible before progress is reported */}
-          <circle cx="120" cy="120" fill="white" opacity="0.2" r="120" />
-          {/* A stroke as wide as the disk turns the dash into a growing pie slice */}
-          <circle
-            cx="120"
-            cy="120"
-            fill="none"
-            r={PROGRESS_MASK_RADIUS}
-            stroke="white"
-            strokeDasharray={`${(clampProgress(progress) / 100) * PROGRESS_MASK_CIRCUMFERENCE} ${PROGRESS_MASK_CIRCUMFERENCE}`}
-            strokeWidth={PROGRESS_MASK_RADIUS * 2}
-            transform="rotate(-90 120 120)"
-          />
-        </mask>
-      </defs>
-
-      <g mask={`url(#${maskId})`} strokeDasharray="18% 40%" strokeWidth="10">
-        {PROGRESS_RINGS.map((ring, i) => (
-          <circle
-            className="origin-[120px_120px] animate-spin motion-reduce:animate-none"
-            cx="120"
-            cy="120"
-            key={ring.r}
-            opacity="0.95"
-            r={ring.r}
-            stroke={ring.stroke}
-            style={{
-              animationDelay: `${ring.delay}s`,
-              animationDirection: i % 2 === 0 ? "normal" : "reverse",
-              animationDuration: "8s",
-            }}
-          />
-        ))}
-      </g>
-    </svg>
-  </div>
-);
-
-export default function FileUpload({
-  onUpload,
-  onUploadSuccess,
-  onUploadError,
-  acceptedFileTypes = NO_ACCEPTED_TYPES,
-  maxFileSize = DEFAULT_MAX_FILE_SIZE,
-  currentFile: initialFile = null,
-  onFileRemove,
-  uploadDelay = 2000,
-  validateFile,
-  className,
-}: FileUploadProps) {
-  const [file, setFile] = useState<File | null>(initialFile);
-  const [status, setStatus] = useState<FileStatus>("idle");
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState<FileError | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const progressMaskId = useId();
-  const uploadIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const uploadAbortRef = useRef<AbortController | null>(null);
-  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const clearUploadInterval = useCallback(() => {
-    if (uploadIntervalRef.current) {
-      clearInterval(uploadIntervalRef.current);
-      uploadIntervalRef.current = null;
-    }
-  }, []);
-
-  const cancelUpload = useCallback(() => {
-    clearUploadInterval();
-    uploadAbortRef.current?.abort();
-    uploadAbortRef.current = null;
-  }, [clearUploadInterval]);
-
-  const clearErrorTimeout = useCallback(() => {
-    if (errorTimeoutRef.current) {
-      clearTimeout(errorTimeoutRef.current);
-      errorTimeoutRef.current = null;
-    }
-  }, []);
-
-  useEffect(
-    () => () => {
-      cancelUpload();
-      clearErrorTimeout();
-    },
-    [cancelUpload, clearErrorTimeout]
-  );
-
-  const validateFileSize = useCallback(
-    (file: File): FileError | null => {
-      if (file.size > maxFileSize) {
-        return {
-          message: `File size exceeds ${formatBytes(maxFileSize)}`,
-          code: "FILE_TOO_LARGE",
-        };
-      }
-      return null;
-    },
-    [maxFileSize]
-  );
-
-  const validateFileType = useCallback(
-    (file: File): FileError | null => {
-      if (!acceptedFileTypes?.length) {
-        return null;
-      }
-
-      if (!acceptedFileTypes.some((type) => matchesAcceptedType(file, type))) {
-        return {
-          message: `File type must be ${acceptedFileTypes.join(", ")}`,
-          code: "INVALID_FILE_TYPE",
-        };
-      }
-      return null;
-    },
-    [acceptedFileTypes]
-  );
-
-  const handleError = useCallback(
-    (error: FileError) => {
-      clearErrorTimeout();
-      setError(error);
-      setStatus("error");
-      onUploadError?.(error);
-
-      errorTimeoutRef.current = setTimeout(() => {
-        errorTimeoutRef.current = null;
-        setError(null);
-        setStatus("idle");
-      }, ERROR_RESET_DELAY);
-    },
-    [clearErrorTimeout, onUploadError]
-  );
-
-  const startUpload = useCallback(
-    (uploadingFile: File) => {
-      cancelUpload();
+    const toStart = items.filter(item => item.status === "queued" && !controllers.current.has(item.id)).slice(0, Math.max(0, CONCURRENCY - controllers.current.size));
+    for (const item of toStart) {
       const controller = new AbortController();
-      uploadAbortRef.current = controller;
-
-      // Never report success for an upload that was cancelled or replaced.
-      const completeUpload = () => {
-        if (controller.signal.aborted) {
-          return;
-        }
-        uploadAbortRef.current = null;
-        setProgress(0);
-        setStatus("idle");
-        setFile(null);
-        onUploadSuccess?.(uploadingFile);
-      };
-
-      const failUpload = (uploadError: unknown) => {
-        if (controller.signal.aborted) {
-          return;
-        }
-        uploadAbortRef.current = null;
-        handleError({
-          message:
-            uploadError instanceof Error && uploadError.message
-              ? uploadError.message
-              : "Upload failed",
-          code: "UPLOAD_FAILED",
-        });
-      };
-
-      if (onUpload) {
-        const onProgress = (percent: number) => {
-          if (!controller.signal.aborted) {
-            setProgress(clampProgress(percent));
-          }
-        };
-        Promise.resolve()
-          .then(() =>
-            onUpload(uploadingFile, { onProgress, signal: controller.signal })
-          )
-          .then(completeUpload, failUpload);
-        return;
-      }
-
-      // Demo fallback: simulate an upload over `uploadDelay`.
-      if (uploadDelay <= 0) {
-        completeUpload();
-        return;
-      }
-      let currentProgress = 0;
-      uploadIntervalRef.current = setInterval(
-        () => {
-          currentProgress += UPLOAD_STEP_SIZE;
-          if (currentProgress >= 100) {
-            clearUploadInterval();
-            completeUpload();
-          } else {
-            setProgress(currentProgress);
-          }
-        },
-        uploadDelay / (100 / UPLOAD_STEP_SIZE)
-      );
-    },
-    [
-      cancelUpload,
-      clearUploadInterval,
-      handleError,
-      onUpload,
-      onUploadSuccess,
-      uploadDelay,
-    ]
-  );
-
-  const handleFileSelect = useCallback(
-    (selectedFile: File | null) => {
-      if (!selectedFile) {
-        return;
-      }
-
-      // Reset error state
-      clearErrorTimeout();
-      setError(null);
-
-      const sizeError = validateFileSize(selectedFile);
-      if (sizeError) {
-        handleError(sizeError);
-        return;
-      }
-
-      const typeError = validateFileType(selectedFile);
-      if (typeError) {
-        handleError(typeError);
-        return;
-      }
-
-      const customError = validateFile?.(selectedFile);
-      if (customError) {
-        handleError(customError);
-        return;
-      }
-
-      setFile(selectedFile);
-      setStatus("uploading");
-      setProgress(0);
-      startUpload(selectedFile);
-    },
-    [
-      clearErrorTimeout,
-      startUpload,
-      validateFileSize,
-      validateFileType,
-      validateFile,
-      handleError,
-    ]
-  );
-
-  // The drag handlers sit on the always-mounted card so `preventDefault` runs
-  // in every state; otherwise dropping during an upload makes the browser
-  // open the file. The drop zone stays usable while an error shows.
-  const canDrop = status !== "uploading";
-
-  const handleDragOver = useCallback(
-    (e: DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.dataTransfer.dropEffect = canDrop ? "copy" : "none";
-      if (status === "idle" || status === "error") {
-        setStatus("dragging");
-      }
-    },
-    [canDrop, status]
-  );
-
-  const handleDragLeave = useCallback((e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Moving onto a child element also fires dragleave; ignore it.
-    if (
-      e.relatedTarget instanceof Node &&
-      e.currentTarget.contains(e.relatedTarget)
-    ) {
-      return;
+      controllers.current.set(item.id, controller);
+      update(item.id, { status: "uploading", progress: undefined });
+      Promise.resolve().then(() => {
+        if (controller.signal.aborted) return;
+        if (!latest.current.onUpload) throw new Error("Chưa có kết nối tải tệp. Tệp chưa được gửi.");
+        return latest.current.onUpload(item.file, { signal: controller.signal, onProgress: value => { if (!controller.signal.aborted) update(item.id, { progress: clampProgress(value) }); } });
+      }).then(() => {
+        if (controller.signal.aborted) return;
+        controllers.current.delete(item.id);
+        update(item.id, { status: "done", progress: 100 });
+        latest.current.onUploadSuccess?.(item.file);
+      }, reason => {
+        if (controller.signal.aborted) return;
+        controllers.current.delete(item.id);
+        const error = { code: "UPLOAD_FAILED", message: reason instanceof Error ? reason.message : "Chưa tải lên được. Hãy thử lại." };
+        update(item.id, { status: "error", error }); latest.current.onUploadError?.(error, item.file);
+      });
     }
-    setStatus((prev) => (prev === "dragging" ? "idle" : prev));
-  }, []);
-
-  const handleDrop = useCallback(
-    (e: DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (!canDrop) {
-        return;
+  }, [items, update]);
+  useEffect(() => {
+    const busy = items.some(item => item.status === "queued" || item.status === "uploading");
+    if (wasBusy.current && !busy) latest.current.onComplete?.(items.filter(item => item.status === "done").map(item => item.file));
+    wasBusy.current = busy;
+  }, [items]);
+  useEffect(() => { const active = controllers.current; return () => { for (const controller of active.values()) controller.abort(); active.clear(); }; }, []);
+  const limit = multiple ? Math.max(1, maxFiles) : 1;
+  return <UploadFrame id={`${base}-input`} className={className} multiple={multiple} items={items} acceptedFileTypes={acceptedFileTypes} notice={notice}
+    hint={`Tối đa ${limit} tệp, mỗi tệp ${formatBytes(maxFileSize)}. Chỉ hoàn tất sau khi nhận xác nhận.`}
+    onSelect={picked => {
+      const next = [...items];
+      for (const file of picked) {
+        const issue = acceptedFileTypes.length && !acceptedFileTypes.some(type => matchesAcceptedType(file, type)) ? { code: "INVALID_FILE_TYPE", message: "Loại tệp chưa được hỗ trợ." }
+          : file.size > maxFileSize ? { code: "FILE_TOO_LARGE", message: `Tệp phải nhỏ hơn hoặc bằng ${formatBytes(maxFileSize)}.` } : validateFile?.(file);
+        if (issue) { setNotice(issue.message); onUploadError?.(issue, file); return; }
+        if (next.length >= limit) { setNotice(`Chỉ chọn tối đa ${limit} tệp.`); return; }
+        next.push({ id: `${base}-${counter.current++}`, file, status: "queued" });
       }
-      setStatus("idle");
-      const droppedFile = e.dataTransfer.files?.[0];
-      if (droppedFile) {
-        handleFileSelect(droppedFile);
-      }
-    },
-    [canDrop, handleFileSelect]
-  );
-
-  const handleFileInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const selectedFile = e.target.files?.[0];
-      handleFileSelect(selectedFile || null);
-      if (e.target) {
-        e.target.value = "";
-      }
-    },
-    [handleFileSelect]
-  );
-
-  const triggerFileInput = useCallback(() => {
-    if (status === "uploading") {
-      return;
-    }
-    fileInputRef.current?.click();
-  }, [status]);
-
-  const resetState = useCallback(() => {
-    cancelUpload();
-    setFile(null);
-    setStatus("idle");
-    setProgress(0);
-    onFileRemove?.();
-  }, [cancelUpload, onFileRemove]);
-
-  return (
-    <div className={cn("relative mx-auto w-full max-w-sm", className)}>
-      {/* biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/noNoninteractiveElementInteractions: pointer drop target; keyboard users have the Upload File button */}
-      <div
-        className="group relative w-full rounded-xl bg-white p-0.5 ring-1 ring-gray-200 dark:bg-black dark:ring-white/10"
-        onDragEnter={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        <div className="absolute inset-x-0 -top-px h-px w-full bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
-
-        <div className="relative w-full rounded-[10px] bg-gray-50/50 p-1.5 dark:bg-white/[0.02]">
-          <div
-            className={cn(
-              "relative mx-auto w-full overflow-hidden rounded-lg border border-gray-100 bg-white dark:border-white/[0.08] dark:bg-black/50",
-              error && "border-red-500/50 dark:border-red-500/50"
-            )}
-          >
-            <div
-              className={cn(
-                "absolute inset-0 transition-opacity duration-150",
-                status === "dragging" ? "opacity-100" : "opacity-0"
-              )}
-            >
-              <div className="absolute inset-x-0 top-0 h-[20%] bg-gradient-to-b from-blue-500/10 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 h-[20%] bg-gradient-to-t from-blue-500/10 to-transparent" />
-              <div className="absolute inset-y-0 left-0 w-[20%] bg-gradient-to-r from-blue-500/10 to-transparent" />
-              <div className="absolute inset-y-0 right-0 w-[20%] bg-gradient-to-l from-blue-500/10 to-transparent" />
-              <div className="absolute inset-[20%] rounded-lg bg-blue-500/5" />
-            </div>
-
-            <div className="relative h-[240px]">
-              <AnimatePresence mode="wait">
-                {status !== "uploading" && (
-                  <motion.div
-                    animate={{
-                      opacity: status === "dragging" ? 0.8 : 1,
-                      y: 0,
-                      scale: status === "dragging" ? 0.98 : 1,
-                    }}
-                    className="motion-reduce:transform-none! absolute inset-0 flex flex-col items-center justify-center p-6"
-                    exit={{
-                      opacity: 0,
-                      y: -10,
-                      transition: { duration: 0.12, ease: EASE_OUT },
-                    }}
-                    initial={{ opacity: 0, y: 10 }}
-                    key="dropzone"
-                    transition={{ duration: 0.2, ease: EASE_OUT }}
-                  >
-                    <div className="mb-4">
-                      <UploadIllustration animate={status === "dragging"} />
-                    </div>
-
-                    <div className="mb-4 space-y-1.5 text-center">
-                      <h3 className="font-semibold text-gray-900 text-lg tracking-tight dark:text-white">
-                        Drag and drop or
-                      </h3>
-                      <p className="text-gray-500 text-xs dark:text-gray-400">
-                        {describeAcceptedTypes(acceptedFileTypes)}
-                        {maxFileSize > 0 &&
-                          Number.isFinite(maxFileSize) &&
-                          ` up to ${formatBytes(maxFileSize)}`}
-                      </p>
-                    </div>
-
-                    <button
-                      className="group/button min-h-11 focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 flex w-4/5 items-center justify-center gap-2 rounded-lg bg-gray-100 px-4 py-2.5 font-semibold text-gray-900 text-sm transition-[color,background-color,scale] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-gray-200 motion-safe:active:scale-[0.97] dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
-                      onClick={triggerFileInput}
-                      type="button"
-                    >
-                      <span>Upload File</span>
-                      <UploadCloud className="h-4 w-4 transition-transform duration-200 motion-safe:group-hover/button:scale-110" />
-                    </button>
-
-                    {/* The error replaces this line, so the drop zone stays
-                        usable and the layout does not shift. */}
-                    {error ? (
-                      <p
-                        className="mt-3 text-center text-red-500 text-xs dark:text-red-400"
-                        role="alert"
-                      >
-                        {error.message}
-                      </p>
-                    ) : (
-                      <p className="mt-3 text-gray-500 text-xs dark:text-gray-400">
-                        or drag and drop your file here
-                      </p>
-                    )}
-
-                    {/* Hidden: the Upload File button opens it, so it adds
-                        no extra tab stop. */}
-                    <input
-                      accept={acceptedFileTypes.join(",")}
-                      className="hidden"
-                      onChange={handleFileInputChange}
-                      ref={fileInputRef}
-                      type="file"
-                    />
-                  </motion.div>
-                )}
-                {status === "uploading" && (
-                  <motion.div
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="motion-reduce:transform-none! absolute inset-0 flex flex-col items-center justify-center p-6"
-                    exit={{
-                      opacity: 0,
-                      scale: 0.95,
-                      transition: { duration: 0.12, ease: EASE_OUT },
-                    }}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    key="uploading"
-                    transition={{ duration: 0.2, ease: EASE_OUT }}
-                  >
-                    <div className="mb-4">
-                      <UploadingAnimation
-                        maskId={progressMaskId}
-                        progress={progress}
-                      />
-                    </div>
-
-                    <div className="mb-4 space-y-1.5 text-center">
-                      <h3 className="truncate font-semibold text-gray-900 text-sm dark:text-white">
-                        {file?.name}
-                      </h3>
-                      <div className="flex items-center justify-center gap-2 text-xs">
-                        <span className="text-gray-500 dark:text-gray-400">
-                          {formatBytes(file?.size || 0)}
-                        </span>
-                        <span className="font-medium text-blue-500">
-                          {Math.round(progress)}%
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      className="min-h-11 focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 flex w-4/5 items-center justify-center gap-2 rounded-lg bg-gray-100 px-4 py-2.5 font-semibold text-gray-900 text-sm transition-[color,background-color,scale] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-gray-200 motion-safe:active:scale-[0.97] dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
-                      onClick={resetState}
-                      type="button"
-                    >
-                      Cancel
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+      setNotice(""); setItems(next);
+    }}
+    onRemove={id => { controllers.current.get(id)?.abort(); controllers.current.delete(id); const item = items.find(item => item.id === id); setItems(previous => previous.filter(item => item.id !== id)); setNotice(""); if (item) onFileRemove?.(item.file); }}
+    onRetry={id => update(id, { status: "queued", progress: undefined, error: undefined })} />;
 }

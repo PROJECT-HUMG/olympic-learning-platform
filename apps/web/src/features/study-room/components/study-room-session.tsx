@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Bell, BellOff, Check, Copy, Crown, Headphones, LogOut, MoreHorizontal, Plus, Settings, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import ParticleButton from "@/components/kokonutui/particle-button";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { parseApiError } from "@/lib/api-error";
 import { ROUTES } from "@/router/route-constants";
@@ -54,6 +55,7 @@ export function StudyRoomSession({ id }: { id: string }) {
   const [peopleHost, setPeopleHost] = useState<HTMLDivElement | null>(null);
   const [confirmClose, setConfirmClose] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
+  const copyToastId = useRef<string | number | undefined>(undefined);
   const [musicOpen, setMusicOpen] = useState(false);
   const [musicVisited, setMusicVisited] = useState(false);
   const [localMusic, setLocalMusic] = useState<Omit<LocalPlayerState, "status"> & { status: LocalMusicStatus }>({ status: "idle", ready: false, muted: false, volume: 40 });
@@ -92,11 +94,12 @@ export function StudyRoomSession({ id }: { id: string }) {
   }, [busy, synchronized, run, room?.me, room?.closed, room?.ownerId, user.data?.id]);
 
   async function copyInvite() {
+    if (copyToastId.current !== undefined) { toast.dismiss(copyToastId.current); copyToastId.current = undefined; }
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopyFailed(false);
-      toast.success("Đã sao chép đường dẫn phòng.");
-    } catch { setCopyFailed(true); }
+      copyToastId.current = toast.success("Đã sao chép đường dẫn phòng.");
+    } catch (error) { setCopyFailed(true); throw error; }
   }
 
   function leave() {
@@ -130,7 +133,7 @@ export function StudyRoomSession({ id }: { id: string }) {
   return (
     <div className="study-room-page">
       <div className="room-topline"><Link className="study-room-back" to={lobby}><ArrowLeft aria-hidden="true" /> Phòng học chung</Link><div className="room-topline__actions">
-          <Button variant="outline" onClick={() => void copyInvite()}><Copy aria-hidden="true" />Mời bạn</Button>
+          <ParticleButton variant="outline" onClick={copyInvite} pendingLabel="Đang sao chép…" successLabel="Đã sao chép" errorLabel="Thử sao chép lại" icon={<Copy aria-hidden="true" />}>Mời bạn</ParticleButton>
           {joined && <DropdownMenu><DropdownMenuTrigger asChild><Button ref={settingsOpener} variant="ghost" size="icon" aria-label="Tùy chọn phòng"><MoreHorizontal aria-hidden="true" /></Button></DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="room-options-menu"><DropdownMenuItem onSelect={() => setSettingsOpen(true)}><Settings />Quy định và quản lý</DropdownMenuItem><DropdownMenuItem disabled={busy} onSelect={leave}><LogOut />Rời phòng</DropdownMenuItem></DropdownMenuContent>
           </DropdownMenu>}

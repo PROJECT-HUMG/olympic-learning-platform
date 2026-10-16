@@ -33,7 +33,7 @@ it("keeps full names, supplied totals and later-page ranks with the safe profile
   assert.equal(row.fullName, name);
   assert.equal(row.href, "/users/d%2Fe");
   assert.equal(row.accessibleRank, "Hạng 21, Năm 2024");
-  assert.equal(row.approvedLabel, "3 thành tích đã duyệt");
+  assert.equal(row.approvedCount, 3);
   assert.equal(row.pointsLabel, "18 điểm nền tảng");
   assert.equal(list.from, "/rankings?year=2024&page=2");
 });

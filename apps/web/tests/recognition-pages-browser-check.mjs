@@ -133,6 +133,7 @@ try {
       assert.equal(await js('document.querySelectorAll(".ranking-presentation__columns,.ranking-presentation .user-identity__affordance").length'),0);
       assert.ok(await js('[...document.querySelectorAll(".ranking-presentation__row")].every(e=>["borderTopLeftRadius","borderTopRightRadius","borderBottomLeftRadius","borderBottomRightRadius"].every(c=>getComputedStyle(e)[c]==="0px")&&getComputedStyle(e).borderTopWidth==="1px")'));
       assert.deepEqual(await js('[...document.querySelectorAll(".ranking-presentation__row")].map(e=>e.dataset.scoreTone)'), ['teal','blue','blue','neutral']);
+      assert.ok(await js('![...document.querySelectorAll(".ranking-presentation__row")].some(e=>e.innerText.includes("thành tích đã duyệt"))'));
       assert.ok(await js('document.querySelectorAll(".ranking-presentation__row")[3].innerText.includes("Chưa có mốc điểm cũ")'));
       const contrasts = await js(`(()=>{
         const channels = color => color.match(/[\\d.]+/g).slice(0,3).map(Number).map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);

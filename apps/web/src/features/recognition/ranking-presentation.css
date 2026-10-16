@@ -47,7 +47,7 @@
   overflow-wrap: anywhere;
 }
 .ranking-presentation .user-identity__affordance { margin-top: .25rem; width: .875rem; height: .875rem; opacity: .65; }
-.ranking-presentation__count, .ranking-presentation__timing { margin: 0 0 0 2.75rem; color: var(--muted-foreground); font-size: .75rem; line-height: 1.5; overflow-wrap: anywhere; }
+.ranking-presentation__timing { margin: 0 0 0 2.75rem; color: var(--muted-foreground); font-size: .75rem; line-height: 1.5; overflow-wrap: anywhere; }
 .ranking-presentation__points {
   display: grid;
   align-self: start;
@@ -70,7 +70,7 @@
   .ranking-presentation .user-avatar { width: 1.75rem; height: 1.75rem; font-size: .6875rem; }
   .ranking-presentation a.user-identity .user-identity__name,
   .ranking-presentation .user-identity__name { font-size: .875rem; }
-  .ranking-presentation__count, .ranking-presentation__timing { margin-left: 2.5rem; }
+  .ranking-presentation__timing { margin-left: 2.5rem; }
   .ranking-toolbar .recognition-field { width: 100%; }
   .ranking-toolbar__context { padding-bottom: 0; }
 }
@@ -85,5 +85,5 @@
 .ranking-order-details summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
 @media (max-width: 359px) {
   .ranking-presentation .user-avatar { display: none; }
-  .ranking-presentation__count, .ranking-presentation__timing { margin-left: .25rem; }
+  .ranking-presentation__timing { margin-left: .25rem; }
 }

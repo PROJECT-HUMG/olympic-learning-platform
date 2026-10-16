@@ -12,7 +12,6 @@ function RankingRow({ row, record, from }: { row: RankingRowPresentation; record
     </span>
     <div className="ranking-presentation__identity">
       <UserIdentity user={{ id: row.userId, ...record, fullName: row.fullName }} from={from} showAffordance={false} />
-      <p className="ranking-presentation__count">{row.approvedLabel}</p>
       {row.scoreTimingKnown === false && <p className="ranking-presentation__timing">Chưa có mốc điểm cũ</p>}
     </div>
     <p className="ranking-presentation__points" aria-label={row.pointsLabel}>

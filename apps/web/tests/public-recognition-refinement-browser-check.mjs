@@ -126,7 +126,7 @@ try {
  await nav('/achievements/'+id);await wait('!!document.querySelector(".public-profile-layout")');checks.push('Legacy achievements route uses same full profile owner');
  ranks.content[0].fullName='Thành viên thử nghiệm';count=1;
  await call('Emulation.setDeviceMetricsOverride',{width:320,height:780,deviceScaleFactor:1,mobile:true});await nav('/rankings');await wait('!!document.querySelector(".ranking-presentation__row")');await shot('rankings-normal-single-320');
- const adjacent=await js('(()=>{const c=document.querySelector(".ranking-presentation__count").getBoundingClientRect(),p=document.querySelector(".ranking-presentation__points").getBoundingClientRect();return p.top-c.bottom})()');assert(adjacent<12,'score stays with count');checks.push('Normal single320 rank keeps identity/count/score together');
+ const adjacent=await js('(()=>{const c=document.querySelector(".ranking-presentation__identity").getBoundingClientRect(),p=document.querySelector(".ranking-presentation__points").getBoundingClientRect();return p.top-c.bottom})()');assert(adjacent<12,'score stays with identity');checks.push('Normal single320 rank keeps identity/score together');
  }
  assert(!requests.some(p=>p.includes('/evidence/')||p.includes('/daily')||p.includes('/admin/')),'public identity never fetches private APIs');assert.deepEqual(errors,[]);
  await writeFile(join(dir,'results.json'),JSON.stringify({phase,checks,screenshots,rects,requests,errors,limits:['Synthetic intercepted APIs, not physical-device/live proof','No live mutation/publication','No private evidence exposed']},null,2));

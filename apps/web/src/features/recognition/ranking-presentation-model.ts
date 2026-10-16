@@ -21,7 +21,6 @@ export interface RankingRowPresentation {
   totalPoints: number;
   href: string;
   accessibleRank: string;
-  approvedLabel: string;
   pointsLabel: string;
 }
 
@@ -58,7 +57,6 @@ export function presentRankingList(records: readonly RankingSource[], year: numb
       totalPoints: record.totalPoints,
       href: publicProfilePath(record.userId),
       accessibleRank: `Hạng ${record.rank}, ${contextLabel}`,
-      approvedLabel: `${record.approvedCount} thành tích đã duyệt`,
       pointsLabel: `${record.totalPoints} điểm nền tảng`,
     })),
   };
