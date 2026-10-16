@@ -145,16 +145,14 @@ try {
     checks.push('short320px;breakpoint drawer close/focus;content identity retained;desktop/tablet variants;keyboard theme persistence;admin destinations');
   }
   if(!baseline&&!extraOnly){
-    role='STUDENT';await resize(320,568);await nav('/study-rooms/'+uid+'?noWebGL');await wait(`document.querySelector('.room-listening')`);
-    await click('.room-listening [aria-label="Mở trình phát"]');await wait(`document.querySelector('.room-music-dialog[open]')&&window.roomFixturePlayers.length===1`);await wait(`!document.querySelector('.room-listening__play').disabled`);
-    await key('Escape');await wait(`!document.querySelector('.room-music-dialog[open]')`);
-    await js(`void(window.retainedPlayer=window.roomFixturePlayers[0]);void(window.retainedScene=document.querySelector('.room-scene'))`);
+    role='STUDENT';await resize(320,568);await nav('/study-rooms/'+uid);await wait(`document.querySelector('.room-music-card')`);
+    await js(`[...document.querySelectorAll('.room-music-card button')].find(b=>b.textContent.trim()==='Bật nhạc').click()`);await wait(`window.roomFixturePlayers.length===1&&document.querySelector('.study-music-player__controls button:not(:disabled)')`);
+    await js(`void(window.retainedPlayer=window.roomFixturePlayers[0]);void(window.retainedTeam=document.querySelector('.room-team'))`);
     const previousState=await js(`window.retainedPlayer.state`);
-    assert.equal(await js(`document.querySelector('.room-scene').dataset.world`),'fallback');
     await click('header .shell-menu-trigger');await wait(`document.querySelector('[role=dialog]')`);await key('Escape');await wait(`!document.querySelector('[role=dialog]')`);
     await click('header [aria-label="Đổi giao diện"]');await resize(768,900);await wait(`document.querySelector('.public-header__nav')`);await resize(390,568);await wait(`document.querySelector('.mobile-navbar')`);
-    assert.equal(await js(`window.roomFixturePlayers.length`),1);assert.equal(await js(`window.retainedPlayer.destroyed`),false);assert.equal(await js(`window.retainedPlayer.state`),previousState);assert.equal(await js(`window.retainedScene===document.querySelector('.room-scene')`),true);
-    await shot('room-continuity-390');checks.push('Synthetic joined room:player/scene identity and local playback state survive drawer,theme,768px/390px handoff');
+    assert.equal(await js(`window.roomFixturePlayers.length`),1);assert.equal(await js(`window.retainedPlayer.destroyed`),false);assert.equal(await js(`window.retainedPlayer.state`),previousState);assert.equal(await js(`window.retainedTeam===document.querySelector('.room-team')`),true);
+    await shot('room-continuity-390');checks.push('Synthetic joined room:player/team identity and local playback state survive drawer,theme,768px/390px handoff');
   }
   assert.deepEqual(errors,[]);
 } catch(e){errors.push(e.stack);process.exitCode=1;}

@@ -1,16 +1,20 @@
 import { useId, useState, type FormEvent } from "react";
+import WheelPicker, { type WheelColumn } from "@/components/kokonutui/wheel-picker";
 import { TimerReset } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { RoomRhythm, StudyRoomSnapshot } from "../types/study-room";
 
+const breakColumns: WheelColumn[] = [{ id: "minutes", label: "Nghỉ ngắn (phút)", className: "w-24", options: Array.from({ length: 28 }, (_, index) => ({ value: String(index + 3), label: `${index + 3} phút` })) }];
+
 const presets = [[25, 5, 15], [50, 10, 20], [90, 15, 30]];
 
-export function EditRoomRhythm({ room, disabled, busy, onApply }: {
+export function EditRoomRhythm({ room, disabled, busy, onApply, error }: {
   room: StudyRoomSnapshot;
   disabled: boolean;
   busy: boolean;
   onApply: (input: RoomRhythm, onSuccess: () => void) => void;
+  error?: string;
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -36,6 +40,10 @@ export function EditRoomRhythm({ room, disabled, busy, onApply }: {
             aria-label={`Chọn ${preset[0]} phút học, ${preset[1]} phút nghỉ, ${preset[2]} phút nghỉ dài`}
             onClick={() => setValues(preset.map(String))}>{preset[0]} / {preset[1]} / {preset[2]}</Button>)}
         </div>
+        <div className="room-rhythm-break"><p>Nghỉ ngắn</p>
+          {!busy && !disabled ? <WheelPicker columns={breakColumns} value={{ minutes: values[1] }} label="Thời gian nghỉ ngắn" onValueChange={value => setValues(current => [current[0], value.minutes, String(Math.max(Number(current[2]) || 10, Number(value.minutes)))])} /> : <p role="status">{values[1]} phút</p>}
+          <span>Vuốt, dùng phím mũi tên hoặc nhập số bên dưới.</span>
+        </div>
         <div className="room-rhythm-fields">
           {["Tập trung (phút)", "Nghỉ ngắn (phút)", "Nghỉ dài (phút)"].map((label, index) => <div key={label}>
             <label htmlFor={`${id}-${index}`}>{label}</label>
@@ -45,7 +53,8 @@ export function EditRoomRhythm({ room, disabled, busy, onApply }: {
           </div>)}
         </div>
         <p className="room-rhythm-note">Học 15–90 phút, nghỉ ngắn 3–30 phút, nghỉ dài 10–45 phút và không ngắn hơn nghỉ ngắn. Nghỉ dài sau mỗi 4 phiên tập trung.</p>
-        <div className="room-rhythm-confirmation"><strong>Đồng hồ của mọi người sẽ bắt đầu lại.</strong><p>Thời gian đã ghi nhận, chỗ ngồi và nhạc đang phát được giữ nguyên.</p></div>
+        <div className="room-rhythm-confirmation"><strong>Đồng hồ của mọi người sẽ bắt đầu lại.</strong><p>Thời gian đã ghi nhận và nhạc đang phát được giữ nguyên.</p></div>
+        {error && <p className="study-room-error" role="alert">{error}</p>}
         {stale && <div className="room-rhythm-stale" role="alert"><p>Nhịp học vừa được thay đổi trong lúc bạn chỉnh. Lấy thời lượng mới trước khi áp dụng.</p><Button type="button" variant="outline" onClick={reset} disabled={busy}>Lấy thời lượng mới</Button></div>}
         <DialogFooter><Button type="button" variant="ghost" onClick={() => setOpen(false)}>Đóng</Button><Button type="submit" disabled={disabled || busy || stale}>{busy ? "Đang áp dụng…" : "Bắt đầu nhịp mới"}</Button></DialogFooter>
       </form>

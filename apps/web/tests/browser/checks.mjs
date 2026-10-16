@@ -1,5 +1,10 @@
 // Only migrated, self-hosted, intercepted-API checks belong in this entry point.
 export const checks = {
+  rooms: {
+    file: "study-room-browser-check.mjs",
+    description: "Routed Study Room team, clock, lights, player and host/member lifecycle (synthetic APIs)",
+    options: {},
+  },
   uploads: {
     file: 'kokonut-integration-browser-check.mjs',
     description: 'Routed Recognition evidence and room-copy ParticleButton, plus isolated real-callback upload proof',

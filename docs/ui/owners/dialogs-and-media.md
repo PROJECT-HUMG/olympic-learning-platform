@@ -9,7 +9,7 @@ Shared frames own geometry, focus/Escape and scroll behavior. Feature adapters o
 - [AlertDialog](../../../apps/web/src/components/ui/alert-dialog.tsx): bounded whole-frame confirmation scrolling; feature pending guards remain local and Cancel retains the form.
 - [EvidenceViewer](../../../apps/web/src/components/ui/evidence-gallery.tsx) / [CSS](../../../apps/web/src/components/ui/evidence-gallery.css): only compact title/Close sticks; long description scrolls with its ARIA relationship, controls/index/filename wrap and zoom retains a separate native image scroller.
 - [ImageLightbox](../../../apps/web/src/components/ui/image-lightbox.tsx): contained fullscreen article image with44px Close and opener focus return. Physical browser/notch geometry is not established by a synthetic viewport.
-- Daily native group creation and [RoomMusicDialog](../../../apps/web/src/features/study-room/components/room-music-dialog.tsx) retain their own lifecycle; persistent player children must not be unmounted merely to standardize a frame.
+- Daily native group creation retains its own lifecycle. Study Room uses a deliberately activated inline player, with no separate music modal; room membership/navigation owns teardown.
 
 ## CreationDialog and error-toast coexistence
 
