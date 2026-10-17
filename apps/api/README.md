@@ -21,6 +21,14 @@ DB_PASSWORD='<local-password>' \
 ./mvnw spring-boot:run
 ```
 
+Từ root, có thể dùng `./scripts/dev-api.sh` để nạp `.env.dev` rồi chạy API.
+Script giữ `JAVA_HOME` hợp lệ với JDK 25; nếu chưa có hoặc không dùng được,
+script tự nạp SDKMAN từ `SDKMAN_DIR` hoặc `~/.sdkman`, ưu tiên bản Java đã cài
+trong `apps/api/.sdkmanrc`/`.sdkmanrc`, rồi bản đang chọn của SDKMAN và Java trên
+`PATH`. Script không cài JDK, không đổi bản mặc định hay cấu hình shell; chỉ
+xuất `JAVA_HOME` đã kiểm tra cho Maven. Kiểm tra launcher mà không chạy backend:
+`python3 -B -m unittest discover -s scripts/tests -p test_dev_api.py` (từ root).
+
 API mặc định ở `http://localhost:8080`. Profile mặc định là `dev`; profile `prod` yêu cầu cấu hình môi trường chặt hơn. Flyway chạy lúc khởi động và JPA kiểm tra schema bằng `ddl-auto: validate`. Swagger UI thường ở `/swagger-ui/index.html`, OpenAPI JSON ở `/v3/api-docs`, health ở `/actuator/health`.
 
 ## Flyway baseline
