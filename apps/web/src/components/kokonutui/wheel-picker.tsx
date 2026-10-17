@@ -17,7 +17,6 @@ import {
   motion,
   useMotionValue,
   useMotionValueEvent,
-  useReducedMotion,
   useTransform,
 } from "framer-motion";
 import {
@@ -27,6 +26,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 
 export interface WheelOption {
@@ -157,7 +157,7 @@ function WheelColumnView({
     options.findIndex((option) => option.value === selected),
     0
   );
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   // Position on the drum in rows. A looping wheel uses an unbounded
   // "virtual" index so it can spin forever; the option is index mod count.
@@ -207,6 +207,12 @@ function WheelColumnView({
   }, [selectedIndex, count, loop, position]);
 
   useEffect(() => () => animation.current?.stop(), []);
+  useEffect(() => {
+    if (!reduceMotion) return;
+    animation.current?.stop();
+    animation.current = null;
+    position.jump(selectedIndex);
+  }, [reduceMotion, position, selectedIndex]);
 
   const settle = () => {
     animation.current = null;

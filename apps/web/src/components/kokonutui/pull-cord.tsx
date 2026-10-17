@@ -14,13 +14,13 @@ import {
   type PointerEvent,
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
 } from "react";
 import { cn } from "@/lib/utils";
 
 const WIDTH = 288;
-const HEIGHT = 360;
 // Where the cord hangs from, under the lamp shade.
 const ANCHOR = { x: WIDTH / 2 + 36, y: 116 };
 // The cord is a chain of points joined by fixed-length links.
@@ -139,6 +139,7 @@ export default function PullCord({
   label = "Đèn bàn",
   className,
 }: PullCordProps) {
+  const hintId = useId();
   const [internal, setInternal] = useState(defaultChecked);
   const checked = checkedProp ?? internal;
   const [focused, setFocused] = useState(false);
@@ -301,8 +302,8 @@ export default function PullCord({
     }
     // The drawing is laid out in its own units; map the pointer into them.
     return {
-      x: ((event.clientX - rect.left) / rect.width) * WIDTH,
-      y: ((event.clientY - rect.top) / rect.height) * HEIGHT,
+      x: 70 + ((event.clientX - rect.left) / rect.width) * 150,
+      y: 60 + ((event.clientY - rect.top) / rect.height) * 200,
     };
   };
 
@@ -412,7 +413,7 @@ export default function PullCord({
           : "border-zinc-800 bg-zinc-950 text-zinc-100",
         className
       )}
-      style={{ width: 96, height: 108 }}
+      style={{ width: 112, height: 156 }}
     >
       <svg
         aria-hidden="true"
@@ -420,14 +421,14 @@ export default function PullCord({
           "absolute inset-0 touch-none",
           grabbing ? "cursor-grabbing" : "cursor-default"
         )}
-        height={80}
+        height={112}
         onLostPointerCapture={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         ref={svgRef}
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none"
-        width={96}
+        viewBox="70 60 150 200" preserveAspectRatio="none"
+        width={88}
       >
         {/* Ceiling wire and shade. */}
         <line
@@ -485,7 +486,7 @@ export default function PullCord({
           ref={beadRef}
           transform={`translate(${ANCHOR.x} ${ANCHOR.y + LINKS * LINK})`}
         >
-          <circle fill="transparent" r={20} />
+          <circle fill="transparent" r={40} />
           {focused && (
             <rect
               className="fill-none stroke-zinc-400"
@@ -511,7 +512,9 @@ export default function PullCord({
         </g>
       </svg>
 
+      <span id={hintId} className="room-cord-hint">Kéo dây</span>
       <button
+        aria-describedby={hintId}
         aria-checked={checked}
         aria-label={label}
         className="room-light-switch"

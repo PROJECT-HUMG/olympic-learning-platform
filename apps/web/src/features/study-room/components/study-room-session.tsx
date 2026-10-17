@@ -13,7 +13,7 @@ import type { RoomSettings, StudyRoomSnapshot } from "../types/study-room";
 import { RoomPolicyFields } from "./room-policy-fields";
 import { StudyRoomAccess } from "./study-room-access";
 import { StudyMusicPlayer } from "./study-music-player";
-import { LiquidGlassCard } from "@/components/kokonutui/liquid-glass-card";
+import { LiquidGlassCard, NowPlayingDisc } from "@/components/kokonutui/liquid-glass-card";
 import PullCord from "@/components/kokonutui/pull-cord";
 import { RoomMembers } from "./room-members";
 import { RoomTrackDialog } from "./room-track-dialog";
@@ -163,13 +163,13 @@ export function StudyRoomSession({ id }: { id: string }) {
             <RoomMembers room={room} currentUserId={user.data.id} synchronized={synchronized} />
           </div>
           <aside className="room-workspace-aside" aria-label="Nhạc cho buổi học">
-            <LiquidGlassCard className="room-music-card" aria-labelledby="room-music-title">
+            <div className="room-music-surface"><LiquidGlassCard className="room-music-card" aria-labelledby="room-music-title">
               <div ref={musicRegion} tabIndex={-1} aria-label="Nhạc cùng phòng">
               <div className="room-section-heading"><div><p className="room-section-caption">Nghe theo cách của bạn</p><h2 id="room-music-title">Nhạc cùng phòng</h2></div><Headphones aria-hidden="true" /></div>
-              {!musicEnabled ? <div className="room-music-idle"><h3>{room.playback.title}</h3><p>Phòng chọn bài. Bạn tự phát, tạm dừng, tua và chỉnh âm lượng trên thiết bị của mình.</p><Button disabled={!joined} onClick={() => setMusicEnabled(true)}><Headphones aria-hidden="true" />Bật nhạc</Button>{!joined && <p className="study-room-note">Tham gia phòng để bắt đầu nghe.</p>}</div> : joined && <StudyMusicPlayer playback={room.playback} />}
+              {!musicEnabled ? <div className="room-music-idle"><div className="room-now-playing-identity"><NowPlayingDisc playing={false} /><h3>{room.playback.title}</h3></div><p>Phòng chọn bài. Bạn tự phát, tạm dừng, tua và chỉnh âm lượng trên thiết bị của mình.</p><Button disabled={!joined} onClick={() => setMusicEnabled(true)}><Headphones aria-hidden="true" />Bật nhạc</Button>{!joined && <p className="study-room-note">Tham gia phòng để bắt đầu nghe.</p>}</div> : joined && <StudyMusicPlayer playback={room.playback} />}
               {joined && <div className="room-music-next"><p>Bài tiếp theo: <strong>{approved[0]?.title ?? "Livestream mặc định"}</strong></p>{isHost ? <Button variant="outline" disabled={!canAct} onClick={() => nextTrack(room.playback.version)}><SkipForward aria-hidden="true" />Đổi bài tiếp</Button> : <span>Chủ phòng đổi bài cho cả phòng.</span>}</div>}
               </div>
-            </LiquidGlassCard>
+            </LiquidGlassCard></div>
             {joined && <section className="room-queue-panel" aria-labelledby="room-queue-title">
               <div className="room-section-heading"><h2 id="room-queue-title">Góp nhạc cùng nhau</h2><Button ref={trackOpener} variant="outline" size="icon" aria-label="Góp một bài" aria-haspopup="dialog" onClick={() => setTrackOpen(true)}><Plus aria-hidden="true" /></Button></div>
               <p className="study-room-note">{requestReason}</p>

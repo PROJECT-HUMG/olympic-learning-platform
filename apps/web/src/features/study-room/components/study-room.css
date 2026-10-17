@@ -65,7 +65,7 @@
 .room-workspace-grid { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(20rem,1fr); align-items:start; gap:1.25rem; }
 .room-workspace-main, .room-workspace-aside { display:grid; align-content:start; gap:1.25rem; min-width:0; }
 .study-room-clock { position:relative; display:grid; gap:.75rem; min-width:0; padding:1.5rem; border:1px solid var(--border); border-radius:var(--panel-radius); background:var(--card); }
-.room-clock-top { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; min-height:4rem; padding-right:6rem; }
+.room-clock-top { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; min-height:4rem; padding-right:8rem; }
 .room-clock-top > div:first-child { padding-top:.5rem; }
 .room-phase-label { color:var(--primary); font-size:1rem; font-weight:600; margin-bottom:.35rem; }
 .study-room-clock__time { margin:0; font-size:clamp(4.5rem,8vw,7rem); line-height:1.12; letter-spacing:-.065em; font-weight:500; font-variant-numeric:tabular-nums; color:var(--foreground); }
@@ -83,7 +83,7 @@
 .study-room-accounting summary { min-height:44px; cursor:pointer; padding-top:.5rem; }
 .study-room-accounting details p { max-width:60ch; padding-top:.25rem; }
 .room-pull-cord { flex-shrink:0; margin-top:-1.25rem; color:var(--foreground); background:transparent !important; border:0; }
-.room-light-switch { position:absolute; bottom:0; right:0; min-width:96px; min-height:44px; padding:.4rem .7rem; border:1px solid var(--border); border-radius:.5rem; background:var(--background); color:var(--foreground); font-size:.75rem; cursor:pointer; }
+.room-light-switch { position:absolute; bottom:0; right:0; min-width:112px; min-height:44px; padding:.4rem .7rem; border:1px solid var(--border); border-radius:.5rem; background:var(--background); color:var(--foreground); font-size:.75rem; cursor:pointer; }
 .room-light-switch:hover { background:var(--accent); }
 .room-pull-cord svg { overflow:visible; }
 .room-section-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; }
@@ -92,22 +92,10 @@
 .room-section-heading > svg { width:1.25rem; height:1.25rem; flex-shrink:0; color:var(--primary); }
 .room-team, .room-queue-panel { padding:1.5rem; border:1px solid var(--border); border-radius:var(--panel-radius); background:var(--card); min-width:0; }
 .room-member-avatar { display:inline-flex; width:2.75rem; height:2.75rem; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; border-radius:50%; background:var(--accent); color:var(--accent-foreground); font-size:.8125rem; font-weight:500; }
-.room-team-stack { display:flex; flex-shrink:0; padding-left:.5rem; }
-.room-team-stack > * { width:2rem; height:2rem; margin-left:-.5rem; border:2px solid var(--card); font-size:.625rem; }
 .room-team-stack__more { display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--muted); color:var(--muted-foreground); }
-.room-member-list { list-style:none; max-height:24rem; overflow:auto; scrollbar-gutter:stable; padding:3px; margin:-3px; }
-.room-member-list li + li { margin-top:.25rem; }
 .room-member-button { display:flex; align-items:center; gap:.875rem; width:100%; padding:.75rem .25rem; text-align:left; border-radius:.5rem; }
 .room-member-button:hover { background:var(--accent); }
-.room-member-identity { min-width:0; flex:1; }
-.room-member-identity strong { display:block; overflow-wrap:anywhere; font-size:.875rem; font-weight:500; }
-.room-member-identity strong > span { color:var(--muted-foreground); font-weight:400; }
-.room-member-identity small { display:block; margin-top:.2rem; color:var(--muted-foreground); font-size:.75rem; }
-.room-member-crown { width:1rem; height:1rem; flex-shrink:0; color:var(--primary); }
-.room-member-detail { display:grid; justify-items:start; gap:.75rem; font-size:.875rem; line-height:1.7; overflow-wrap:anywhere; }
-.room-member-detail > .room-member-avatar { width:4rem; height:4rem; font-size:1.125rem; }
-.room-glass-card { isolation:isolate; padding:1.5rem; background:color-mix(in srgb,var(--card) 94%,var(--primary)); border:1px solid var(--border); border-radius:var(--panel-radius); box-shadow:inset 0 1px 0 color-mix(in srgb,var(--foreground) 8%,transparent); backdrop-filter:blur(2px); }
-.room-glass-card__highlight { background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 7%,transparent),transparent 55%); }
+.room-glass-card { isolation:isolate; padding:1.5rem; border-radius:var(--panel-radius); }
 .room-section-caption { margin-bottom:.25rem; }
 .room-music-idle { display:grid; justify-items:start; gap:1rem; padding-block:.5rem; }
 .room-music-idle h3 { overflow-wrap:anywhere; }
@@ -170,9 +158,8 @@
  .study-room-access { padding-inline:0; }
  .study-room-access a { white-space:normal; text-align:center; }
 }
-@media (max-width:480px) { .room-rhythm-fields { grid-template-columns:minmax(0,1fr); } .room-rhythm-summary { gap:.4rem .8rem; } .room-team-stack > :nth-child(n+4) { display:none; } }
+@media (max-width:480px) { .room-rhythm-fields { grid-template-columns:minmax(0,1fr); } .room-rhythm-summary { gap:.4rem .8rem; } }
 @media (prefers-reduced-motion:reduce) { .study-room-workspace *, .study-room-workspace *::before, .study-room-workspace *::after { animation:none !important; transition:none !important; } }
-@media (prefers-reduced-transparency:reduce) { .room-glass-card { background:var(--card); backdrop-filter:none; } .room-glass-card__highlight { display:none; } }
 .room-track-dialog { max-height:calc(100dvh - 2rem); overflow-y:auto; }
 .room-track-form { display:grid; gap:.6rem; }
 .room-track-form label { font-size:.8125rem; font-weight:500; }
@@ -181,4 +168,58 @@
 
 .room-clock-top > .room-pull-cord { position:absolute; top:.5rem; right:1rem; margin:0; }
 .study-room-accounting > p { padding-top:.5rem; }
-@media (max-width:767px) { .room-clock-top { padding-right:5.5rem; min-height:6rem; } .room-clock-top > .room-pull-cord { right:.75rem; } }
+
+/* Source-backed member slots and selected-avatar flight, without identity editing. */
+.room-team-selector { display:flex; align-items:center; justify-content:space-between; gap:.75rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+.room-team-stack { display:flex; flex-shrink:0; padding-left:0; min-height:44px; align-items:center; }
+.room-team-stack > * { display:inline-flex; position:relative; width:40px; height:40px; margin-left:-8px; border:0; }
+.room-team-stack > :first-child { margin-left:0; }
+.room-team-stack .room-member-avatar { width:40px; height:40px; border:2px solid var(--card); }
+.room-team-stack__more { border:2px solid var(--card); }
+.room-team-filter { display:flex; gap:.25rem; padding:.2rem; border:1px solid var(--border); border-radius:.6rem; background:var(--background); }
+.room-team-filter button { min-height:44px; padding:.5rem .65rem; border-radius:.4rem; font-size:.75rem; color:var(--muted-foreground); }
+.room-team-filter button[aria-pressed="true"] { background:var(--accent); color:var(--accent-foreground); }
+.room-team-filter button span { margin-left:.2rem; font-variant-numeric:tabular-nums; }
+.room-avatar-main { display:grid; grid-template-columns:144px minmax(0,1fr); gap:1rem; align-items:center; padding-block:.25rem 1.25rem; }
+.room-avatar-bezel { position:relative; display:grid; place-items:center; width:144px; height:144px; }
+.room-avatar-bezel > svg { position:absolute; inset:0; width:100%; height:100%; color:var(--border); }
+.room-avatar-bezel::before { content:""; position:absolute; top:0; left:calc(50% - 1px); width:2px; height:10px; background:var(--primary); }
+.room-avatar-selected { position:relative; display:inline-flex; width:104px; height:104px; border-radius:50%; overflow:hidden; }
+.room-avatar-selected .room-member-avatar { width:104px; height:104px; font-size:1.5rem; background:var(--accent); }
+.room-avatar-detail { min-width:0; }
+.room-avatar-detail h3 { overflow-wrap:anywhere; font-size:1rem; font-weight:600; }
+.room-avatar-detail h3 span { font-weight:400; color:var(--muted-foreground); }
+.room-avatar-detail p { display:flex; align-items:center; flex-wrap:wrap; gap:.25rem; margin-top:.4rem; font-size:.75rem; color:var(--muted-foreground); line-height:1.7; }
+.room-avatar-detail p svg { width:.875rem; height:.875rem; }
+.room-avatar-detail strong { display:block; margin-top:.7rem; font-size:.875rem; font-weight:500; }
+.room-avatar-detail small { display:block; margin-top:.25rem; font-size:.75rem; color:var(--muted-foreground); line-height:1.7; }
+.room-avatar-options { display:flex; align-items:flex-start; gap:.5rem; overflow-x:auto; overscroll-behavior-x:contain; padding:.5rem .25rem; scrollbar-width:thin; }
+.room-avatar-options .room-avatar-option { position:relative; display:flex; flex-direction:column; align-items:center; gap:.5rem; flex:0 0 64px; width:64px; min-height:92px; padding:.375rem; border-radius:.5rem; text-align:center; }
+.room-avatar-option:hover { background:var(--accent); }
+.room-avatar-socket { display:grid; position:relative; place-items:center; width:44px; height:44px; flex-shrink:0; border:1px solid transparent; border-radius:50%; }
+.room-avatar-option[aria-pressed="true"] .room-avatar-socket { border:1px dashed var(--primary); background:var(--accent); }
+.room-avatar-socket .room-member-avatar { width:42px; height:42px; }
+.room-avatar-index { width:6px; height:6px; background:var(--primary); border-radius:50%; }
+.room-avatar-option-name { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; width:100%; font-size:.625rem; line-height:1.5; overflow-wrap:anywhere; }
+.room-avatar-hint { margin-top:.5rem; font-size:.75rem; color:var(--muted-foreground); line-height:1.7; }
+
+/* Genuine glass primitives over a bounded static backdrop; content stays crisp. */
+.room-music-surface { position:relative; isolation:isolate; min-width:0; border-radius:var(--panel-radius); background:var(--muted); }
+.room-music-surface::before { content:""; pointer-events:none; position:absolute; inset:0; border-radius:inherit; background:radial-gradient(ellipse at 0% 0%,color-mix(in srgb,var(--primary) 38%,var(--card)),transparent 60%),linear-gradient(140deg,var(--muted),var(--card) 50%,color-mix(in srgb,var(--primary) 18%,var(--card))); }
+.room-music-surface > .room-glass-card { background:color-mix(in srgb,var(--card) 82%,transparent); backdrop-filter:blur(2px); box-shadow:none; border:1px solid var(--border); }
+.room-glass-bevel { z-index:0; opacity:.65; }
+.room-glass-refraction { z-index:-1; overflow:hidden; }
+.room-now-playing-identity { display:grid; grid-template-columns:96px minmax(0,1fr); align-items:center; gap:1rem; width:100%; min-width:0; }
+.room-now-playing-identity h3 { min-width:0; overflow-wrap:anywhere; }
+.room-record { position:relative; width:88px; height:88px; margin-right:8px; }
+.room-record-disc { width:100%; height:100%; border-radius:50%; animation:room-vinyl-turn 12s linear infinite; animation-play-state:paused; }
+.room-record-disc[data-moving="true"] { animation-play-state:running; }
+.room-record > svg { right:-14px; }
+@keyframes room-vinyl-turn { to { transform:rotate(360deg); } }
+.room-pull-cord > svg { left:auto; right:0; }
+.room-cord-hint { position:absolute; top:62px; left:0; max-width:44px; font-size:.625rem; line-height:1.5; color:var(--muted-foreground); }
+@media (max-width:767px) { .room-clock-top { min-height:9.5rem; padding-right:7rem; } .room-clock-top > .room-pull-cord { right:.5rem; } }
+@media (max-width:480px) { .room-avatar-main { grid-template-columns:minmax(0,1fr); justify-items:center; gap:.75rem; } .room-avatar-detail { width:100%; } .room-team-filter button { padding-inline:.5rem; } }
+@media (prefers-reduced-motion:reduce) { .room-record-disc { animation:none; } .room-avatar-selected, .room-avatar-socket > span, .room-team-stack > span { transform:none !important; } }
+@media (prefers-reduced-transparency:reduce) { .room-music-surface > .room-glass-card { background:var(--card); backdrop-filter:none; } .room-glass-refraction, .room-glass-bevel { display:none; } }
+@media (forced-colors:active) { .room-glass-refraction,.room-glass-bevel { display:none; } .room-music-surface > .room-glass-card { background:Canvas; } }

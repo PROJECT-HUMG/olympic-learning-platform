@@ -1,17 +1,18 @@
 // Actual routed Study Room composition; synthetic room/identity/YouTube boundaries only.
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { browserOptions, evidenceDirectory, startBrowserCheck } from './browser/session.mjs';
 const options = browserOptions('rooms'), dir = await evidenceDirectory(options);
 const uid = '00000000-0000-0000-0000-000000000001', other = '00000000-0000-0000-0000-000000000002', id = '00000000-0000-0000-0000-000000000010';
 let room, fail = false, failMutation = false, expired = false, holdJoin = false, releaseJoin;
-const requests = [], checks = [], screenshots = [], errors = [];
+const requests = [], checks = [], screenshots = [], errors = [], clips = [];
 const delay = ms => new Promise(r => setTimeout(r, ms));
 function reset(role = 'host') {
  room = { id, name: 'Cùng ôn Giải tích', ownerId: role === 'host' ? uid : other, ownerName: role === 'host' ? 'Nguyễn Minh Anh' : 'Trần Hoài An', focusMinutes: 25, breakMinutes: 5, longBreakMinutes: 15, requestPolicy: 'OPEN', minimumStudyMinutes: 15, activeMembers: 3, closed: false, phase: 'FOCUS', phaseEndsAt: new Date(Date.now()+1195000).toISOString(), sessionNumber: 2, rhythmVersion: 3,
  playback: { videoId: 'jfKfPfyJRdk', title: 'Lofi Girl — beats to relax/study to', startedAt: new Date().toISOString(), version: 4, isDefault: true },
- members: [{userId:uid,displayName:'Nguyễn Minh Anh',focusSeconds:1380,online:true},{userId:other,displayName:'Trần Hoài An',focusSeconds:1800,online:true},{userId:'member-3',displayName:'Phạm Ngọc Linh có tên dài để kiểm tra xuống dòng',focusSeconds:720,online:true},{userId:'member-4',displayName:'Lê Quang Huy',focusSeconds:600,online:false}],
+ members: [{userId:uid,displayName:'Nguyễn Minh Anh',focusSeconds:1380,online:true},{userId:other,displayName:'Trần Hoài An',avatarUrl:'/api/browser-test-avatar-unavailable',focusSeconds:1800,online:true},{userId:'member-3',displayName:'Phạm Ngọc Linh có tên dài để kiểm tra xuống dòng',focusSeconds:720,online:true},{userId:'member-4',displayName:'Lê Quang Huy',focusSeconds:600,online:false}],
  me: role === 'preview' ? null : {userId:uid,focusSeconds:1380,canRequest:true,remainingStudySeconds:0}, tracks:[{id:'track-1',videoId:'synthetic',title:'Một buổi chiều yên tĩnh',requestedById:other,requestedByName:'Trần Hoài An',status:'PENDING',createdAt:new Date().toISOString()}] };
  fail = false; failMutation = false; expired = false;
 }
@@ -25,6 +26,7 @@ try {
   if(u.origin===session.web&&!path.startsWith('/api/'))return call('Fetch.continueRequest',{requestId:e.requestId});
   if(!path.startsWith('/api/'))return reply(e,404,{});
   const input=e.request.postData?JSON.parse(e.request.postData):{};requests.push({path,method,input});
+  if(path==='/api/browser-test-avatar-unavailable')return reply(e,404,{});
   if(path.endsWith('/users/me'))return reply(e,200,{id:uid,fullName:'Nguyễn Minh Anh',username:'fixture',role:'STUDENT',status:'ACTIVE',email:'room@example.invalid'});
   if(path.endsWith('/auth/refresh'))return reply(e,200,{accessToken:'synthetic-only'});
   if(!path.includes('/study-rooms'))return reply(e,200,[]);
@@ -54,13 +56,28 @@ try {
  const nav=async()=>{await call('Page.navigate',{url:session.web+'/study-rooms/'+id});await wait("document.querySelector('h1')?.textContent==='Cùng ôn Giải tích'&&!document.querySelector('#startup-loader')&&!document.querySelector('#root').inert");};
  const resize=(width,height=900)=>call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});
  const theme=async dark=>{await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:dark?'dark':'light'},{name:'prefers-reduced-motion',value:'reduce'}]});await js(`document.documentElement.classList.${dark?'add':'remove'}('dark')`);};
- const shot=async(name,selector)=>{if(selector)await js(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'start'})`);else await js('scrollTo(0,0)');await delay(180);assert.ok(await js('document.documentElement.scrollWidth<=innerWidth+1'),'No horizontal overflow: '+name);const path=join(dir,name+'.png');await writeFile(path,Buffer.from((await call('Page.captureScreenshot',{captureBeyondViewport:false})).data,'base64'));screenshots.push(path);};
+ const shot=async(name,selector)=>{if(selector)await js(`scrollTo(0,document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect().top+scrollY-90)`);else await js('scrollTo(0,0)');await delay(180);assert.ok(await js('document.documentElement.scrollWidth<=innerWidth+1'),'No horizontal overflow: '+name);const path=join(dir,name+'.png');await writeFile(path,Buffer.from((await call('Page.captureScreenshot',{captureBeyondViewport:false})).data,'base64'));screenshots.push(path);};
+ const movie=async(name,work)=>{
+  if(!options["motion-encoder"])return work();
+  const frames=[];let active=true;
+  session.onEvent(event=>{if(event.method!=='Page.screencastFrame'||!active)return;frames.push({time:performance.now()/1000,capturedTimestamp:event.params.metadata.timestamp,data:Buffer.from(event.params.data,'base64')});void call('Page.screencastFrameAck',{sessionId:event.params.sessionId});});
+  await call('Page.startScreencast',{format:'jpeg',quality:85,everyNthFrame:1});await delay(150);await work();await delay(500);await call('Page.stopScreencast');active=false;
+  await writeFile(join(dir,name+'-frames.json'),JSON.stringify(frames.map(frame=>({receivedMonotonic:frame.time,capturedTimestamp:frame.capturedTimestamp,bytes:frame.data.length})),null,2));
+  assert.ok(frames.length>=2&&frames.every(frame=>Number.isFinite(frame.time)),'Observed timestamped browser screencast frames: '+name);
+  // CDP wall-clock timestamps can jump on this host. Preserve frame arrival order
+  // with the native monotonic clock; retain raw capture timestamps for diagnosis.
+  const fps=15,first=frames[0].time,last=frames.at(-1).time,images=[];let cursor=0;
+  for(let index=0;index<=Math.floor((last-first)*fps);index++){const t=first+index/fps;while(cursor+1<frames.length&&frames[cursor+1].time<=t)cursor++;images.push(frames[cursor].data);}
+  const path=join(dir,name+'.webm');
+  execFileSync(options['motion-encoder'],['-hide_banner','-loglevel','error','-f','image2pipe','-r',String(fps),'-c:v','mjpeg','-i','pipe:0','-an','-c:v','libvpx','-b:v','700k','-pix_fmt','yuv420p','-vf','pad=ceil(iw/2)*2:ceil(ih/2)*2','-y',path],{input:Buffer.concat(images),maxBuffer:1024*1024});
+  clips.push({path,observedFrames:frames.length,seconds:last-first,fps,source:'Actual CDP screencast, monotonic receipt timing resampled by holding observed frames; no audio'});
+ };
  const click=async text=>{const find=`[...document.querySelectorAll('button,[role=menuitem]')].find(e=>e.textContent.trim()===${JSON.stringify(text)})`;await wait(`(()=>{const e=${find};return e&&!e.disabled&&e.getAttribute('aria-disabled')!=='true'})()`);await js(`(()=>{const e=${find};e.focus();e.click()})()`);};
  const clickLabel=label=>js(`document.querySelector(${JSON.stringify(`[aria-label="${label}"]`)}).click()`);
  const hasLabel=label=>js(`!!document.querySelector(${JSON.stringify(`[aria-label="${label}"]`)})`);
  const key=async(key,code)=>{await call('Input.dispatchKeyEvent',{type:'keyDown',key,code:key==='Enter'?'Enter':key===' '?'Space':key,windowsVirtualKeyCode:code,...(key==='Enter'?{text:'\r'}:{})});await call('Input.dispatchKeyEvent',{type:'keyUp',key,windowsVirtualKeyCode:code});};
  const fill=(sel,value)=>js(`(()=>{const e=document.querySelector(${JSON.stringify(sel)});Object.getOwnPropertyDescriptor(e.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event(e.tagName==='SELECT'?'change':'input',{bubbles:true}))})()`);
- for(const width of [1280,390])for(const dark of [false,true]){reset();await resize(width);await nav();await theme(dark);await shot(`after-host-${width}-${dark?'dark':'light'}`);}
+ for(const width of [1280,390])for(const dark of [false,true]){reset();await resize(width);await nav();await theme(dark);await shot(`after-host-${width}-${dark?'dark':'light'}`);await shot(`members-${width}-${dark?'dark':'light'}`,'.room-team');await shot(`music-${width}-${dark?'dark':'light'}`,'.room-music-card');}
  {
 
  assert.equal(await js('document.querySelectorAll(".room-scene,.room-world").length'),0);
@@ -69,12 +86,41 @@ try {
  await js('document.querySelector(".room-light-switch").focus()');await key('Enter',13);await wait('document.querySelector(".study-room-workspace").dataset.dimmed==="true"');
  await shot('local-lights-off-390-light');assert.ok(await js('document.activeElement.matches(".room-light-switch")'));
  await key(' ',32);await wait('document.querySelector(".study-room-workspace").dataset.dimmed==="false"');
- await js('document.querySelector(".room-member-button").focus()');await key('Enter',13);await wait('document.querySelector("[role=dialog]")?.textContent.includes("23 phút tập trung")');
- await key('Escape',27);await wait('!document.querySelector("[role=dialog]")');await wait('document.activeElement.matches(".room-member-button")');
- checks.push('No 3D; real identity/recorded minutes; member dialog keyboard/Escape/focus return; local lights keyboard/static reduced motion');
+ await js('document.querySelector(".room-member-button[aria-pressed=true]").focus()');await key('ArrowRight',39);await wait('document.querySelector(".room-avatar-detail").textContent.includes("Trần Hoài An")');
+ assert.ok(await js('document.activeElement.matches(".room-member-button[aria-pressed=true]")'));assert.equal(await js('document.querySelector("[role=dialog]")'),null);
+ await wait('!document.querySelector(".room-avatar-selected img")');assert.equal(await js('document.querySelector(".room-avatar-selected .room-member-avatar").textContent'), 'HA');
+ await shot('member-picker-390-light','.room-team');
+ await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});await delay(80);
+ await movie('real-member-selection-and-team-filter',async()=>{
+   await js('document.querySelector(".room-member-button[aria-pressed=true]").focus()');await key('End',35);await wait('getComputedStyle(document.querySelector(".room-avatar-selected")).transform!=="none"');await delay(650);
+   await js('document.querySelector(".room-team-filter button:nth-child(2)").click()');await delay(650);
+   assert.equal(await js('document.querySelectorAll(".room-avatar-option").length'),3);assert.ok(!(await js('document.querySelector(".room-avatar-detail").textContent')).includes('Lê Quang Huy'));
+   await js('document.querySelector(".room-team-filter button:first-child").click()');await delay(650);
+ });
+ assert.equal(await js('document.querySelectorAll(".room-avatar-option").length'),4);
+ // A controlled photo failure retains the real member's initials, never a generated face.
+ checks.push('Actual avatar shared-flight/bezel, inline identity and roving keyboard selection; TeamSelector spring stack filters only real presence; no identity/membership mutation');
+ await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+ await delay(80);await js('document.querySelector(".room-member-button[aria-pressed=true]").focus()');await key('Home',36);
+ await wait('getComputedStyle(document.querySelector(".room-avatar-selected")).transform==="none"');
+ await shot('music-glass-idle-390-light','.room-music-card');
+ assert.ok(await js('!!document.querySelector(".room-glass-card feDisplacementMap")'));
+ assert.equal(await js('document.querySelector(".room-record-disc").dataset.moving'),'false');
  await click('Bật nhạc');await wait('document.querySelector(".study-music-player__status")?.textContent.includes("Đang phát")');
  assert.equal(await js('window.roomPlayers.filter(p=>!p.destroyed).length'),1);
+ await shot('music-glass-playing-390-light','.room-music-card');
+ await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});await delay(80);
+ await movie('real-playback-record-and-glass',async()=>{
+   await wait('document.querySelector(".room-record-disc").dataset.moving==="true"');
+   const spinning=await js('getComputedStyle(document.querySelector(".room-record-disc")).transform');await delay(400);assert.notEqual(await js('getComputedStyle(document.querySelector(".room-record-disc")).transform'),spinning);
+   await click('Tạm dừng');await wait('document.querySelector(".room-record-disc").dataset.moving==="false"');
+   await js("new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))");
+   const paused=await js('getComputedStyle(document.querySelector(".room-record-disc")).transform');await delay(400);assert.equal(await js('getComputedStyle(document.querySelector(".room-record-disc")).transform'),paused);
+   await click('Bật nhạc');await delay(400);
+ });
+ await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await wait('document.querySelector(".room-record-disc").dataset.moving==="false"');
  await click('Tạm dừng');await wait('document.querySelector(".study-music-player__status").textContent.includes("tạm dừng")');
+ checks.push('Real upstream glass filter/bevel/disc/tonearm mounted; record moves only on actual playing state, freezes on pause/reduced motion; no demo timeline or audio');
  await fill('.study-music-player__volume input','25');assert.equal(await js('window.roomPlayers.find(p=>!p.destroyed).volume'),25);
  const n=await js('window.roomPlayers.length');
  await js('window.dispatchEvent(new Event("offline"))');await wait('document.querySelector("[role=alert]")?.textContent.includes("mất mạng")');
@@ -89,7 +135,15 @@ try {
  await js('window.roomPlayers.find(p=>!p.destroyed).emit(0)');await wait('document.querySelector(".study-music-player__status").textContent.includes("kết thúc")');assert.equal(requests.filter(r=>r.path.endsWith('/next')).length,nextBefore);
  checks.push('Deliberate real-player adapter activation, local pause/volume/offline control, reconnect continuity, embed153 retry/open-original, no auto shared advance on ENDED');
  await click('Chỉnh giờ');await wait('document.querySelector(".room-rhythm-dialog [role=spinbutton]")');
- await js('document.querySelector(".room-rhythm-dialog [role=spinbutton]").focus()');await key('ArrowUp',38);await wait('document.querySelector(".room-rhythm-dialog [role=spinbutton]").getAttribute("aria-valuetext")==="6 phút"');
+ await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});await delay(80);
+ await movie('host-break-wheel-motion',async()=>{
+   const wheel=await js('(()=>{const r=document.querySelector(".room-rhythm-dialog [role=spinbutton]").getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()');
+   await call('Input.dispatchMouseEvent',{type:'mouseWheel',...wheel,deltaX:0,deltaY:90});
+   await wait('document.querySelector(".room-rhythm-dialog [role=spinbutton]").getAttribute("aria-valuetext")==="6 phút"');
+   await delay(400);
+   await js('document.querySelector(".room-rhythm-dialog [role=spinbutton]").focus()');await key('ArrowDown',40);await key('ArrowUp',38);
+ });
+ await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
  await shot('host-break-wheel-390-light','.room-rhythm-dialog');
  await click('Bắt đầu nhịp mới');await wait('!document.querySelector(".room-rhythm-dialog")');assert.equal(room.breakMinutes,6);assert.equal(requests.find(r=>r.path.endsWith('/rhythm')).input.expectedVersion,3);
  await click('Chỉnh giờ');await wait('document.querySelector(".room-rhythm-dialog")');room.rhythmVersion++;
@@ -109,8 +163,13 @@ try {
  await call('Emulation.setTouchEmulationEnabled',{enabled:false});
  // Real pointer pull on the cord, not a programmatic toggle; reduced motion remains direct/static.
  await resize(1280);await js('document.querySelector(".room-pull-cord").scrollIntoView({block:"center"})');
- const cord=await js('(()=>{const r=document.querySelector(".room-pull-cord svg").getBoundingClientRect();return{x:r.x+r.width*180/288,y:r.y+r.height*220/360}})()');
- await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...cord});await call('Input.dispatchMouseEvent',{type:'mouseMoved',button:'left',buttons:1,x:cord.x,y:cord.y+32});await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,x:cord.x,y:cord.y+32});await wait('document.querySelector(".study-room-workspace").dataset.dimmed==="false"');
+ const cord=await js('(()=>{const r=document.querySelector(".room-pull-cord svg").getBoundingClientRect();return{x:r.x+r.width*(180-70)/150,y:r.y+r.height*(220-60)/200}})()');
+ await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});await delay(80);
+ await movie('pull-cord-local-lights',async()=>{
+   await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...cord});
+   for(const dy of [8,16,24,32]){await call('Input.dispatchMouseEvent',{type:'mouseMoved',button:'left',buttons:1,x:cord.x,y:cord.y+dy});await delay(80);}
+   await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,x:cord.x,y:cord.y+32});await wait('document.querySelector(".study-room-workspace").dataset.dimmed==="false"');
+ });
  checks.push('Room URL copy; 44px touch lights at320x360; actual cord drag toggles local appearance without a request');
  await call('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});await delay(80);
  await js('document.querySelector(".room-light-switch").focus()');await key('Enter',13);
@@ -136,5 +195,5 @@ try {
  checks.push('Host close confirmation; closure tears down player and stops heartbeat polling');
 
  }
- assert.deepEqual(errors,[]);await writeFile(join(dir,'results.json'),JSON.stringify({scope:'routed room behavior',checks,screenshots,requests,errors},null,2));console.log(JSON.stringify({dir,checks,screenshots:screenshots.length}));
-}catch(error){await writeFile(join(dir,'failure.json'),JSON.stringify({checks,requests,screenshots,error:error.stack},null,2));throw error;}finally{releaseJoin?.();await session?.cleanup();}
+ assert.deepEqual(errors,[]);await writeFile(join(dir,'results.json'),JSON.stringify({scope:'routed room behavior',checks,screenshots,clips,requests,errors},null,2));console.log(JSON.stringify({dir,checks,screenshots:screenshots.length,clips}));
+}catch(error){await writeFile(join(dir,'failure.json'),JSON.stringify({checks,requests,screenshots,clips,error:error.stack},null,2));throw error;}finally{releaseJoin?.();await session?.cleanup();}

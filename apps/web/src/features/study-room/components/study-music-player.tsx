@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { ExternalLink, Pause, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { NowPlayingDisc } from "@/components/kokonutui/liquid-glass-card";
 import { Button } from "@/components/ui/button";
 import { roomPlaybackIdentity } from "../lib/playback-selection";
 import "./study-music-player.css";
@@ -274,7 +275,8 @@ export function StudyMusicPlayer({ playback }: { playback: Playback }) {
 
   return (
     <section className="study-music-player" aria-label="Nhạc trong phòng học">
-      <div>
+      <div className="room-now-playing-identity">
+        <NowPlayingDisc playing={status === "playing"} />
         <h3 className="study-music-player__title">{playback.title}</h3>
       </div>
       <div ref={mountRef} className="study-music-player__frame" hidden={status === "error"} />

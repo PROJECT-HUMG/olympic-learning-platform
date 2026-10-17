@@ -3,7 +3,7 @@ export const checks = {
   rooms: {
     file: "study-room-browser-check.mjs",
     description: "Routed Study Room team, clock, lights, player and host/member lifecycle (synthetic APIs)",
-    options: {},
+    options: { "motion-encoder": "string" },
   },
   uploads: {
     file: 'kokonut-integration-browser-check.mjs',
