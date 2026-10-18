@@ -11,7 +11,7 @@ const baseline = process.env.MOBILE_HEADER_BASELINE === '1';
 const feedbackOnly = true;
 const dir = await mkdtemp(join(tmpdir(), 'ui-mobile-header-render-'));
 const paths = ['src/components/ui/page-layout.css', 'src/components/ui/page-header.tsx',
-  'src/features/daily/ui/study-notebook.css', 'src/features/post/components/news-detail-feature.tsx',
+  'src/features/post/components/news-detail-feature.tsx',
   'src/pages/document-detail-page.tsx', 'src/layouts/welcome-layout.css',
   'src/layouts/navigation.css', 'src/features/home/components/home-hero-section.css'];
 const hashes = async () => Object.fromEntries(await Promise.all(paths.map(async p =>
@@ -61,7 +61,6 @@ try {
       email: 'synthetic@example.test', role: 'ADMIN', status: 'ACTIVE', avatarUrl: null,
     });
     if (path.endsWith('/users/me') || path.endsWith('/auth/refresh')) return reply(e, 401, { status: 401 });
-    if (path.endsWith('/groups') || path.endsWith('/groups/invitations')) return reply(e, 200, []);
     if (path.endsWith('/documents/synthetic-reader')) return reply(e, 200, { id:'synthetic-document',slug:'synthetic-reader',title:'Synthetic · Phương pháp giải các bài toán Olympic sinh viên và hướng dẫn ôn tập',category:{id:'c',name:'Tài liệu ôn tập'},subject:{id:'s',name:'Giải tích'},tags:[],owner:{id:'synthetic-other',fullName:'Synthetic · Giảng viên',username:'synthetic',role:'LECTURER',avatarUrl:null},createdAt:'2026-10-09T00:00:00Z',updatedAt:'2026-10-09T00:00:00Z',viewCount:0,downloadUrl:null,description:'Synthetic · Tài liệu minh họa.',fileSize:1024,downloadCount:0 });
     if (path.endsWith('/documents/metadata')) return reply(e, 200, { subjects: [{id:'synthetic-subject',name:'Synthetic · Giải tích',code:'SYN'}], categories: [], tags: [] });
     if (path.endsWith('/posts/slug/synthetic-lightbox')) return reply(e, 200, post);
@@ -108,7 +107,6 @@ try {
     ['news','/news','.page-heading'],
     ['management','/admin/documents','.page-heading'],
     ['exam','/admin/exams/new','.page-heading'],
-    ['daily-groups','/daily/groups','.page-heading'],
     ['news-reader','/news/synthetic-lightbox','main header'],
     ['document-reader','/documents/synthetic-reader','main h1'],
     ['auth','/login','.auth-heading'],

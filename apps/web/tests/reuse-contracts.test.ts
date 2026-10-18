@@ -6,7 +6,6 @@ import { parseToolkitDecimal } from "../src/features/toolkit/lib/decimal.ts";
 import { calculateGpa } from "../src/features/toolkit/lib/gpa.ts";
 import { calculateGpaGoal } from "../src/features/toolkit/lib/gpa-goal.ts";
 import { hasUuidFormat } from "../src/lib/uuid.ts";
-import { groupId } from "../src/features/daily/groups/group-contract.ts";
 import { isPrivateAssetId } from "../src/features/exams/paper-figures.ts";
 import { isPrivateFigureId } from "../src/features/questions/components/figure-resolution.ts";
 
@@ -51,7 +50,6 @@ it("shared UUID lexical predicate preserves domain wrappers without adding versi
   const invalid = ["", "00000000000000000000000000000000", "00000000-0000-0000-0000-00000000000g", " " + valid[0], valid[0] + " "];
   for (const value of [...valid, ...invalid]) {
     const expected = valid.includes(value);
-    for (const predicate of [hasUuidFormat, isUuid, groupId, isPrivateAssetId, isPrivateFigureId]) assert.equal(predicate(value), expected);
+    for (const predicate of [hasUuidFormat, isUuid, isPrivateAssetId, isPrivateFigureId]) assert.equal(predicate(value), expected);
   }
-  for (const value of [null, undefined, {}, 7]) assert.equal(groupId(value), false);
 });

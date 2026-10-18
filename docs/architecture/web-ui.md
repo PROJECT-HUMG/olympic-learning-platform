@@ -6,7 +6,7 @@ Use [named features](../README.md#feature-lookup) for a screen and [UI owners](.
 
 [Theme tokens](../../apps/web/src/index.css), [page layout CSS](../../apps/web/src/components/ui/page-layout.css), PageHeader/PublicPageHeader/PageSection and existing primitives own shared type, gutters, measure, spacing, borders, radii and semantic colors. Keep existing brand/font/system fallbacks. Do not introduce a parallel card kit, redundant wrapper or dependency to restyle a feature.
 
-- Align headings/actions and search/filter groups. Use quiet borders/surface contrast; avoid oversized rounded panels, double filter framing, decorative gloss and empty bands. Distinct Home/auth/readers/Daily/room/editor compositions are intentional.
+- Align headings/actions and search/filter groups. Use quiet borders/surface contrast; avoid oversized rounded panels, double filter framing, decorative gloss and empty bands. Distinct Home/auth/readers/room/editor compositions are intentional.
 - Real anchors navigate; buttons act. Preserve discoverable touch/keyboard behavior without hover, 44px control targets, visible focus, labels/current/pressed states and honest loading/error/empty/retry feedback. Long names/titles wrap; density must not hide identity or actions.
 - List searching uses the existing 350ms feature hook where supported; discrete filters apply immediately. Keep field-specific matching, server pagination, URL/history, IME and stale-state behavior. Home navigation search and save/auth/OTP/publish forms remain explicit; no auto-submission or global SearchInput query ownership.
 - Public identities/summaries show only authorized real DTO data. Actual ranks/ties remain supplied ranks. No decorative podium, fabricated totals or guessed media previews.
@@ -24,9 +24,7 @@ Initial readiness releases real content as soon as task/query/font state permits
 
 Shared Radix/native owners provide focus/Escape/scroll behavior; features own permissions, dirty/busy dismissal and state retention. Keep fixed inset/zero-translation CreationDialog geometry, its one scrolling body and reachable Close beside toasts. Do not animate frame centering. [Dialog/media owners](../ui/owners/dialogs-and-media.md) describe nested controls and private viewers.
 
-Daily uses a checklist/reflection workspace and a one-date audience picker; group journals, members and management have distinct tabs. Preserve draft authority, private-by-default dated sharing and serialized800ms sync. Room uses a non-3D clock/team workspace, local lighting and one deliberately activated inline player; playback remains device-local. Scientific readers/editors keep notation overflow, private figures and frozen/release policies; do not force them into marketing/card layouts.
-
-Daily motion stays at its existing owners: SmoothTab's measured indicator and a180ms completion-check stroke in [TaskRow](../../apps/web/src/features/daily/components/daily-plan-editor.tsx). The latter adapts the inspected Kokonut Status Island check cue through installed GSAP/useGSAP; no task-queue demo, delayed success, initial content reveal or autosave replay. Scoped cleanup/media matching restores a static check for reduced motion. React Bits AnimatedList's listbox/scroll/reveal wrapper is unsuitable for editable task controls; keep their native semantics and document scrolling.
+Room uses a non-3D clock/team workspace, local lighting and one deliberately activated inline player; playback remains device-local. Scientific readers/editors keep notation overflow, private figures and frozen/release policies; do not force them into marketing/card layouts.
 
 The Documents card remains unchanged pending a compact balanced composition decision. “Chưa có ảnh” is valid wording; missing-preview space should be integrated, not automatically replaced with an icon. Use actual image/no-image/error/long-title states when that change is authorized.
 

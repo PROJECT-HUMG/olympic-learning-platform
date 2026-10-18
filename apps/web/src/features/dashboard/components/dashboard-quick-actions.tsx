@@ -1,12 +1,11 @@
 import { Link } from "react-router-dom";
-import { BookOpen, CalendarDays, Newspaper, User, ArrowUpRight } from "lucide-react";
+import { BookOpen, Newspaper, User, ArrowUpRight } from "lucide-react";
 import { PageSection } from "@/components/ui/page-section";
 import { ROUTES } from "@/router/route-constants";
 
 const links = [
   { href: ROUTES.DOCUMENTS, label: "Kho tài liệu", icon: BookOpen },
   { href: ROUTES.NEWS, label: "Bảng tin", icon: Newspaper },
-  { href: ROUTES.DAILY, label: "Daily của tôi", icon: CalendarDays },
   { href: ROUTES.PROFILE, label: "Hồ sơ cá nhân", icon: User },
 ];
 

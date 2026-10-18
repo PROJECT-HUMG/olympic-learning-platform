@@ -10,7 +10,6 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import DocumentsManagementPage from "@/pages/dashboard/documents/documents-management-page";
 import { PostManagementFeature } from "@/features/post/components/post-management-feature";
 import QuestionBankPage from "@/pages/question-bank-page";
-import { DailyReflectionField } from "@/features/daily/ui/daily-reflection-field";
 import { DashboardDocumentList } from "@/features/documents/components/dashboard-document-list";
 import { DashboardPostList } from "@/features/post/components/dashboard-post-list";
 import { InlineRetryFeedback } from "@/components/ui/inline-retry-feedback";
@@ -20,14 +19,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import "@/index.css";
 
 function Owners() {
-  const [reflection, setReflection] = useState("");
   const [event, setEvent] = useState("");
   const [retrying, setRetrying] = useState(false);
   const [page, setPage] = useState(2);
   const category = { id: "fixture", code: "fixture", name: "Synthetic category", slug: "fixture", description: "Synthetic" };
   return <>
-    <DailyReflectionField id="reflection" label="Nhìn lại ngày học" value={reflection} onChange={setReflection} />
-    <output id="reflection-value">{reflection}</output>
     <section id="document-row"><DashboardDocumentList data={[{ id: "doc", title: "Tài liệu tổng hợp tiếng Việt dài để kiểm tra trên màn hình hẹp", slug: "fixture", description: "Synthetic", viewCount: 1, downloadCount: 2, category, subject: category, tags: [], owner: { id: "fixture", email: "fixture@example.test", username: "fixture", fullName: "Synthetic", avatarUrl: null, role: "STUDENT", status: "ACTIVE" }, createdAt: "2026-10-09T00:00:00Z" }]} onEditClick={doc => setEvent(`edit:${doc.id}`)} onDeleteClick={doc => setEvent(`delete:${doc.id}`)} /></section>
     <section id="post-row"><DashboardPostList data={[{ id: "post", title: "Bài viết tổng hợp tiếng Việt dài để kiểm tra trên màn hình hẹp", slug: "fixture", summary: "Synthetic", type: "NEWS", status: "DRAFT", thumbnailUrl: null, publishedAt: null, expiredAt: null, pinned: false, author: null, viewCount: 1, updatedAt: "2026-10-09T00:00:00Z" }]} onEditClick={post => setEvent(`edit:${post.id}`)} onDeleteClick={post => setEvent(`delete:${post.id}`)} /></section>
     <InlineRetryFeedback message="Synthetic cached refresh failed" actions={<Button id="inline-retry" variant="outline" size="sm" loading={retrying} onClick={() => { setEvent("retry"); setRetrying(true); }}>Thử lại</Button>} />

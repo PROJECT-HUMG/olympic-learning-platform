@@ -20,31 +20,47 @@ it("workspace prioritizes staff work without leaking staff or admin destinations
     assert.equal(items.some(i => i.href.startsWith('/lecturer/')), role === 'LECTURER');
     assert.equal(groups.some(g => ['Học tập', 'Thông tin'].includes(g.label)), false);
     if (role === 'ADMIN' || role === 'LECTURER') assert.equal(groups[1].label, 'Quản lý nội dung');
-    if (role) assert.ok(items.some(i => i.href === '/daily') && items.some(i => i.href === '/profile'));
+    if (role) assert.ok(items.some(i => i.href === '/profile'));
+    assert.ok(items.every(i => !i.href.startsWith('/daily')));
   }
 });
 
-it("tablet shortcuts are labelled, preserve direct Daily/group access, and are role aware", () => {
+it("tablet shortcuts are labelled, omit retired Daily destinations, and are role aware", () => {
   for (const role of ['STUDENT', 'LECTURER', 'ADMIN']) {
     const shortcuts = getWorkspaceShortcuts(role);
     assert.ok(shortcuts.every(i => i.shortLabel && i.label));
-    assert.ok(shortcuts.some(i => i.href === '/daily') && shortcuts.some(i => i.href === '/daily/groups'));
+    assert.ok(shortcuts.every(i => !i.href.startsWith('/daily')));
+    assert.equal(shortcuts.length, role === 'STUDENT' ? 1 : 3);
     assert.equal(shortcuts.some(i => i.href.endsWith('/questions')), role !== 'STUDENT');
     if (role !== 'STUDENT') {
       assert.equal(shortcuts[1].href, `/${role.toLowerCase()}/documents`);
-      assert.ok(shortcuts.findIndex(i => i.href.endsWith('/questions')) < shortcuts.findIndex(i => i.href === '/daily'));
+      assert.equal(shortcuts[2].href, `/${role.toLowerCase()}/questions`);
     }
   }
 });
 
 it("active matching chooses the deepest route and respects toolkit query selection", () => {
   const items = getDrawerNavigationGroups('ADMIN').flatMap(g => g.items);
-  for (const [path, expected] of [['/daily/week', '/daily'], ['/daily/groups/example/reviews/person', '/daily/groups'], ['/profile/achievements', '/profile'], ['/admin/questions/import', '/admin/questions/import'], ['/admin/questions/example', '/admin/questions']]) {
+  for (const [path, expected] of [['/profile/achievements', '/profile'], ['/admin/questions/import', '/admin/questions/import'], ['/admin/questions/example', '/admin/questions']]) {
     assert.equal(getActiveNavigationItem(items, path)?.href, expected);
   }
   assert.equal(getActiveNavigationItem(items, '/toolkit', '?tool=gpa')?.href, '/toolkit?tool=gpa');
   assert.equal(getActiveNavigationItem(items, '/toolkit')?.href, '/toolkit?tool=rooms');
   assert.equal(getActiveNavigationItem(items, '/study-rooms/example')?.href, '/toolkit?tool=rooms');
+});
+
+it("retired Daily routes are absent and existing not-found fallback remains", () => {
+  const routes = readFileSync(new URL('../src/router/routes.tsx', import.meta.url), 'utf8');
+  const constants = readFileSync(new URL('../src/router/route-constants.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(routes, /Daily|daily|ROUTES\.DAILY/);
+  assert.doesNotMatch(constants, /DAILY|\/daily/);
+  assert.match(routes, /path: "\*"/);
+  for (const role of [undefined, 'STUDENT', 'LECTURER', 'ADMIN']) {
+    const items = getDrawerNavigationGroups(role).flatMap(group => group.items);
+    for (const path of ['/daily', '/daily/week', '/daily/groups', '/daily/groups/example/reviews/person']) {
+      assert.equal(getActiveNavigationItem(items, path), undefined);
+    }
+  }
 });
 
 it("visible motion UI is removed, not OS accessibility or theme settings", () => {

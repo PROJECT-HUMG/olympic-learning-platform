@@ -1,7 +1,6 @@
 import {
   BookOpen,
   Calculator,
-  CalendarCheck,
   FileText,
   FileUp,
   FolderTree,
@@ -124,8 +123,6 @@ export function getNavigationGroups(role?: string, permissions: readonly string[
           icon: LayoutDashboard,
         },
         { label: "Hồ sơ & bảo mật", href: ROUTES.PROFILE, icon: User },
-        { label: "Daily của tôi", href: ROUTES.DAILY, icon: CalendarCheck },
-        { label: "Nhóm Daily", href: ROUTES.DAILY_GROUPS, icon: Users },
         ...(role === "STUDENT" ? [{ label: "Đề đã phát hành", href: "/exams", icon: GraduationCap }] : []),
         ...(role === "STUDENT" && permissions.includes("DOCUMENT_UPLOAD") ? [{ label: "Tài liệu của tôi", href: ROUTES.MY_DOCUMENTS, icon: FileUp }] : []),
         ...(role === "STUDENT" ? [{ label: "Thành tích của tôi", href: ROUTES.MY_ACHIEVEMENTS, icon: Award }] : []),
@@ -164,7 +161,7 @@ export function getWorkspaceNavigationGroups(role?: string, permissions: readonl
     .sort((a, b) => order.indexOf(a.label) - order.indexOf(b.label))
     .map(group => group.label !== "Cá nhân" ? group : {
       ...group,
-      // Daily is a frequent task; profile settings stay after the work destinations.
+      // Profile settings stay after the work destinations.
       items: [...group.items].sort((a, b) => Number(a.href === ROUTES.PROFILE) - Number(b.href === ROUTES.PROFILE)),
     });
   if (role !== "ADMIN" && role !== "LECTURER") return groups;
@@ -187,9 +184,9 @@ export function getWorkspaceShortcuts(role?: string, permissions: readonly strin
   const groups = getWorkspaceNavigationGroups(role, permissions);
   const items = groups.flatMap(group => group.items);
   const staff = role === "ADMIN" || role === "LECTURER";
-  const targets = [getDashboardRoute(role), ...(staff ? [`/${role.toLowerCase()}/documents`, `/${role.toLowerCase()}/questions`] : []), ROUTES.DAILY, ROUTES.DAILY_GROUPS];
+  const targets = [getDashboardRoute(role), ...(staff ? [`/${role.toLowerCase()}/documents`, `/${role.toLowerCase()}/questions`] : [])];
   return targets.flatMap(href => {
     const item = items.find(item => item.href === href);
-    return item ? [{ ...item, shortLabel: href === ROUTES.DAILY ? "Daily" : href === ROUTES.DAILY_GROUPS ? "Nhóm Daily" : href.endsWith("/documents") ? "Tài liệu" : href.endsWith("/questions") ? "Câu hỏi" : "Tổng quan" }] : [];
+    return item ? [{ ...item, shortLabel: href.endsWith("/documents") ? "Tài liệu" : href.endsWith("/questions") ? "Câu hỏi" : "Tổng quan" }] : [];
   });
 }

@@ -1,4 +1,4 @@
-/* Extracted Daily presentation. Features still own requests, access and operations. */
+/* Shared evidence presentation. Features own requests, access and operations. */
 .evidence-previews { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: .5rem; min-width: 0; }
 .evidence-photo { flex: 0 1 164px; width: 164px; min-width: 0; position: relative; display: grid; place-items: center; overflow: hidden; height: 112px; border-radius: .5rem; background: var(--muted); border: 1px solid var(--border); text-align: start; }
 .evidence-photo img { width: 100%; height: 100%; object-fit: cover; }

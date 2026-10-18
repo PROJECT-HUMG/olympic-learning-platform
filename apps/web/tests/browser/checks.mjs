@@ -15,11 +15,6 @@ export const checks = {
     description: 'Routed photo-led Honors, album detail, Rankings and profile return paths',
     options: { before: 'boolean', 'interactions-only': 'boolean', 'visual-only': 'boolean' },
   },
-  daily: {
-    file: 'daily-journal-browser-check.mjs',
-    description: 'Routed personal Daily, reflection, group audience and reading (synthetic APIs)',
-    options: { before: 'boolean', 'visual-only': 'boolean' },
-  },
   journeys: {
     file: 'project-journeys-browser-check.mjs',
     description: 'Routed topics, invitations/acceptance, document contribution and exam entries',

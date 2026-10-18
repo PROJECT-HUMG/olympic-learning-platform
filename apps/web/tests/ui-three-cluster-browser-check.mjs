@@ -142,12 +142,7 @@ try {
     if (!baseline) {
       await navigate('owners');
       if (dark) await js("document.documentElement.classList.add('dark')");
-      await wait("!!document.querySelector('#reflection')");
-      await js("window.reflectionNode=document.querySelector('#reflection');reflectionNode.focus()");
-      await call('Input.insertText', { text: '  Bản nháp ngày học — chưa nộp  ' });
-      await wait("document.querySelector('#reflection-value').textContent.includes('Bản nháp')");
-      assert.equal(await js("document.activeElement===reflectionNode && document.querySelector('#reflection')===reflectionNode"), true);
-      assert.equal(await js("reflectionNode.maxLength===4000 && reflectionNode.labels[0].textContent==='Nhìn lại ngày học'"), true);
+      await wait("!!document.querySelector('#document-row')");
       for (const row of ['document', 'post']) {
         const buttons = await js(`Array.from(document.querySelectorAll('#${row}-row button')).map(b=>({height:b.getBoundingClientRect().height,text:b.textContent.trim()}))`);
         assert.deepEqual(buttons.map(b => b.height), [44, 44]);
@@ -175,7 +170,7 @@ try {
       assert.equal(await js("document.activeElement.id"), 'confirm-trigger');
       assert.equal(await js('document.documentElement.scrollWidth<=innerWidth'), true);
       await shot(`shared-owners-${width}`);
-      checks.push(`${width}: associated reflection/maxLength/draft/node/focus; both management keyboard callbacks and44px targets; inline retry disabled; last-page range; shared solid confirmation Escape/focus`);
+      checks.push(`${width}: both management keyboard callbacks and44px targets; inline retry disabled; last-page range; shared solid confirmation Escape/focus`);
     }
     for (const [screen, path, message] of [['documents', '/documents', 'Không thể tải danh sách tài liệu.'], ['posts', '/posts/management', 'Không thể tải danh sách bài viết.'], ['questions', '/questions', 'Không thể tải ngân hàng câu hỏi.']]) {
       holdList = true; held = undefined; failList = true; await navigate(screen);

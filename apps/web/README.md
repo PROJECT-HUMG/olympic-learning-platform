@@ -1,6 +1,6 @@
 # Web
 
-React19/TypeScript/Vite8/Tailwind4 SPA. [Named features](../../docs/README.md#feature-lookup) → responsible routes/components/API owners/checks. [UI rules](../../docs/architecture/web-ui.md), [UI owner index](../../docs/ui/README.md), [state/Daily lifecycle](../../docs/architecture/frontend-architecture.md) and [current checkpoint](../../docs/reviews/ux-flow-audit.md) contain focused context. Read [AGENTS.md](AGENTS.md) before changes.
+React19/TypeScript/Vite8/Tailwind4 SPA. [Named features](../../docs/README.md#feature-lookup) → responsible routes/components/API owners/checks. [UI rules](../../docs/architecture/web-ui.md), [UI owner index](../../docs/ui/README.md), [state/lifecycle](../../docs/architecture/frontend-architecture.md) and [current checkpoint](../../docs/reviews/ux-flow-audit.md) contain focused context. Read [AGENTS.md](AGENTS.md) before changes.
 
 ## Local setup
 
@@ -41,11 +41,9 @@ pnpm preview
 
 Build includes TypeScript and production bundling; report inherited warnings/skipped checks. Choose focused checks from [the feature lookup](../../docs/README.md#feature-lookup). Use the [browser entry point below](#browser-checks) for the migrated routed checks; other runners retain their own setup.
 
-Current [Daily checks and disposable persistence harness](../../docs/architecture/frontend-architecture.md#focused-verification-and-safe-harnesses) supersede older manual-save HTTP runners. Browser interception/fixture identities establish frontend behavior, not live API authorization/persistence, real mail/YouTube/provider behavior, physical autofill/AT/GPU or production capacity. Do not run HTTP mutation probes against an operator/live API or read environment credentials merely to collect screenshots.
+Browser interception/fixture identities establish frontend behavior, not live API authorization/persistence, real mail/YouTube/provider behavior, physical autofill/AT/GPU or production capacity. Do not run HTTP mutation probes against an operator/live API or read environment credentials merely to collect screenshots.
 
 ## Browser checks
-
-`pnpm check:browser daily --no-sandbox --timeout-ms=120000` checks the routed Daily journal, dated audience picker and group readers with synthetic APIs. It shares the options/cleanup below; no email/provider/live API is used. Older Daily UX runners retain pre-redesign modal/ongoing-sharing assumptions.
 
 From `apps/web`, Node24 and installed Chromium are sufficient; no Playwright package, browser download or running dev/API server is required. If PATH selects a different pnpm, use `corepack pnpm <command>` from this directory; it reads the project pin without changing the global pnpm version.
 
@@ -80,6 +78,6 @@ The host binds an owned ephemeral loopback port, including Vite WebSocket traffi
 
 Evidence defaults to a new `/tmp/humg-browser-<check>-*` directory; `--output` requires an existing parent and refuses any existing target. `results.json` or `failure.json`, screenshots/optional motion clips and `lifecycle.json` remain for diagnosis; startup failures retain a bounded Chromium stderr tail. Confirmed navigation/request cancellations are retained separately; unexpected fixture/CDP errors still fail the check. Startup failure, assertion failure, socket closure and SIGINT/SIGTERM cleanup stop/await only owned Chromium, close the host and remove the temporary profile/cache/config; lifecycle status records cleanup failure rather than claiming success. SIGKILL/host crashes cannot run JavaScript cleanup. The lifecycle test deliberately uses failure paths and an independent listener to check ownership.
 
-Other runners are intentionally **not migrated**: isolated CodeSlots/SwipeToast/primitive fixtures, Home/auth scene/preloader checks, Daily and authoring HTTP harnesses, room/YouTube and older UI runners retain their differing contracts. Inspect their source/options and relevant owner guide before running; this entry point is not a universal suite or proof of their equivalence. Historical `--before` output is never current acceptance proof.
+Other runners are intentionally **not migrated**: isolated CodeSlots/SwipeToast/primitive fixtures, Home/auth scene/preloader checks, authoring HTTP harnesses, room/YouTube and older UI runners retain their differing contracts. Inspect their source/options and relevant owner guide before running; this entry point is not a universal suite or proof of their equivalence. Historical `--before` output is never current acceptance proof.
 
 `pnpm check:browser rooms` checks the routed non-3D room, member selection/presence filtering, local cord lighting, host break drum, queue recovery and inline player/reconnect/teardown with synthetic APIs/YouTube. Add `--motion-encoder /absolute/path/to/ffmpeg` to capture four actual interaction clips (member flight/filter, playing/paused record, break wheel and cord). The already installed encoder must support image2pipe/MJPEG input and WebM/libvpx output; nothing is downloaded. Without it, the same interactions/assertions and screenshots run without recording. Clips hold actual CDP frames against monotonic receipt timing at15fps and contain no audio; raw capture timestamps are retained because wall-clock jumps can occur on the host.

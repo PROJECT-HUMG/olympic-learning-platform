@@ -25,13 +25,9 @@ const manifest = async () => Object.fromEntries(await Promise.all(paths.map(asyn
   catch (e) { if (e.code === 'ENOENT') return [p, null]; throw e; }
 })));
 const candidateStart = await manifest();
-let role = null, acceptDialog = false, failDailySave = false, avatarUrl = null;
+let role = null, acceptDialog = false, avatarUrl = null;
 const requests = [], errors = [], checks = [];
 const uid = '00000000-0000-0000-0000-000000000001';
-const plan = { id: uid, ownerId: uid, planDate: '2026-10-05', firstSubmittedAt: null, onTime: false,
-  createdAt: '2026-10-05T00:00:00Z', updatedAt: '2026-10-05T00:00:00Z',
-  reviewReasons: '', reviewWentWell: '', reviewTomorrow: '', version: 0, totalCount: 1, completedCount: 0,
-  mustTotal: 1, mustCompleted: 0, tasks: [{ id: uid, title: 'Ôn tập chuyên đề', priority: 'MUST', status: 'TODO', position: 0 }] };
 const chrome = spawn(process.env.NAV_CHROME_PATH ?? '/home/nghlong3004/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome',
   ['--headless', '--no-sandbox', '--disable-gpu', '--remote-debugging-port=0', `--user-data-dir=${dir}/profile`, 'about:blank']);
 let socket, call, js;
@@ -61,11 +57,6 @@ try {
     else if (path === '/users/me') { body = role ? { id: uid, username: 'navigation-fixture', fullName: 'Nguyễn Minh Anh', email: 'fixture@example.test', role, status: 'ACTIVE', avatarUrl, avatarCrop: {x:.5,y:.5,zoom:1} } : {}; if (!role) status = 401; }
     else if (path === '/auth/refresh') { body = { accessToken: 'synthetic-navigation' }; if (!role) status = 401; }
     else if (path === '/auth/logout') { role = null; }
-    else if (path === '/daily/plans') {
-      if(method==='PUT'&&failDailySave){status=503;body={status:503};}
-      else body = { ...plan, planDate: u.searchParams.get('date') };
-    }
-    else if (path === '/daily/plans/dates' || path === '/groups' || path === '/groups/invitations') body = [];
     else if (path === '/documents/metadata') body = { subjects: [], categories: [], tags: [] };
     else if (path === '/posts' || path === '/documents') body = { content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 };
     await call('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: status,
@@ -135,7 +126,7 @@ try {
       if (width < 1024 || (phase === 'after' && width === 1024)) { await openMenu(); await shot(`${r.toLowerCase()}-menu-${width}`);
         if (phase === 'after') {
           const links = await js("[...document.querySelectorAll('[data-slot=sheet-content] a')].map(a=>a.getAttribute('href'))");
-          assert.ok(links.includes('/daily') && links.includes('/daily/groups'));
+          assert.ok(links.every(h => !h.startsWith('/daily')));
           assert.equal(links.some(h=>h.startsWith('/admin/')), r === 'ADMIN');
           assert.equal(links.some(h=>h.startsWith('/lecturer/')), r === 'LECTURER');
         }
@@ -151,25 +142,16 @@ try {
   if (phase === 'after') {
     avatarUrl='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" fill="#c5e5ef"/><circle cx="40" cy="29" r="14" fill="#35586b"/><path d="M12 80V66a28 28 0 0 1 56 0v14" fill="#00387b"/></svg>');
     role='STUDENT';await viewport(390,844);await navigate('/dashboard');await wait("document.querySelector('.shell-account img')?.complete");await headerControls('image-avatar-mobile');await darkTheme(true);await shot('image-avatar-mobile-dark');avatarUrl=null;
-    role = 'STUDENT'; await viewport(1440); await navigate('/daily?date=2026-10-05'); await wait("!!document.querySelector('.study-task')"); await shot('daily-shell-desktop');
+    role = 'STUDENT'; await viewport(1440); await navigate('/dashboard'); await wait("!!document.querySelector('.dashboard-shortcuts')"); await shot('student-shell-desktop');
     assert.equal(await js("document.querySelectorAll('.workspace-sidebar a[aria-current=page]').length"), 1);
     await js("document.querySelector('[aria-label=\"Thu gọn menu\"]').click()"); await wait("document.querySelector('.workspace-sidebar').getBoundingClientRect().width<100"); await shot('student-collapsed-desktop');
     assert.equal(await js("document.activeElement.getAttribute('aria-label')"), 'Mở rộng menu');
     for (const width of [767, 768, 1199, 1200]) { await viewport(width); await js('new Promise(r=>setTimeout(r,450))'); await fit(`breakpoint-${width}`); }
-    await viewport(1024); await shot('daily-shell-tablet');
-    await viewport(320, 360); await shot('daily-shell-short'); await openMenu(); await shot('student-menu-short'); await closeMenu();
+    await viewport(1024); await shot('student-shell-tablet');
+    await viewport(320, 360); await shot('student-shell-short'); await openMenu(); await shot('student-menu-short'); await closeMenu();
     await viewport(390, 844);
     assert.ok(await js("[...document.querySelectorAll('.shell-menu-trigger__label')].some(e=>e.textContent==='Menu'&&getComputedStyle(e).display!=='none')"));
     checks.push('visible mobile Menu label retained');
-    await js("[...document.querySelectorAll('button')].find(b=>b.textContent==='Nhìn lại ngày').click()");await wait("!!document.querySelector('#daily-tomorrow')");
-    failDailySave=true;
-    await js("(()=>{const e=document.querySelector('#daily-tomorrow');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,'Keep this draft');e.dispatchEvent(new Event('input',{bubbles:true}))})()");
-    await key('Escape','Escape',27);await wait("!document.querySelector('.daily-reflection-dialog')");
-    await openMenu(); await js("document.querySelector('[data-slot=sheet-content] a[href=\"/documents\"]').click()");
-    await wait("!document.querySelector('[data-slot=sheet-content]')"); assert.equal(await js('location.pathname'), '/daily');
-    await js("[...document.querySelectorAll('button')].find(b=>b.textContent==='Nhìn lại ngày').click()");await wait("!!document.querySelector('#daily-tomorrow')");
-    assert.equal(await js("document.querySelector('#daily-tomorrow').value"), 'Keep this draft');await key('Escape','Escape',27);await wait("!document.querySelector('.daily-reflection-dialog')");
-    checks.push('drawer navigation honors genuinely unsynchronized Daily edits');failDailySave=false;
     await navigate('/dashboard');
     await js("document.querySelector('[aria-label=\"Mở menu tài khoản\"]').focus()"); await key('Enter', 'Enter', 13); await wait("!!document.querySelector('[role=menu]')"); await shot('account-menu-mobile'); await key('Escape', 'Escape', 27); await wait("!document.querySelector('[role=menu]')"); assert.equal(await js("document.activeElement.getAttribute('aria-label')"), 'Mở menu tài khoản');
     await key('Enter', 'Enter', 13); await wait("!!document.querySelector('[role=menu]')"); await js("[...document.querySelectorAll('[role=menuitem]')].find(e=>e.textContent.includes('Đăng xuất')).click()"); await wait("location.pathname==='/login'"); await shot('login-shell-mobile'); checks.push('keyboard account menu focus return; synthetic logout retains existing endpoint/login flow');

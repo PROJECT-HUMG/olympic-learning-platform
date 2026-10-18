@@ -1,5 +1,6 @@
 package me.nghlong3004.olympic.studyroom;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -75,6 +77,28 @@ class StudyRoomControllerTest {
     mvc.perform(post("/api/v1/study-rooms/{id}/tracks", ID)
         .contentType(MediaType.APPLICATION_JSON).content("{}"))
         .andExpect(status().isUnauthorized());
+    verifyNoInteractions(service);
+  }
+
+  @Test
+  void retiredDailyEndpointsHaveNoHandlers() throws Exception {
+    var resources = new PathMatchingResourcePatternResolver();
+    for (String feature : List.of("daily", "group")) {
+      assertEquals(
+          0,
+          resources.getResources("classpath*:me/nghlong3004/olympic/" + feature + "/**/*.class")
+              .length);
+    }
+    for (String path :
+        List.of(
+            "/api/v1/daily/plans",
+            "/api/v1/daily/weeks",
+            "/api/v1/groups",
+            "/api/v1/daily/plans/" + ID + "/tasks/" + ID + "/evidence/" + ID + "/bytes",
+            "/api/v1/groups/" + ID + "/avatar/" + ID)) {
+      mvc.perform(get(path).header("Authorization", "Bearer test-token"))
+          .andExpect(status().isNotFound());
+    }
     verifyNoInteractions(service);
   }
 

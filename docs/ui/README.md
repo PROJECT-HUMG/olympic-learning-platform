@@ -10,7 +10,7 @@ Start with [the named-feature lookup](../README.md#feature-lookup) for a screen.
 | Avatar/name/profile navigation, Recognition summary/ranks, real evidence selection/upload | [Identity and Recognition](owners/identity-and-recognition.md), [avatar storage/crop](owners/identity-and-recognition.md#avatar-crop-and-storage-contract) |
 | Home surfaces/MaskedHeading/tabs/utility links, static logo/theme videos, account menu/share actions and startup opacity | [Home and motion](owners/home-registry-and-motion.md) |
 
-Feature adapters own data, permissions, drafts, dirty/busy, query state and real service errors. Shared frames/styles never redefine them. Daily and room native lifecycles, auth scenes/mobile shell, scientific editors/frozen readers and ordinary data screens intentionally differ.
+Feature adapters own data, permissions, drafts, dirty/busy, query state and real service errors. Shared frames/styles never redefine them. Room player lifecycles, auth scenes/mobile shell, scientific editors/frozen readers and ordinary data screens intentionally differ.
 
 The Documents card decision remains open: keep honest “Chưa có ảnh”; improve oversized/isolated missing-preview space only when that composition change is authorized. Do not treat a previous suggestion as an implemented requirement.
 

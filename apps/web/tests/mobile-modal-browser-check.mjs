@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { mkdtemp,writeFile,rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-const web=process.env.VISUAL_WEB_URL??'http://127.0.0.1:3137',baseline=process.env.VISUAL_BASELINE==='1',scoped=process.env.VISUAL_SCOPED_COMMIT==='1';
+const web=process.env.VISUAL_WEB_URL??'http://127.0.0.1:3137',baseline=process.env.VISUAL_BASELINE==='1';
 const dir=await mkdtemp(join(tmpdir(),`mobile-modal-fixes-${baseline?'before':'after'}-`));
 const floatingAppOnly=process.env.VISUAL_FLOATING_APP_ONLY==='1';
 const floatingFixture=process.env.VISUAL_FLOATING_FIXTURE==='1';
@@ -62,14 +62,13 @@ try {
       if(path==='/api/v1/assessment-imports')return reply(e,200,importStatus());
       if(mutationStatus===200&&path.endsWith('/approve'))reviewStatus='APPROVED';
       if(mutationStatus===200&&path.endsWith('/reject'))reviewStatus='REJECTED';
-      return reply(e,mutationStatus,mutationStatus===200?(path.includes('/storage/')?{id:'00000000-0000-4000-8000-000000000055',url:'/synthetic.svg'}:path==='/api/v1/groups'?{id:'00000000-0000-4000-8000-000000000088',name:'Synthetic group',ownerId:uid}:draft()):{status:mutationStatus,title:'Synthetic failure',detail:'Synthetic failure; try again'});
+      return reply(e,mutationStatus,mutationStatus===200?(path.includes('/storage/')?{id:'00000000-0000-4000-8000-000000000055',url:'/synthetic.svg'}:draft()):{status:mutationStatus,title:'Synthetic failure',detail:'Synthetic failure; try again'});
     }
     if(holdQuery&&path.includes(holdQuery))await new Promise(resolve=>heldQueries.push(resolve));
     if(path.endsWith('/admin/recognition/achievements'))return reply(e,200,{...emptyPage,totalPages:1,totalElements:1,content:[record()]});
     if(path.includes('/achievements/')&&path.includes('/evidence/'))return reply(e,200,Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64'),'image/png');
     if(path.endsWith('/documents/synthetic-doc-0'))return reply(e,200,{...docs()[0],fileSize:2048,downloadUrl:null});
     if(path.endsWith('/posts/slug/synthetic-news'))return reply(e,200,{...posts()[0],title:'Synthetic mobile reading',status:'PUBLISHED',createdAt:'2026-10-10T00:00:00Z',publishedAt:'2026-10-10T00:00:00Z',expiredAt:null,content:'<p>Synthetic only</p><img src="/synthetic.svg" alt="Synthetic local landscape" />',thumbnailUrl:'/synthetic.svg'});
-    if(path.endsWith('/groups')||path.includes('/daily-groups')||path.includes('/invitations'))return reply(e,200,[]);
     if(path.endsWith('/users/me'))return reply(e,200,user());
     if(path.endsWith('/auth/refresh'))return reply(e,200,{accessToken:'synthetic'});
     if(path==='/api/v1/assessment-imports/'+job)return reply(e,jobStatus,jobStatus===200?importStatus():{status:jobStatus,title:'Synthetic denied',detail:'Synthetic unavailable'});
@@ -229,26 +228,6 @@ try {
     await shot(`viewer-focus-${w}x${h}-${t}`);await clickText('Phóng to');await wait(`document.querySelector('.evidence-gallery-view--zoomed')`);
     await key('Escape');await wait(`!document.querySelector('.evidence-viewer')`);assert.ok(await js(`document.activeElement.classList.contains('evidence-photo')`));
     checks.push(`Long permission/review text, viewer controls/zoom/Escape/focus ${w}x${h} ${t}`);
-  }
-  // Native group creation keeps its own lifecycle and restores the previous inline style.
-  await resize(320,280);await nav('/daily/groups');await theme('dark');
-  await wait(`Array.from(document.querySelectorAll('main button')).some(b=>b.textContent.includes('Tạo nhóm mới'))`);
-  await js(`document.body.style.overflow='auto';const spacer=document.createElement('div');spacer.style.height='1200px';spacer.dataset.probeSpacer='';document.querySelector('main').append(spacer);window.scrollTo(0,120)`);
-  await clickText('Tạo nhóm mới');await wait(`document.querySelector('dialog[open]')`);await fill('#group-name','Synthetic retained group');await endScroll();await shot('native-group-actions-320x280-dark');
-  const native=await js(`({overflow:document.body.style.overflow,buttons:[...document.querySelector('dialog[open]').querySelectorAll('button')].map(e=>e.getBoundingClientRect().height),before:scrollY})`);
-  await call('Input.dispatchMouseEvent',{type:'mouseWheel',x:2,y:120,deltaX:0,deltaY:200});await delay(250);
-  native.after=await js('scrollY');observations.push({label:'native group wheel and targets',...native});
-  if(!baseline){assert.equal(native.overflow,'hidden');assert.equal(native.before,native.after);assert.ok(native.buttons.every(h=>h>=44));assert.ok(await js(`[...document.querySelector('dialog[open]').querySelectorAll('button')].every(e=>e.getBoundingClientRect().width>=44)`));}
-  await key('Escape');await wait(`!document.querySelector('dialog[open]')`);await delay(50);assert.equal(await js(`document.body.style.overflow`),'auto');assert.equal(await js(`document.activeElement.textContent.trim()`),'Tạo nhóm mới');
-  await clickText('Tạo nhóm mới');await wait(`document.querySelector('dialog[open]')`);assert.equal(await js(`document.querySelector('#group-name').value`),'Synthetic retained group');
-  await js(`document.querySelector('dialog[open] form').requestSubmit()`);await wait(scoped?`document.querySelector('.study-notebook > p.study-context[role=status]')?.textContent.length>0&&!document.querySelector('#group-name').disabled`:`document.querySelector('dialog[open] [role=alert]').textContent.length>0`);await shot('native-group-error-320x280');
-  assert.equal(await js(`document.querySelector('#group-name').value`),'Synthetic retained group');
-  await endScroll();await clickText('Hủy');await wait(`!document.querySelector('dialog[open]')`);await delay(50);assert.equal(await js(`document.body.style.overflow`),'auto');
-  if(!baseline){
-    await clickText('Tạo nhóm mới');await wait(`document.querySelector('dialog[open]')`);await js(`document.querySelector('dialog[open]').scrollTop=0`);await pointer('dialog[open] button[aria-label="Đóng tạo nhóm"]');await wait(`!document.querySelector('dialog[open]')`);await delay(50);assert.equal(await js(`document.body.style.overflow`),'auto');
-    await clickText('Tạo nhóm mới');await wait(`document.querySelector('dialog[open]')`);
-    await js(`document.querySelector('a[href="/daily"]')?.click()`);await wait(`!document.querySelector('dialog[open]')`);await delay(50);assert.equal(await js(`document.body.style.overflow`),'auto');
-    checks.push('Native group44px + outside wheel lock + Escape/Cancel/Close/unmount restoration + failure draft');
   }
   // Nested actual Post editor: scroll to pointer Cancel, pending guard, retry and exact focus return.
   await resize(320,280);await nav('/admin/posts');await theme('light');

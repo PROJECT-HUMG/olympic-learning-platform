@@ -11,7 +11,7 @@ const web = process.env.SCROLL_WEB_URL ?? 'http://127.0.0.1:3000';
 const dir = await mkdtemp(join(tmpdir(), 'scroll-dialog-'));
 const paths = ['src/index.css', 'src/components/ui/dialog.tsx', 'src/components/ui/alert-dialog.tsx',
   'src/components/ui/rich-text-editor.tsx', 'src/features/post/components/post-form.tsx',
-  'src/features/post/components/post-management-feature.tsx', 'src/features/daily/ui/use-daily-confirm.tsx',
+  'src/features/post/components/post-management-feature.tsx',
   'tests/native-prompts.test.ts', 'tests/scroll-dialog-browser-check.mjs'];
 const manifest = async () => Object.fromEntries(await Promise.all(paths.map(async path =>
   [path, createHash('sha256').update(await readFile(new URL('../' + path, import.meta.url))).digest('hex')])));

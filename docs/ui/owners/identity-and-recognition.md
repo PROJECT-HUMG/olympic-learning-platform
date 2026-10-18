@@ -8,7 +8,7 @@
 
 [UserIdentity](../../../apps/web/src/features/user/components/user-hover-card.tsx) keeps a real profile anchor with optional pointer/focus preview; keyboard Enter/touch work without hover. [Profile query](../../../apps/web/src/features/user/hooks/use-public-profile.ts) revalidates and masks cached summaries during refetch/error. [Return helper](../../../apps/web/src/features/user/lib/public-identity.ts) accepts only known same-origin entry paths and preserves query/hash, with deterministic fallback. Historical/unavailable identities remain honest unlinked attribution.
 
-[MyAchievementsPage](../../../apps/web/src/features/recognition/private-pages.tsx) stays student management: actual history first, “Gửi thành tích”, “Xem hồ sơ của tôi”, optional visibility/ranking settings. The public page offers management only to its current student owner. `/profile` is separate private account/security editing. No private evidence, review notes, email or Daily data is added to a public profile.
+[MyAchievementsPage](../../../apps/web/src/features/recognition/private-pages.tsx) stays student management: actual history first, “Gửi thành tích”, “Xem hồ sơ của tôi”, optional visibility/ranking settings. The public page offers management only to its current student owner. `/profile` is separate private account/security editing. No private evidence, review notes or email is added to a public profile.
 
 ## Avatar delivery
 
