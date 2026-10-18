@@ -98,7 +98,7 @@ credentials, tokens, private evidence bytes or Hibernate bind payloads.
   owns filter-chain configuration. Follow method security and service-level
   role/ownership checks as well as routes.
 - Storage is feature-specific: generic file metadata/Cloudinary does not authorize
-  public delivery of Recognition, Daily, group-avatar or question/exam private bytes.
+  public delivery of Recognition or question/exam private bytes.
   Follow the feature's contract; do not invent thumbnail/public URLs.
 - Import wakeups must follow commit. External provider/PDF/upload work, short DB
   transactions, lease fencing, retry ownership and compensation have distinct

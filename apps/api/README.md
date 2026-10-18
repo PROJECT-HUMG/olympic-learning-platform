@@ -74,25 +74,15 @@ Phòng học chung dùng `/api/v1/study-rooms`, yêu cầu JWT và tài khoản 
 ./mvnw -Dtest=StudyRoomRulesTest,StudyRoomIntegrationTest,StudyRoomControllerTest test
 ```
 
-## Dated Daily sharing
+## Retired Daily feature
 
-V2 adds `daily_entry_viewers`; fresh installs apply V1–V3 (V3 is Recognition score history). No old ongoing-sharing preference is backfilled. `GET/PUT /api/v1/daily/plans/{planId}/sharing` is owner-only. PUT accepts `{expectedVersion, audiences:[{groupId,viewerIds}]}`; an empty audience revokes. Members are selected explicitly, validated while group locks precede the plan lock, and persisted with the plan version in one JPA transaction. Saving/Submit grants no access. Day readers, evidence and feedback recheck the date, active accounts and membership; other dates and private weekly material remain unavailable. Leaving removes the relevant grants. The retired group-wide sharing endpoint rejects mutation.
+Daily plans, weekly reviews, accountability groups, feedback and their private evidence/avatar endpoints have been removed. Existing `/api/v1/daily/**` and `/api/v1/groups/**` URLs have no feature handlers. Study Rooms and Recognition remain separate, supported features.
 
-`DailyGroupMvpIntegrationTest` supports Docker by default or an explicitly disposable loopback PostgreSQL via `-DdailyTest.jdbcUrl=jdbc:postgresql://127.0.0.1:PORT/postgres`; it creates/drops only a random `daily_test_*` schema. This tests real persistence, date/audience/rejoin isolation, stale updates, feedback/evidence and concurrency, not deployed/provider behavior.
+Applied V1/V2 migrations and existing Daily/group data are retained unchanged; fresh installs still apply the historical migrations. Do not drop tables, rewrite migration checksums or reset databases as part of this retirement. `FlywayBaselineIntegrationTest` retains legacy schema/data checks to protect that history. Any future deletion or export of stored data needs a separate decision.
 
-`ExamVerticalIntegrationTest` likewise accepts `-DexamTest.jdbcUrl=jdbc:postgresql://127.0.0.1:PORT/postgres` and uses only its random `exam_test_*` schema. Select `#publishWaitsForFigureLockAndFreezesCommittedBytes` for the repository-native row-lock proof; Docker remains the default. These options are only for disposable test databases, never operator data.
+## Exam integration checks
 
-## Daily task append and neutral evidence
-
-`POST /api/v1/daily/plans/tasks?date=YYYY-MM-DD` appends one task for the authenticated ACTIVE owner. Body: `{taskId, expectedVersion, title, priority, status}`. `taskId` is a stable client UUID for transport retries; `expectedVersion` is the saved version, null only for a missing plan. Existing plans are locked/version-checked; identical retries at the immediately resulting version return the saved plan without duplicating the task. Stale/changed retries or foreign task UUIDs conflict. At most 50 tasks; existing tasks, reflection, first submission and sharing are not replaced. Other edits still use plan Save, and Submit is separate. `GET /api/v1/daily/plans/dates` returns only the owner's saved dates, including empty saved plans, newest first.
-
-The fresh-install **V1 baseline** includes GENERAL evidence and group avatars. Evidence file uploads default to GENERAL when `stage` is absent. START/FINISH records, bytes and legacy link APIs remain intact. Existing owned/shared read checks and revocation still apply to metadata and bytes, with no-store private downloads; no public storage URL is introduced. The web upload UI is file-only and retains the existing 10 items × 5 MiB/task limits. Reflection questions/saving are unchanged; the only current timed Daily rule is the Vietnam-local 07:30 first-submission cutoff, not a reflection deadline.
-
-Focused local verification (Docker is required for disposable PostgreSQL; skipped integration tests are not persistence proof):
-
-```bash
-./mvnw -Dtest=DailyIntegrationTest,DailyCalendarTest,DailyMappingTest,EvidenceControllerTest,EvidenceIntegrationTest,DailyGroupMvpIntegrationTest test
-```
+`ExamVerticalIntegrationTest` accepts `-DexamTest.jdbcUrl=jdbc:postgresql://127.0.0.1:PORT/postgres` and uses only its random `exam_test_*` schema. Select `#publishWaitsForFigureLockAndFreezesCommittedBytes` for the repository-native row-lock proof; Docker remains the default. These options are only for disposable test databases, never operator data.
 
 ## Khung avatar và ảnh gốc
 

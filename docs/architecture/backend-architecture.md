@@ -8,7 +8,7 @@ Controllers bind HTTP/method security; services own rules/transactions; reposito
 
 ## Auth and private data
 
-[Authentication](authentication.md), [Recognition](recognition.md), [avatar crop](../ui/owners/identity-and-recognition.md#avatar-crop-and-storage-contract) and [rooms](study-rooms.md) retain active domain contracts. Daily evidence/group access remains with its own service/privacy owners; a public profile, generic storage URL or shared UI never grants access to private bytes. Avoid logging credentials, tokens or evidence contents; keep Hibernate JDBC bind diagnostics off for private `bytea` data.
+[Authentication](authentication.md), [Recognition](recognition.md), [avatar crop](../ui/owners/identity-and-recognition.md#avatar-crop-and-storage-contract) and [rooms](study-rooms.md) retain active domain contracts. A public profile, generic storage URL or shared UI never grants access to private bytes. Avoid logging credentials, tokens or evidence contents; keep Hibernate JDBC bind diagnostics off for private `bytea` data.
 
 ## Questions and exams
 

@@ -19,7 +19,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { ROUTES } from "@/router/route-constants";
 import "./navigation.css";
 
 export function DashboardLayout() {
@@ -34,8 +33,7 @@ export function DashboardLayout() {
   const expanded = isDesktop && sidebarOpen;
   const groups = getNavigationGroups(user?.role, user?.permissions);
   const active = getActiveNavigationItem(groups.flatMap(group => group.items), location.pathname, location.search);
-  const dailyArea = location.pathname === ROUTES.DAILY || location.pathname.startsWith(`${ROUTES.DAILY}/`);
-  const pageContext = dailyArea ? "Góc học tập" : active?.label ?? "Không gian cá nhân";
+  const pageContext = active?.label ?? "Không gian cá nhân";
   const shortcuts = getWorkspaceShortcuts(user?.role, user?.permissions);
   const roleLabel = user?.role === "ADMIN" ? "Quản trị viên" : user?.role === "LECTURER" ? "Giảng viên" : "Sinh viên";
   useEffect(() => setMenuOpen(false), [location.key, isDesktop, hasRail]);
@@ -108,7 +106,6 @@ export function DashboardLayout() {
             <div className="workspace-topbar__actions"><ThemeToggle className="shell-icon-control" /><UserDropdown direction="down" compact className="shell-account" avatarClassName="size-9" /></div>
           </>}
         </header>
-        {!hasRail && dailyArea && <p className="workspace-mobile-context">{pageContext}</p>}
         <div className="workspace-content" id="workspace-content" tabIndex={-1}><Outlet /></div>
       </main>
     </div>

@@ -146,14 +146,11 @@
 /* Focus styles */
 .workspace-layout :is(a, button):focus-visible, .navigation-drawer :is(a, button):focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; box-shadow: none; }
 
-/* The shell supplies the same Daily destinations on tablets and wide screens. */
-@media (min-width: 768px) { .workspace-content .page-shell.study-notebook > .study-area-nav { display: none; } }
 @media (max-width: 767px) {
   .workspace-topbar {
     display: block; min-height: 64px; padding: 0; z-index: 40;
     backdrop-filter:none; -webkit-backdrop-filter:none;
   }
-  .workspace-mobile-context { margin: .5rem 1rem 0; min-width: 0; font-size: .8125rem; font-weight: 600; overflow-wrap: anywhere; }
   .workspace-content { padding: 1.5rem 1rem; }
 }
 @media (max-width: 640px) { .workspace-content { padding-top: 1rem; } }

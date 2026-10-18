@@ -36,21 +36,6 @@ import me.nghlong3004.olympic.common.security.JwtCurrentUserAuthenticationConver
 import me.nghlong3004.olympic.common.security.SecurityCurrentUserProvider;
 import me.nghlong3004.olympic.common.security.SecurityFilterChainsConfig;
 import me.nghlong3004.olympic.common.util.DefaultSlugGenerator;
-import me.nghlong3004.olympic.daily.controller.DailyController;
-import me.nghlong3004.olympic.daily.evidence.controller.EvidenceController;
-import me.nghlong3004.olympic.daily.evidence.controller.EvidencePrivacyFilter;
-import me.nghlong3004.olympic.daily.evidence.mapper.EvidenceMapperImpl;
-import me.nghlong3004.olympic.daily.evidence.service.impl.EvidenceServiceImpl;
-import me.nghlong3004.olympic.daily.feedback.controller.DailyFeedbackController;
-import me.nghlong3004.olympic.daily.feedback.mapper.DailyFeedbackMapperImpl;
-import me.nghlong3004.olympic.daily.feedback.service.impl.DailyFeedbackServiceImpl;
-import me.nghlong3004.olympic.daily.mapper.DailyMapperImpl;
-import me.nghlong3004.olympic.daily.service.impl.DailyServiceImpl;
-import me.nghlong3004.olympic.daily.sharing.controller.SharedDailyController;
-import me.nghlong3004.olympic.daily.sharing.mapper.SharedDailyMapperImpl;
-import me.nghlong3004.olympic.daily.sharing.service.DailyEntrySharingService;
-import me.nghlong3004.olympic.daily.sharing.service.impl.SharedDailyAccessImpl;
-import me.nghlong3004.olympic.daily.sharing.service.impl.SharedDailyServiceImpl;
 import me.nghlong3004.olympic.document.controller.DocumentMetadataController;
 import me.nghlong3004.olympic.document.mapper.CategoryMapperImpl;
 import me.nghlong3004.olympic.document.mapper.SubjectMapperImpl;
@@ -67,13 +52,6 @@ import me.nghlong3004.olympic.exam.service.impl.ExamProjections;
 import me.nghlong3004.olympic.exam.service.impl.ExamPublication;
 import me.nghlong3004.olympic.exam.service.impl.ExamQuestionSourcePolicy;
 import me.nghlong3004.olympic.exam.service.impl.ExamServiceImpl;
-import me.nghlong3004.olympic.group.controller.GroupAvatarController;
-import me.nghlong3004.olympic.group.controller.GroupController;
-import me.nghlong3004.olympic.group.controller.GroupPrivacyFilter;
-import me.nghlong3004.olympic.group.mapper.GroupMapperImpl;
-import me.nghlong3004.olympic.group.service.impl.GroupAvatarServiceImpl;
-import me.nghlong3004.olympic.group.service.impl.GroupMembershipServiceImpl;
-import me.nghlong3004.olympic.group.service.impl.GroupServiceImpl;
 import me.nghlong3004.olympic.question.controller.QuestionController;
 import me.nghlong3004.olympic.question.mapper.QuestionMapperImpl;
 import me.nghlong3004.olympic.question.service.impl.QuestionFigurePolicy;
@@ -144,7 +122,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
  * Opt-in loopback HTTP fixture for question and exam browser checks. Question, exam, current-user,
- * document-metadata, topic, and owner Daily controllers use the disposable PostgreSQL database, the
+ * document-metadata, and topic controllers use the disposable PostgreSQL database, the
  * production security chain, and {@link JwtCurrentUserAuthenticationConverter}. Bearer strings are
  * decoded only by the fixture {@link JwtDecoder}. This does not prove {@code AuthService} login or
  * cryptographic JWT issuance. {@code @SpringBootApplication} stays unused so Redis, mail, OAuth,
@@ -180,7 +158,6 @@ class AuthoringBrowserHarness {
   static final String FIXTURE_PASSWORD = "authoring-browser";
   private static final UUID SUBJECT_ID = UUID.fromString("00000000-0000-0000-0000-000000000a11");
   private static final UUID TOPIC_ID = UUID.fromString("00000000-0000-0000-0000-000000000a12");
-  private static final String DAILY_DATE = "2026-10-05";
   private static final List<FixtureUser> USERS =
       List.of(
           new FixtureUser(
@@ -285,13 +262,6 @@ class AuthoringBrowserHarness {
     bodyHas(client, root + "/topics?subjectId=" + SUBJECT_ID, lecturer, 200, TOPIC_ID.toString());
     status(client, root + "/exams", lecturer, 200);
     status(client, root + "/questions", user(Role.STUDENT), 403);
-    status(client, root + "/daily/plans?date=" + DAILY_DATE, null, 401);
-    status(client, root + "/daily/weeks?weekStart=" + DAILY_DATE, null, 401);
-    for (FixtureUser fixture : USERS) {
-      status(client, root + "/daily/plans?date=" + DAILY_DATE, fixture, 404);
-      bodyHas(
-          client, root + "/daily/weeks?weekStart=" + DAILY_DATE, fixture, 200, "\"plannedDays\":0");
-    }
   }
 
   private static void status(HttpClient client, String url, FixtureUser user, int expected) {
@@ -390,22 +360,6 @@ class AuthoringBrowserHarness {
   @Import({
     QuestionController.class,
     ExamController.class,
-    DailyController.class,
-    EvidenceController.class,
-    EvidencePrivacyFilter.class,
-    EvidenceServiceImpl.class,
-    GroupController.class,
-    GroupAvatarController.class,
-    GroupAvatarServiceImpl.class,
-    GroupPrivacyFilter.class,
-    GroupServiceImpl.class,
-    GroupMembershipServiceImpl.class,
-    SharedDailyController.class,
-    SharedDailyAccessImpl.class,
-    SharedDailyServiceImpl.class,
-    DailyEntrySharingService.class,
-    DailyFeedbackController.class,
-    DailyFeedbackServiceImpl.class,
     UserController.class,
     DocumentMetadataController.class,
     TopicController.class,
@@ -423,13 +377,6 @@ class AuthoringBrowserHarness {
     ExamProjections.class,
     ExamPlacementPolicy.class,
     ExamQuestionSourcePolicy.class,
-    DailyServiceImpl.class,
-    DailyEntrySharingService.class,
-    DailyMapperImpl.class,
-    EvidenceMapperImpl.class,
-    DailyFeedbackMapperImpl.class,
-    SharedDailyMapperImpl.class,
-    GroupMapperImpl.class,
     UserServiceImpl.class,
     UserMapperImpl.class,
     FileMapperImpl.class,
@@ -493,7 +440,7 @@ class AuthoringBrowserHarness {
         probe(root);
         log.info(
             "Authoring browser fixture ready: url={} clock={} lecturerId={} adminId={} studentId={}"
-                + " subjectId={} topicId={} dailyDate={} seconds={}",
+                + " subjectId={} topicId={} seconds={}",
             root,
             clock.instant(),
             user(Role.LECTURER).id(),
@@ -501,7 +448,6 @@ class AuthoringBrowserHarness {
             user(Role.STUDENT).id(),
             SUBJECT_ID,
             TOPIC_ID,
-            DAILY_DATE,
             holdSeconds());
       };
     }

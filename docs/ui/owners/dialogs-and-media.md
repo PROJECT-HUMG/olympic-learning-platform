@@ -9,7 +9,7 @@ Shared frames own geometry, focus/Escape and scroll behavior. Feature adapters o
 - [AlertDialog](../../../apps/web/src/components/ui/alert-dialog.tsx): bounded whole-frame confirmation scrolling; feature pending guards remain local and Cancel retains the form.
 - [EvidenceViewer](../../../apps/web/src/components/ui/evidence-gallery.tsx) / [CSS](../../../apps/web/src/components/ui/evidence-gallery.css): only compact title/Close sticks; long description scrolls with its ARIA relationship, controls/index/filename wrap and zoom retains a separate native image scroller.
 - [ImageLightbox](../../../apps/web/src/components/ui/image-lightbox.tsx): contained fullscreen article image with44px Close and opener focus return. Physical browser/notch geometry is not established by a synthetic viewport.
-- Daily native group creation retains its own lifecycle. Study Room uses a deliberately activated inline player, with no separate music modal; room membership/navigation owns teardown.
+- Study Room uses a deliberately activated inline player, with no separate music modal; room membership/navigation owns teardown.
 
 ## CreationDialog and error-toast coexistence
 
@@ -19,7 +19,7 @@ Shared frames own geometry, focus/Escape and scroll behavior. Feature adapters o
 
 [DepthCarousel](../../../apps/web/src/components/react-bits/depth-carousel.tsx) adapts free `DepthCarousel-TS-CSS` for [HonorGallery](../../../apps/web/src/features/recognition/honor-gallery.tsx) and [AchievementEvidence](../../../apps/web/src/features/recognition/achievement-evidence.tsx). Preserve real image order, perspective/depth rail, horizontal touch/keyboard navigation and44px controls; no autoplay, vertical wheel hijack, stock images or guessed URLs. Installed scoped GSAP owns transforms/cleanup, Radix owns dialog focus/Escape; frame centering is separate.
 
-EvidenceViewer's optional image-gallery slot does not change Daily's default viewer or authorization. Recognition owner/admin identity/refetch/expiry/version gates authorize private blob bytes; abort/revoke/raster-signature checks and original download remain feature-owned. Public album photo queries may be explicitly public; management photos remain private. Profile/achievement visibility does not expose evidence.
+EvidenceViewer's optional image-gallery slot does not change authorization. Recognition owner/admin identity/refetch/expiry/version gates authorize private blob bytes; abort/revoke/raster-signature checks and original download remain feature-owned. Public album photo queries may be explicitly public; management photos remain private. Profile/achievement visibility does not expose evidence.
 
 **Recognition evidence has no PDF first-page preview contract.** Documents separately supply Cloudinary DOCUMENT PDF `thumbnailUrl` under the permitted `documents/{uuid}.pdf` public namespace. [DocumentServiceImpl](../../../apps/api/src/main/java/me/nghlong3004/olympic/document/service/impl/DocumentServiceImpl.java) / [CloudinaryStorageService](../../../apps/api/src/main/java/me/nghlong3004/olympic/storage/service/impl/CloudinaryStorageService.java) do not invent private/authenticated thumbnail delivery. Recognition supplies ID/name/type/size and authenticated original bytes, with no installed PDF.js/react-pdf renderer or accepted thumbnail endpoint. Nonimages remain truthful file/unsupported/error states with authorized original download, not images.
 

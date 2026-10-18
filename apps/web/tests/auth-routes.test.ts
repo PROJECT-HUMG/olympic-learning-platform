@@ -17,9 +17,9 @@ it("rejects external, malformed and account return paths", () => {
   assert.equal(getPostLoginRoute("LECTURER", null), ROUTES.LECTURER);
 });
 
-it("preserves personal Daily date and week return paths for every role", () => {
+it("preserves personal profile return paths and query state for every role", () => {
   for (const role of ["STUDENT", "LECTURER", "ADMIN"]) {
-    for (const path of [`${ROUTES.DAILY}?date=2026-10-05`, `${ROUTES.DAILY_WEEK}?weekStart=2026-10-05`, `${ROUTES.DAILY_GROUPS}?date=2026-09-07`, `${ROUTES.DAILY_GROUPS}/example/reviews/person?date=2026-09-07&view=week`]) {
+    for (const path of [`${ROUTES.PROFILE}?tab=security`, `${ROUTES.PROFILE}#avatar`]) {
       assert.equal(getPostLoginRoute(role, path), path);
     }
   }
